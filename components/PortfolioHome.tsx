@@ -20,7 +20,7 @@ const skills =
   "Notion, Google Workspace, Canva, ChatGPT, Claude, various AI tools, Microsoft Office, investment analysis, writing, copywriting, Substack, social media marketing (X, Instagram, LinkedIn, Threads, Discord), community building, and event planning.";
 
 const interests =
-  "poker, reading, traveling, snowboarding, playing basketball, watching the Lakers, biking, and writing.";
+  "Writing, poker, playing basketball, reading, traveling, watching the Lakers, snowboarding, and biking";
 
 const bio = [
   "Hey, I'm Carter! I grew up in Southern California, studied Business Management Economics at UC Santa Cruz, and am now living in Taipei working as an associate at 886 Studios alongside the founders of Twitch and Guitar Hero.",
