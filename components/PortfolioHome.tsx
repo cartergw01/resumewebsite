@@ -192,7 +192,7 @@ export default function PortfolioHome() {
                     title: "text-base font-semibold text-[var(--foreground)]",
                     subtitle: "text-sm text-[var(--muted)]",
                     content: "px-0 pt-0 pb-2",
-                    indicator: "text-[var(--accent)]",
+                    indicator: "flex h-6 w-6 shrink-0 items-center justify-center self-center text-[var(--accent)]",
                   }}
                 >
                   {earlierExperience.map((item) => (
@@ -203,7 +203,7 @@ export default function PortfolioHome() {
                       subtitle={`${item.role}  •  ${item.dates}`}
                       indicator={({ isOpen }) => (
                         <span
-                          className={`text-[var(--accent)] transition-transform duration-200 ${isOpen ? "rotate-90" : "rotate-0"}`}
+                          className={`inline-flex h-6 w-6 items-center justify-center text-[var(--accent)] transition-transform duration-200 ${isOpen ? "rotate-90" : "rotate-0"}`}
                         >
                           &gt;
                         </span>
@@ -303,7 +303,7 @@ export default function PortfolioHome() {
                         href={essay.href}
                         target="_blank"
                         rel="noreferrer"
-                        className="essay-row flex min-h-[3.75rem] items-center justify-between gap-4 border-b border-[var(--line)] py-3 text-sm text-[var(--foreground)] no-underline transition-opacity hover:opacity-75"
+                        className="essay-row flex min-h-[3.75rem] items-center justify-between gap-4 py-3 text-sm text-[var(--foreground)] no-underline transition-opacity hover:opacity-75"
                       >
                         <span>{essay.title}</span>
                         <span
