@@ -4,10 +4,10 @@ import { Accordion, AccordionItem, Card, CardBody, Image, Link } from "@heroui/r
 import { motion } from "framer-motion";
 
 const topLinks = [
-  { label: "Email", href: "mailto:cartergw01@gmail.com" },
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/cartergrantwang" },
-  { label: "Substack", href: "https://carterko.substack.com/" },
   { label: "X", href: "https://x.com/CarterKoWang" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/cartergrantwang" },
+  { label: "Email", href: "mailto:cartergw01@gmail.com" },
+  { label: "Substack", href: "https://carterko.substack.com/" },
 ];
 
 const profileFacts = [
