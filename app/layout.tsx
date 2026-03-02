@@ -6,6 +6,33 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "Carter Wang | Portfolio",
   description: "A personal website for Carter Wang featuring work experience, background, and writing.",
+  metadataBase: new URL("https://portfolio-website-cartergw01s-projects.vercel.app"),
+  openGraph: {
+    title: "Carter Wang | Portfolio",
+    description: "Venture work, writing, and background from Carter Wang.",
+    url: "https://portfolio-website-cartergw01s-projects.vercel.app",
+    siteName: "Carter Wang Portfolio",
+    type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Carter Wang portfolio preview",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Carter Wang | Portfolio",
+    description: "Venture work, writing, and background from Carter Wang.",
+    images: ["/opengraph-image"],
+  },
+  icons: {
+    icon: "/icon",
+    shortcut: "/icon",
+    apple: "/icon",
+  },
 };
 
 const themeScript = `try { var theme = localStorage.getItem('portfolio-website-theme') || 'dark'; document.documentElement.classList.remove('light', 'dark'); document.documentElement.classList.add(theme); } catch (e) { document.documentElement.classList.add('dark'); }`;

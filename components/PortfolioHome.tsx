@@ -147,11 +147,15 @@ export default function PortfolioHome() {
           >
             <Card className="timeline-featured rounded-[26px] border shadow-none">
               <CardBody className="gap-3 p-5">
-                <div>
-                  <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
-                  <p className="mt-1 text-sm tracking-[0.12em] text-[var(--muted)]">{featuredExperience.role}</p>
-                  <p className="mt-2 text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
-                  <p className="mt-1 text-sm text-[var(--muted)]">Venture Fellow · June 2024 - September 2024</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
+                    <p className="mt-1 text-sm tracking-[0.12em] text-[var(--muted)]">{featuredExperience.role}</p>
+                  </div>
+                  <div className="shrink-0 text-left sm:text-right">
+                    <p className="text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">Venture Fellow · June 2024 - September 2024</p>
+                  </div>
                 </div>
                 <ul className="grid gap-2 text-sm leading-7 text-[var(--foreground)]">
                   {featuredExperience.details.map((detail) => (
@@ -199,8 +203,15 @@ export default function PortfolioHome() {
                     <AccordionItem
                       key={`${item.company}-${item.role}`}
                       aria-label={`${item.company} ${item.role}`}
-                      title={item.company}
-                      subtitle={`${item.role}  •  ${item.dates}`}
+                      title={
+                        <div className="flex w-full flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <span className="text-base font-semibold text-[var(--foreground)]">{item.company}</span>
+                          <span className="shrink-0 text-sm font-normal text-[var(--muted)] sm:text-right">
+                            {item.dates}
+                          </span>
+                        </div>
+                      }
+                      subtitle={item.role}
                       indicator={({ isOpen }) => (
                         <span
                           className={`inline-flex h-6 w-6 items-center justify-center text-[var(--accent)] transition-transform duration-200 ${isOpen ? "rotate-90" : "rotate-0"}`}
@@ -305,12 +316,17 @@ export default function PortfolioHome() {
                         rel="noreferrer"
                         className="essay-row flex min-h-[3.75rem] items-center justify-between gap-4 py-3 text-sm text-[var(--foreground)] no-underline transition-opacity hover:opacity-75"
                       >
-                        <span>{essay.title}</span>
+                        <span className="essay-title flex-1 pb-2">{essay.title}</span>
                         <span
                           aria-hidden="true"
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--accent)]/45 bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent)]"
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] border border-[var(--accent)]/45 bg-[var(--accent-soft)] text-[var(--accent)]"
                         >
-                          -&gt;
+                          <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-none stroke-current stroke-[1.7]">
+                            <path d="M7.5 3.75h6.9l4.1 4.1v12.4H7.5z" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M14.4 3.75v4.1h4.1" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M9.5 12.25h5" strokeLinecap="round" />
+                            <path d="M9.5 15.5h5" strokeLinecap="round" />
+                          </svg>
                         </span>
                       </Link>
                     </motion.div>
