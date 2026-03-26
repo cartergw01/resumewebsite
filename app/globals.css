@@ -11,7 +11,7 @@
 }
 
 :root {
-  --background: #08111f;
+  --background: #060c18;
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.68);
   --line: rgba(137, 172, 214, 0.16);
@@ -24,7 +24,7 @@
 }
 
 html.dark {
-  --background: #08111f;
+  --background: #060c18;
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.68);
   --line: rgba(137, 172, 214, 0.16);
@@ -43,9 +43,10 @@ body {
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(48, 108, 236, 0.3), transparent 30%),
-    radial-gradient(circle at 80% 20%, rgba(255, 139, 75, 0.22), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(19, 55, 121, 0.5), transparent 32%),
+    radial-gradient(ellipse at 15% 55%, rgba(90, 20, 170, 0.18), transparent 42%),
+    radial-gradient(ellipse at top left, rgba(20, 55, 190, 0.2), transparent 36%),
+    radial-gradient(ellipse at 78% 72%, rgba(10, 45, 140, 0.22), transparent 38%),
+    radial-gradient(ellipse at 62% 18%, rgba(110, 15, 90, 0.12), transparent 28%),
     var(--background);
   color: var(--foreground);
 }
@@ -158,6 +159,42 @@ body {
   border-radius: 9999px;
   filter: blur(48px);
   pointer-events: none;
+}
+
+@keyframes orb-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(24px, -18px) scale(1.06); }
+  66% { transform: translate(-12px, 12px) scale(0.96); }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 24px) scale(1.1); }
+}
+
+.accent-halo-1 {
+  animation: orb-float-1 14s ease-in-out infinite;
+}
+
+.accent-halo-2 {
+  animation: orb-float-2 10s ease-in-out infinite;
+}
+
+.portfolio-card-strong,
+.timeline-featured,
+.portfolio-card-profile,
+.portfolio-card-archive,
+.portfolio-paper {
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.portfolio-card-strong:hover,
+.timeline-featured:hover,
+.portfolio-card-profile:hover,
+.portfolio-card-archive:hover,
+.portfolio-paper:hover {
+  border-color: rgba(255, 139, 75, 0.3) !important;
+  box-shadow: 0 0 50px rgba(255, 139, 75, 0.08), 0 30px 90px rgba(0, 12, 30, 0.45) !important;
 }
 
 .content-fade {
