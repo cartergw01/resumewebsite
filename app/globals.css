@@ -125,14 +125,6 @@ body {
   background-image: linear-gradient(to bottom, transparent calc(100% - 1px), rgba(106, 161, 221, 0.12) calc(100% - 1px));
 }
 
-.portfolio-grid {
-  background-image:
-    linear-gradient(rgba(126, 164, 212, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(126, 164, 212, 0.06) 1px, transparent 1px);
-  background-position: center;
-  background-size: 36px 36px;
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent 88%);
-}
 
 .timeline-line {
   background: linear-gradient(180deg, rgba(255, 139, 75, 0.65), rgba(94, 140, 255, 0.3), rgba(255, 139, 75, 0.65));

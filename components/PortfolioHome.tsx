@@ -442,7 +442,6 @@ export default function PortfolioHome() {
     <main className="portfolio-shell relative overflow-hidden px-4 pb-12 pt-5 sm:px-6 lg:px-8" style={{ zIndex: 1 }}>
       <div className="accent-halo accent-halo-1 left-[-10rem] top-8 h-72 w-72 bg-[var(--blue-glow)]" />
       <div className="accent-halo accent-halo-2 right-[-5rem] top-24 h-64 w-64 bg-[var(--accent-soft)]" />
-      <div className="portfolio-grid pointer-events-none absolute inset-x-0 top-0 h-[34rem]" />
 
       <div className="mx-auto flex max-w-6xl justify-end py-2">
         <div className="flex flex-wrap items-center justify-end gap-x-5 gap-y-2 text-xs tracking-[0.16em] text-[var(--muted)]">

@@ -4,14 +4,14 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Carter Wang | Portfolio",
+  title: "Carter Wang",
   description: "A personal website for Carter Wang featuring work experience, background, and writing.",
   metadataBase: new URL("https://portfolio-website-cartergw01s-projects.vercel.app"),
   openGraph: {
-    title: "Carter Wang | Portfolio",
+    title: "Carter Wang",
     description: "Venture work, writing, and background from Carter Wang.",
     url: "https://portfolio-website-cartergw01s-projects.vercel.app",
-    siteName: "Carter Wang Portfolio",
+    siteName: "Carter Wang",
     type: "website",
     images: [
       {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Carter Wang | Portfolio",
+    title: "Carter Wang",
     description: "Venture work, writing, and background from Carter Wang.",
     images: ["/opengraph-image"],
   },
