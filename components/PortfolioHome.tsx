@@ -414,7 +414,7 @@ function EssayRow({ essay, index }: { essay: { title: string; href: string }; in
       {/* title */}
       <motion.span
         variants={rowTitleVariants}
-        className="relative z-10 flex-1 text-sm font-medium leading-6 text-[var(--foreground)]"
+        className="relative z-10 flex-1 text-sm font-semibold leading-6 text-[var(--foreground)]"
       >
         {essay.title}
       </motion.span>
@@ -470,7 +470,7 @@ export default function PortfolioHome() {
               <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
                 <CardBody className="gap-3 p-5 sm:p-6">
                   <AnimatedName />
-                  <div className="grid gap-2 text-sm leading-8 text-[var(--muted)] sm:text-base">
+                  <div className="grid gap-2 text-sm leading-7 text-[var(--muted)] sm:text-base">
                     {bio.map((paragraph) => (
                       <p key={paragraph} className="max-w-5xl">
                         {paragraph}
@@ -493,11 +493,11 @@ export default function PortfolioHome() {
                   <div className="flex flex-col gap-1">
                     <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
                     <div className="flex items-baseline justify-between">
-                      <p className="text-sm font-bold tracking-[0.12em] text-[var(--foreground)]">Associate</p>
+                      <p className="text-sm font-semibold text-[var(--foreground)]">Associate</p>
                       <p className="shrink-0 text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
                     </div>
                     <div className="flex items-baseline justify-between">
-                      <p className="text-sm tracking-[0.12em] text-[var(--muted)]">Venture Fellow</p>
+                      <p className="text-sm text-[var(--muted)]">Venture Fellow</p>
                       <p className="shrink-0 text-sm text-[var(--muted)]">June 2024 - September 2024</p>
                     </div>
                   </div>
