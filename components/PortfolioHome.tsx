@@ -470,7 +470,7 @@ export default function PortfolioHome() {
               <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
                 <CardBody className="gap-3 p-5 sm:p-6">
                   <AnimatedName />
-                  <div className="grid gap-2 text-sm leading-7 text-[var(--muted)] sm:text-base">
+                  <div className="grid gap-2 text-sm leading-7 text-[var(--muted)]">
                     {bio.map((paragraph) => (
                       <p key={paragraph} className="max-w-5xl">
                         {paragraph}
@@ -538,7 +538,7 @@ export default function PortfolioHome() {
                       base: "bg-transparent px-0 py-0 shadow-none data-[open=true]:bg-transparent",
                       heading: "px-0",
                       trigger: "items-start gap-4 px-0 py-4 text-left",
-                      title: "text-base font-semibold text-[var(--foreground)]",
+                      title: "text-sm font-semibold text-[var(--foreground)]",
                       subtitle: "text-sm text-[var(--muted)]",
                       content: "px-0 pt-0 pb-2",
                       indicator: "flex h-6 w-6 shrink-0 items-center justify-center self-center text-[var(--accent)]",
@@ -550,7 +550,7 @@ export default function PortfolioHome() {
                         aria-label={`${item.company} ${item.role}`}
                         title={
                           <div className="flex w-full flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                            <span className="text-base font-semibold text-[var(--foreground)]">{item.company}</span>
+                            <span className="text-sm font-semibold text-[var(--foreground)]">{item.company}</span>
                             <span className="shrink-0 text-sm font-normal text-[var(--muted)] sm:text-right">
                               {item.dates}
                             </span>
