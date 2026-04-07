@@ -490,14 +490,15 @@ export default function PortfolioHome() {
             <TiltCard>
               <Card className="timeline-featured rounded-[26px] border shadow-none">
                 <CardBody className="gap-3 p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
-                      <p className="mt-1 text-sm tracking-[0.12em] text-[var(--muted)]">{featuredExperience.role}</p>
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm font-bold tracking-[0.12em] text-[var(--foreground)]">Associate</p>
+                      <p className="shrink-0 text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
                     </div>
-                    <div className="shrink-0 text-left sm:text-right">
-                      <p className="text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">Venture Fellow · June 2024 - September 2024</p>
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm tracking-[0.12em] text-[var(--muted)]">Venture Fellow</p>
+                      <p className="shrink-0 text-sm text-[var(--muted)]">June 2024 - September 2024</p>
                     </div>
                   </div>
                   <ul className="grid gap-2 text-sm leading-7 text-[var(--foreground)]">
