@@ -41,7 +41,7 @@ const experience = [
     role: "Venture Associate",
     dates: "October 2024 - Present",
     details: [
-      "Lead deal sourcing for a new accelerator by screening and interviewing 250+ early-stage startups, running diligence on 100+ companies, and building the admissions and interview flow in Notion and Tally.",
+      "Lead deal sourcing for a new accelerator. Screen and interview 250+ early-stage startups, own the full application pipeline from inbound through review, run diligence on 100+ startups, design and manage the admissions process, and contribute to final selection decisions.",
       "Serve on the core team that launched ikigai Launchpad in Taiwan, helping shape the selection rubric and supporting 15+ batch teams through workshops, office hours, investor matching, partnerships, and corporate perks.",
       "Spearhead Launch Station, a community-building program for founders, and manage newsletters, socials, website updates, events, and Demo Day planning.",
     ],
