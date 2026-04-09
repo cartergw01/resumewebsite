@@ -15,8 +15,8 @@
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.72);
   --line: rgba(180, 210, 255, 0.1);
-  --panel: rgba(12, 26, 48, 0.38);
-  --panel-strong: rgba(10, 22, 42, 0.52);
+  --panel: rgba(12, 26, 48, 0.28);
+  --panel-strong: rgba(10, 22, 42, 0.40);
   --accent: #ff8b4b;
   --accent-soft: rgba(255, 139, 75, 0.1);
   --accent-strong: rgba(255, 139, 75, 0.22);
@@ -30,8 +30,8 @@ html.dark {
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.72);
   --line: rgba(180, 210, 255, 0.1);
-  --panel: rgba(12, 26, 48, 0.38);
-  --panel-strong: rgba(10, 22, 42, 0.52);
+  --panel: rgba(12, 26, 48, 0.28);
+  --panel-strong: rgba(10, 22, 42, 0.40);
   --accent: #ff8b4b;
   --accent-soft: rgba(255, 139, 75, 0.1);
   --accent-strong: rgba(255, 139, 75, 0.22);
@@ -79,7 +79,7 @@ body {
 
 .portfolio-card-profile {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.42);
+  background: rgba(10, 22, 44, 0.30);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   box-shadow:
@@ -99,7 +99,7 @@ body {
 
 .portfolio-card-archive {
   border: 1px solid var(--glass-border);
-  background: rgba(8, 20, 38, 0.40);
+  background: rgba(8, 20, 38, 0.28);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:
@@ -110,7 +110,7 @@ body {
 .portfolio-paper {
   border: 1px solid var(--glass-border);
   background:
-    linear-gradient(160deg, rgba(255, 200, 140, 0.06) 0%, rgba(10, 20, 40, 0.38) 60%);
+    linear-gradient(160deg, rgba(255, 200, 140, 0.07) 0%, rgba(10, 20, 40, 0.26) 60%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:

@@ -159,10 +159,10 @@ function StarField() {
 
     // 4 parallax layers: [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp]
     const layers: [number, number, number, number, number, number, number][] = [
-      [320, 0.15, 0.45, 0.02,  0.055, 0.15, 0.45],  // far — dense field
-      [140, 0.4,  1.0,  0.065, 0.18,  0.35, 0.7],   // mid
-      [55,  0.9,  2.0,  0.18,  0.43,  0.6,  0.95],  // near
-      [10,  2.0,  3.5,  0.08,  0.20,  0.85, 1.0],   // prominent — big bright stars
+      [380, 0.15, 0.5,  0.02,  0.055, 0.35, 0.7],   // far — dense field
+      [160, 0.4,  1.1,  0.065, 0.18,  0.6,  0.9],   // mid
+      [65,  0.9,  2.2,  0.18,  0.43,  0.8,  1.0],   // near
+      [14,  2.0,  3.8,  0.08,  0.20,  0.95, 1.0],   // prominent
     ];
 
     const stars: Star[] = [];
@@ -188,14 +188,14 @@ function StarField() {
       }
     }
 
-    // Nebulae — more vivid, more variety
+    // Nebulae — vivid, punchy
     const nebulae = [
-      { x: W * 0.15, y: H * 0.3,  r: 320, cr: 80,  cg: 20,  cb: 180, a: 0.10, vx: 0.035,  vy: 0.018 },
-      { x: W * 0.75, y: H * 0.65, r: 360, cr: 15,  cg: 55,  cb: 200, a: 0.12, vx: -0.028, vy: 0.025 },
-      { x: W * 0.5,  y: H * 0.08, r: 280, cr: 190, cg: 25,  cb: 90,  a: 0.08, vx: 0.02,   vy: -0.014 },
-      { x: W * 0.88, y: H * 0.38, r: 300, cr: 25,  cg: 100, cb: 220, a: 0.09, vx: -0.038, vy: 0.018 },
-      { x: W * 0.38, y: H * 0.82, r: 260, cr: 120, cg: 10,  cb: 190, a: 0.07, vx: 0.022,  vy: -0.012 },
-      { x: W * 0.62, y: H * 0.45, r: 240, cr: 200, cg: 80,  cb: 20,  a: 0.05, vx: -0.018, vy: 0.030 },
+      { x: W * 0.15, y: H * 0.3,  r: 340, cr: 90,  cg: 20,  cb: 200, a: 0.22, vx: 0.035,  vy: 0.018 },
+      { x: W * 0.75, y: H * 0.65, r: 380, cr: 15,  cg: 60,  cb: 220, a: 0.24, vx: -0.028, vy: 0.025 },
+      { x: W * 0.5,  y: H * 0.08, r: 300, cr: 210, cg: 25,  cb: 100, a: 0.18, vx: 0.02,   vy: -0.014 },
+      { x: W * 0.88, y: H * 0.38, r: 320, cr: 25,  cg: 110, cb: 230, a: 0.20, vx: -0.038, vy: 0.018 },
+      { x: W * 0.38, y: H * 0.82, r: 280, cr: 140, cg: 10,  cb: 210, a: 0.16, vx: 0.022,  vy: -0.012 },
+      { x: W * 0.62, y: H * 0.45, r: 260, cr: 220, cg: 90,  cb: 20,  a: 0.12, vx: -0.018, vy: 0.030 },
     ];
 
     interface Shooter { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; }
