@@ -87,7 +87,7 @@ const experience = [
 ];
 
 const essays = [
-  { title: "Slop & Spiral", subtitle: "The moment we stop scrolling, we're alone with ourselves", href: "https://carterko.substack.com/p/slop-and-spiral" },
+  { title: "Slop & Spiral", subtitle: "We numb our minds and eventually our souls, and yet we are stimulated. For we have found not the fountain of living water, but the abyss of infinite cheap dopamine.", href: "https://carterko.substack.com/p/slop-and-spiral" },
   { title: "We All Have Superpowers", subtitle: "We invent technology to extend ourselves", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
   { title: "The Mirage of Identity", subtitle: "Our social world in the 21st century", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
   { title: "From Crash to Curiosity", subtitle: "My Investing adVENTURE, thus far…", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
@@ -281,7 +281,7 @@ function StarField() {
           const dx = s.x - cx, dy = s.y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
           const nx = dx / dist, ny = dy / dist;
-          const streakLen = warp * 22 * (s.size + 0.5);
+          const streakLen = warp * warp * 120 * (s.size + 0.5);
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
