@@ -119,6 +119,17 @@ function StarField() {
     };
     window.addEventListener("resize", onResize);
 
+    // Hyperspace scroll effect (mobile only)
+    let scrollVel = 0;
+    let lastScrollY = window.scrollY;
+    const onScroll = () => {
+      if (window.innerWidth >= 768) return;
+      const dy = window.scrollY - lastScrollY;
+      scrollVel = Math.min(Math.abs(dy) * 2.5, 100);
+      lastScrollY = window.scrollY;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
     // Realistic star color palette — temperature-based (O/B blue to M red)
     const palette: [number, number, number][] = [
       [155, 176, 255],  // O/B type — blue
@@ -186,6 +197,10 @@ function StarField() {
     let nextDelay = 1500 + Math.random() * 2500;
 
     const draw = (t: number) => {
+      scrollVel *= 0.85;
+      const warp = Math.min(scrollVel / 100, 1);
+      const cx = W / 2, cy = H / 2;
+
       ctx.clearRect(0, 0, W, H);
 
       // Nebulae — drift and wrap
@@ -229,24 +244,27 @@ function StarField() {
           ctx.fill();
         }
 
-        // Diffraction spikes for prominent stars
-        if (s.prominent) {
-          const spikeLen = s.size * 8 * twinkle;
-          ctx.save();
-          ctx.globalAlpha = op * 0.5;
-          ctx.strokeStyle = `rgba(${s.cr},${s.cg},${s.cb},1)`;
-          ctx.lineWidth = 0.6;
-          for (const angle of [0, Math.PI / 2]) {
-            ctx.beginPath();
-            ctx.moveTo(s.x - Math.cos(angle) * spikeLen, s.y - Math.sin(angle) * spikeLen);
-            ctx.lineTo(s.x + Math.cos(angle) * spikeLen, s.y + Math.sin(angle) * spikeLen);
-            ctx.stroke();
-          }
-          ctx.restore();
+        if (warp > 0.05) {
+          // Hyperspace — streak radially from center vanishing point
+          const dx = s.x - cx, dy = s.y - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const nx = dx / dist, ny = dy / dist;
+          const streakLen = warp * 35 * (s.size + 0.5);
+          const sg = ctx.createLinearGradient(
+            s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
+          );
+          sg.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},0)`);
+          sg.addColorStop(1, `rgba(${s.cr},${s.cg},${s.cb},${op})`);
+          ctx.beginPath();
+          ctx.moveTo(s.x - nx * streakLen, s.y - ny * streakLen);
+          ctx.lineTo(s.x, s.y);
+          ctx.strokeStyle = sg;
+          ctx.lineWidth = s.size * (0.6 + warp * 0.8);
+          ctx.stroke();
         }
-
+        // Always draw the dot (fades to streak at full warp)
         ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.arc(s.x, s.y, s.size * (1 - warp * 0.4), 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${s.cr},${s.cg},${s.cb},${op})`;
         ctx.fill();
       }
@@ -299,6 +317,7 @@ function StarField() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
