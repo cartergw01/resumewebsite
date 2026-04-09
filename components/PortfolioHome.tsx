@@ -509,7 +509,7 @@ function EssayRow({ essay, index }: { essay: { title: string; subtitle: string; 
       initial="rest"
       whileHover="hover"
       variants={rowVariants}
-      className="relative flex items-start gap-4 rounded-xl border border-transparent px-3 py-[1rem] no-underline cursor-pointer overflow-hidden"
+      className="relative flex items-center gap-4 rounded-xl border border-transparent px-3 py-[1rem] no-underline cursor-pointer overflow-hidden"
       style={{ boxShadow: "none" }}
     >
       {/* hover background */}
@@ -524,7 +524,7 @@ function EssayRow({ essay, index }: { essay: { title: string; subtitle: string; 
         className="pointer-events-none absolute left-0 top-0 h-full w-[2px] rounded-l-xl bg-[var(--accent)]"
       />
       {/* index */}
-      <span className="relative z-10 mt-[3px] w-7 shrink-0 text-[10px] font-semibold tracking-[0.14em] text-[var(--muted)] select-none">
+      <span className="relative z-10 w-7 shrink-0 text-[10px] font-semibold tracking-[0.14em] text-[var(--muted)] select-none">
         {String(index + 1).padStart(2, "0")}
       </span>
       {/* title + subtitle */}
@@ -545,7 +545,7 @@ function EssayRow({ essay, index }: { essay: { title: string; subtitle: string; 
       {/* arrow */}
       <motion.span
         variants={rowArrowVariants}
-        className="relative z-10 mt-[3px] shrink-0 text-base text-[var(--accent)]"
+        className="relative z-10 shrink-0 text-base text-[var(--accent)]"
         aria-hidden="true"
       >
         →
