@@ -119,15 +119,23 @@ function StarField() {
     };
     window.addEventListener("resize", onResize);
 
-    // Hyperspace effect — wheel accumulates velocity, touch tracks swipe speed
+    // Hyperspace: velocity from scroll speed + multiplier from scroll depth
+    // scrollDepth: 0 at top, 1 at bottom of page
     let scrollVel = 0;
 
+    const getDepthMultiplier = () => {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const depth = Math.min(window.scrollY / maxScroll, 1);
+      return 1 + depth * 3; // 1× at top, up to 4× at bottom
+    };
+
     const onWheel = (e: WheelEvent) => {
-      scrollVel = Math.min(scrollVel + Math.abs(e.deltaY) * 0.18, 100);
+      const boost = Math.abs(e.deltaY) * 0.18 * getDepthMultiplier();
+      scrollVel = Math.min(scrollVel + boost, 100);
     };
     window.addEventListener("wheel", onWheel, { passive: true });
 
-    // Mobile hyperspace: hold to activate, scroll to accelerate
+    // Mobile: any scroll (touchmove) triggers effect, strength grows with depth
     let lastTouchY = 0;
     let holdTimer: ReturnType<typeof setTimeout> | null = null;
     let isHolding = false;
@@ -135,21 +143,19 @@ function StarField() {
 
     const onTouchStart = (e: TouchEvent) => {
       lastTouchY = e.touches[0].clientY;
-      // Start hold detection after 180ms
       holdTimer = setTimeout(() => {
         isHolding = true;
-        // While holding, continuously feed velocity so the effect builds
         holdInterval = setInterval(() => {
-          scrollVel = Math.min(scrollVel + 2.5, 60);
+          const pulse = 2.5 * getDepthMultiplier();
+          scrollVel = Math.min(scrollVel + pulse, 100);
         }, 16);
       }, 180);
     };
     const onTouchMove = (e: TouchEvent) => {
       const dy = Math.abs(e.touches[0].clientY - lastTouchY);
-      if (isHolding) {
-        // Scrolling while holding: add extra boost on top of hold pulse
-        scrollVel = Math.min(scrollVel + dy * 1.0, 100);
-      }
+      // Always respond to scroll movement (not just when holding)
+      const boost = dy * 0.8 * getDepthMultiplier();
+      scrollVel = Math.min(scrollVel + boost, 100);
       lastTouchY = e.touches[0].clientY;
     };
     const onTouchEnd = () => {
