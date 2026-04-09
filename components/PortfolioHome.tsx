@@ -727,9 +727,10 @@ export default function PortfolioHome() {
                       href="https://carterko.substack.com/"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[10px] tracking-[0.16em] text-[var(--muted)] no-underline transition-colors hover:text-[var(--accent)]"
+                      className="inline-flex items-center gap-1 text-[10px] tracking-[0.16em] text-[var(--muted)] no-underline transition-colors hover:text-[var(--accent)]"
                     >
-                      Read more on my Substack →
+                      Read more on my Substack
+                      <span className="text-[var(--accent)]" aria-hidden="true">→</span>
                     </Link>
                   </div>
 
