@@ -136,9 +136,9 @@ function StarField() {
 
     // Build 3 parallax layers: [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp]
     const layers: [number, number, number, number, number, number, number][] = [
-      [150, 0.2, 0.55, 0.008, 0.022, 0.18, 0.5],   // far
-      [75,  0.5, 1.1,  0.025, 0.07,  0.4,  0.75],  // mid
-      [28,  1.0, 2.2,  0.07,  0.17,  0.65, 1.0],   // near
+      [150, 0.2, 0.55, 0.02,  0.055, 0.18, 0.5],   // far
+      [75,  0.5, 1.1,  0.065, 0.18,  0.4,  0.75],  // mid
+      [28,  1.0, 2.2,  0.18,  0.43,  0.65, 1.0],   // near
     ];
 
     const stars: Star[] = [];
@@ -170,7 +170,7 @@ function StarField() {
     interface Shooter { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; }
     const shooters: Shooter[] = [];
     let lastShot = 0;
-    let nextDelay = 3500 + Math.random() * 5000;
+    let nextDelay = 1500 + Math.random() * 2500;
 
     const draw = (t: number) => {
       ctx.clearRect(0, 0, W, H);
@@ -224,9 +224,9 @@ function StarField() {
       // Shooting stars
       if (t - lastShot > nextDelay) {
         lastShot = t;
-        nextDelay = 4000 + Math.random() * 6000;
+        nextDelay = 1500 + Math.random() * 2500;
         const angle = (10 + Math.random() * 30) * (Math.PI / 180);
-        const spd = 6 + Math.random() * 5;
+        const spd = 14 + Math.random() * 10;
         shooters.push({
           x: Math.random() * W * 0.7,
           y: Math.random() * H * 0.5,
