@@ -123,7 +123,6 @@ function StarField() {
     let scrollVel = 0;
     let lastScrollY = window.scrollY;
     const onScroll = () => {
-      if (window.innerWidth >= 768) return;
       const dy = window.scrollY - lastScrollY;
       scrollVel = Math.min(Math.abs(dy) * 2.5, 100);
       lastScrollY = window.scrollY;
