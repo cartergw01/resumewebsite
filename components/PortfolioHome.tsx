@@ -119,12 +119,16 @@ function StarField() {
     };
     window.addEventListener("resize", onResize);
 
-    // Star color palette — blue-white to faint purple
+    // Realistic star color palette — temperature-based (O/B blue to M red)
     const palette: [number, number, number][] = [
-      [210, 228, 255],
-      [200, 215, 255],
-      [225, 215, 255],
-      [235, 235, 255],
+      [155, 176, 255],  // O/B type — blue
+      [170, 191, 255],  // B type — blue-white
+      [202, 215, 255],  // A type — white-blue
+      [248, 247, 255],  // F type — pure white
+      [255, 244, 234],  // G type — yellow-white
+      [255, 222, 180],  // K type — yellow-orange
+      [255, 190, 130],  // K/M type — orange
+      [255, 160, 100],  // M type — deep orange-red
     ];
 
     interface Star {
@@ -132,19 +136,26 @@ function StarField() {
       size: number; driftSpeed: number;
       baseOpacity: number; phase: number; twinkleSpeed: number;
       cr: number; cg: number; cb: number;
+      prominent: boolean;
     }
 
-    // Build 3 parallax layers: [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp]
+    // 4 parallax layers: [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp]
     const layers: [number, number, number, number, number, number, number][] = [
-      [150, 0.2, 0.55, 0.02,  0.055, 0.18, 0.5],   // far
-      [75,  0.5, 1.1,  0.065, 0.18,  0.4,  0.75],  // mid
-      [28,  1.0, 2.2,  0.18,  0.43,  0.65, 1.0],   // near
+      [320, 0.15, 0.45, 0.02,  0.055, 0.15, 0.45],  // far — dense field
+      [140, 0.4,  1.0,  0.065, 0.18,  0.35, 0.7],   // mid
+      [55,  0.9,  2.0,  0.18,  0.43,  0.6,  0.95],  // near
+      [10,  2.0,  3.5,  0.08,  0.20,  0.85, 1.0],   // prominent — big bright stars
     ];
 
     const stars: Star[] = [];
     for (const [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp] of layers) {
+      const isProminent = minSz >= 2.0;
       for (let i = 0; i < count; i++) {
-        const [cr, cg, cb] = palette[Math.floor(Math.random() * palette.length)];
+        // Bias prominent/near stars toward cooler colors for variety
+        const paletteIdx = isProminent
+          ? Math.floor(Math.random() * palette.length)
+          : Math.floor(Math.random() * palette.length);
+        const [cr, cg, cb] = palette[paletteIdx];
         stars.push({
           x: Math.random() * W,
           y: Math.random() * H,
@@ -152,19 +163,21 @@ function StarField() {
           driftSpeed: minSpd + Math.random() * (maxSpd - minSpd),
           baseOpacity: minOp + Math.random() * (maxOp - minOp),
           phase: Math.random() * Math.PI * 2,
-          twinkleSpeed: 0.0004 + Math.random() * 0.001,
+          twinkleSpeed: 0.0003 + Math.random() * 0.0015,
           cr, cg, cb,
+          prominent: isProminent,
         });
       }
     }
 
-    // Drifting nebula patches — large blurry color clouds
+    // Nebulae — more vivid, more variety
     const nebulae = [
-      { x: W * 0.15, y: H * 0.3,  r: 230, cr: 80,  cg: 30,  cb: 170, a: 0.055, vx: 0.035,  vy: 0.018 },
-      { x: W * 0.75, y: H * 0.65, r: 270, cr: 25,  cg: 65,  cb: 190, a: 0.065, vx: -0.028, vy: 0.025 },
-      { x: W * 0.5,  y: H * 0.08, r: 200, cr: 170, cg: 35,  cb: 110, a: 0.038, vx: 0.02,   vy: -0.014 },
-      { x: W * 0.88, y: H * 0.38, r: 250, cr: 35,  cg: 110, cb: 210, a: 0.048, vx: -0.038, vy: 0.018 },
-      { x: W * 0.38, y: H * 0.82, r: 210, cr: 100, cg: 20,  cb: 180, a: 0.035, vx: 0.022,  vy: -0.012 },
+      { x: W * 0.15, y: H * 0.3,  r: 320, cr: 80,  cg: 20,  cb: 180, a: 0.10, vx: 0.035,  vy: 0.018 },
+      { x: W * 0.75, y: H * 0.65, r: 360, cr: 15,  cg: 55,  cb: 200, a: 0.12, vx: -0.028, vy: 0.025 },
+      { x: W * 0.5,  y: H * 0.08, r: 280, cr: 190, cg: 25,  cb: 90,  a: 0.08, vx: 0.02,   vy: -0.014 },
+      { x: W * 0.88, y: H * 0.38, r: 300, cr: 25,  cg: 100, cb: 220, a: 0.09, vx: -0.038, vy: 0.018 },
+      { x: W * 0.38, y: H * 0.82, r: 260, cr: 120, cg: 10,  cb: 190, a: 0.07, vx: 0.022,  vy: -0.012 },
+      { x: W * 0.62, y: H * 0.45, r: 240, cr: 200, cg: 80,  cb: 20,  a: 0.05, vx: -0.018, vy: 0.030 },
     ];
 
     interface Shooter { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; }
@@ -185,6 +198,7 @@ function StarField() {
         if (n.y > H + n.r) n.y = -n.r;
         const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
         g.addColorStop(0, `rgba(${n.cr},${n.cg},${n.cb},${n.a})`);
+        g.addColorStop(0.5, `rgba(${n.cr},${n.cg},${n.cb},${n.a * 0.4})`);
         g.addColorStop(1, `rgba(${n.cr},${n.cg},${n.cb},0)`);
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
@@ -203,16 +217,32 @@ function StarField() {
         const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.phase));
         const op = s.baseOpacity * twinkle;
 
-        // Soft glow for larger/brighter stars
-        if (s.size > 1.1) {
-          const glowR = s.size * 4;
+        // Outer glow for all stars with size > 0.8
+        if (s.size > 0.8) {
+          const glowR = s.size * (s.prominent ? 6 : 4);
           const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
-          g.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},${op * 0.35})`);
+          g.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},${op * 0.4})`);
           g.addColorStop(1, `rgba(${s.cr},${s.cg},${s.cb},0)`);
           ctx.beginPath();
           ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
           ctx.fillStyle = g;
           ctx.fill();
+        }
+
+        // Diffraction spikes for prominent stars
+        if (s.prominent) {
+          const spikeLen = s.size * 8 * twinkle;
+          ctx.save();
+          ctx.globalAlpha = op * 0.5;
+          ctx.strokeStyle = `rgba(${s.cr},${s.cg},${s.cb},1)`;
+          ctx.lineWidth = 0.6;
+          for (const angle of [0, Math.PI / 2]) {
+            ctx.beginPath();
+            ctx.moveTo(s.x - Math.cos(angle) * spikeLen, s.y - Math.sin(angle) * spikeLen);
+            ctx.lineTo(s.x + Math.cos(angle) * spikeLen, s.y + Math.sin(angle) * spikeLen);
+            ctx.stroke();
+          }
+          ctx.restore();
         }
 
         ctx.beginPath();
@@ -233,22 +263,29 @@ function StarField() {
           vx: Math.cos(angle) * spd,
           vy: Math.sin(angle) * spd,
           life: 0,
-          maxLife: 50 + Math.random() * 25,
+          maxLife: 55 + Math.random() * 30,
         });
       }
 
       for (let i = shooters.length - 1; i >= 0; i--) {
         const s = shooters[i];
         const op = Math.sin((s.life / s.maxLife) * Math.PI);
-        const g = ctx.createLinearGradient(s.x - s.vx * 14, s.y - s.vy * 14, s.x, s.y);
+        const tailLen = 28;
+        const g = ctx.createLinearGradient(s.x - s.vx * tailLen, s.y - s.vy * tailLen, s.x, s.y);
         g.addColorStop(0, "rgba(200,220,255,0)");
-        g.addColorStop(1, `rgba(230,240,255,${op * 0.9})`);
+        g.addColorStop(0.7, `rgba(220,235,255,${op * 0.5})`);
+        g.addColorStop(1, `rgba(245,250,255,${op})`);
         ctx.beginPath();
-        ctx.moveTo(s.x - s.vx * 14, s.y - s.vy * 14);
+        ctx.moveTo(s.x - s.vx * tailLen, s.y - s.vy * tailLen);
         ctx.lineTo(s.x, s.y);
         ctx.strokeStyle = g;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
+        // Bright head dot
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${op})`;
+        ctx.fill();
         s.x += s.vx;
         s.y += s.vy;
         s.life++;
