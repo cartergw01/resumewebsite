@@ -731,6 +731,23 @@ export default function PortfolioHome() {
 
         {/* Right column */}
         <div className="grid gap-3">
+          {/* Photo card */}
+          <ScrollReveal delay={0.05}>
+            <TiltCard>
+              <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
+                <CardBody className="p-3 sm:p-4">
+                  <Image
+                    removeWrapper
+                    alt="Carter Wang headshot"
+                    src="/headshot.jpg"
+                    className="h-[22rem] w-full rounded-[22px] object-cover object-[center_12%]"
+                  />
+                </CardBody>
+              </Card>
+            </TiltCard>
+          </ScrollReveal>
+
+          {/* Essays card */}
           <ScrollReveal delay={0.1}>
             <TiltCard>
               <Card className="portfolio-paper relative overflow-hidden rounded-[26px] border-none shadow-none">
@@ -768,16 +785,11 @@ export default function PortfolioHome() {
             </TiltCard>
           </ScrollReveal>
 
+          {/* Skills / Interests card */}
           <ScrollReveal>
             <TiltCard>
               <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
-                <CardBody className="gap-5 p-5 pt-3 sm:p-6 sm:pt-4">
-                  <Image
-                    removeWrapper
-                    alt="Carter Wang headshot"
-                    src="/headshot.jpg"
-                    className="relative -top-2 h-[20rem] w-full rounded-[22px] object-cover object-[center_12%]"
-                  />
+                <CardBody className="gap-5 p-5 sm:p-6">
                   <div className="grid gap-4">
                     {profileFacts.map((fact) => (
                       <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
