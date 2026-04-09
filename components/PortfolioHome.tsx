@@ -627,7 +627,7 @@ export default function PortfolioHome() {
           </TiltCard>
         </ScrollReveal>
 
-        <ScrollReveal delay={0.05} className="h-full">
+        <ScrollReveal delay={0.05} className="min-h-0 self-stretch">
           <TiltCard>
             <div className="portfolio-card-profile h-full rounded-[30px] p-3 sm:p-4">
               <img
