@@ -286,8 +286,11 @@ function StarField() {
           // Hyperspace — streak radially from center vanishing point
           const dx = s.x - cx, dy = s.y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          if (dist < 30) continue; // skip stars too close to center — they cause crossing
           const nx = dx / dist, ny = dy / dist;
-          const streakLen = warp * warp * 120 * (s.size + 0.5);
+          // Scale streak length by distance from center: near-center = short, edges = long
+          const distFactor = Math.min(dist / 180, 1);
+          const streakLen = warp * warp * 120 * (s.size + 0.5) * distFactor;
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
