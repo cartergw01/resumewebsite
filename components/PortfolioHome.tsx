@@ -119,15 +119,23 @@ function StarField() {
     };
     window.addEventListener("resize", onResize);
 
-    // Hyperspace scroll effect (mobile only)
+    // Hyperspace effect — wheel accumulates velocity, touch tracks swipe speed
     let scrollVel = 0;
-    let lastScrollY = window.scrollY;
-    const onScroll = () => {
-      const dy = window.scrollY - lastScrollY;
-      scrollVel = Math.min(Math.abs(dy) * 5, 100);
-      lastScrollY = window.scrollY;
+
+    const onWheel = (e: WheelEvent) => {
+      scrollVel = Math.min(scrollVel + Math.abs(e.deltaY) * 0.18, 100);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", onWheel, { passive: true });
+
+    let lastTouchY = 0;
+    const onTouchStart = (e: TouchEvent) => { lastTouchY = e.touches[0].clientY; };
+    const onTouchMove = (e: TouchEvent) => {
+      const dy = Math.abs(e.touches[0].clientY - lastTouchY);
+      scrollVel = Math.min(scrollVel + dy * 0.6, 100);
+      lastTouchY = e.touches[0].clientY;
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: true });
 
     // Realistic star color palette — temperature-based (O/B blue to M red)
     const palette: [number, number, number][] = [
@@ -196,7 +204,7 @@ function StarField() {
     let nextDelay = 1500 + Math.random() * 2500;
 
     const draw = (t: number) => {
-      scrollVel *= 0.80;
+      scrollVel *= 0.92;
       const warp = Math.min(scrollVel / 100, 1);
       const cx = W / 2, cy = H / 2;
 
@@ -248,7 +256,7 @@ function StarField() {
           const dx = s.x - cx, dy = s.y - cy;
           const dist = Math.sqrt(dx * dx + dy * dy) || 1;
           const nx = dx / dist, ny = dy / dist;
-          const streakLen = warp * 35 * (s.size + 0.5);
+          const streakLen = warp * 22 * (s.size + 0.5);
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
@@ -316,7 +324,9 @@ function StarField() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
     };
   }, []);
 
