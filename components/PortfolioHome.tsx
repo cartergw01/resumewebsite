@@ -87,11 +87,10 @@ const experience = [
 ];
 
 const essays = [
-  { title: "Slop & Spiral", href: "https://carterko.substack.com/" },
-  { title: "We All Have Superpowers", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
-  { title: "The Mirage of Identity", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
-  { title: "From Crash to Curiosity", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
-  { title: "Work as Play", href: "https://carterko.substack.com/p/work-as-play" },
+  { title: "We All Have Superpowers", subtitle: "We invent technology to extend ourselves", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
+  { title: "The Mirage of Identity", subtitle: "Our social world in the 21st century", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
+  { title: "From Crash to Curiosity", subtitle: "My Investing adVENTURE, thus far…", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
+  { title: "Work as Play", subtitle: "A reflection on the cusp of my career", href: "https://carterko.substack.com/p/work-as-play" },
 ];
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -455,7 +454,10 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
   return <span ref={ref}>{count}{suffix}</span>;
 }
 
-const rowVariants = { rest: {}, hover: {} } as const;
+const rowVariants = {
+  rest: { y: 0 },
+  hover: { y: -3, transition: { duration: 0.2, ease: "easeOut" as const } },
+} as const;
 const rowBgVariants = {
   rest: { opacity: 0 },
   hover: { opacity: 1, transition: { duration: 0.18 } },
@@ -466,14 +468,18 @@ const rowBarVariants = {
 };
 const rowTitleVariants = {
   rest: { x: 0 },
-  hover: { x: 5, transition: { duration: 0.18, ease: "easeOut" as const } },
+  hover: { x: 4, transition: { duration: 0.18, ease: "easeOut" as const } },
 };
 const rowArrowVariants = {
-  rest: { opacity: 0, x: -8 },
+  rest: { opacity: 0, x: -6 },
   hover: { opacity: 1, x: 0, transition: { duration: 0.18, ease: "easeOut" as const } },
 };
+const rowSubtitleVariants = {
+  rest: { opacity: 0, height: 0, marginTop: 0 },
+  hover: { opacity: 1, height: "auto", marginTop: 3, transition: { duration: 0.22, ease: "easeOut" as const } },
+};
 
-function EssayRow({ essay, index }: { essay: { title: string; href: string }; index: number }) {
+function EssayRow({ essay, index }: { essay: { title: string; subtitle: string; href: string }; index: number }) {
   return (
     <motion.a
       href={essay.href}
@@ -482,34 +488,43 @@ function EssayRow({ essay, index }: { essay: { title: string; href: string }; in
       initial="rest"
       whileHover="hover"
       variants={rowVariants}
-      className="relative flex items-center gap-4 border-b border-[var(--line)] py-[1.1rem] last:border-b-0 no-underline cursor-pointer overflow-hidden"
+      className="relative flex items-start gap-4 rounded-xl border border-transparent px-3 py-[1rem] no-underline cursor-pointer overflow-hidden"
+      style={{ boxShadow: "none" }}
     >
-      {/* hover background wash */}
+      {/* hover background */}
       <motion.span
         variants={rowBgVariants}
-        className="pointer-events-none absolute inset-0 bg-[var(--accent-soft)]"
+        className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--accent-soft)]"
       />
       {/* left accent bar */}
       <motion.span
         variants={rowBarVariants}
         style={{ originY: 0 }}
-        className="pointer-events-none absolute left-0 top-0 h-full w-[2px] bg-[var(--accent)]"
+        className="pointer-events-none absolute left-0 top-0 h-full w-[2px] rounded-l-xl bg-[var(--accent)]"
       />
-      {/* index number */}
-      <span className="relative z-10 w-7 shrink-0 text-[10px] font-semibold tracking-[0.14em] text-[var(--muted)] select-none">
+      {/* index */}
+      <span className="relative z-10 mt-[3px] w-7 shrink-0 text-[10px] font-semibold tracking-[0.14em] text-[var(--muted)] select-none">
         {String(index + 1).padStart(2, "0")}
       </span>
-      {/* title */}
-      <motion.span
-        variants={rowTitleVariants}
-        className="relative z-10 flex-1 text-sm font-semibold leading-6 text-[var(--foreground)]"
-      >
-        {essay.title}
-      </motion.span>
+      {/* title + subtitle */}
+      <div className="relative z-10 flex-1 min-w-0">
+        <motion.span
+          variants={rowTitleVariants}
+          className="block text-sm font-semibold leading-6 text-[var(--foreground)]"
+        >
+          {essay.title}
+        </motion.span>
+        <motion.span
+          variants={rowSubtitleVariants}
+          className="block overflow-hidden text-xs leading-5 text-[var(--muted)]"
+        >
+          {essay.subtitle}
+        </motion.span>
+      </div>
       {/* arrow */}
       <motion.span
         variants={rowArrowVariants}
-        className="relative z-10 shrink-0 text-base text-[var(--accent)]"
+        className="relative z-10 mt-[3px] shrink-0 text-base text-[var(--accent)]"
         aria-hidden="true"
       >
         →
@@ -749,7 +764,7 @@ export default function PortfolioHome() {
                   </div>
 
                   {/* Essay rows */}
-                  <div className="mt-2 flex flex-col">
+                  <div className="mt-1 flex flex-col gap-1">
                     {essays.map((essay, index) => (
                       <EssayRow key={essay.title} essay={essay} index={index} />
                     ))}
