@@ -374,8 +374,9 @@ function TiltCard({ children }: { children: React.ReactNode }) {
   const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-5, 5]), { stiffness: 300, damping: 30 });
 
   return (
-    <div style={{ perspective: 900 }}>
+    <div style={{ perspective: 900 }} className="h-full">
       <motion.div
+        className="h-full"
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         onMouseMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
@@ -598,25 +599,44 @@ export default function PortfolioHome() {
         </div>
       </div>
 
-      <div className="mx-auto mt-2 grid max-w-6xl items-start gap-3 lg:grid-cols-[1.08fr_0.92fr]">
+      {/* Top row: bio + photo — CSS grid stretch makes them equal height */}
+      <div className="mx-auto mt-2 grid max-w-6xl gap-3 lg:grid-cols-[1.08fr_0.92fr]">
+        <ScrollReveal delay={0.05} className="h-full">
+          <TiltCard>
+            <Card className="portfolio-card-strong h-full rounded-[30px] border-none shadow-none">
+              <CardBody className="gap-3 p-5 sm:p-6">
+                <AnimatedName />
+                <div className="grid gap-2 text-sm leading-7 text-[var(--muted)]">
+                  {bio.map((paragraph) => (
+                    <p key={paragraph} className="max-w-5xl">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          </TiltCard>
+        </ScrollReveal>
+
+        <ScrollReveal delay={0.05} className="h-full">
+          <TiltCard>
+            <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
+              <CardBody className="h-full p-3 sm:p-4">
+                <Image
+                  removeWrapper
+                  alt="Carter Wang headshot"
+                  src="/headshot.jpg"
+                  className="h-full w-full rounded-[22px] object-cover object-[center_12%]"
+                />
+              </CardBody>
+            </Card>
+          </TiltCard>
+        </ScrollReveal>
+      </div>
+
+      <div className="mx-auto mt-3 grid max-w-6xl items-start gap-3 lg:grid-cols-[1.08fr_0.92fr]">
         {/* Left column */}
         <div className="grid gap-3">
-          <ScrollReveal delay={0.05}>
-            <TiltCard>
-              <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
-                <CardBody className="gap-3 p-5 sm:p-6">
-                  <AnimatedName />
-                  <div className="grid gap-2 text-sm leading-7 text-[var(--muted)]">
-                    {bio.map((paragraph) => (
-                      <p key={paragraph} className="max-w-5xl">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </CardBody>
-              </Card>
-            </TiltCard>
-          </ScrollReveal>
 
           <ScrollReveal delay={0.08}>
             <TiltCard>
@@ -732,21 +752,6 @@ export default function PortfolioHome() {
         {/* Right column */}
         <div className="grid gap-3">
           {/* Photo card */}
-          <ScrollReveal delay={0.05}>
-            <TiltCard>
-              <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
-                <CardBody className="p-3 sm:p-4">
-                  <Image
-                    removeWrapper
-                    alt="Carter Wang headshot"
-                    src="/headshot.jpg"
-                    className="h-[22rem] w-full rounded-[22px] object-cover object-[center_12%]"
-                  />
-                </CardBody>
-              </Card>
-            </TiltCard>
-          </ScrollReveal>
-
           {/* Essays card */}
           <ScrollReveal delay={0.1}>
             <TiltCard>
@@ -767,17 +772,25 @@ export default function PortfolioHome() {
                     ))}
                   </div>
 
-                  {/* Footer */}
-                  <div className="mt-4 border-t border-[var(--line)] pt-4">
-                    <Link
+                  {/* Footer — hover highlight matches essay rows */}
+                  <div className="mt-2 border-t border-[var(--line)] pt-2">
+                    <motion.a
                       href="https://carterko.substack.com/"
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[10px] tracking-[0.16em] text-[var(--muted)] no-underline transition-colors hover:text-[var(--accent)]"
+                      initial="rest"
+                      whileHover="hover"
+                      variants={rowVariants}
+                      className="relative flex items-center gap-4 rounded-xl border border-transparent px-3 py-3 no-underline cursor-pointer overflow-hidden"
+                      style={{ boxShadow: "none" }}
                     >
-                      Read more on my Substack
-                      <span className="text-[var(--accent)]" aria-hidden="true">→</span>
-                    </Link>
+                      <motion.span variants={rowBgVariants} className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--accent-soft)]" />
+                      <motion.span variants={rowBarVariants} style={{ originY: 0 }} className="pointer-events-none absolute left-0 top-0 h-full w-[2px] rounded-l-xl bg-[var(--accent)]" />
+                      <span className="relative z-10 flex-1 text-[10px] tracking-[0.16em] text-[var(--muted)]">
+                        Read more on my Substack
+                      </span>
+                      <motion.span variants={rowArrowVariants} className="relative z-10 shrink-0 text-base text-[var(--accent)]" aria-hidden="true">→</motion.span>
+                    </motion.a>
                   </div>
 
                 </CardBody>
