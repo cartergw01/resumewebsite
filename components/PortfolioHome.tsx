@@ -610,9 +610,9 @@ export default function PortfolioHome() {
 
       {/* Top row: bio + photo — CSS grid stretch makes them equal height */}
       <div className="mx-auto mt-2 grid max-w-6xl gap-3 lg:grid-cols-[1.08fr_0.92fr]">
-        <ScrollReveal delay={0.05} className="h-full">
+        <ScrollReveal delay={0.05}>
           <TiltCard>
-            <Card className="portfolio-card-strong h-full rounded-[30px] border-none shadow-none">
+            <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
               <CardBody className="gap-3 p-5 sm:p-6">
                 <AnimatedName />
                 <div className="grid gap-2 text-sm leading-7 text-[var(--muted)]">
