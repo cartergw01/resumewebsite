@@ -704,37 +704,6 @@ export default function PortfolioHome() {
         <div className="grid gap-3">
           <ScrollReveal delay={0.1}>
             <TiltCard>
-              <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
-                <CardBody className="gap-5 p-5 pt-3 sm:p-6 sm:pt-4">
-                  <Image
-                    removeWrapper
-                    alt="Carter Wang headshot"
-                    src="/headshot.jpg"
-                    className="relative -top-2 h-[20rem] w-full rounded-[22px] object-cover object-[center_12%]"
-                  />
-                  <div className="grid gap-4">
-                    {profileFacts.map((fact) => (
-                      <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
-                        <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">{fact.label}</p>
-                        <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">{fact.value}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid gap-3">
-                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Skills</p>
-                    <p className="text-sm leading-7 text-[var(--foreground)]">{skills}</p>
-                  </div>
-                  <div className="grid gap-3">
-                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Interests</p>
-                    <p className="text-sm leading-7 text-[var(--foreground)]">{interests}</p>
-                  </div>
-                </CardBody>
-              </Card>
-            </TiltCard>
-          </ScrollReveal>
-
-          <ScrollReveal>
-            <TiltCard>
               <Card className="portfolio-paper relative overflow-hidden rounded-[26px] border-none shadow-none">
                 <div className="pointer-events-none absolute right-[-3rem] top-6 h-28 w-28 rounded-full bg-[rgba(255,168,103,0.22)] blur-3xl" />
                 <CardBody className="relative flex h-full flex-col p-5 lg:p-6">
@@ -764,6 +733,37 @@ export default function PortfolioHome() {
                     </Link>
                   </div>
 
+                </CardBody>
+              </Card>
+            </TiltCard>
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <TiltCard>
+              <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
+                <CardBody className="gap-5 p-5 pt-3 sm:p-6 sm:pt-4">
+                  <Image
+                    removeWrapper
+                    alt="Carter Wang headshot"
+                    src="/headshot.jpg"
+                    className="relative -top-2 h-[20rem] w-full rounded-[22px] object-cover object-[center_12%]"
+                  />
+                  <div className="grid gap-4">
+                    {profileFacts.map((fact) => (
+                      <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
+                        <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">{fact.label}</p>
+                        <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">{fact.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid gap-3">
+                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Skills</p>
+                    <p className="text-sm leading-7 text-[var(--foreground)]">{skills}</p>
+                  </div>
+                  <div className="grid gap-3">
+                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Interests</p>
+                    <p className="text-sm leading-7 text-[var(--foreground)]">{interests}</p>
+                  </div>
                 </CardBody>
               </Card>
             </TiltCard>
