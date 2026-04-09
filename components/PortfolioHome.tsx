@@ -609,13 +609,13 @@ export default function PortfolioHome() {
       </div>
 
       {/* Top row: bio + photo — CSS grid stretch makes them equal height */}
-      <div className="mx-auto mt-2 grid max-w-6xl gap-3 lg:grid-cols-[1.08fr_0.92fr]">
-        <ScrollReveal delay={0.05}>
+      <div className="mx-auto mt-2 grid max-w-6xl items-stretch gap-2 sm:gap-3 lg:grid-cols-[1.08fr_0.92fr]">
+        <ScrollReveal delay={0.05} className="h-full">
           <TiltCard>
-            <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
-              <CardBody className="gap-3 p-5 sm:p-6">
+            <Card className="portfolio-card-strong h-full rounded-[30px] border-none shadow-none">
+              <CardBody className="flex h-full flex-col justify-start gap-2 p-4 sm:p-5">
                 <AnimatedName />
-                <div className="grid gap-2 text-sm leading-7 text-[var(--muted)]">
+                <div className="grid gap-1.5 text-sm leading-6 text-[var(--muted)] sm:leading-[1.65]">
                   {bio.map((paragraph) => (
                     <p key={paragraph} className="max-w-5xl">
                       {paragraph}
@@ -630,12 +630,14 @@ export default function PortfolioHome() {
         <div className="min-h-0 overflow-hidden">
           <ScrollReveal delay={0.05} className="h-full">
             <TiltCard>
-              <div className="portfolio-card-profile h-full rounded-[30px] p-3 sm:p-4">
-                <img
-                  alt="Carter Wang headshot"
-                  src="/headshot.jpg"
-                  className="block h-full w-full rounded-[22px] object-cover object-[center_18%]"
-                />
+              <div className="portfolio-card-profile flex h-full items-center rounded-[30px] p-4 sm:p-5">
+                <div className="relative h-full min-h-[320px] w-full overflow-hidden rounded-[22px] sm:min-h-[352px] lg:min-h-0">
+                  <img
+                    alt="Carter Wang headshot"
+                    src="/headshot.jpg"
+                    className="absolute inset-0 block h-full w-full object-cover object-[center_25%]"
+                  />
+                </div>
               </div>
             </TiltCard>
           </ScrollReveal>
