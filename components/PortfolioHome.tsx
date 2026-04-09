@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Accordion, AccordionItem, Card, CardBody, Image, Link } from "@heroui/react";
-import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useInView, useAnimation } from "framer-motion";
 
 const topLinks = [
   { label: "X", href: "https://x.com/CarterKoWang" },
@@ -355,21 +355,54 @@ function TiltCard({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedName() {
+  const shimmer = useAnimation();
+
+  const handleEnter = async () => {
+    shimmer.set({ x: "-115%" });
+    await shimmer.start({ x: "115%", transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] } });
+  };
+
   return (
-    <h1 className="text-4xl font-semibold text-[var(--foreground)] sm:text-6xl">
-      {"Carter Wang".split(" ").map((word, i) => (
-        <motion.span
-          key={word}
-          initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: 0.3 + i * 0.18, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="inline-block mr-[0.3em] last:mr-0"
-        >
-          {word}
-        </motion.span>
-      ))}
-    </h1>
+    <div className="relative w-fit overflow-hidden" onMouseEnter={handleEnter}>
+      <h1 className="text-4xl font-semibold text-[var(--foreground)] sm:text-6xl">
+        {"Carter Wang".split(" ").map((word, i) => (
+          <motion.span
+            key={word}
+            initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ delay: 0.3 + i * 0.18, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="inline-block mr-[0.3em] last:mr-0"
+          >
+            {word}
+          </motion.span>
+        ))}
+      </h1>
+      {/* Light sweep */}
+      <motion.div
+        aria-hidden
+        animate={shimmer}
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.14) 50%, transparent 80%)",
+          mixBlendMode: "screen",
+        }}
+      />
+    </div>
   );
+}
+
+function MouseGlow() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const move = (e: MouseEvent) => {
+      el.style.background = `radial-gradient(650px circle at ${e.clientX}px ${e.clientY}px, rgba(88, 130, 255, 0.06), transparent 65%)`;
+    };
+    window.addEventListener("mousemove", move, { passive: true });
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+  return <div ref={ref} aria-hidden className="pointer-events-none fixed inset-0" style={{ zIndex: 0 }} />;
 }
 
 function MagneticLink({ label, href }: { label: string; href: string }) {
@@ -494,6 +527,7 @@ export default function PortfolioHome() {
   return (
     <>
     <StarField />
+    <MouseGlow />
     <main className="portfolio-shell relative overflow-hidden px-4 pb-12 pt-5 sm:px-6 lg:px-8" style={{ zIndex: 1 }}>
       <div className="accent-halo accent-halo-1 left-[-10rem] top-8 h-72 w-72 bg-[var(--blue-glow)]" />
       <div className="accent-halo accent-halo-2 right-[-5rem] top-24 h-64 w-64 bg-[var(--accent-soft)]" />
