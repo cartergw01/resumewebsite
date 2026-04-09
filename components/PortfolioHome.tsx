@@ -644,9 +644,9 @@ export default function PortfolioHome() {
         </div>
       </div>
 
-      <div className="mx-auto mt-3 grid max-w-6xl items-start gap-3 lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="mx-auto mt-3 grid max-w-6xl items-start gap-3 lg:items-stretch lg:grid-cols-[1.08fr_0.92fr]">
         {/* Left column */}
-        <div className="grid gap-3">
+        <div className="grid gap-3 lg:h-full lg:grid-rows-[auto_1fr]">
 
           <ScrollReveal delay={0.08}>
             <TiltCard>
@@ -760,7 +760,7 @@ export default function PortfolioHome() {
         </div>
 
         {/* Right column */}
-        <div className="grid gap-3">
+        <div className="grid gap-3 lg:h-full lg:grid-rows-[auto_1fr]">
           {/* Photo card */}
           {/* Essays card */}
           <ScrollReveal delay={0.1}>
@@ -809,10 +809,10 @@ export default function PortfolioHome() {
           </ScrollReveal>
 
           {/* Skills / Interests card */}
-          <ScrollReveal>
+          <ScrollReveal className="h-full">
             <TiltCard>
-              <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
-                <CardBody className="gap-5 p-5 sm:p-6">
+              <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
+                <CardBody className="flex h-full flex-col gap-5 p-5 sm:p-6">
                   <div className="grid gap-4">
                     {profileFacts.map((fact) => (
                       <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
