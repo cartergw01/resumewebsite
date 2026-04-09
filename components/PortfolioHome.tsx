@@ -127,15 +127,40 @@ function StarField() {
     };
     window.addEventListener("wheel", onWheel, { passive: true });
 
+    // Mobile hyperspace: hold to activate, scroll to accelerate
     let lastTouchY = 0;
-    const onTouchStart = (e: TouchEvent) => { lastTouchY = e.touches[0].clientY; };
+    let holdTimer: ReturnType<typeof setTimeout> | null = null;
+    let isHolding = false;
+    let holdInterval: ReturnType<typeof setInterval> | null = null;
+
+    const onTouchStart = (e: TouchEvent) => {
+      lastTouchY = e.touches[0].clientY;
+      // Start hold detection after 180ms
+      holdTimer = setTimeout(() => {
+        isHolding = true;
+        // While holding, continuously feed velocity so the effect builds
+        holdInterval = setInterval(() => {
+          scrollVel = Math.min(scrollVel + 2.5, 60);
+        }, 16);
+      }, 180);
+    };
     const onTouchMove = (e: TouchEvent) => {
       const dy = Math.abs(e.touches[0].clientY - lastTouchY);
-      scrollVel = Math.min(scrollVel + dy * 0.6, 100);
+      if (isHolding) {
+        // Scrolling while holding: add extra boost on top of hold pulse
+        scrollVel = Math.min(scrollVel + dy * 1.0, 100);
+      }
       lastTouchY = e.touches[0].clientY;
+    };
+    const onTouchEnd = () => {
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+      if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
+      isHolding = false;
     };
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     // Realistic star color palette — temperature-based (O/B blue to M red)
     const palette: [number, number, number][] = [
@@ -327,6 +352,10 @@ function StarField() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+      if (holdTimer) clearTimeout(holdTimer);
+      if (holdInterval) clearInterval(holdInterval);
     };
   }, []);
 
