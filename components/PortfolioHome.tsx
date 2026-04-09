@@ -124,7 +124,7 @@ function StarField() {
     let lastScrollY = window.scrollY;
     const onScroll = () => {
       const dy = window.scrollY - lastScrollY;
-      scrollVel = Math.min(Math.abs(dy) * 2.5, 100);
+      scrollVel = Math.min(Math.abs(dy) * 5, 100);
       lastScrollY = window.scrollY;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -196,7 +196,7 @@ function StarField() {
     let nextDelay = 1500 + Math.random() * 2500;
 
     const draw = (t: number) => {
-      scrollVel *= 0.85;
+      scrollVel *= 0.80;
       const warp = Math.min(scrollVel / 100, 1);
       const cx = W / 2, cy = H / 2;
 
@@ -518,6 +518,31 @@ function EssayRow({ essay, index }: { essay: { title: string; href: string }; in
   );
 }
 
+function ScrollReveal({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-60px 0px" });
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      initial={{ opacity: 0, y: 20, filter: "blur(5px)" }}
+      animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function PortfolioHome() {
@@ -550,11 +575,7 @@ export default function PortfolioHome() {
       <div className="mx-auto mt-2 grid max-w-6xl items-start gap-3 lg:grid-cols-[1.08fr_0.92fr]">
         {/* Left column */}
         <div className="grid gap-3">
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <ScrollReveal delay={0.05}>
             <TiltCard>
               <Card className="portfolio-card-strong rounded-[30px] border-none shadow-none">
                 <CardBody className="gap-3 p-5 sm:p-6">
@@ -569,13 +590,9 @@ export default function PortfolioHome() {
                 </CardBody>
               </Card>
             </TiltCard>
-          </motion.div>
+          </ScrollReveal>
 
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <ScrollReveal delay={0.08}>
             <TiltCard>
               <Card className="timeline-featured rounded-[26px] border shadow-none">
                 <CardBody className="gap-3 p-5">
@@ -604,14 +621,9 @@ export default function PortfolioHome() {
                 </CardBody>
               </Card>
             </TiltCard>
-          </motion.div>
+          </ScrollReveal>
 
-          <motion.div
-            className="h-full"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <ScrollReveal className="h-full">
             <TiltCard>
               <Card className="portfolio-card-archive h-full rounded-[26px] border-none shadow-none">
                 <CardBody className="flex h-full flex-col gap-4 p-5">
@@ -688,16 +700,12 @@ export default function PortfolioHome() {
                 </CardBody>
               </Card>
             </TiltCard>
-          </motion.div>
+          </ScrollReveal>
         </div>
 
         {/* Right column */}
         <div className="grid gap-3">
-          <motion.div
-            initial={{ opacity: 0, x: 28 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <ScrollReveal delay={0.1}>
             <TiltCard>
               <Card className="portfolio-card-profile rounded-[30px] border-none shadow-none">
                 <CardBody className="gap-5 p-5 pt-3 sm:p-6 sm:pt-4">
@@ -726,13 +734,9 @@ export default function PortfolioHome() {
                 </CardBody>
               </Card>
             </TiltCard>
-          </motion.div>
+          </ScrollReveal>
 
-          <motion.div
-            initial={{ opacity: 0, x: 28 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.45, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
+          <ScrollReveal>
             <TiltCard>
               <Card className="portfolio-paper relative overflow-hidden rounded-[26px] border-none shadow-none">
                 <div className="pointer-events-none absolute right-[-3rem] top-6 h-28 w-28 rounded-full bg-[rgba(255,168,103,0.22)] blur-3xl" />
@@ -766,7 +770,7 @@ export default function PortfolioHome() {
                 </CardBody>
               </Card>
             </TiltCard>
-          </motion.div>
+          </ScrollReveal>
         </div>
       </div>
     </main>
