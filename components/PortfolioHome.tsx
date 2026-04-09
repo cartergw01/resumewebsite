@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Accordion, AccordionItem, Card, CardBody, Image, Link } from "@heroui/react";
+import { useEffect, useRef } from "react";
+import { Accordion, AccordionItem, Card, CardBody, Link } from "@heroui/react";
 import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
 
 const topLinks = [
@@ -27,12 +27,6 @@ const bio = [
   "Hey, I'm Carter! I grew up in Southern California, studied Business Management Economics at UC Santa Cruz, and am now living in Taipei working as an associate at 886 Studios alongside the founders of Twitch and Guitar Hero.",
   "We're building an accelerator that backs and supports early-stage startups, bringing a slice of Silicon Valley to Asia. Before that, I was a Research Fellow at Contrary Research, where I profiled and wrote about leading startups.",
   "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, or writing.",
-];
-
-const keyStats = [
-  { value: 250, suffix: "+", label: "Startups Screened" },
-  { value: 15, suffix: "+", label: "Portfolio Companies" },
-  { value: 180, suffix: "K+", label: "AUM" },
 ];
 
 const experience = [
@@ -497,28 +491,6 @@ function MagneticLink({ label, href }: { label: string; href: string }) {
       {label}
     </motion.a>
   );
-}
-
-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    if (!isInView) return;
-    let startTime = 0;
-    const duration = 1400;
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.round(eased * to));
-      if (progress < 1) requestAnimationFrame(animate);
-    };
-    requestAnimationFrame(animate);
-  }, [isInView, to]);
-
-  return <span ref={ref}>{count}{suffix}</span>;
 }
 
 const rowVariants = {
