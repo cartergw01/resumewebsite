@@ -627,17 +627,19 @@ export default function PortfolioHome() {
           </TiltCard>
         </ScrollReveal>
 
-        <ScrollReveal delay={0.05} className="min-h-0 self-stretch">
-          <TiltCard>
-            <div className="portfolio-card-profile h-full rounded-[30px] p-3 sm:p-4">
-              <img
-                alt="Carter Wang headshot"
-                src="/headshot.jpg"
-                className="block h-full w-full rounded-[22px] object-cover object-[center_18%]"
-              />
-            </div>
-          </TiltCard>
-        </ScrollReveal>
+        <div className="min-h-0 overflow-hidden">
+          <ScrollReveal delay={0.05} className="h-full">
+            <TiltCard>
+              <div className="portfolio-card-profile h-full rounded-[30px] p-3 sm:p-4">
+                <img
+                  alt="Carter Wang headshot"
+                  src="/headshot.jpg"
+                  className="block h-full w-full rounded-[22px] object-cover object-[center_18%]"
+                />
+              </div>
+            </TiltCard>
+          </ScrollReveal>
+        </div>
       </div>
 
       <div className="mx-auto mt-3 grid max-w-6xl items-start gap-3 lg:grid-cols-[1.08fr_0.92fr]">
