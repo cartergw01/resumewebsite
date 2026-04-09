@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Accordion, AccordionItem, Card, CardBody, Image, Link } from "@heroui/react";
-import { motion, useMotionValue, useSpring, useTransform, useInView, useAnimation } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
 
 const topLinks = [
   { label: "X", href: "https://x.com/CarterKoWang" },
@@ -87,6 +87,7 @@ const experience = [
 ];
 
 const essays = [
+  { title: "Slop & Spiral", subtitle: "The moment we stop scrolling, we're alone with ourselves", href: "https://carterko.substack.com/p/slop-and-spiral" },
   { title: "We All Have Superpowers", subtitle: "We invent technology to extend ourselves", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
   { title: "The Mirage of Identity", subtitle: "Our social world in the 21st century", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
   { title: "From Crash to Curiosity", subtitle: "My Investing adVENTURE, thus far…", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
@@ -354,39 +355,10 @@ function TiltCard({ children }: { children: React.ReactNode }) {
 }
 
 function AnimatedName() {
-  const shimmer = useAnimation();
-
-  const handleEnter = async () => {
-    shimmer.set({ x: "-115%" });
-    await shimmer.start({ x: "115%", transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] } });
-  };
-
   return (
-    <div className="relative w-fit overflow-hidden" onMouseEnter={handleEnter}>
-      <h1 className="text-4xl font-semibold text-[var(--foreground)] sm:text-6xl">
-        {"Carter Wang".split(" ").map((word, i) => (
-          <motion.span
-            key={word}
-            initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ delay: 0.3 + i * 0.18, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="inline-block mr-[0.3em] last:mr-0"
-          >
-            {word}
-          </motion.span>
-        ))}
-      </h1>
-      {/* Light sweep */}
-      <motion.div
-        aria-hidden
-        animate={shimmer}
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background: "linear-gradient(105deg, transparent 20%, rgba(255,255,255,0.14) 50%, transparent 80%)",
-          mixBlendMode: "screen",
-        }}
-      />
-    </div>
+    <h1 className="text-4xl font-semibold text-[var(--foreground)] sm:text-6xl">
+      Carter Wang
+    </h1>
   );
 }
 
