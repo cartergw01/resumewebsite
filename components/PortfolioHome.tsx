@@ -629,16 +629,13 @@ export default function PortfolioHome() {
 
         <ScrollReveal delay={0.05} className="h-full">
           <TiltCard>
-            <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
-              <CardBody className="h-full p-3 sm:p-4">
-                <Image
-                  removeWrapper
-                  alt="Carter Wang headshot"
-                  src="/headshot.jpg"
-                  className="h-full w-full rounded-[22px] object-cover object-[center_12%]"
-                />
-              </CardBody>
-            </Card>
+            <div className="portfolio-card-profile h-full rounded-[30px] p-3 sm:p-4">
+              <img
+                alt="Carter Wang headshot"
+                src="/headshot.jpg"
+                className="block h-full w-full rounded-[22px] object-cover object-[center_18%]"
+              />
+            </div>
           </TiltCard>
         </ScrollReveal>
       </div>
