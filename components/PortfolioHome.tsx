@@ -113,8 +113,9 @@ function StarField() {
     };
     window.addEventListener("resize", onResize);
 
-    let scrollVel = 0;
-    let holdCharge = 0;
+    // Warp is driven purely by scroll position — smoothly lerped each frame.
+    // Scrolling down increases warp (more hyperspace), scrolling up decreases it.
+    let smoothWarp = 0;
 
     const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -122,51 +123,6 @@ function StarField() {
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       return clamp(window.scrollY / maxScroll, 0, 1);
     };
-
-    const getDepthStrength = (depth: number) => {
-      const easedDepth = 1 - Math.pow(1 - depth, 1.7);
-      return 0.2 + easedDepth * 0.8;
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      const depth = getScrollDepth();
-      const boost = Math.abs(e.deltaY) * (0.1 + depth * 0.26);
-      scrollVel = Math.min(scrollVel + boost, 140);
-    };
-    window.addEventListener("wheel", onWheel, { passive: true });
-
-    let lastTouchY = 0;
-    let holdTimer: ReturnType<typeof setTimeout> | null = null;
-    let isHolding = false;
-    let holdInterval: ReturnType<typeof setInterval> | null = null;
-
-    const onTouchStart = (e: TouchEvent) => {
-      lastTouchY = e.touches[0].clientY;
-      holdTimer = setTimeout(() => {
-        isHolding = true;
-        holdInterval = setInterval(() => {
-          const depth = getScrollDepth();
-          const pulse = 3.5 + depth * 6.5;
-          scrollVel = Math.min(scrollVel + pulse, 140);
-        }, 16);
-      }, 180);
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      const dy = Math.abs(e.touches[0].clientY - lastTouchY);
-      const depth = getScrollDepth();
-      const boost = dy * (0.5 + depth * 0.75 + (isHolding ? 0.55 : 0));
-      scrollVel = Math.min(scrollVel + boost, 140);
-      lastTouchY = e.touches[0].clientY;
-    };
-    const onTouchEnd = () => {
-      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
-      if (holdInterval) { clearInterval(holdInterval); holdInterval = null; }
-      isHolding = false;
-    };
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     // Realistic star color palette — temperature-based (O/B blue to M red)
     const palette: [number, number, number][] = [
@@ -247,35 +203,33 @@ function StarField() {
     let lastShot = 0;
     let nextDelay = 1500 + Math.random() * 2500;
 
-    const getNextShotDelay = (depth: number, mobileHoldBoost: number) => {
-      const rate = clamp(1 - depth * 0.52 - mobileHoldBoost * 0.62, 0.18, 1);
-      return 700 * rate + Math.random() * (1300 * rate + 260);
+    const getNextShotDelay = (warpVal: number) => {
+      const rate = clamp(1 - warpVal * 0.75, 0.1, 1);
+      return 800 * rate + Math.random() * 1500 * rate;
     };
 
-    const spawnShooters = (depth: number, mobileHoldBoost: number) => {
-      const burstCount = 1 + Math.floor(mobileHoldBoost * 2.4 + depth * 1.2);
+    const spawnShooters = (warpVal: number) => {
+      const burstCount = 1 + Math.floor(warpVal * 1.5);
       for (let i = 0; i < burstCount; i++) {
-        const angle = (8 + Math.random() * 34) * (Math.PI / 180);
-        const spd = 14 + Math.random() * 10 + depth * 6 + mobileHoldBoost * 12;
+        const angle = (8 + Math.random() * 30) * (Math.PI / 180);
+        const spd = 12 + Math.random() * 8 + warpVal * 10;
         shooters.push({
-          x: Math.random() * (W * (0.68 + mobileHoldBoost * 0.14)),
-          y: Math.random() * (H * (0.42 + mobileHoldBoost * 0.22)),
+          x: Math.random() * W * 0.7,
+          y: Math.random() * H * 0.5,
           vx: Math.cos(angle) * spd,
           vy: Math.sin(angle) * spd,
           life: 0,
-          maxLife: 50 + Math.random() * 34 + mobileHoldBoost * 18,
+          maxLife: 45 + Math.random() * 30,
         });
       }
     };
 
     const draw = (t: number) => {
-      const depth = getScrollDepth();
-      const depthStrength = getDepthStrength(depth);
-      holdCharge += ((isHolding ? 1 : 0) - holdCharge) * 0.08;
-      scrollVel *= isHolding ? 0.955 : 0.91;
-      const motionWarp = clamp(scrollVel / 115, 0, 1);
-      const mobileHoldBoost = holdCharge * (0.45 + depth * 0.55);
-      const warp = clamp(motionWarp * depthStrength + mobileHoldBoost * 0.45, 0, 1);
+      // Smoothly lerp warp toward actual scroll depth.
+      // Rate 0.032 ≈ ~500ms settle time — feels deliberate, not twitchy.
+      const targetWarp = getScrollDepth();
+      smoothWarp += (targetWarp - smoothWarp) * 0.032;
+      const warp = smoothWarp;
       const cx = W / 2, cy = H / 2;
 
       ctx.clearRect(0, 0, W, H);
@@ -305,8 +259,8 @@ function StarField() {
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
         const nx = dx / dist;
         const ny = dy / dist;
-        const lateralDrift = s.driftSpeed * (1 + depth * 0.25 + mobileHoldBoost * 0.55);
-        const radialPush = warp * warp * (0.5 + depth * 1.8 + mobileHoldBoost * 3.2) * s.driftSpeed * 18;
+        const lateralDrift = s.driftSpeed * (1 + warp * 0.3);
+        const radialPush = warp * warp * (0.5 + warp * 2.0) * s.driftSpeed * 14;
 
         s.x -= lateralDrift;
         s.x += nx * radialPush;
@@ -314,7 +268,7 @@ function StarField() {
 
         const margin = 24;
         if (s.x < -margin || s.x > W + margin || s.y < -margin || s.y > H + margin) {
-          resetStar(s, warp > 0.14 || mobileHoldBoost > 0.12);
+          resetStar(s, warp > 0.15);
         }
 
         const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.phase));
@@ -335,11 +289,7 @@ function StarField() {
         if (warp > 0.05) {
           if (dist < 30) continue; // skip stars too close to center — they cause crossing
           const distFactor = Math.min(dist / 180, 1);
-          const streakLen =
-            (warp * warp * (90 + depthStrength * 90) + mobileHoldBoost * 110) *
-            (s.size + 0.5) *
-            distFactor *
-            (1 + mobileHoldBoost * 0.45);
+          const streakLen = warp * warp * 160 * (s.size + 0.5) * distFactor;
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
@@ -349,7 +299,7 @@ function StarField() {
           ctx.moveTo(s.x - nx * streakLen, s.y - ny * streakLen);
           ctx.lineTo(s.x, s.y);
           ctx.strokeStyle = sg;
-          ctx.lineWidth = s.size * (0.6 + warp * 0.8 + mobileHoldBoost * 0.9);
+          ctx.lineWidth = s.size * (0.6 + warp * 0.8);
           ctx.stroke();
         }
         // Always draw the dot (fades to streak at full warp)
@@ -362,14 +312,14 @@ function StarField() {
       // Shooting stars
       if (t - lastShot > nextDelay) {
         lastShot = t;
-        nextDelay = getNextShotDelay(depth, mobileHoldBoost);
-        spawnShooters(depth, mobileHoldBoost);
+        nextDelay = getNextShotDelay(warp);
+        if (warp > 0.05) spawnShooters(warp);
       }
 
       for (let i = shooters.length - 1; i >= 0; i--) {
         const s = shooters[i];
         const op = Math.sin((s.life / s.maxLife) * Math.PI);
-        const tailLen = 28 + mobileHoldBoost * 18 + depth * 10;
+        const tailLen = 28 + warp * 20;
         const g = ctx.createLinearGradient(s.x - s.vx * tailLen, s.y - s.vy * tailLen, s.x, s.y);
         g.addColorStop(0, "rgba(200,220,255,0)");
         g.addColorStop(0.7, `rgba(220,235,255,${op * 0.5})`);
@@ -378,11 +328,10 @@ function StarField() {
         ctx.moveTo(s.x - s.vx * tailLen, s.y - s.vy * tailLen);
         ctx.lineTo(s.x, s.y);
         ctx.strokeStyle = g;
-        ctx.lineWidth = 1.8 + mobileHoldBoost * 1.1;
+        ctx.lineWidth = 1.8;
         ctx.stroke();
-        // Bright head dot
         ctx.beginPath();
-        ctx.arc(s.x, s.y, 1.2 + mobileHoldBoost * 0.55, 0, Math.PI * 2);
+        ctx.arc(s.x, s.y, 1.2, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${op})`;
         ctx.fill();
         s.x += s.vx;
@@ -398,13 +347,6 @@ function StarField() {
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("wheel", onWheel);
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchmove", onTouchMove);
-      window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("touchcancel", onTouchEnd);
-      if (holdTimer) clearTimeout(holdTimer);
-      if (holdInterval) clearInterval(holdInterval);
     };
   }, []);
 
