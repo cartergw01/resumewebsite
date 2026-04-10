@@ -260,7 +260,7 @@ function StarField() {
         const nx = dx / dist;
         const ny = dy / dist;
         const lateralDrift = s.driftSpeed * (1 + warp * 0.3);
-        const radialPush = warp * warp * (0.5 + warp * 2.0) * s.driftSpeed * 14;
+        const radialPush = warp * warp * (0.5 + warp * 1.0) * s.driftSpeed * 7;
 
         s.x -= lateralDrift;
         s.x += nx * radialPush;
@@ -289,7 +289,7 @@ function StarField() {
         if (warp > 0.05) {
           if (dist < 30) continue; // skip stars too close to center — they cause crossing
           const distFactor = Math.min(dist / 180, 1);
-          const streakLen = warp * warp * 160 * (s.size + 0.5) * distFactor;
+          const streakLen = warp * warp * 80 * (s.size + 0.5) * distFactor;
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
@@ -591,7 +591,7 @@ export default function PortfolioHome() {
           <ScrollReveal delay={0.05} className="h-full">
             <TiltCard>
               <div className="portfolio-card-profile flex h-full items-center rounded-[30px] p-4 sm:p-5">
-                <div className="relative h-full min-h-[320px] w-full overflow-hidden rounded-[22px] sm:min-h-[352px] lg:min-h-0">
+                <div className="relative h-full min-h-[220px] w-full overflow-hidden rounded-[22px] sm:min-h-[280px] lg:min-h-0">
                   <img
                     alt="Carter Wang headshot"
                     src="/headshot.jpg"
