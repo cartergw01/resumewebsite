@@ -142,6 +142,7 @@ function StarField() {
       baseOpacity: number; phase: number; twinkleSpeed: number;
       cr: number; cg: number; cb: number;
       prominent: boolean;
+      alpha: number; // fade-in multiplier 0→1, so center-spawned stars appear smoothly
     }
 
     // 4 parallax layers: [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp]
@@ -171,6 +172,7 @@ function StarField() {
           twinkleSpeed: 0.0003 + Math.random() * 0.0015,
           cr, cg, cb,
           prominent: isProminent,
+          alpha: 1,
         });
       }
     }
@@ -181,9 +183,11 @@ function StarField() {
         const radius = Math.random() * Math.min(W, H) * 0.08;
         star.x = W / 2 + Math.cos(angle) * radius;
         star.y = H / 2 + Math.sin(angle) * radius;
+        star.alpha = 0; // fade in so they don't pop
       } else {
         star.x = W + star.size + Math.random() * W * 0.12;
         star.y = Math.random() * H;
+        star.alpha = 1;
       }
       star.phase = Math.random() * Math.PI * 2;
     };
@@ -254,12 +258,17 @@ function StarField() {
 
       // Stars — drift left, wrap, twinkle
       for (const s of stars) {
+        // Fade in stars that were just spawned from center
+        s.alpha = Math.min(1, s.alpha + 0.018);
+
         const dx = s.x - cx;
         const dy = s.y - cy;
         const dist = Math.sqrt(dx * dx + dy * dy) || 1;
         const nx = dx / dist;
         const ny = dy / dist;
-        const lateralDrift = s.driftSpeed * (1 + warp * 0.3);
+
+        // Lateral drift fades out as warp increases — at full warp all motion is clean radial
+        const lateralDrift = s.driftSpeed * (1 - warp * 0.92);
         const radialPush = warp * warp * (0.5 + warp * 1.0) * s.driftSpeed * 7;
 
         s.x -= lateralDrift;
@@ -271,8 +280,12 @@ function StarField() {
           resetStar(s, warp > 0.15);
         }
 
-        const twinkle = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.phase));
-        const op = s.baseOpacity * twinkle;
+        // Twinkle fades out during hyperspace — streaking stars should glow steadily
+        const twinkleMix = Math.max(0, 1 - warp * 1.4);
+        const twinkle = twinkleMix > 0
+          ? 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(t * s.twinkleSpeed + s.phase)) * twinkleMix + (1 - twinkleMix) * 0.55
+          : 0.85;
+        const op = s.baseOpacity * twinkle * s.alpha;
 
         // Outer glow for all stars with size > 0.8
         if (s.size > 0.8) {
@@ -287,13 +300,16 @@ function StarField() {
         }
 
         if (warp > 0.05) {
-          if (dist < 30) continue; // skip stars too close to center — they cause crossing
-          const distFactor = Math.min(dist / 180, 1);
+          if (dist < 8) continue; // only skip stars literally at the vanishing point
+          // Smooth near-center fade instead of hard cutoff — streaks grow naturally from center
+          const nearFade = Math.min(dist / 32, 1);
+          const distFactor = Math.min(dist / 180, 1) * nearFade;
           const streakLen = warp * warp * 80 * (s.size + 0.5) * distFactor;
           const sg = ctx.createLinearGradient(
             s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y
           );
           sg.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},0)`);
+          sg.addColorStop(0.55, `rgba(${s.cr},${s.cg},${s.cb},${op * 0.3})`);
           sg.addColorStop(1, `rgba(${s.cr},${s.cg},${s.cb},${op})`);
           ctx.beginPath();
           ctx.moveTo(s.x - nx * streakLen, s.y - ny * streakLen);
@@ -302,11 +318,14 @@ function StarField() {
           ctx.lineWidth = s.size * (0.6 + warp * 0.8);
           ctx.stroke();
         }
-        // Always draw the dot (fades to streak at full warp)
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size * Math.max(0.28, 1 - warp * 0.45), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${s.cr},${s.cg},${s.cb},${op})`;
-        ctx.fill();
+        // Dot shrinks to nothing at full warp (replaced by streak)
+        const dotR = s.size * Math.max(0, 1 - warp * 0.9);
+        if (dotR > 0.05) {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, dotR, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${s.cr},${s.cg},${s.cb},${op})`;
+          ctx.fill();
+        }
       }
 
       // Shooting stars
