@@ -4,7 +4,14 @@ import { useEffect, useRef } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface TrailPoint { x: number; y: number; age: number }
+// Stardust particle — emitted from engine bell, drifts + fades
+interface Particle {
+  x: number; y: number;
+  vx: number; vy: number;      // gentle drift
+  size: number;                // radius 0.4–2.0px
+  life: number; maxLife: number;
+  r: number; g: number; b: number;  // pre-baked color
+}
 interface Streak {
   x: number; y: number;
   dx: number; dy: number;   // unit vector, backward direction
@@ -14,14 +21,13 @@ interface Streak {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_POS        = 0.16;  // cursor smoothing — feels responsive, not laggy
+const LERP_POS        = 0.16;  // cursor smoothing
 const LERP_ANGLE      = 0.10;  // tilt smoothing
 const LERP_SCALE      = 0.11;  // hover scale smoothing
-const MAX_TILT_DEG    = 28;    // max degrees the rocket tilts during fast movement
-const TRAIL_MAX       = 28;    // max trail points stored
-const TRAIL_MAX_AGE   = 30;    // frames until a trail point fully fades
-const STREAK_SPEED    = 7;     // min smoothed px/frame to spawn streaks
-const STREAK_EVERY    = 2;     // only spawn streaks every N frames (perf)
+const MAX_TILT_DEG    = 28;    // max rocket tilt degrees
+const PARTICLE_CAP    = 160;   // max live particles
+const STREAK_SPEED    = 7;     // min px/frame to spawn warp streaks
+const STREAK_EVERY    = 2;     // spawn streaks every N frames
 
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -70,7 +76,7 @@ export function RocketCursor() {
     let animId: number;
     let frameCount = 0;
 
-    const trail: TrailPoint[] = [];
+    const particles: Particle[] = [];
     const streaks: Streak[] = [];
 
     // ── Mouse tracking ────────────────────────────────────────────────────────
@@ -144,40 +150,60 @@ export function RocketCursor() {
         const exhaustX = cursorX + Math.sin(rad) * 22;
         const exhaustY = cursorY + Math.cos(rad) * 22;
 
-        // Add trail point when moving
-        if (speed > 0.5) {
-          trail.push({ x: exhaustX, y: exhaustY, age: 0 });
-          if (trail.length > TRAIL_MAX) trail.shift();
-        }
-
-        // Age trail
-        for (let i = trail.length - 1; i >= 0; i--) {
-          trail[i].age++;
-          if (trail[i].age > TRAIL_MAX_AGE) trail.splice(i, 1);
-        }
-
-        // Draw trail — thin tapering line, cold blue-white, fades with age + speed
-        if (trail.length > 1) {
-          const speedFade = Math.min(speed / 5, 1);
-          for (let i = 1; i < trail.length; i++) {
-            const p0 = trail[i - 1];
-            const p1 = trail[i];
-            const t0 = 1 - p0.age / TRAIL_MAX_AGE;
-            const t1 = 1 - p1.age / TRAIL_MAX_AGE;
-            const avg = (t0 + t1) / 2;
-            if (avg < 0.02) continue;
-
-            const op = avg * avg * 0.38 * speedFade;
-            const lw = Math.max(0.3, avg * 1.5 * speedFade);
-
-            ctx.beginPath();
-            ctx.moveTo(p0.x, p0.y);
-            ctx.lineTo(p1.x, p1.y);
-            ctx.strokeStyle = `rgba(190, 215, 255, ${op})`;
-            ctx.lineWidth = lw;
-            ctx.lineCap = "round";
-            ctx.stroke();
+        // ── Emit stardust particles from engine bell ──────────────────────────
+        if (speed > 0.4 && particles.length < PARTICLE_CAP) {
+          // Scale emission rate with speed: 1 at crawl, 4 at full sprint
+          const emitCount = Math.min(Math.ceil(speed * 0.38), 4);
+          for (let i = 0; i < emitCount; i++) {
+            // 15% warm (engine heat), 85% cool space-blue
+            const warm = Math.random() < 0.15;
+            particles.push({
+              x:       exhaustX + (Math.random() - 0.5) * 4,
+              y:       exhaustY + (Math.random() - 0.5) * 4,
+              vx:      (Math.random() - 0.5) * 0.20,  // gentle lateral drift
+              vy:      (Math.random() - 0.5) * 0.20,
+              size:    0.45 + Math.random() * 1.65,
+              life:    0,
+              maxLife: 20 + Math.random() * 22,
+              r:       warm ? 255 : 185 + Math.floor(Math.random() * 35),
+              g:       warm ? 170 : 210 + Math.floor(Math.random() * 28),
+              b:       warm ? 70  : 245 + Math.floor(Math.random() * 10),
+            });
           }
+        }
+
+        // ── Update + draw particles ────────────────────────────────────────────
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life++;
+          if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
+
+          // Arc opacity: rises quickly, decays slowly — sin curve over lifetime
+          const t   = p.life / p.maxLife;
+          const op  = Math.sin(t * Math.PI) * Math.min(p.size / 1.5, 1) * 0.75;
+          if (op < 0.015) continue;
+
+          // Outer glow halo
+          const glowR = p.size * 3.2;
+          const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+          grd.addColorStop(0,   `rgba(${p.r},${p.g},${p.b},${op * 0.85})`);
+          grd.addColorStop(0.35,`rgba(${p.r},${p.g},${p.b},${op * 0.30})`);
+          grd.addColorStop(1,   `rgba(${p.r},${p.g},${p.b},0)`);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+          ctx.fillStyle = grd;
+          ctx.fill();
+
+          // Bright core dot
+          const coreR = Math.min(p.r + 40, 255);
+          const coreG = Math.min(p.g + 30, 255);
+          const coreB = Math.min(p.b + 10, 255);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.42, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${coreR},${coreG},${coreB},${op})`;
+          ctx.fill();
         }
 
         // Spawn warp streaks above speed threshold
