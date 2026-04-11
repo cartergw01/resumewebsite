@@ -204,3 +204,19 @@ body {
   content-visibility: auto;
   contain-intrinsic-size: 1px 600px;
 }
+
+/* ── Rocket cursor ──────────────────────────────────────────────────────────── */
+/* Hide the system cursor only when the JS rocket cursor is mounted             */
+
+.rocket-cursor-active *,
+.rocket-cursor-active *::before,
+.rocket-cursor-active *::after {
+  cursor: none !important;
+}
+
+/* Restore functional cursors for text fields */
+.rocket-cursor-active input,
+.rocket-cursor-active textarea,
+.rocket-cursor-active select {
+  cursor: text !important;
+}
