@@ -34,8 +34,10 @@ export function RocketCursor() {
   const rocketRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // ── Guard: touch devices get no custom cursor ─────────────────────────────
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    // ── Guard: disable only when NO fine pointer is available ────────────────
+    // Use any-pointer, not pointer — iPad with Magic Keyboard has a fine trackpad
+    // as a secondary input even though its primary pointer is touch (coarse).
+    if (!window.matchMedia("(any-pointer: fine)").matches) return;
 
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
