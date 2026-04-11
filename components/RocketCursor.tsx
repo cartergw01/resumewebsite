@@ -85,6 +85,9 @@ export function RocketCursor() {
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
+      // Reveal rocket on first move — mouseenter only fires when re-entering
+      // from outside the viewport, missing the common already-on-page case.
+      rocket.style.opacity = "1";
 
       // Detect interactive element under cursor
       const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
@@ -98,11 +101,9 @@ export function RocketCursor() {
       }
     };
 
-    const onMouseEnter = () => { rocket.style.opacity = "1"; };
     const onMouseLeave = () => { rocket.style.opacity = "0"; };
 
     document.addEventListener("mousemove",  onMouseMove);
-    document.addEventListener("mouseenter", onMouseEnter);
     document.addEventListener("mouseleave", onMouseLeave);
 
     // ── Animation loop ────────────────────────────────────────────────────────
@@ -139,8 +140,8 @@ export function RocketCursor() {
       rocket.style.transform =
         `translate(${cursorX - 9}px, ${cursorY - 4}px) rotate(${angle}deg) scale(${hoverScale})`;
       rocket.style.filter = isHovering
-        ? "drop-shadow(0 0 5px rgba(180,210,255,0.9)) drop-shadow(0 0 14px rgba(100,160,255,0.4))"
-        : "drop-shadow(0 0 2.5px rgba(180,200,255,0.42))";
+        ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
+        : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
 
       // ── Canvas: trail + streaks ───────────────────────────────────────────
       ctx.clearRect(0, 0, W, H);
@@ -188,25 +189,25 @@ export function RocketCursor() {
           ctx.fill();
         };
 
-        // Additive blending so layers brighten where they overlap — creates a
-        // natural hot-core effect without any extra math
+        // Additive blending so layers brighten where they overlap — hot core
+        // naturally emerges where all three cones stack up
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        // Layer 1 — outer heat shimmer: wide, warm orange, very low opacity
-        drawCone(6.5, 255, 125, 30,  0.14, flutter);
-        // Layer 2 — main exhaust plume: blue-white ion exhaust
-        drawCone(3.4, 145, 190, 255, 0.55);
-        // Layer 3 — hot core: narrow, near-white
-        drawCone(1.6, 225, 242, 255, 0.90);
+        // Layer 1 — outer flame envelope: wide, deep orange-red
+        drawCone(6.5, 255,  55,  8,  0.18, flutter);
+        // Layer 2 — main flame body: bright orange
+        drawCone(3.2, 255, 145, 20,  0.55);
+        // Layer 3 — inner hot core: yellow-white (hottest combustion zone)
+        drawCone(1.5, 255, 235, 130, 0.95);
 
         ctx.restore();
 
-        // Nozzle base glow — soft radial bloom at the engine bell opening
+        // Nozzle bloom — warm white glow right at the engine bell
         const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
-        bellGlow.addColorStop(0,    `rgba(215, 232, 255, ${0.70 * plumeStr * flicker})`);
-        bellGlow.addColorStop(0.45, `rgba(145, 185, 255, ${0.28 * plumeStr * flicker})`);
-        bellGlow.addColorStop(1,     "rgba(100, 150, 255, 0)");
+        bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
+        bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
+        bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
         ctx.beginPath();
         ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
         ctx.fillStyle = bellGlow;
@@ -228,9 +229,9 @@ export function RocketCursor() {
               size:    0.38 + Math.random() * 0.80,
               life:    0,
               maxLife: 28 + Math.random() * 22,
-              r:       175 + Math.floor(Math.random() * 45),
-              g:       200 + Math.floor(Math.random() * 35),
-              b:       245,
+              r:       255,
+              g:       110 + Math.floor(Math.random() * 70),
+              b:        10 + Math.floor(Math.random() * 30),
             });
           }
         }
@@ -336,7 +337,6 @@ export function RocketCursor() {
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",    onResize);
       document.removeEventListener("mousemove",  onMouseMove);
-      document.removeEventListener("mouseenter", onMouseEnter);
       document.removeEventListener("mouseleave", onMouseLeave);
     };
   }, []);
