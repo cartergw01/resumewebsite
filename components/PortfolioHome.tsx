@@ -363,9 +363,21 @@ function StarField() {
     };
 
     animId = requestAnimationFrame(draw);
+
+    // Pause when tab is hidden — no point burning CPU for a hidden canvas
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else {
+        animId = requestAnimationFrame(draw);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

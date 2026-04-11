@@ -260,7 +260,7 @@ export function RocketCursor() {
 
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 0.36, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${Math.min(p.r+35,255)},${Math.min(p.g+25,255)},255,${op})`;
+          ctx.fillStyle = `rgba(${Math.min(p.r+10,255)},${Math.min(p.g+60,255)},${Math.min(p.b+20,255)},${op})`;
           ctx.fill();
         }
 
@@ -332,12 +332,22 @@ export function RocketCursor() {
 
     animId = requestAnimationFrame(draw);
 
+    const onVisibility = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+      } else {
+        animId = requestAnimationFrame(draw);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       cancelAnimationFrame(animId);
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",    onResize);
       document.removeEventListener("mousemove",  onMouseMove);
       document.removeEventListener("mouseleave", onMouseLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
@@ -391,8 +401,8 @@ export function RocketCursor() {
           {/* ── Engine bell ── trapezoid below body */}
           <path d="M6.5 22 L5.2 29 L12.8 29 L11.5 22 Z" fill="#8da0be" />
 
-          {/* ── Thruster exhaust glow ── very subtle */}
-          <ellipse cx="9" cy="29.5" rx="4" ry="1.5" fill="rgba(70,120,255,0.16)" />
+          {/* ── Thruster exhaust glow ── very subtle warm orange */}
+          <ellipse cx="9" cy="29.5" rx="4" ry="1.5" fill="rgba(255,130,50,0.18)" />
 
           {/* ── Main body ── */}
           <rect x="3.5" y="12.5" width="11" height="9.5" rx="1.2" fill="#ecf1ff" />
