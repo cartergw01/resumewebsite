@@ -148,12 +148,16 @@ export function RocketCursor() {
 
       if (!prefersReduced) {
         // ── Engine plume ──────────────────────────────────────────────────────
-        // Direction vectors along the plume axis
+        // Direction vectors along the plume axis.
+        // CSS rotate(θ) matrix: x' = x·cos-y·sin, y' = x·sin+y·cos
+        // Engine bell is at SVG (9,29), pivot at (9,4) → local offset (0, 25).
+        // After rotate(θ): engine offset = (-sin(θ)·25, cos(θ)·25)
+        // So the plume exits toward (-sin, +cos), NOT (+sin, +cos).
         const rad    = angle * (Math.PI / 180);
-        const pDirX  = Math.sin(rad);    // plume extends in this direction (away from nose)
-        const pDirY  = Math.cos(rad);
-        const perpX  =  Math.cos(rad);   // perpendicular to plume axis (verified: dot=0)
-        const perpY  = -Math.sin(rad);
+        const pDirX  = -Math.sin(rad);   // plume direction: opposite x of nose lean
+        const pDirY  =  Math.cos(rad);   // always downward (engine is below nose)
+        const perpX  =  Math.cos(rad);   // perpendicular to plume axis (dot = 0 ✓)
+        const perpY  =  Math.sin(rad);
 
         // Engine bell sits 22px behind the nose along the plume axis
         const exhaustX = cursorX + pDirX * 22;
