@@ -594,7 +594,7 @@ export default function PortfolioHome() {
             <Card className="portfolio-card-strong h-full rounded-[30px] border-none shadow-none">
               <CardBody className="flex h-full flex-col justify-start gap-2 p-4 sm:p-5">
                 <AnimatedName />
-                <div className="grid gap-1.5 text-sm leading-6 text-[var(--muted)] sm:leading-[1.65]">
+                <div className="grid gap-2 text-sm leading-[1.7] text-[var(--muted)]">
                   {bio.map((paragraph) => (
                     <p key={paragraph} className="max-w-5xl">
                       {paragraph}
@@ -775,8 +775,8 @@ export default function PortfolioHome() {
                     >
                       <motion.span variants={rowBgVariants} className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--accent-soft)]" />
                       <motion.span variants={rowBarVariants} style={{ originY: 0 }} className="pointer-events-none absolute left-0 top-0 h-full w-[2px] rounded-l-xl bg-[var(--accent)]" />
-                      <span className="relative z-10 flex-1 text-[10px] tracking-[0.16em] text-[var(--muted)]">
-                        Read more on my Substack
+                      <span className="relative z-10 flex-1 text-[11px] tracking-[0.14em] text-[var(--muted)]">
+                        Read more on Substack
                       </span>
                       <motion.span variants={rowArrowVariants} className="relative z-10 shrink-0 text-base text-[var(--accent)]" aria-hidden="true">→</motion.span>
                     </motion.a>
@@ -795,18 +795,18 @@ export default function PortfolioHome() {
                   <div className="grid gap-4">
                     {profileFacts.map((fact) => (
                       <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
-                        <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">{fact.label}</p>
+                        <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">{fact.label}</p>
                         <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">{fact.value}</p>
                       </div>
                     ))}
                   </div>
                   <div className="grid gap-3">
-                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Skills</p>
-                    <p className="text-sm leading-7 text-[var(--foreground)]">{skills}</p>
+                    <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">Skills</p>
+                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{skills}</p>
                   </div>
                   <div className="grid gap-3">
-                    <p className="text-[10px] tracking-[0.16em] text-[var(--muted)]">Interests</p>
-                    <p className="text-sm leading-7 text-[var(--foreground)]">{interests}</p>
+                    <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">Interests</p>
+                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{interests}</p>
                   </div>
                 </CardBody>
               </Card>
