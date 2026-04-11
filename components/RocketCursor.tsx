@@ -146,35 +146,96 @@ export function RocketCursor() {
       ctx.clearRect(0, 0, W, H);
 
       if (!prefersReduced) {
-        // Engine exhaust origin — directly behind nose in movement direction
-        // (accounts for rocket tilt so exhaust appears from engine bell)
-        const rad = angle * (Math.PI / 180);
-        const exhaustX = cursorX + Math.sin(rad) * 22;
-        const exhaustY = cursorY + Math.cos(rad) * 22;
+        // ── Engine plume ──────────────────────────────────────────────────────
+        // Direction vectors along the plume axis
+        const rad    = angle * (Math.PI / 180);
+        const pDirX  = Math.sin(rad);    // plume extends in this direction (away from nose)
+        const pDirY  = Math.cos(rad);
+        const perpX  =  Math.cos(rad);   // perpendicular to plume axis (verified: dot=0)
+        const perpY  = -Math.sin(rad);
 
-        // ── Emit stardust particles from engine bell ──────────────────────────
-        if (speed > 0.4 && particles.length < PARTICLE_CAP) {
-          // Scale emission rate with speed: 1 at crawl, 4 at full sprint
-          const emitCount = Math.min(Math.ceil(speed * 0.38), 4);
+        // Engine bell sits 22px behind the nose along the plume axis
+        const exhaustX = cursorX + pDirX * 22;
+        const exhaustY = cursorY + pDirY * 22;
+
+        // Plume tip: always some length at idle, extends with speed
+        const plumeLen = 14 + Math.min(speed * 3.8, 52);
+        const tipX = exhaustX + pDirX * plumeLen;
+        const tipY = exhaustY + pDirY * plumeLen;
+
+        // Subtle flicker — makes the flame feel alive even when still
+        const flicker = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
+        const flutter = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
+        // Overall brightness: always on at 45%, grows to 100% when moving
+        const plumeStr = 0.45 + Math.min(speed / 8, 1) * 0.55;
+
+        // Helper: draw one triangular plume cone with a linear gradient fill
+        const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
+          const lx = exhaustX + perpX * hw;
+          const ly = exhaustY + perpY * hw;
+          const rx = exhaustX - perpX * hw;
+          const ry = exhaustY - perpY * hw;
+          const grad = ctx.createLinearGradient(exhaustX, exhaustY, tipX, tipY);
+          grad.addColorStop(0,    `rgba(${r},${g},${b},${baseOp * plumeStr * flic})`);
+          grad.addColorStop(0.35, `rgba(${r},${g},${b},${baseOp * 0.38 * plumeStr * flic})`);
+          grad.addColorStop(1,    `rgba(${r},${g},${b},0)`);
+          ctx.beginPath();
+          ctx.moveTo(lx, ly);
+          ctx.lineTo(tipX, tipY);
+          ctx.lineTo(rx, ry);
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+        };
+
+        // Additive blending so layers brighten where they overlap — creates a
+        // natural hot-core effect without any extra math
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+
+        // Layer 1 — outer heat shimmer: wide, warm orange, very low opacity
+        drawCone(6.5, 255, 125, 30,  0.14, flutter);
+        // Layer 2 — main exhaust plume: blue-white ion exhaust
+        drawCone(3.4, 145, 190, 255, 0.55);
+        // Layer 3 — hot core: narrow, near-white
+        drawCone(1.6, 225, 242, 255, 0.90);
+
+        ctx.restore();
+
+        // Nozzle base glow — soft radial bloom at the engine bell opening
+        const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
+        bellGlow.addColorStop(0,    `rgba(215, 232, 255, ${0.70 * plumeStr * flicker})`);
+        bellGlow.addColorStop(0.45, `rgba(145, 185, 255, ${0.28 * plumeStr * flicker})`);
+        bellGlow.addColorStop(1,     "rgba(100, 150, 255, 0)");
+        ctx.beginPath();
+        ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
+        ctx.fillStyle = bellGlow;
+        ctx.fill();
+
+        // ── Exhaust trail particles ────────────────────────────────────────────
+        // Emitted from the plume TIP (not the nozzle) — these are cooling exhaust
+        // gases drifting away, not hot combustion. Sparse so the shaped plume
+        // remains the hero.
+        if (speed > 0.7 && particles.length < PARTICLE_CAP) {
+          const emitCount = speed > 5 ? 2 : 1;
           for (let i = 0; i < emitCount; i++) {
-            // 15% warm (engine heat), 85% cool space-blue
-            const warm = Math.random() < 0.15;
+            const driftSpd = 0.10 + Math.random() * 0.13;
             particles.push({
-              x:       exhaustX + (Math.random() - 0.5) * 4,
-              y:       exhaustY + (Math.random() - 0.5) * 4,
-              vx:      (Math.random() - 0.5) * 0.20,  // gentle lateral drift
-              vy:      (Math.random() - 0.5) * 0.20,
-              size:    0.45 + Math.random() * 1.65,
+              x:       tipX + (Math.random() - 0.5) * 3,
+              y:       tipY + (Math.random() - 0.5) * 3,
+              vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.10,
+              vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.10,
+              size:    0.38 + Math.random() * 0.80,
               life:    0,
-              maxLife: 20 + Math.random() * 22,
-              r:       warm ? 255 : 185 + Math.floor(Math.random() * 35),
-              g:       warm ? 170 : 210 + Math.floor(Math.random() * 28),
-              b:       warm ? 70  : 245 + Math.floor(Math.random() * 10),
+              maxLife: 28 + Math.random() * 22,
+              r:       175 + Math.floor(Math.random() * 45),
+              g:       200 + Math.floor(Math.random() * 35),
+              b:       245,
             });
           }
         }
 
-        // ── Update + draw particles ────────────────────────────────────────────
+        // Update + draw trail particles
         for (let i = particles.length - 1; i >= 0; i--) {
           const p = particles[i];
           p.x += p.vx;
@@ -182,29 +243,23 @@ export function RocketCursor() {
           p.life++;
           if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
 
-          // Arc opacity: rises quickly, decays slowly — sin curve over lifetime
-          const t   = p.life / p.maxLife;
-          const op  = Math.sin(t * Math.PI) * Math.min(p.size / 1.5, 1) * 0.75;
+          const t  = p.life / p.maxLife;
+          const op = Math.sin(t * Math.PI) * 0.52 * Math.min(p.size / 0.9, 1);
           if (op < 0.015) continue;
 
-          // Outer glow halo
-          const glowR = p.size * 3.2;
+          const glowR = p.size * 3;
           const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-          grd.addColorStop(0,   `rgba(${p.r},${p.g},${p.b},${op * 0.85})`);
-          grd.addColorStop(0.35,`rgba(${p.r},${p.g},${p.b},${op * 0.30})`);
-          grd.addColorStop(1,   `rgba(${p.r},${p.g},${p.b},0)`);
+          grd.addColorStop(0,    `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
+          grd.addColorStop(0.38, `rgba(${p.r},${p.g},${p.b},${op * 0.20})`);
+          grd.addColorStop(1,    `rgba(${p.r},${p.g},${p.b},0)`);
           ctx.beginPath();
           ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
           ctx.fillStyle = grd;
           ctx.fill();
 
-          // Bright core dot
-          const coreR = Math.min(p.r + 40, 255);
-          const coreG = Math.min(p.g + 30, 255);
-          const coreB = Math.min(p.b + 10, 255);
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 0.42, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${coreR},${coreG},${coreB},${op})`;
+          ctx.arc(p.x, p.y, p.size * 0.36, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${Math.min(p.r+35,255)},${Math.min(p.g+25,255)},255,${op})`;
           ctx.fill();
         }
 
