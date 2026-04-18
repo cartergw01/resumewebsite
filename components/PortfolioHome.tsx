@@ -328,11 +328,16 @@ function StarField() {
         }
       }
 
-      // Shooting stars
-      if (t - lastShot > nextDelay) {
-        lastShot = t;
-        nextDelay = getNextShotDelay(warp);
-        if (warp > 0.05) spawnShooters(warp);
+      // Shooting stars — only when not in hyperspace
+      if (warp > 0.05) {
+        shooters.length = 0; // clear any in-flight shooters once warp begins
+        lastShot = t;        // reset timer so stars don't fire immediately on warp exit
+      } else {
+        if (t - lastShot > nextDelay) {
+          lastShot = t;
+          nextDelay = getNextShotDelay(0);
+          spawnShooters(0);
+        }
       }
 
       for (let i = shooters.length - 1; i >= 0; i--) {
