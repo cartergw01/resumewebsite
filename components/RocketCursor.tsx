@@ -28,6 +28,9 @@ const MAX_TILT_DEG    = 28;    // max rocket tilt degrees
 const PARTICLE_CAP    = 160;   // max live particles
 const STREAK_SPEED    = 7;     // min px/frame to spawn warp streaks
 const STREAK_EVERY    = 2;     // spawn streaks every N frames
+const ROCKET_PIVOT_X   = 9;
+const ROCKET_PIVOT_Y   = 4;
+const ROCKET_EXHAUST_Y = 29.5;
 
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -135,10 +138,9 @@ export function RocketCursor() {
       hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.10;
 
       // ── Rocket element transform ─────────────────────────────────────────
-      // SVG: 18×34 viewBox. Nose tip is at (9, 1).
-      // translate so SVG point (9, 4) sits at cursor → nose ~3px above pointer.
+      // SVG: 18×34 viewBox. Keep point (9, 4) on the cursor hotspot.
       rocket.style.transform =
-        `translate(${cursorX - 9}px, ${cursorY - 4}px) rotate(${angle}deg) scale(${hoverScale})`;
+        `translate(${cursorX - ROCKET_PIVOT_X}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
       rocket.style.filter = isHovering
         ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
         : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
@@ -159,9 +161,10 @@ export function RocketCursor() {
         const perpX  =  Math.cos(rad);   // perpendicular to plume axis (dot = 0 ✓)
         const perpY  =  Math.sin(rad);
 
-        // Engine bell sits 22px behind the nose along the plume axis
-        const exhaustX = cursorX + pDirX * 22;
-        const exhaustY = cursorY + pDirY * 22;
+        // Match the DOM rocket transform so the flame stays attached while tilted or scaled.
+        const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
+        const exhaustX = cursorX + pDirX * exhaustOffset;
+        const exhaustY = cursorY + pDirY * exhaustOffset;
 
         // Plume tip: always some length at idle, extends with speed
         const plumeLen = 14 + Math.min(speed * 3.8, 52);
@@ -380,7 +383,7 @@ export function RocketCursor() {
           zIndex: 9999,
           pointerEvents: "none",
           willChange: "transform, filter",
-          transformOrigin: "9px 4px",   // pivot near the nose tip
+          transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,   // pivot near the nose tip
           opacity: 0,
           transition: "opacity 0.18s ease",
         }}
