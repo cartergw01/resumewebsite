@@ -18,7 +18,7 @@ const profileFacts = [
 ];
 
 const skills =
-  "Notion, Google Workspace, Canva, ChatGPT, Claude, various AI tools, Microsoft Office, investment analysis, writing, copywriting, Substack, social media marketing (X, Instagram, LinkedIn, Threads, Discord), community building, and event planning.";
+  "Startup due diligence, investment analysis, market research, founder evaluation, writing, copywriting, social media marketing, community building, event planning, vibe-coding, Codex, Claude Code, Notion, Google Workspace, Canva, Microsoft Office, X, LinkedIn, Instagram, Threads, Discord.";
 
 const interests =
   "Writing, poker, playing basketball, reading, traveling, watching the Lakers, snowboarding, and biking";
