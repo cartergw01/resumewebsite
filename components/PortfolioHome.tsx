@@ -202,32 +202,6 @@ function StarField() {
       { x: W * 0.62, y: H * 0.45, r: 260, cr: 220, cg: 90,  cb: 20,  a: 0.12, vx: -0.018, vy: 0.030 },
     ];
 
-    interface Shooter { x: number; y: number; vx: number; vy: number; life: number; maxLife: number; }
-    const shooters: Shooter[] = [];
-    let lastShot = 0;
-    let nextDelay = 1500 + Math.random() * 2500;
-
-    const getNextShotDelay = (warpVal: number) => {
-      const rate = clamp(1 - warpVal * 0.75, 0.1, 1);
-      return 800 * rate + Math.random() * 1500 * rate;
-    };
-
-    const spawnShooters = (warpVal: number) => {
-      const burstCount = 1 + Math.floor(warpVal * 1.5);
-      for (let i = 0; i < burstCount; i++) {
-        const angle = (8 + Math.random() * 30) * (Math.PI / 180);
-        const spd = 12 + Math.random() * 8 + warpVal * 10;
-        shooters.push({
-          x: Math.random() * W * 0.7,
-          y: Math.random() * H * 0.5,
-          vx: Math.cos(angle) * spd,
-          vy: Math.sin(angle) * spd,
-          life: 0,
-          maxLife: 45 + Math.random() * 30,
-        });
-      }
-    };
-
     const draw = (t: number) => {
       // Smoothly lerp warp toward actual scroll depth.
       // Rate 0.032 ≈ ~500ms settle time — feels deliberate, not twitchy.
@@ -326,37 +300,6 @@ function StarField() {
           ctx.fillStyle = `rgba(${s.cr},${s.cg},${s.cb},${op})`;
           ctx.fill();
         }
-      }
-
-      // Shooting stars
-      if (t - lastShot > nextDelay) {
-        lastShot = t;
-        nextDelay = getNextShotDelay(warp);
-        if (warp > 0.05) spawnShooters(warp);
-      }
-
-      for (let i = shooters.length - 1; i >= 0; i--) {
-        const s = shooters[i];
-        const op = Math.sin((s.life / s.maxLife) * Math.PI);
-        const tailLen = 28 + warp * 20;
-        const g = ctx.createLinearGradient(s.x - s.vx * tailLen, s.y - s.vy * tailLen, s.x, s.y);
-        g.addColorStop(0, "rgba(200,220,255,0)");
-        g.addColorStop(0.7, `rgba(220,235,255,${op * 0.5})`);
-        g.addColorStop(1, `rgba(245,250,255,${op})`);
-        ctx.beginPath();
-        ctx.moveTo(s.x - s.vx * tailLen, s.y - s.vy * tailLen);
-        ctx.lineTo(s.x, s.y);
-        ctx.strokeStyle = g;
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, 1.2, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${op})`;
-        ctx.fill();
-        s.x += s.vx;
-        s.y += s.vy;
-        s.life++;
-        if (s.life >= s.maxLife) shooters.splice(i, 1);
       }
 
       animId = requestAnimationFrame(draw);
