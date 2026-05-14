@@ -15,14 +15,14 @@
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.72);
   --line: rgba(180, 210, 255, 0.1);
-  --panel: rgba(12, 26, 48, 0.28);
-  --panel-strong: rgba(10, 22, 42, 0.40);
+  --panel: rgba(12, 26, 48, 0.42);
+  --panel-strong: rgba(10, 22, 42, 0.58);
   --accent: #ff8b4b;
   --accent-soft: rgba(255, 139, 75, 0.1);
   --accent-strong: rgba(255, 139, 75, 0.22);
   --blue-glow: rgba(55, 119, 255, 0.16);
-  --glass-border: rgba(180, 210, 255, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.055);
+  --glass-border: rgba(180, 210, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.07);
 }
 
 html.dark {
@@ -30,14 +30,14 @@ html.dark {
   --foreground: #ecf4ff;
   --muted: rgba(214, 228, 245, 0.72);
   --line: rgba(180, 210, 255, 0.1);
-  --panel: rgba(12, 26, 48, 0.28);
-  --panel-strong: rgba(10, 22, 42, 0.40);
+  --panel: rgba(12, 26, 48, 0.42);
+  --panel-strong: rgba(10, 22, 42, 0.58);
   --accent: #ff8b4b;
   --accent-soft: rgba(255, 139, 75, 0.1);
   --accent-strong: rgba(255, 139, 75, 0.22);
   --blue-glow: rgba(55, 119, 255, 0.16);
-  --glass-border: rgba(180, 210, 255, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.055);
+  --glass-border: rgba(180, 210, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.07);
 }
 
 html,
@@ -69,52 +69,52 @@ body {
 
 .portfolio-card {
   border: 1px solid var(--glass-border);
-  background: rgba(12, 26, 48, 0.74);
+  background: rgba(12, 26, 48, 0.82);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:
-    0 8px 32px rgba(0, 8, 24, 0.32),
+    0 8px 32px rgba(0, 8, 24, 0.36),
     inset 0 1px 0 var(--glass-highlight);
 }
 
 .portfolio-card-profile {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.76);
+  background: rgba(10, 22, 44, 0.84);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   box-shadow:
-    0 8px 32px rgba(0, 8, 24, 0.32),
+    0 8px 32px rgba(0, 8, 24, 0.36),
     inset 0 1px 0 var(--glass-highlight);
 }
 
 .portfolio-card-strong {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 42, 0.82);
+  background: rgba(10, 22, 42, 0.88);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   box-shadow:
-    0 8px 32px rgba(0, 8, 24, 0.34),
+    0 8px 32px rgba(0, 8, 24, 0.38),
     inset 0 1px 0 var(--glass-highlight);
 }
 
 .portfolio-card-archive {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.76);
+  background: rgba(10, 22, 44, 0.84);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:
-    0 8px 32px rgba(0, 8, 24, 0.32),
+    0 8px 32px rgba(0, 8, 24, 0.36),
     inset 0 1px 0 var(--glass-highlight);
 }
 
 .portfolio-paper {
   border: 1px solid var(--glass-border);
   background:
-    linear-gradient(160deg, rgba(255, 200, 140, 0.09) 0%, rgba(10, 20, 40, 0.74) 60%);
+    linear-gradient(160deg, rgba(255, 200, 140, 0.09) 0%, rgba(10, 20, 40, 0.82) 60%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow:
-    0 8px 32px rgba(0, 8, 24, 0.28),
+    0 8px 32px rgba(0, 8, 24, 0.32),
     inset 0 1px 0 rgba(255, 220, 170, 0.10);
 }
 
