@@ -1,7 +1,20 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Playfair_Display, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Carter Wang",
@@ -39,7 +52,7 @@ const themeScript = `try { var theme = localStorage.getItem('portfolio-website-t
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <body className="min-h-screen font-sans antialiased">
         <Script id="theme-init" strategy="beforeInteractive">
           {themeScript}
