@@ -392,7 +392,7 @@ function MagneticLink({ label, href }: { label: string; href: string }) {
     <motion.a
       href={href}
       target={href.startsWith("mailto:") ? undefined : "_blank"}
-      rel={href.startsWith("mailto:") ? undefined : "noreferrer"}
+      rel={href.startsWith("mailto:") ? undefined : "noopener noreferrer"}
       style={{ x: springX, y: springY, display: "inline-block" }}
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -440,7 +440,7 @@ function EssayRow({ essay, index }: { essay: { title: string; subtitle: string; 
     <motion.a
       href={essay.href}
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
       initial="rest"
       whileHover="hover"
       variants={rowVariants}
@@ -678,7 +678,7 @@ export default function PortfolioHome() {
                                   key={article.href}
                                   href={article.href}
                                   target="_blank"
-                                  rel="noreferrer"
+                                  rel="noopener noreferrer"
                                   className="text-[var(--foreground)] underline decoration-[var(--accent)]/60 underline-offset-4 transition-opacity hover:opacity-75"
                                 >
                                   {article.label}
@@ -724,7 +724,7 @@ export default function PortfolioHome() {
                     <motion.a
                       href="https://carterko.substack.com/"
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       initial="rest"
                       whileHover="hover"
                       variants={rowVariants}

@@ -26,6 +26,7 @@ export default function ProjectsPage() {
           <motion.aside className="subpage-world-art" aria-hidden="true" {...fade(0.08)} />
 
           <section className="project-grid" aria-label="Project grid">
+            <p className="sr-only">Project slots are intentionally empty for now.</p>
             {projectSlots.map((slot, index) => (
               <motion.div
                 aria-hidden="true"

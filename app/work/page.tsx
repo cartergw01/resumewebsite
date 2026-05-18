@@ -94,7 +94,7 @@ export default function WorkPage() {
                 {role.links && (
                   <div className="panel-links">
                     {role.links.map((link) => (
-                      <a key={link.href} href={link.href} target="_blank" rel="noreferrer">
+                      <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer">
                         {link.label}
                       </a>
                     ))}

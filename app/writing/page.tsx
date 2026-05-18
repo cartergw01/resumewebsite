@@ -68,7 +68,7 @@ export default function WritingPage() {
                 key={essay.title}
                 href={essay.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 {...fade(0.1 + index * 0.06)}
               >
                 <span>{essay.tag}</span>

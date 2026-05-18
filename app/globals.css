@@ -2849,39 +2849,39 @@ html {
 }
 
 .cosmic-hero::before {
-  background-image: url("/cosmic-hero-v5-sharp.webp");
+  background-image: url("/cosmic-hero-v6-sharp.webp");
 }
 
 .world-work::before {
-  background-image: url("/cosmic-work-v5-sharp.webp");
+  background-image: url("/cosmic-work-v7-sharp.webp");
 }
 
 .world-writing::before {
-  background-image: url("/cosmic-writing-v5-sharp.webp");
+  background-image: url("/cosmic-writing-v6-sharp.webp");
 }
 
 .world-projects::before {
-  background-image: url("/cosmic-projects-v5-sharp.webp");
+  background-image: url("/cosmic-projects-v6-sharp.webp");
 }
 
 .world-life::before {
-  background-image: url("/cosmic-life-v5-sharp.webp");
+  background-image: url("/cosmic-life-v6-sharp.webp");
 }
 
 .subpage-work::before {
-  background-image: url("/cosmic-work-v5-sharp.webp");
+  background-image: url("/cosmic-work-v7-sharp.webp");
 }
 
 .subpage-writing::before {
-  background-image: url("/cosmic-writing-v5-sharp.webp");
+  background-image: url("/cosmic-writing-v6-sharp.webp");
 }
 
 .subpage-projects::before {
-  background-image: url("/cosmic-projects-v5-sharp.webp");
+  background-image: url("/cosmic-projects-v6-sharp.webp");
 }
 
 .subpage-life::before {
-  background-image: url("/cosmic-life-v5-sharp.webp");
+  background-image: url("/cosmic-life-v6-sharp.webp");
 }
 
 .hero-copy {
@@ -3509,7 +3509,7 @@ html {
 .cosmic-home .hero-visual {
   grid-column: 2;
   aspect-ratio: 1.18;
-  background-image: url("/cosmic-hero-v5-sharp.webp");
+  background-image: url("/cosmic-hero-v6-sharp.webp");
   background-position: 54% center;
 }
 
@@ -3530,22 +3530,22 @@ html {
 }
 
 .cosmic-home .world-work .world-visual {
-  background-image: url("/cosmic-work-v5-sharp.webp");
+  background-image: url("/cosmic-work-v7-sharp.webp");
   background-position: 55% center;
 }
 
 .cosmic-home .world-writing .world-visual {
-  background-image: url("/cosmic-writing-v5-sharp.webp");
+  background-image: url("/cosmic-writing-v6-sharp.webp");
   background-position: 47% center;
 }
 
 .cosmic-home .world-projects .world-visual {
-  background-image: url("/cosmic-projects-v5-sharp.webp");
+  background-image: url("/cosmic-projects-v6-sharp.webp");
   background-position: 52% center;
 }
 
 .cosmic-home .world-life .world-visual {
-  background-image: url("/cosmic-life-v5-sharp.webp");
+  background-image: url("/cosmic-life-v6-sharp.webp");
   background-position: 50% center;
 }
 
@@ -4218,8 +4218,19 @@ html {
   z-index: 4;
 }
 
+.cosmic-home .space-drift-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: normal;
+}
+
 .cosmic-home::before {
-  opacity: 0.22;
+  opacity: 0.12;
   background:
     radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.5px),
     radial-gradient(circle at 82% 24%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.5px),
@@ -4252,7 +4263,7 @@ html {
 .cosmic-home .world-section::before {
   content: "";
   position: absolute;
-  inset: -4%;
+  inset: -1.5%;
   z-index: -4;
   display: block !important;
   opacity: 1;
@@ -4260,8 +4271,9 @@ html {
   background-position: var(--world-position, center);
   background-size: cover;
   background-repeat: no-repeat;
-  filter: saturate(var(--transport-saturate, 1.05)) contrast(var(--transport-contrast, 1.04));
-  transform: translate3d(0, var(--transport-bg-y, 0px), 0) scale(var(--transport-bg-scale, 1.035));
+  filter: saturate(0.98) contrast(1.02);
+  transform: translate3d(0, var(--transport-bg-y, 0px), 0) scale(var(--transport-bg-scale, 1.006));
+  transform-origin: center center;
   will-change: transform, filter;
 }
 
@@ -4279,7 +4291,7 @@ html {
 }
 
 .cosmic-home .cosmic-hero {
-  --world-image: url("/cosmic-hero-v5-sharp.webp");
+  --world-image: url("/cosmic-hero-v6-sharp.webp");
   --world-position: left top;
   --quiet-left: rgba(3, 6, 17, 0.12);
   --quiet-right: rgba(3, 6, 17, 0.76);
@@ -4287,31 +4299,31 @@ html {
 }
 
 .cosmic-home .world-work {
-  --world-image: url("/cosmic-work-v5-sharp.webp");
-  --world-position: center;
-  --quiet-left: rgba(3, 6, 17, 0.88);
-  --quiet-right: rgba(3, 6, 17, 0.14);
+  --world-image: url("/cosmic-work-v7-sharp.webp");
+  --world-position: 58% center;
+  --quiet-left: rgba(3, 6, 17, 0.9);
+  --quiet-right: rgba(3, 6, 17, 0.1);
 }
 
 .cosmic-home .world-writing {
-  --world-image: url("/cosmic-writing-v5-sharp.webp");
-  --world-position: center;
-  --quiet-left: rgba(3, 6, 17, 0.16);
-  --quiet-right: rgba(3, 6, 17, 0.9);
+  --world-image: url("/cosmic-writing-v6-sharp.webp");
+  --world-position: 44% center;
+  --quiet-left: rgba(3, 6, 17, 0.12);
+  --quiet-right: rgba(3, 6, 17, 0.92);
 }
 
 .cosmic-home .world-projects {
-  --world-image: url("/cosmic-projects-v5-sharp.webp");
-  --world-position: center;
-  --quiet-left: rgba(3, 6, 17, 0.88);
-  --quiet-right: rgba(3, 6, 17, 0.16);
+  --world-image: url("/cosmic-projects-v6-sharp.webp");
+  --world-position: 60% center;
+  --quiet-left: rgba(3, 6, 17, 0.9);
+  --quiet-right: rgba(3, 6, 17, 0.12);
 }
 
 .cosmic-home .world-life {
-  --world-image: url("/cosmic-life-v5-sharp.webp");
-  --world-position: center;
-  --quiet-left: rgba(3, 6, 17, 0.14);
-  --quiet-right: rgba(3, 6, 17, 0.88);
+  --world-image: url("/cosmic-life-v7-left.png");
+  --world-position: 38% center;
+  --quiet-left: rgba(3, 6, 17, 0.12);
+  --quiet-right: rgba(3, 6, 17, 0.9);
 }
 
 .cosmic-home .hero-visual,
@@ -4339,7 +4351,7 @@ html {
   width: min(100%, 460px);
   max-width: 460px;
   margin: 0;
-  text-shadow: 0 5px 36px rgba(0, 0, 0, 0.78);
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
   transform: none !important;
   translate: 0 var(--transport-copy-y, 0px);
 }
@@ -4357,12 +4369,11 @@ html {
   font-size: clamp(4.8rem, 9.8vw, 8.3rem);
   line-height: 0.9;
   white-space: normal;
-  text-shadow: 0 10px 48px rgba(0, 0, 0, 0.76), 0 0 28px rgba(255, 231, 198, 0.16);
+  text-shadow: 0 8px 34px rgba(0, 0, 0, 0.72);
 }
 
 .cosmic-home .title-star {
-  width: min(190px, 42vw);
-  margin: 1.2rem 0 1rem;
+  display: none;
 }
 
 .cosmic-home .hero-copy p,
@@ -4385,17 +4396,31 @@ html {
   text-decoration: none;
 }
 
-.cosmic-home .world-work .world-intro,
-.cosmic-home .world-projects .world-intro {
+.cosmic-home .world-work .world-intro {
   grid-column: 1;
   justify-self: start;
+  max-width: 430px;
   text-align: left;
 }
 
-.cosmic-home .world-writing .world-intro,
+.cosmic-home .world-writing .world-intro {
+  grid-column: 2;
+  justify-self: end;
+  max-width: 420px;
+  text-align: right;
+}
+
+.cosmic-home .world-projects .world-intro {
+  grid-column: 1;
+  justify-self: start;
+  max-width: 410px;
+  text-align: left;
+}
+
 .cosmic-home .world-life .world-intro {
   grid-column: 2;
   justify-self: end;
+  max-width: 420px;
   text-align: right;
 }
 
@@ -4427,7 +4452,7 @@ html {
 
 .cosmic-subpage.subpage-topic::before {
   z-index: -3;
-  opacity: 0.58;
+  opacity: 0.68;
   background-image: var(--topic-image);
   background-position: var(--topic-position, center);
   background-size: cover;
@@ -4442,26 +4467,26 @@ html {
 }
 
 .subpage-work {
-  --topic-image: url("/cosmic-work-v5-sharp.webp");
-  --topic-card-image: url("/cosmic-work-v5-sharp.webp");
+  --topic-image: url("/cosmic-work-v7-sharp.webp");
+  --topic-card-image: url("/cosmic-work-v7-sharp.webp");
   --topic-position: center;
 }
 
 .subpage-writing {
-  --topic-image: url("/cosmic-writing-v5-sharp.webp");
-  --topic-card-image: url("/cosmic-writing-v5-sharp.webp");
+  --topic-image: url("/cosmic-writing-v6-sharp.webp");
+  --topic-card-image: url("/cosmic-writing-v6-sharp.webp");
   --topic-position: center;
 }
 
 .subpage-projects {
-  --topic-image: url("/cosmic-projects-v5-sharp.webp");
-  --topic-card-image: url("/cosmic-projects-v5-sharp.webp");
+  --topic-image: url("/cosmic-projects-v6-sharp.webp");
+  --topic-card-image: url("/cosmic-projects-v6-sharp.webp");
   --topic-position: center;
 }
 
 .subpage-life {
-  --topic-image: url("/cosmic-life-v5-sharp.webp");
-  --topic-card-image: url("/cosmic-life-v5-sharp.webp");
+  --topic-image: url("/cosmic-life-v6-sharp.webp");
+  --topic-card-image: url("/cosmic-life-v6-sharp.webp");
   --topic-position: center;
 }
 
@@ -4524,6 +4549,7 @@ html {
     var(--topic-card-image, var(--topic-image));
   background-position: center;
   background-size: cover;
+  image-rendering: auto;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
@@ -4837,5 +4863,699 @@ html {
 
   .subpage-projects .project-grid {
     gap: 0.6rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .cosmic-home .space-drift-canvas {
+    opacity: 0.28;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-home .space-drift-canvas {
+    display: none;
+  }
+}
+
+/* Centered cosmic title display. */
+.cosmic-home .cosmic-hero {
+  --quiet-left: rgba(3, 6, 17, 0.34);
+  --quiet-right: rgba(3, 6, 17, 0.34);
+}
+
+.cosmic-home .hero-copy {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 780px);
+  max-width: 780px;
+  text-align: center;
+  isolation: isolate;
+}
+
+.cosmic-home .hero-copy::before,
+.cosmic-home .hero-copy::after {
+  content: none;
+  display: none;
+}
+
+.cosmic-home .hero-copy h1 {
+  max-width: none;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  white-space: normal;
+  text-shadow:
+    0 0 16px rgba(255, 247, 234, 0.2),
+    0 0 46px rgba(143, 183, 255, 0.28),
+    0 12px 54px rgba(0, 0, 0, 0.82);
+}
+
+.cosmic-home .title-star {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.cosmic-home .hero-copy p {
+  max-width: 520px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (max-width: 980px) {
+  .cosmic-home .hero-copy {
+    justify-self: center;
+    max-width: min(640px, 100%);
+    text-align: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .cosmic-home .cosmic-hero {
+    align-items: center;
+    padding-top: 8.8rem;
+    padding-bottom: 5.7rem;
+  }
+
+  .cosmic-home .hero-copy {
+    max-width: min(100%, 25rem);
+  }
+
+  .cosmic-home .hero-copy h1 {
+    font-size: clamp(3rem, 15vw, 4.6rem);
+  }
+}
+
+/* Hardening pass: preserve the look while preventing real-content breakage. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+:where(
+  .hero-copy,
+  .world-intro,
+  .subpage-hero,
+  .subpage-panel,
+  .essay-card,
+  .life-note,
+  .project-slot,
+  .panel-kicker,
+  .panel-links,
+  .site-nav-primary,
+  .site-nav-social
+) {
+  min-width: 0;
+}
+
+:where(
+  .hero-copy h1,
+  .hero-copy p,
+  .world-intro h2,
+  .world-intro p,
+  .subpage-hero h1,
+  .subpage-hero p,
+  .subpage-panel h2,
+  .subpage-panel h3,
+  .subpage-panel p,
+  .subpage-panel li,
+  .essay-card h2,
+  .essay-card p,
+  .life-note h2,
+  .life-note p,
+  .panel-kicker,
+  .panel-links a
+) {
+  overflow-wrap: anywhere;
+  word-break: normal;
+  hyphens: auto;
+}
+
+:where(.hero-copy h1, .world-intro h2, .subpage-hero h1) {
+  text-wrap: balance;
+}
+
+.site-nav a {
+  min-height: 44px;
+}
+
+.panel-kicker,
+.panel-links {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .site-nav-primary,
+  .site-nav-social {
+    max-width: 100%;
+    overflow-x: auto;
+    padding-block: 0.05rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .site-nav-primary::-webkit-scrollbar,
+  .site-nav-social::-webkit-scrollbar {
+    display: none;
+  }
+
+  .site-nav a {
+    min-height: 44px;
+    padding-inline: 0.05rem;
+  }
+}
+
+@media (forced-colors: active) {
+  .site-nav,
+  .subpage-panel,
+  .essay-card,
+  .life-note,
+  .project-slot {
+    border: 1px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  a {
+    color: LinkText;
+  }
+
+  .cosmic-home .cosmic-hero::after,
+  .cosmic-home .world-section::after,
+  .cosmic-subpage.subpage-topic::after {
+    background: Canvas;
+    opacity: 0.72;
+  }
+}
+
+/* Integrated galaxy navigation. */
+.cosmic-home .site-nav,
+.cosmic-subpage .site-nav {
+  position: fixed;
+  top: clamp(0.8rem, 2vw, 1.35rem);
+  left: 50%;
+  z-index: 50;
+  width: min(1180px, calc(100% - clamp(1.25rem, 4vw, 3rem)));
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: translateX(-50%);
+}
+
+.cosmic-home .site-nav::before,
+.cosmic-subpage .site-nav::before,
+.cosmic-home .site-nav::after,
+.cosmic-subpage .site-nav::after {
+  content: none;
+}
+
+.cosmic-home .site-nav-primary,
+.cosmic-subpage .site-nav-primary {
+  gap: clamp(0.9rem, 2.2vw, 1.65rem);
+  justify-self: center;
+}
+
+.cosmic-home .site-nav-social,
+.cosmic-subpage .site-nav-social {
+  gap: clamp(0.62rem, 1.4vw, 1rem);
+  padding-left: clamp(0.7rem, 1.5vw, 1.05rem);
+  justify-self: end;
+  margin-right: clamp(-0.35rem, -0.8vw, -0.05rem);
+}
+
+.cosmic-home .site-nav-social::before,
+.cosmic-subpage .site-nav-social::before {
+  height: 0.95rem;
+  background: rgba(255, 247, 234, 0.2);
+}
+
+.cosmic-home .site-nav a,
+.cosmic-subpage .site-nav a {
+  min-height: 36px;
+  color: rgba(255, 247, 234, 0.68);
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.78), 0 0 18px rgba(143, 183, 255, 0.16);
+}
+
+.cosmic-home .site-nav-primary a,
+.cosmic-subpage .site-nav-primary a {
+  position: relative;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cosmic-home .site-nav-primary a::after,
+.cosmic-subpage .site-nav-primary a::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0.3rem;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 247, 234, 0);
+  box-shadow: 0 0 0 rgba(143, 183, 255, 0);
+  transform: translateX(-50%) scale(0.6);
+  transition:
+    background-color 180ms var(--cw-ease),
+    box-shadow 180ms var(--cw-ease),
+    transform 180ms var(--cw-ease);
+}
+
+.cosmic-home .site-nav a:hover,
+.cosmic-subpage .site-nav a:hover,
+.cosmic-home .site-nav a.is-active,
+.cosmic-subpage .site-nav a.is-active {
+  color: var(--cw-paper);
+}
+
+.cosmic-home .site-nav-primary a:hover::after,
+.cosmic-home .site-nav-primary a.is-active::after,
+.cosmic-subpage .site-nav-primary a:hover::after,
+.cosmic-subpage .site-nav-primary a.is-active::after {
+  background: rgba(255, 247, 234, 0.92);
+  box-shadow: 0 0 14px rgba(143, 183, 255, 0.72);
+  transform: translateX(-50%) scale(1);
+}
+
+.cosmic-home .site-nav-social a,
+.cosmic-subpage .site-nav-social a {
+  color: rgba(255, 247, 234, 0.42);
+  font-size: 0.72rem;
+}
+
+.cosmic-home .site-nav-social a:hover,
+.cosmic-subpage .site-nav-social a:hover {
+  color: rgba(255, 247, 234, 0.74);
+}
+
+@media (max-width: 760px) {
+  .cosmic-home .site-nav,
+  .cosmic-subpage .site-nav {
+    top: 0.55rem;
+    width: calc(100% - 1rem);
+    gap: 0.2rem 0.7rem;
+  }
+
+  .cosmic-home .site-nav-social,
+  .cosmic-subpage .site-nav-social {
+    width: auto;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .cosmic-home .site-nav a,
+  .cosmic-subpage .site-nav a {
+    min-height: 40px;
+  }
+}
+
+/* Landing scroll choreography: active worlds tint the journey without taking over. */
+.cosmic-home {
+  --journey-r: 143;
+  --journey-g: 183;
+  --journey-b: 255;
+  --journey-progress: 0;
+  --journey-depth: 0;
+  --journey-velocity: 0;
+}
+
+.cosmic-home::after {
+  background:
+    linear-gradient(90deg, rgba(3, 6, 17, 0.64), transparent 22%, transparent 78%, rgba(3, 6, 17, 0.54)),
+    radial-gradient(ellipse at 50% 50%, transparent 0 48%, rgba(3, 6, 17, 0.18) 78%, rgba(3, 6, 17, 0.48) 100%);
+  opacity: 0.82;
+}
+
+.cosmic-home .cosmic-hero::after,
+.cosmic-home .world-section::after {
+  background:
+    linear-gradient(180deg, rgba(3, 6, 17, 0.3) 0%, rgba(3, 6, 17, 0.06) 38%, rgba(3, 6, 17, 0.22) 76%, rgba(3, 6, 17, 0.86) 100%),
+    linear-gradient(90deg, var(--quiet-left, rgba(3, 6, 17, 0.86)) 0%, rgba(3, 6, 17, 0.34) 36%, rgba(3, 6, 17, 0.1) 64%, var(--quiet-right, rgba(3, 6, 17, 0.38)) 100%);
+}
+
+.cosmic-home .world-section::before,
+.cosmic-home .cosmic-hero::before {
+  filter: saturate(0.98) contrast(1.02) brightness(0.98);
+}
+
+.cosmic-home .world-intro::before {
+  content: none;
+}
+
+.cosmic-home .world-intro a {
+  transition:
+    color 180ms var(--cw-ease),
+    opacity 180ms var(--cw-ease),
+    transform 180ms var(--cw-ease);
+}
+
+.cosmic-home .world-intro a:hover {
+  transform: translate3d(0.18rem, 0, 0);
+}
+
+.cosmic-home .world-writing .world-intro a:hover,
+.cosmic-home .world-life .world-intro a:hover {
+  transform: translate3d(-0.18rem, 0, 0);
+}
+
+.cosmic-home .section-dots {
+  z-index: 55;
+}
+
+.cosmic-home .section-dots a {
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 247, 234, 0.3);
+  transform: scale(1);
+  transition:
+    width 220ms var(--cw-ease),
+    height 220ms var(--cw-ease),
+    background-color 220ms var(--cw-ease),
+    transform 220ms var(--cw-ease);
+}
+
+.cosmic-home .section-dots a.active {
+  width: 7px;
+  height: 22px;
+  background: rgba(255, 247, 234, 0.9);
+  transform: scale(1);
+}
+
+.cosmic-home .site-nav-primary a.is-active {
+  color: var(--cw-paper);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-home .world-intro::before {
+    opacity: 0;
+  }
+}
+
+/* Landing polish pass: spacing, hierarchy, responsive safety, and calmer motion. */
+.cosmic-home .space-drift-canvas {
+  opacity: 0.12;
+}
+
+.cosmic-home .cosmic-hero {
+  min-height: 106svh;
+  padding-top: clamp(7.5rem, 10vw, 9.25rem);
+  padding-bottom: clamp(5.5rem, 8vw, 7rem);
+}
+
+.cosmic-home .world-section {
+  min-height: 102svh;
+  margin-top: -5svh;
+  padding-top: clamp(7rem, 9vw, 8.75rem);
+  padding-bottom: clamp(5.75rem, 8vw, 7.5rem);
+}
+
+.cosmic-home .world-work {
+  margin-top: -4svh;
+}
+
+.cosmic-home .hero-copy {
+  max-width: min(760px, 100%);
+}
+
+.cosmic-home .hero-copy h1 {
+  font-size: clamp(4.4rem, 9vw, 7.8rem);
+}
+
+.cosmic-home .hero-copy p {
+  max-width: 620px;
+  margin-top: clamp(0.9rem, 1.8vw, 1.25rem);
+  color: rgba(255, 247, 234, 0.72);
+  font-size: clamp(0.9rem, 1.05vw, 1rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.cosmic-home .world-intro {
+  max-width: min(30rem, 100%);
+}
+
+.cosmic-home .world-intro h2 {
+  text-wrap: balance;
+}
+
+.cosmic-home .world-intro p {
+  max-width: 29rem;
+  color: rgba(255, 247, 234, 0.7);
+  font-size: clamp(0.9rem, 1vw, 0.98rem);
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+.cosmic-home .world-intro a {
+  min-height: 44px;
+  margin-top: 0.3rem;
+}
+
+.cosmic-home .site-nav,
+.cosmic-subpage .site-nav {
+  top: clamp(0.9rem, 2vw, 1.4rem);
+  width: min(1120px, calc(100% - clamp(1rem, 4vw, 3rem)));
+}
+
+.cosmic-home .site-nav-primary,
+.cosmic-subpage .site-nav-primary {
+  gap: clamp(1rem, 2.15vw, 1.55rem);
+}
+
+.cosmic-home .site-nav-primary a,
+.cosmic-subpage .site-nav-primary a {
+  min-height: 44px;
+  color: rgba(255, 247, 234, 0.76);
+  font-size: clamp(0.92rem, 0.95vw, 1rem);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.cosmic-home .site-nav-social,
+.cosmic-subpage .site-nav-social {
+  gap: clamp(0.68rem, 1.15vw, 0.95rem);
+  padding-left: clamp(1rem, 1.8vw, 1.35rem);
+  margin-right: clamp(-0.7rem, -1.1vw, -0.2rem);
+}
+
+.cosmic-home .site-nav-social::before,
+.cosmic-subpage .site-nav-social::before {
+  width: 1px;
+  height: 0.8rem;
+  background: rgba(255, 247, 234, 0.16);
+}
+
+.cosmic-home .site-nav-social a,
+.cosmic-subpage .site-nav-social a {
+  min-height: 44px;
+  color: rgba(255, 247, 234, 0.38);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
+}
+
+.cosmic-home .site-nav-social a:hover,
+.cosmic-subpage .site-nav-social a:hover {
+  color: rgba(255, 247, 234, 0.78);
+}
+
+.cosmic-home .site-nav-primary a:hover::after,
+.cosmic-home .site-nav-primary a.is-active::after,
+.cosmic-subpage .site-nav-primary a:hover::after,
+.cosmic-subpage .site-nav-primary a.is-active::after {
+  box-shadow: none;
+}
+
+.cosmic-home .section-dots {
+  right: clamp(0.75rem, 2vw, 1.4rem);
+  gap: 0.72rem;
+}
+
+.cosmic-home .section-dots a {
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 247, 234, 0.24);
+}
+
+.cosmic-home .section-dots a.active {
+  width: 6px;
+  height: 18px;
+  background: rgba(255, 247, 234, 0.78);
+}
+
+@media (max-width: 980px) {
+  .cosmic-home .cosmic-hero,
+  .cosmic-home .world-section {
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .cosmic-home .world-section {
+    min-height: 100svh;
+    margin-top: -3svh;
+  }
+
+  .cosmic-home .world-intro,
+  .cosmic-home .world-writing .world-intro,
+  .cosmic-home .world-life .world-intro {
+    max-width: min(27rem, 100%);
+  }
+
+  .cosmic-home .world-intro p {
+    max-width: 25rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .cosmic-home .space-drift-canvas {
+    opacity: 0.08;
+  }
+
+  .cosmic-home .site-nav,
+  .cosmic-subpage .site-nav {
+    top: 0.45rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: calc(100% - 0.85rem);
+    gap: 0;
+    justify-items: center;
+  }
+
+  .cosmic-home .site-nav-primary,
+  .cosmic-subpage .site-nav-primary {
+    max-width: 100%;
+    gap: clamp(0.7rem, 3.5vw, 1rem);
+    justify-content: center;
+  }
+
+  .cosmic-home .site-nav-social,
+  .cosmic-subpage .site-nav-social {
+    max-width: 100%;
+    gap: clamp(0.55rem, 3vw, 0.8rem);
+    padding-left: 0;
+    margin-right: 0;
+    justify-content: center;
+    transform: translateY(-0.28rem);
+  }
+
+  .cosmic-home .site-nav-social::before,
+  .cosmic-subpage .site-nav-social::before {
+    content: none;
+  }
+
+  .cosmic-home .site-nav-primary a,
+  .cosmic-subpage .site-nav-primary a {
+    min-height: 44px;
+    font-size: clamp(0.8rem, 3.25vw, 0.92rem);
+  }
+
+  .cosmic-home .site-nav-social a,
+  .cosmic-subpage .site-nav-social a {
+    min-height: 44px;
+    font-size: clamp(0.64rem, 2.7vw, 0.72rem);
+  }
+
+  .cosmic-home .cosmic-hero {
+    min-height: 104svh;
+    padding-top: 8.6rem;
+    padding-bottom: 4.75rem;
+  }
+
+  .cosmic-home .world-section {
+    min-height: 100svh;
+    padding-top: 7.2rem;
+    padding-bottom: 4.9rem;
+  }
+
+  .cosmic-home .hero-copy h1 {
+    font-size: clamp(3.25rem, 15vw, 4.8rem);
+  }
+
+  .cosmic-home .hero-copy p {
+    max-width: 22.5rem;
+    font-size: 0.88rem;
+    line-height: 1.56;
+  }
+
+  .cosmic-home .world-intro,
+  .cosmic-home .world-writing .world-intro,
+  .cosmic-home .world-life .world-intro {
+    max-width: min(22rem, 100%);
+    text-align: left;
+  }
+
+  .cosmic-home .world-intro h2 {
+    font-size: clamp(3rem, 14vw, 4.25rem);
+  }
+
+  .cosmic-home .world-intro p {
+    max-width: 21rem;
+    font-size: 0.88rem;
+    line-height: 1.58;
+  }
+
+  .cosmic-home .world-intro a {
+    min-height: 44px;
+  }
+
+  .cosmic-home .section-dots {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .cosmic-home .cosmic-hero,
+  .cosmic-home .world-section {
+    padding-inline: 1rem;
+  }
+
+  .cosmic-home .cosmic-hero {
+    padding-top: 8.2rem;
+  }
+
+  .cosmic-home .world-section {
+    padding-top: 6.9rem;
+  }
+
+  .cosmic-home .hero-copy p {
+    max-width: 20.5rem;
+  }
+
+  .cosmic-home .world-intro,
+  .cosmic-home .world-writing .world-intro,
+  .cosmic-home .world-life .world-intro {
+    max-width: 20.5rem;
+  }
+
+  .cosmic-home .world-intro p {
+    max-width: 19.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-home .space-drift-canvas {
+    opacity: 0;
+  }
+
+  .cosmic-home .cosmic-hero::before,
+  .cosmic-home .world-section::before,
+  .cosmic-home .hero-copy,
+  .cosmic-home .world-intro {
+    transform: none;
   }
 }

@@ -3,34 +3,35 @@
 import { motion } from "framer-motion";
 import SiteNav from "./SiteNav";
 import ScrollTransport from "./ScrollTransport";
+import SpaceDrift from "./SpaceDrift";
 
 const worlds = [
   {
     id: "work",
     title: "Work",
-    copy: "Working with early-stage founders between Taiwan and Silicon Valley.",
-    cta: "View work",
+    copy: "Startups, research, and founder programs between Taipei and Silicon Valley.",
+    cta: "See work",
     href: "/work",
   },
   {
     id: "writing",
     title: "Writing",
-    copy: "Essays on technology, culture, identity, markets, and human potential.",
-    cta: "Read essays",
+    copy: "Essays on technology, identity, markets, and growing up online.",
+    cta: "Read writing",
     href: "/writing",
   },
   {
     id: "projects",
     title: "Projects",
-    copy: "Small tools and experiments for writing, focus, and workflow automation.",
-    cta: "View projects",
+    copy: "Small tools, experiments, and half-formed ideas I want to make real.",
+    cta: "See projects",
     href: "/projects",
   },
   {
     id: "life",
     title: "Life",
-    copy: "Taipei notes, basketball, biking, books, poker, and everyday curiosity.",
-    cta: "About life",
+    copy: "Taipei, bikes, basketball, poker, books, and notes from ordinary days.",
+    cta: "Life notes",
     href: "/life",
   },
 ];
@@ -46,7 +47,11 @@ function Hero() {
       >
         <h1 id="hero-title">Carter Wang</h1>
         <div className="title-star" aria-hidden="true" />
-        <p>Writing, building, and investing around technology, culture, and human potential.</p>
+        <p>
+          From SoCal, now in Taipei, working at 886 Studios with the founders of Twitch and Guitar
+          Hero. Outside of startups, I&apos;m usually watching the Lakers, playing poker, biking around
+          the city, or writing.
+        </p>
       </motion.div>
       <motion.div
         className="hero-visual"
@@ -97,6 +102,7 @@ export default function UniverseWorld() {
   return (
     <div className="cosmic-home">
       <ScrollTransport />
+      <SpaceDrift />
       <SiteNav homeAnchors />
       <main>
         <Hero />

@@ -155,7 +155,7 @@ export default function UniverseHome() {
             key={link.label}
             href={link.href}
             target={link.href.startsWith("mailto:") ? undefined : "_blank"}
-            rel="noreferrer"
+            rel="noopener noreferrer"
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 + i * 0.08 }}
@@ -304,7 +304,7 @@ export default function UniverseHome() {
                 key={essay.title}
                 href={essay.href}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 style={{
                   display: "flex", alignItems: "center", gap: 16,
                   padding: "14px 0",

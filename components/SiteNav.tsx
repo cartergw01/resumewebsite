@@ -15,14 +15,14 @@ const primaryLinks = [
 ] as const;
 
 const socialLinks = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/cartergrantwang" },
   { label: "X", href: "https://x.com/CarterKoWang" },
   { label: "Email", href: "mailto:cartergw01@gmail.com" },
   { label: "Substack", href: "https://carterko.substack.com/" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/in/cartergrantwang" },
 ];
 
 function externalLinkProps(href: string) {
-  return href.startsWith("http") ? { target: "_blank", rel: "noreferrer" } : {};
+  return href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
 }
 
 export default function SiteNav({ active = "home", homeAnchors = false }: SiteNavProps) {
@@ -39,6 +39,7 @@ export default function SiteNav({ active = "home", homeAnchors = false }: SiteNa
               key={link.id}
               href={href}
               className={active === link.id ? "is-active" : undefined}
+              aria-current={active === link.id && !homeAnchors ? "page" : undefined}
             >
               {link.label}
             </Link>
