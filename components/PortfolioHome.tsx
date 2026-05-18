@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { Accordion, AccordionItem, Card, CardBody, Link } from "@heroui/react";
 import { motion, useMotionValue, useSpring, useTransform, useInView } from "framer-motion";
 
@@ -566,9 +567,11 @@ export default function PortfolioHome() {
             <TiltCard>
               <div className="portfolio-card-profile flex h-full items-center rounded-[30px] p-4 sm:p-5">
                 <div className="relative h-full min-h-[220px] w-full overflow-hidden rounded-[22px] sm:min-h-[280px] lg:min-h-0">
-                  <img
+                  <Image
                     alt="Carter Wang headshot"
                     src="/headshot.jpg"
+                    fill
+                    sizes="(min-width: 1024px) 520px, 100vw"
                     className="absolute inset-0 block h-full w-full object-cover object-[center_25%]"
                   />
                 </div>

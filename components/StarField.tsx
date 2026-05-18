@@ -196,7 +196,7 @@ export default function StarField({ scrollWarp = true, warpRef }: StarFieldProps
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [scrollWarp]);
+  }, [scrollWarp, warpRef]);
 
   return (
     <canvas
