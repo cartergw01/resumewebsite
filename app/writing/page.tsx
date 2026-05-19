@@ -1,9 +1,10 @@
 import SiteNav from "@/components/SiteNav";
-import { essays, writingThreads } from "@/content/portfolio";
+import { essays } from "@/content/portfolio";
+
+const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
+const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best Things I Read"));
 
 export default function WritingPage() {
-  const [featuredEssay, ...otherEssays] = essays;
-
   return (
     <div className="cosmic-subpage subpage-writing subpage-topic topic-page">
       <SiteNav active="writing" />
@@ -11,68 +12,63 @@ export default function WritingPage() {
       <main className="subpage-main topic-main">
         <header className="subpage-hero topic-hero writing-hero">
           <span>Writing</span>
-          <h1>Essays from the edge of the feed.</h1>
-          <p>
-            I write about technology, identity, culture, markets, and what it feels like to grow up
-            while everything keeps accelerating.
-          </p>
-          <div className="topic-meta-strip" aria-label="Writing themes">
-            <span>Technology</span>
-            <span>Identity</span>
-            <span>Markets</span>
-          </div>
+          <h1>Writing</h1>
+          <p>Recent essays from my Substack.</p>
         </header>
 
-        <section className="topic-layout writing-layout" aria-label="Writing world">
-          <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
-
-          <div className="topic-content writing-content">
-            <section className="writing-thread-grid" aria-label="Writing threads">
-              {writingThreads.map(([title, copy], index) => (
-                <article
-                  className="subpage-panel writing-thread"
-                  key={title}
-                  style={{ animationDelay: `${0.08 + index * 0.045}s` }}
-                >
-                  <span>{title}</span>
-                  <p>{copy}</p>
-                </article>
-              ))}
-            </section>
-
-            <section className="essay-stack" aria-label="Selected essays">
-              <a
-                className="essay-card essay-featured"
-                href={featuredEssay.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ animationDelay: "0.18s" }}
-              >
-                <span>{featuredEssay.tag}</span>
-                <h2>{featuredEssay.title}</h2>
-                <p>{featuredEssay.subtitle}</p>
-              </a>
-
-              <div className="essay-list-compact">
-                {otherEssays.map((essay, index) => (
-                  <a
-                    className="essay-row"
-                    key={essay.title}
-                    href={essay.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ animationDelay: `${0.24 + index * 0.045}s` }}
-                  >
-                    <span>{essay.tag}</span>
-                    <strong>{essay.title}</strong>
-                    <p>{essay.subtitle}</p>
-                  </a>
-                ))}
-              </div>
-            </section>
-          </div>
+        <section className="writing-archive" aria-label="Substack essay archive">
+          <ArchiveGroup title="Essays" entries={essayEntries} />
+          <ArchiveGroup title="Reading Lists" entries={readingLists} offset={essayEntries.length} />
         </section>
       </main>
     </div>
   );
+}
+
+function ArchiveGroup({
+  entries,
+  offset = 0,
+  title,
+}: {
+  entries: typeof essays;
+  offset?: number;
+  title: string;
+}) {
+  return (
+    <div className="archive-group">
+      <h2 className="archive-group-heading">{title}</h2>
+      <div className="archive-list">
+        {entries.map((essay, index) => {
+          return (
+            <a
+              className="archive-row"
+              href={essay.href}
+              key={essay.title}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ animationDelay: `${0.08 + (offset + index) * 0.035}s` }}
+            >
+              <span className="archive-main">
+                <strong>{essay.title}</strong>
+                <span>{essay.subtitle}</span>
+              </span>
+              <span className="archive-meta">
+                <time dateTime={toDateTime(essay.date)}>{essay.date}</time>
+              </span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function toDateTime(date: string) {
+  const parsed = new Date(`${date} UTC`);
+
+  if (Number.isNaN(parsed.valueOf())) {
+    return undefined;
+  }
+
+  return parsed.toISOString().slice(0, 10);
 }

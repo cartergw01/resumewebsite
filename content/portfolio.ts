@@ -53,43 +53,116 @@ export const workFocus = [
 
 export const essays = [
   {
+    title: "The Cost of Keeping Up",
+    subtitle: "Monitor the situation or die. Just kidding, it's really not that important...but...maybe it is?",
+    href: "https://carterko.substack.com/p/the-cost-of-keeping-up",
+    date: "May 5, 2026",
+    spine: {
+      top: "34 49 104",
+      bottom: "17 22 55",
+      accent: "122 156 236",
+    },
+  },
+  {
     title: "Slop & Spiral",
     subtitle:
-      "What infinite feeds do to attention, taste, and the part of us that still wants depth.",
+      "Why do we keep scrolling? Maybe it's because the moment we stop, we're alone with ourselves.",
     href: "https://carterko.substack.com/p/slop-and-spiral",
-    tag: "Technology / Society",
+    date: "Jan 20, 2026",
+    spine: {
+      top: "4 12 10",
+      bottom: "16 28 26",
+      accent: "156 222 205",
+    },
+  },
+  {
+    title: "The Best Things I Read in 2025",
+    subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2025.",
+    href: "https://carterko.substack.com/p/the-best-things-i-read-in-2025",
+    date: "Jan 11, 2026",
+    spine: {
+      top: "124 72 17",
+      bottom: "73 43 18",
+      accent: "244 180 64",
+    },
   },
   {
     title: "We All Have Superpowers",
-    subtitle:
-      "How technology extends our minds, changes our limits, and reshapes what we expect from ourselves.",
+    subtitle: "We invent technology to extend ourselves.",
     href: "https://carterko.substack.com/p/we-all-have-superpowers",
-    tag: "Technology / Human potential",
+    date: "Oct 17, 2025",
+    spine: {
+      top: "14 52 84",
+      bottom: "20 31 58",
+      accent: "203 60 84",
+    },
   },
   {
     title: "The Mirage of Identity",
-    subtitle: "How online life turns the self into something performed, edited, and constantly compared.",
+    subtitle: "Our social world in the 21st century.",
     href: "https://carterko.substack.com/p/the-mirage-of-identity",
-    tag: "Identity / Culture",
+    date: "May 12, 2025",
+    spine: {
+      top: "80 129 158",
+      bottom: "18 50 72",
+      accent: "185 94 17",
+    },
+  },
+  {
+    title: "The Best Things I Read in 2024",
+    subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2024.",
+    href: "https://carterko.substack.com/p/the-best-things-i-read-in-2024",
+    date: "Jan 6, 2025",
+    spine: {
+      top: "135 17 8",
+      bottom: "63 23 26",
+      accent: "233 215 128",
+    },
   },
   {
     title: "From Crash to Curiosity",
-    subtitle: "How losing money in the markets became a lasting obsession with how the world works.",
+    subtitle: "My investing adventure, thus far.",
     href: "https://carterko.substack.com/p/from-crash-to-curiosity",
-    tag: "Investing / Personal",
+    date: "Nov 3, 2024",
+    spine: {
+      top: "83 57 44",
+      bottom: "45 28 25",
+      accent: "203 46 20",
+    },
   },
   {
     title: "Work as Play",
-    subtitle: "A reflection on choosing work that feels alive, demanding, and worth getting better at.",
+    subtitle: "A reflection on the cusp of my career.",
     href: "https://carterko.substack.com/p/work-as-play",
-    tag: "Work / Meaning",
+    date: "Sep 28, 2024",
+    spine: {
+      top: "57 73 97",
+      bottom: "15 42 77",
+      accent: "239 227 151",
+    },
   },
-];
-
-export const writingThreads = [
-  ["Technology", "How tools change what people can do and what they expect from themselves."],
-  ["Identity", "The weirdness of growing up online, performing the self, and trying to stay real."],
-  ["Markets", "Investing as a way to study incentives, power, timing, and human behavior."],
+  {
+    title: "Fuck It, We Ball!",
+    subtitle: "The call to life is a call to adventure.",
+    href: "https://carterko.substack.com/p/fuck-it-we-ball",
+    date: "Jul 20, 2024",
+    spine: {
+      top: "99 128 29",
+      bottom: "43 60 24",
+      accent: "241 219 159",
+    },
+  },
+  {
+    title: "The Best Things I Read in 2023",
+    subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2023.",
+    href: "https://carterko.substack.com/p/the-best-things-i-read-in-2023",
+    date: "Jan 3, 2024",
+    spine: {
+      top: "94 65 42",
+      bottom: "47 29 22",
+      accent: "207 192 176",
+    },
+  },
 ];
 
 export const lifeNotes = [
