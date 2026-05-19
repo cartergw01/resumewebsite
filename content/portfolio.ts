@@ -179,23 +179,33 @@ export const projects = [
     title: "TaipeiFlix",
     href: "https://taipei-flix.onrender.com/",
     image: "/project-shots/taipei-flix.webp",
-    label: "Movie showtimes",
-    description: "A live Taipei movie guide that checks theaters and makes showtimes easier to browse.",
+    description: "A Taipei movie guide that checks theaters and makes showtimes easier to browse.",
   },
   {
     title: "Taipei Guide",
     href: "https://taipei-guide-etaa.vercel.app/",
     image: "/project-shots/taipei-guide.webp",
-    label: "City guide",
     description: "A personal guide for friends visiting Taipei, with food, places, and small local rituals.",
   },
   {
     title: "Poker Odds",
     href: "https://poker-odds-app-pink.vercel.app/",
     image: "/project-shots/poker-odds.webp",
-    label: "Odds tool",
     description: "A Texas Hold'em odds calculator with a felt-table interface and fast card selection.",
   },
 ];
 
-export const projectOpenSlots = ["Next tool", "Writing experiment", "Taipei build"];
+export const workshopQueue = [
+  {
+    title: "Next tool",
+    description: "A small utility idea waiting for a recurring annoyance worth solving.",
+  },
+  {
+    title: "Writing experiment",
+    description: "A lighter way to connect essays, reading notes, and project ideas.",
+  },
+  {
+    title: "Taipei build",
+    description: "A city-facing project that earns its place by being useful to friends first.",
+  },
+];
