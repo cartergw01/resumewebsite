@@ -28,7 +28,7 @@ const worlds: World[] = [
         </p>
       </>
     ),
-    cta: "See resume",
+    cta: "learn more",
     href: "/work",
   },
   {
@@ -40,14 +40,14 @@ const worlds: World[] = [
         Substack, <em>flying Arrows</em>.
       </p>
     ),
-    cta: "Read writing",
+    cta: "read my writing",
     href: "/writing",
   },
   {
     id: "projects",
     title: "Projects",
     copy: <p>Currently learning how to vibe code. Just playing around and building things for fun.</p>,
-    cta: "See projects",
+    cta: "check out my projects",
     href: "/projects",
   },
 ];

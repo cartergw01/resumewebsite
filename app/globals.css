@@ -363,6 +363,8 @@ select {
   --journey-r: 143;
   --journey-g: 183;
   --journey-b: 255;
+  --universe-position: 50% 48%;
+  --universe-size: cover;
   position: relative;
   min-height: 100svh;
   color: var(--cw-paper);
@@ -387,25 +389,29 @@ select {
 }
 
 .cosmic-home::before {
-  opacity: 0.11;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 82% 24%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 53% 71%, rgba(164, 198, 255, 0.44) 0 1px, transparent 1.5px);
-  background-size: 360px 360px, 480px 480px, 520px 520px;
+  background-image: url("/cosmic-universe-desktop-v2.webp");
+  background-position: var(--universe-position);
+  background-repeat: no-repeat;
+  background-size: var(--universe-size);
+  opacity: 0.92;
+  transition: opacity 280ms var(--cw-ease);
 }
 
 .cosmic-home::after {
   background:
-    linear-gradient(90deg, rgba(3, 6, 17, 0.68), transparent 24%, transparent 76%, rgba(3, 6, 17, 0.58)),
-    radial-gradient(ellipse at 50% 50%, transparent 0 50%, rgba(3, 6, 17, 0.16) 78%, rgba(3, 6, 17, 0.48) 100%);
-  opacity: 0.78;
+    linear-gradient(90deg, rgba(3, 6, 17, 0.72), transparent 24%, transparent 76%, rgba(3, 6, 17, 0.62)),
+    radial-gradient(ellipse at 50% 50%, transparent 0 48%, rgba(3, 6, 17, 0.22) 78%, rgba(3, 6, 17, 0.55) 100%);
+  opacity: 0.82;
 }
 
 .cosmic-home main,
 .section-dots {
   position: relative;
   z-index: 4;
+}
+
+.cosmic-home main {
+  background: linear-gradient(180deg, rgba(3, 6, 17, 0.08) 0%, rgba(3, 6, 17, 0.02) 52%, rgba(3, 6, 17, 0.44) 100%);
 }
 
 .cosmic-hero,
@@ -417,14 +423,12 @@ select {
   align-items: center;
   margin: 0;
   padding: clamp(7rem, 10vw, 9.5rem) var(--page-x) clamp(5.75rem, 8vw, 7.5rem);
-  background: #030611;
+  background: transparent;
   overflow: hidden;
   isolation: isolate;
 }
 
 .cosmic-hero {
-  --world-image: url("/cosmic-hero-v6-sharp.webp");
-  --world-position: left top;
   --quiet-left: rgba(3, 6, 17, 0.34);
   --quiet-right: rgba(3, 6, 17, 0.34);
   min-height: 106svh;
@@ -434,29 +438,39 @@ select {
   margin-top: 0;
   contain: layout paint style;
   content-visibility: auto;
-  contain-intrinsic-size: 100svh;
+  contain-intrinsic-size: 122svh;
   scroll-margin-top: 1rem;
+  min-height: 122svh;
 }
 
 .world-work {
-  --world-image: none;
-  --world-position: 58% center;
-  --quiet-left: rgba(3, 6, 17, 0.9);
-  --quiet-right: rgba(3, 6, 17, 0.1);
+  --quiet-left: rgba(3, 6, 17, 0.78);
+  --quiet-right: rgba(3, 6, 17, 0.04);
 }
 
 .world-writing {
-  --world-image: none;
-  --world-position: 44% center;
-  --quiet-left: rgba(3, 6, 17, 0.12);
-  --quiet-right: rgba(3, 6, 17, 0.92);
+  --quiet-left: rgba(3, 6, 17, 0.04);
+  --quiet-right: rgba(3, 6, 17, 0.8);
 }
 
 .world-projects {
-  --world-image: none;
-  --world-position: 44% center;
-  --quiet-left: rgba(3, 6, 17, 0.12);
-  --quiet-right: rgba(3, 6, 17, 0.9);
+  --quiet-left: rgba(3, 6, 17, 0.8);
+  --quiet-right: rgba(3, 6, 17, 0.05);
+}
+
+.cosmic-home[data-cosmic-world="work"] {
+  --universe-position: 78% 30%;
+  --universe-size: auto 128vh;
+}
+
+.cosmic-home[data-cosmic-world="writing"] {
+  --universe-position: 8% 54%;
+  --universe-size: auto 126vh;
+}
+
+.cosmic-home[data-cosmic-world="projects"] {
+  --universe-position: 84% 76%;
+  --universe-size: auto 138vh;
 }
 
 .cosmic-hero::before,
@@ -471,15 +485,7 @@ select {
 
 .cosmic-hero::before,
 .world-section::before {
-  inset: -1.5%;
-  z-index: -4;
-  background-image: var(--world-image, none);
-  background-position: var(--world-position, center);
-  background-size: cover;
-  background-repeat: no-repeat;
-  opacity: 0.88;
-  transform: scale(1.002);
-  transform-origin: center;
+  display: none;
 }
 
 .cosmic-hero::after,
@@ -491,20 +497,16 @@ select {
       rgba(var(--journey-r, 143), var(--journey-g, 183), var(--journey-b, 255), 0.035),
       transparent 34rem
     ),
-    linear-gradient(180deg, rgba(3, 6, 17, 0.42) 0%, rgba(3, 6, 17, 0.08) 34%, rgba(3, 6, 17, 0.18) 72%, rgba(3, 6, 17, 0.88) 100%),
+    linear-gradient(180deg, rgba(3, 6, 17, 0.28) 0%, rgba(3, 6, 17, 0.05) 28%, rgba(3, 6, 17, 0.07) 74%, rgba(3, 6, 17, 0.22) 100%),
     linear-gradient(90deg, var(--quiet-left, rgba(3, 6, 17, 0.86)) 0%, rgba(3, 6, 17, 0.36) 35%, rgba(3, 6, 17, 0.12) 65%, var(--quiet-right, rgba(3, 6, 17, 0.38)) 100%);
-}
-
-.world-section:not(:first-of-type)::before {
-  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 100%);
 }
 
 .hero-copy,
 .world-intro {
   position: relative;
   z-index: 3;
-  width: min(100%, 460px);
-  max-width: 460px;
+  width: min(100%, 390px);
+  max-width: 390px;
   margin: 0;
   text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
 }
@@ -545,7 +547,7 @@ select {
 
 .hero-copy p,
 .world-copy p {
-  max-width: 620px;
+  max-width: 38rem;
   margin: clamp(0.9rem, 1.8vw, 1.25rem) auto 0;
   color: rgba(255, 247, 234, 0.72);
   font-size: clamp(0.9rem, 1.05vw, 1rem);
@@ -554,7 +556,7 @@ select {
 }
 
 .world-copy p + p {
-  margin-top: 0.65rem;
+  margin-top: 0.58rem;
 }
 
 .world-copy em {
@@ -619,26 +621,24 @@ select {
   transform: translateX(-50%) translateY(0.12rem);
 }
 
-.world-writing .world-intro,
-.world-projects .world-intro {
+.world-writing .world-intro {
   grid-column: 2;
   justify-self: end;
   text-align: right;
 }
 
-.world-work .world-intro {
+.world-work .world-intro,
+.world-projects .world-intro {
   grid-column: 1;
   justify-self: start;
   text-align: left;
 }
 
-.world-writing .world-intro > a,
-.world-projects .world-intro > a {
+.world-writing .world-intro > a {
   justify-content: flex-end;
 }
 
-.world-writing .world-intro > a:hover,
-.world-projects .world-intro > a:hover {
+.world-writing .world-intro > a:hover {
   transform: translate3d(-0.18rem, 0, 0);
 }
 
@@ -675,21 +675,6 @@ select {
   width: 6px;
   height: 18px;
   background: rgba(255, 247, 234, 0.78);
-}
-
-@media (scripting: none) {
-  .world-work {
-    --world-image: url("/cosmic-work-v7-sharp.webp");
-  }
-
-  .world-writing {
-    --world-image: url("/cosmic-writing-v6-sharp.webp");
-  }
-
-  .world-projects {
-    --world-image: url("/cosmic-life-v8-left-sharp.webp");
-  }
-
 }
 
 /* Subpages */
@@ -1245,7 +1230,6 @@ select {
 .archive-group + .archive-group {
   margin-top: clamp(4.25rem, 8vw, 6.5rem);
   padding-top: clamp(1.25rem, 2.4vw, 1.8rem);
-  border-top: 1px solid rgba(244, 210, 163, 0.12);
 }
 
 .archive-group-heading {
@@ -1607,6 +1591,31 @@ select {
   :root {
     --nav-top: 0.55rem;
     --nav-clearance: 7.6rem;
+  }
+
+  .cosmic-home {
+    --universe-position: 52% 18%;
+    --universe-size: cover;
+  }
+
+  .cosmic-home::before {
+    background-image: url("/cosmic-universe-mobile-v2.webp");
+    background-position: var(--universe-position);
+  }
+
+  .cosmic-home[data-cosmic-world="work"] {
+    --universe-position: 57% 28%;
+    --universe-size: cover;
+  }
+
+  .cosmic-home[data-cosmic-world="writing"] {
+    --universe-position: 43% 55%;
+    --universe-size: cover;
+  }
+
+  .cosmic-home[data-cosmic-world="projects"] {
+    --universe-position: 54% 78%;
+    --universe-size: cover;
   }
 
   .site-nav {

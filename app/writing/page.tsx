@@ -11,7 +11,6 @@ export default function WritingPage() {
 
       <main className="subpage-main topic-main">
         <header className="subpage-hero topic-hero writing-hero">
-          <span>Writing</span>
           <h1>Writing</h1>
           <p>Recent essays from my Substack.</p>
         </header>

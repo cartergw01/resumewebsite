@@ -50,7 +50,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`dark ${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
       <head>
-        <link rel="preload" as="image" href="/cosmic-hero-v6-sharp.webp" />
+        <link rel="preload" as="image" href="/cosmic-universe-desktop-v2.webp" media="(min-width: 761px)" />
+        <link rel="preload" as="image" href="/cosmic-universe-mobile-v2.webp" media="(max-width: 760px)" />
       </head>
       <body className="min-h-screen font-sans antialiased">
         {children}

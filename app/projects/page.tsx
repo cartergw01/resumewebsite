@@ -37,6 +37,7 @@ export default function ProjectsPage() {
                       src={project.image}
                       alt={`${project.title} website screenshot`}
                       fill
+                      quality={90}
                       sizes="(max-width: 760px) 100vw, (max-width: 1200px) 31vw, 360px"
                     />
                   </span>
