@@ -1829,16 +1829,16 @@ select {
   }
 
   .subpage-main {
-    width: min(calc(100vw - 5rem), 18.5rem);
+    width: min(calc(100vw - 7rem), 17.5rem);
     padding-top: var(--nav-clearance);
   }
 
   .subpage-writing .subpage-main {
-    width: min(calc(100vw - 5rem), 18.5rem);
+    width: min(calc(100vw - 7rem), 17.5rem);
   }
 
   .hero-copy {
-    width: min(calc(100vw - 5rem), 18.5rem);
+    width: min(calc(100vw - 7rem), 17.5rem);
   }
 
   .hero-copy h1 {
@@ -1856,9 +1856,10 @@ select {
 
   .hero-copy p,
   .world-copy p,
+  .subpage-hero p,
   .archive-main span,
   .project-row-copy > span {
-    max-width: 23ch;
+    max-width: 22ch;
   }
 
   .archive-main,
