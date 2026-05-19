@@ -9,6 +9,12 @@ const worldThemes: Record<string, [number, number, number]> = {
   projects: [190, 174, 142],
 };
 
+const worldImages: Record<string, string> = {
+  work: 'url("/cosmic-work-v7-sharp.webp")',
+  writing: 'url("/cosmic-writing-v6-sharp.webp")',
+  projects: 'url("/cosmic-life-v8-left-sharp.webp")',
+};
+
 export default function ScrollTransport() {
   useEffect(() => {
     const sections = Array.from(document.querySelectorAll<HTMLElement>(".cosmic-hero, .world-section"));
@@ -18,6 +24,14 @@ export default function ScrollTransport() {
     const dotLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".cosmic-home .section-dots a"));
     let activeWorld = "";
     let worldObserver: IntersectionObserver | null = null;
+    let imageObserver: IntersectionObserver | null = null;
+
+    const loadWorldImage = (section: HTMLElement) => {
+      const image = worldImages[section.id];
+      if (image) {
+        section.style.setProperty("--world-image", image);
+      }
+    };
 
     const setActiveWorld = (world: string) => {
       if (!home || world === activeWorld) return;
@@ -45,6 +59,8 @@ export default function ScrollTransport() {
       });
     };
 
+    worlds.slice(0, 2).forEach(loadWorldImage);
+
     if ("IntersectionObserver" in window) {
       worldObserver = new IntersectionObserver(
         (entries) => {
@@ -62,13 +78,29 @@ export default function ScrollTransport() {
         },
       );
 
+      imageObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              loadWorldImage(entry.target as HTMLElement);
+              imageObserver?.unobserve(entry.target);
+            }
+          });
+        },
+        { rootMargin: "120% 0px" },
+      );
+
       worlds.forEach((section) => {
         worldObserver?.observe(section);
+        imageObserver?.observe(section);
       });
+    } else {
+      worlds.forEach(loadWorldImage);
     }
 
     return () => {
       worldObserver?.disconnect();
+      imageObserver?.disconnect();
     };
   }, []);
 
