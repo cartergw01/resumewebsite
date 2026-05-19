@@ -38,7 +38,9 @@ function ArchiveGroup({
     <div className="archive-group">
       <h2 className="archive-group-heading">{title}</h2>
       <div className="archive-list">
-        {entries.map((essay, index) => {
+        {entries.length === 0 ? (
+          <p className="archive-empty">Nothing published here yet.</p>
+        ) : entries.map((essay, index) => {
           return (
             <a
               className="archive-row"
@@ -55,6 +57,7 @@ function ArchiveGroup({
               <span className="archive-meta">
                 <time dateTime={toDateTime(essay.date)}>{essay.date}</time>
               </span>
+              <span className="archive-action">Read on Substack</span>
             </a>
           );
         })}

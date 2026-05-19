@@ -26,7 +26,9 @@ export default function ProjectsPage() {
           <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
 
           <section className="project-grid project-grid-showcase" aria-label="Project grid">
-            {projects.map((project, index) => (
+            {projects.length === 0 ? (
+              <p className="project-empty">Projects will appear here soon.</p>
+            ) : projects.map((project, index) => (
               <a
                 className="project-card-live"
                 key={project.href}

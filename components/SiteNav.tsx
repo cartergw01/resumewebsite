@@ -2,14 +2,12 @@ import Link from "next/link";
 
 type SiteNavProps = {
   active?: "home" | "work" | "writing" | "projects" | "life";
-  homeAnchors?: boolean;
 };
 
 const primaryLinks = [
-  { id: "work", label: "Work", href: "/work", anchor: "#work" },
-  { id: "writing", label: "Writing", href: "/writing", anchor: "#writing" },
-  { id: "projects", label: "Projects", href: "/projects", anchor: "#projects" },
-  { id: "life", label: "Life", href: "/life", anchor: "#life" },
+  { id: "work", label: "Work", href: "/work" },
+  { id: "writing", label: "Writing", href: "/writing" },
+  { id: "projects", label: "Projects", href: "/projects" },
 ] as const;
 
 const socialLinks = [
@@ -23,7 +21,7 @@ function externalLinkProps(href: string) {
   return href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
 }
 
-export default function SiteNav({ active = "home", homeAnchors = false }: SiteNavProps) {
+export default function SiteNav({ active = "home" }: SiteNavProps) {
   return (
     <header className="site-nav">
       <nav aria-label="Primary navigation" className="site-nav-primary">
@@ -31,13 +29,12 @@ export default function SiteNav({ active = "home", homeAnchors = false }: SiteNa
           <Link href="/">Home</Link>
         )}
         {primaryLinks.map((link) => {
-          const href = homeAnchors ? link.anchor : link.href;
           return (
             <Link
               key={link.id}
-              href={href}
+              href={link.href}
               className={active === link.id ? "is-active" : undefined}
-              aria-current={active === link.id && !homeAnchors ? "page" : undefined}
+              aria-current={active === link.id ? "page" : undefined}
             >
               {link.label}
             </Link>
