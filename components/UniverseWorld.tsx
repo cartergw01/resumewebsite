@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import SiteNav from "./SiteNav";
 import ScrollTransport from "./ScrollTransport";
 import SpaceDrift from "./SpaceDrift";
@@ -39,12 +36,7 @@ const worlds = [
 function Hero() {
   return (
     <section className="cosmic-hero" aria-labelledby="hero-title">
-      <motion.div
-        className="hero-copy"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-      >
+      <div className="hero-copy">
         <h1 id="hero-title">Carter Wang</h1>
         <div className="title-star" aria-hidden="true" />
         <p>
@@ -52,48 +44,31 @@ function Hero() {
           Hero. Outside of startups, I&apos;m usually watching the Lakers, playing poker, biking around
           the city, or writing.
         </p>
-      </motion.div>
-      <motion.div
-        className="hero-visual"
-        aria-hidden="true"
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 1, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-      />
+      </div>
+      <div className="hero-visual" aria-hidden="true" />
     </section>
   );
 }
 
-function SectionIntro({ world }: { world: (typeof worlds)[number] }) {
+function SectionIntro({ world, headingId }: { world: (typeof worlds)[number]; headingId: string }) {
   return (
-    <motion.div
-      className="world-intro"
-      initial={{ opacity: 0, y: 36 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <h2>{world.title}</h2>
+    <div className="world-intro">
+      <h2 id={headingId}>{world.title}</h2>
       <p>{world.copy}</p>
       <a href={world.href}>
         {world.cta} <span aria-hidden="true">→</span>
       </a>
-    </motion.div>
+    </div>
   );
 }
 
 function WorldSection({ world }: { world: (typeof worlds)[number] }) {
+  const headingId = `${world.id}-heading`;
+
   return (
-    <section id={world.id} className={`world-section world-${world.id}`}>
-      <SectionIntro world={world} />
-      <motion.div
-        className="world-visual"
-        aria-hidden="true"
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-      />
+    <section id={world.id} className={`world-section world-${world.id}`} aria-labelledby={headingId}>
+      <SectionIntro world={world} headingId={headingId} />
+      <div className="world-visual" aria-hidden="true" />
     </section>
   );
 }

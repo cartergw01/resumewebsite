@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Playfair_Display, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -48,16 +46,14 @@ export const metadata: Metadata = {
   },
 };
 
-const themeScript = `try { var theme = localStorage.getItem('portfolio-website-theme') || 'dark'; document.documentElement.classList.remove('light', 'dark'); document.documentElement.classList.add(theme); } catch (e) { document.documentElement.classList.add('dark'); }`;
-
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`dark ${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+      <head>
+        <link rel="preload" as="image" href="/cosmic-hero-v6-sharp.webp" />
+      </head>
       <body className="min-h-screen font-sans antialiased">
-        <Script id="theme-init" strategy="beforeInteractive">
-          {themeScript}
-        </Script>
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   );

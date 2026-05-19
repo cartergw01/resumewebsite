@@ -1,83 +1,77 @@
-"use client";
-
-import { motion } from "framer-motion";
 import SiteNav from "@/components/SiteNav";
-
-const essays = [
-  {
-    title: "Slop & Spiral",
-    subtitle:
-      "What infinite feeds do to attention, taste, and the part of us that still wants depth.",
-    href: "https://carterko.substack.com/p/slop-and-spiral",
-    tag: "Technology / Society",
-  },
-  {
-    title: "We All Have Superpowers",
-    subtitle: "How technology extends our minds, changes our limits, and reshapes what we expect from ourselves.",
-    href: "https://carterko.substack.com/p/we-all-have-superpowers",
-    tag: "Technology / Human potential",
-  },
-  {
-    title: "The Mirage of Identity",
-    subtitle: "How online life turns the self into something performed, edited, and constantly compared.",
-    href: "https://carterko.substack.com/p/the-mirage-of-identity",
-    tag: "Identity / Culture",
-  },
-  {
-    title: "From Crash to Curiosity",
-    subtitle: "How losing money in the markets became a lasting obsession with how the world works.",
-    href: "https://carterko.substack.com/p/from-crash-to-curiosity",
-    tag: "Investing / Personal",
-  },
-  {
-    title: "Work as Play",
-    subtitle: "A reflection on choosing work that feels alive, demanding, and worth getting better at.",
-    href: "https://carterko.substack.com/p/work-as-play",
-    tag: "Work / Meaning",
-  },
-];
-
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.72, delay, ease: [0.16, 1, 0.3, 1] as const },
-});
+import { essays, writingThreads } from "@/content/portfolio";
 
 export default function WritingPage() {
+  const [featuredEssay, ...otherEssays] = essays;
+
   return (
-    <div className="cosmic-subpage subpage-writing subpage-topic">
+    <div className="cosmic-subpage subpage-writing subpage-topic topic-page">
       <SiteNav active="writing" />
 
-      <main className="subpage-main">
-        <motion.header className="subpage-hero" {...fade(0)}>
+      <main className="subpage-main topic-main">
+        <header className="subpage-hero topic-hero writing-hero">
           <span>Writing</span>
-          <h1>Essays for thinking in public.</h1>
+          <h1>Essays from the edge of the feed.</h1>
           <p>
-            I write about technology, identity, culture, markets, and what it means to grow up
-            while the world keeps accelerating.
+            I write about technology, identity, culture, markets, and what it feels like to grow up
+            while everything keeps accelerating.
           </p>
-        </motion.header>
+          <div className="topic-meta-strip" aria-label="Writing themes">
+            <span>Technology</span>
+            <span>Identity</span>
+            <span>Markets</span>
+          </div>
+        </header>
 
-        <div className="subpage-layout subpage-layout-reverse">
-          <motion.aside className="subpage-world-art" aria-hidden="true" {...fade(0.08)} />
+        <section className="topic-layout writing-layout" aria-label="Writing world">
+          <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
 
-          <section className="essay-grid" aria-label="Selected essays">
-            {essays.map((essay, index) => (
-              <motion.a
-                className="essay-card"
-                key={essay.title}
-                href={essay.href}
+          <div className="topic-content writing-content">
+            <section className="writing-thread-grid" aria-label="Writing threads">
+              {writingThreads.map(([title, copy], index) => (
+                <article
+                  className="subpage-panel writing-thread"
+                  key={title}
+                  style={{ animationDelay: `${0.08 + index * 0.045}s` }}
+                >
+                  <span>{title}</span>
+                  <p>{copy}</p>
+                </article>
+              ))}
+            </section>
+
+            <section className="essay-stack" aria-label="Selected essays">
+              <a
+                className="essay-card essay-featured"
+                href={featuredEssay.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                {...fade(0.1 + index * 0.06)}
+                style={{ animationDelay: "0.18s" }}
               >
-                <span>{essay.tag}</span>
-                <h2>{essay.title}</h2>
-                <p>{essay.subtitle}</p>
-              </motion.a>
-            ))}
-          </section>
-        </div>
+                <span>{featuredEssay.tag}</span>
+                <h2>{featuredEssay.title}</h2>
+                <p>{featuredEssay.subtitle}</p>
+              </a>
+
+              <div className="essay-list-compact">
+                {otherEssays.map((essay, index) => (
+                  <a
+                    className="essay-row"
+                    key={essay.title}
+                    href={essay.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ animationDelay: `${0.24 + index * 0.045}s` }}
+                  >
+                    <span>{essay.tag}</span>
+                    <strong>{essay.title}</strong>
+                    <p>{essay.subtitle}</p>
+                  </a>
+                ))}
+              </div>
+            </section>
+          </div>
+        </section>
       </main>
     </div>
   );

@@ -28,6 +28,12 @@ const worldThemes: Record<string, [number, number, number]> = {
   projects: [112, 219, 220],
   life: [236, 171, 105],
 };
+const worldImages: Record<string, string> = {
+  work: 'url("/cosmic-work-v7-sharp.webp")',
+  writing: 'url("/cosmic-writing-v6-sharp.webp")',
+  projects: 'url("/cosmic-projects-v6-sharp.webp")',
+  life: 'url("/cosmic-life-v7-left.webp")',
+};
 
 export default function ScrollTransport() {
   useEffect(() => {
@@ -41,6 +47,15 @@ export default function ScrollTransport() {
     let lastScrollY = window.scrollY;
     let targetVelocity = 0;
     let velocity = 0;
+    let imageObserver: IntersectionObserver | null = null;
+    let disposed = false;
+
+    const loadWorldImage = (section: HTMLElement) => {
+      const image = worldImages[section.id];
+      if (image && section.style.getPropertyValue("--world-image") !== image) {
+        section.style.setProperty("--world-image", image);
+      }
+    };
 
     const reset = () => {
       sections.forEach((section) => {
@@ -60,6 +75,8 @@ export default function ScrollTransport() {
 
     const update = () => {
       frame = 0;
+      if (disposed || !sections.length) return;
+
       const scrollY = window.scrollY;
       const scrollDelta = Math.abs(scrollY - lastScrollY);
       lastScrollY = scrollY;
@@ -148,20 +165,67 @@ export default function ScrollTransport() {
     };
 
     const requestUpdate = () => {
-      if (frame) return;
+      if (disposed || frame) return;
       frame = window.requestAnimationFrame(update);
     };
 
+    const syncAfterRestore = () => {
+      lastScrollY = window.scrollY;
+      requestUpdate();
+    };
+
+    const addMotionListener = () => {
+      if ("addEventListener" in motionQuery) {
+        motionQuery.addEventListener("change", requestUpdate);
+        return () => motionQuery.removeEventListener("change", requestUpdate);
+      }
+
+      const legacyMotionQuery = motionQuery as MediaQueryList & {
+        addListener: (listener: () => void) => void;
+        removeListener: (listener: () => void) => void;
+      };
+
+      legacyMotionQuery.addListener(requestUpdate);
+      return () => legacyMotionQuery.removeListener(requestUpdate);
+    };
+
     update();
+    sections.slice(1, 2).forEach(loadWorldImage);
+
+    if (!("IntersectionObserver" in window)) {
+      sections.slice(1).forEach(loadWorldImage);
+    } else {
+      try {
+        imageObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                loadWorldImage(entry.target as HTMLElement);
+                imageObserver?.unobserve(entry.target);
+              }
+            });
+          },
+          { rootMargin: "120% 0px" },
+        );
+        sections.slice(1).forEach((section) => imageObserver?.observe(section));
+      } catch {
+        sections.slice(1).forEach(loadWorldImage);
+      }
+    }
+
     window.addEventListener("scroll", requestUpdate, { passive: true });
     window.addEventListener("resize", requestUpdate);
-    motionQuery.addEventListener("change", requestUpdate);
+    window.addEventListener("pageshow", syncAfterRestore);
+    const removeMotionListener = addMotionListener();
 
     return () => {
+      disposed = true;
       if (frame) window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", requestUpdate);
       window.removeEventListener("resize", requestUpdate);
-      motionQuery.removeEventListener("change", requestUpdate);
+      window.removeEventListener("pageshow", syncAfterRestore);
+      removeMotionListener();
+      imageObserver?.disconnect();
     };
   }, []);
 

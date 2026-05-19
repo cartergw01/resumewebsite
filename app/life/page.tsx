@@ -1,64 +1,57 @@
-"use client";
-
-import { motion } from "framer-motion";
 import SiteNav from "@/components/SiteNav";
-
-const notes = [
-  ["Home base", "Taipei, Taiwan", "Originally from Irvine, California."],
-  ["Game", "Poker", "Texas Hold'em. Cash games mostly."],
-  ["Team", "Lakers", "Through thick and thin."],
-  ["Sport", "Basketball", "Playing, not just watching."],
-  ["Getting around", "Biking", "My favorite way to see Taipei."],
-  ["Reading", "Always", "Biographies, essays, and books about technology and how we live."],
-];
-
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.72, delay, ease: [0.16, 1, 0.3, 1] as const },
-});
+import { lifeNotes } from "@/content/portfolio";
 
 export default function LifePage() {
   return (
-    <div className="cosmic-subpage subpage-life subpage-topic">
+    <div className="cosmic-subpage subpage-life subpage-topic topic-page">
       <SiteNav active="life" />
 
-      <main className="subpage-main">
-        <motion.header className="subpage-hero" {...fade(0)}>
+      <main className="subpage-main topic-main">
+        <header className="subpage-hero topic-hero life-hero">
           <span>Life</span>
-          <h1>The life around the work.</h1>
+          <h1>Taipei days, SoCal roots.</h1>
           <p>
-            I grew up in Southern California, went to UC Santa Cruz, and now live in Taipei.
-            I bike around the city, play poker, watch the Lakers, read, and write things down.
+            Outside of work, you can usually find me watching the Lakers, playing poker, biking
+            around the city, reading, or writing things down.
           </p>
-        </motion.header>
+          <div className="topic-meta-strip" aria-label="Life anchors">
+            <span>Taipei</span>
+            <span>Lakers</span>
+            <span>Poker</span>
+            <span>Bikes</span>
+          </div>
+        </header>
 
-        <div className="subpage-layout subpage-layout-reverse">
-          <motion.aside className="subpage-world-art" aria-hidden="true" {...fade(0.08)} />
+        <section className="topic-layout life-layout" aria-label="Life world">
+          <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
 
-          <div>
-            <section className="life-grid" aria-label="Life notes">
-              {notes.map(([label, value, sub], index) => (
-                <motion.article className="life-note" key={label} {...fade(0.1 + index * 0.06)}>
+          <div className="topic-content">
+            <section className="life-grid life-grid-refined" aria-label="Life notes">
+              {lifeNotes.map(([label, value, sub], index) => (
+                <article
+                  className="life-note"
+                  key={label}
+                  style={{ animationDelay: `${0.08 + index * 0.045}s` }}
+                >
                   <span>{label}</span>
                   <h2>{value}</h2>
                   <p>{sub}</p>
-                </motion.article>
+                </article>
               ))}
             </section>
 
-            <motion.article className="subpage-panel subpage-note" {...fade(0.52)}>
+            <article className="subpage-panel subpage-note life-current" style={{ animationDelay: "0.36s" }}>
               <div className="panel-kicker">
-                <span>Currently in</span>
+                <span>Current rhythm</span>
                 <span>Taipei</span>
               </div>
               <p>
                 Taipei rewards wandering: great food, dense energy, easy living, and night markets
                 that make ordinary evenings feel like small adventures.
               </p>
-            </motion.article>
+            </article>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );

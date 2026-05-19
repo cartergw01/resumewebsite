@@ -48,7 +48,15 @@ export default function SpaceDrift() {
     if (!canvas) return;
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const context = canvas.getContext("2d", { alpha: true });
+    const saveData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData === true;
+
+    if (saveData) {
+      canvas.hidden = true;
+      return;
+    }
+
+    const context = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!context) return;
 
     let width = 0;
@@ -61,20 +69,34 @@ export default function SpaceDrift() {
     let targetHue = 222;
     let journeyDepth = 0.4;
     let phase = 0;
+    let lastDrawTime = 0;
+    let activeUntil = performance.now() + 1400;
     let stars: Star[] = [];
+
+    const requestDraw = () => {
+      if (!frame) frame = window.requestAnimationFrame(draw);
+    };
+
+    const wake = (duration = 900) => {
+      activeUntil = Math.max(activeUntil, performance.now() + duration);
+      requestDraw();
+    };
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       width = window.innerWidth;
       height = window.innerHeight;
+      if (width < 1 || height < 1) return;
+
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      const count = clamp(Math.floor((width * height) / 9800), 70, 180);
+      const count = clamp(Math.floor((width * height) / 14000), 48, 130);
       stars = Array.from({ length: count }, makeStar);
+      wake(700);
     };
 
     const resetStar = (star: Star) => {
@@ -93,6 +115,7 @@ export default function SpaceDrift() {
       const delta = Math.abs(nextScrollY - lastScrollY);
       lastScrollY = nextScrollY;
       targetSpeed = Math.max(targetSpeed, clamp(delta * 0.014, 0, 1.1));
+      wake(900);
     };
 
     const onJourney = (event: Event) => {
@@ -108,6 +131,7 @@ export default function SpaceDrift() {
       targetHue = worldHue[detail.world || "home"] ?? 222;
       journeyDepth = clamp(detail.presence ?? journeyDepth, 0, 1);
       targetSpeed = Math.max(targetSpeed, clamp((detail.velocity ?? 0) * 0.72, 0, 0.95));
+      wake(900);
     };
 
     const drawJourneyCurrents = (glow: number) => {
@@ -140,12 +164,23 @@ export default function SpaceDrift() {
       context.setLineDash([]);
     };
 
-    const draw = () => {
+    const draw = (time = 0) => {
+      frame = 0;
+
+      if (document.visibilityState === "hidden") return;
+
       if (motionQuery.matches) {
         context.clearRect(0, 0, width, height);
-        frame = window.requestAnimationFrame(draw);
         return;
       }
+
+      if (time - lastDrawTime < 33) {
+        if (performance.now() < activeUntil || speed > 0.09 || targetSpeed > 0.025) {
+          requestDraw();
+        }
+        return;
+      }
+      lastDrawTime = time;
 
       context.clearRect(0, 0, width, height);
       context.globalCompositeOperation = "screen";
@@ -198,22 +233,56 @@ export default function SpaceDrift() {
       });
 
       context.globalCompositeOperation = "source-over";
-      frame = window.requestAnimationFrame(draw);
+
+      if (performance.now() < activeUntil || speed > 0.09 || targetSpeed > 0.025) {
+        requestDraw();
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        lastDrawTime = 0;
+        wake(500);
+      }
+    };
+
+    const onMotionPreferenceChange = () => {
+      lastDrawTime = 0;
+      wake(500);
+    };
+
+    const addMotionListener = () => {
+      if ("addEventListener" in motionQuery) {
+        motionQuery.addEventListener("change", onMotionPreferenceChange);
+        return () => motionQuery.removeEventListener("change", onMotionPreferenceChange);
+      }
+
+      const legacyMotionQuery = motionQuery as MediaQueryList & {
+        addListener: (listener: () => void) => void;
+        removeListener: (listener: () => void) => void;
+      };
+
+      legacyMotionQuery.addListener(onMotionPreferenceChange);
+      return () => legacyMotionQuery.removeListener(onMotionPreferenceChange);
     };
 
     resize();
     onScroll();
-    draw();
+    requestDraw();
 
     window.addEventListener("resize", resize);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("cosmic-journey", onJourney);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    const removeMotionListener = addMotionListener();
 
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("cosmic-journey", onJourney);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      removeMotionListener();
     };
   }, []);
 

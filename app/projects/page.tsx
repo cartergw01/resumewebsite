@@ -1,42 +1,68 @@
-"use client";
-
-import { motion } from "framer-motion";
+import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
-
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.72, delay, ease: [0.16, 1, 0.3, 1] as const },
-});
-
-const projectSlots = Array.from({ length: 6 }, (_, index) => index + 1);
+import { projectOpenSlots, projects } from "@/content/portfolio";
 
 export default function ProjectsPage() {
   return (
-    <div className="cosmic-subpage subpage-projects subpage-topic">
+    <div className="cosmic-subpage subpage-projects subpage-topic topic-page">
       <SiteNav active="projects" />
 
-      <main className="subpage-main projects-main">
-        <motion.header className="subpage-hero projects-hero" {...fade(0)}>
+      <main className="subpage-main topic-main projects-main">
+        <header className="subpage-hero topic-hero projects-hero">
           <span>Projects</span>
           <h1>Projects</h1>
-        </motion.header>
+          <p>
+            A few tools I have shipped or prototyped, mostly around Taipei, movies, games, and
+            personal curiosity.
+          </p>
+          <div className="topic-meta-strip" aria-label="Project types">
+            <span>Tools</span>
+            <span>Taipei</span>
+            <span>Games</span>
+          </div>
+        </header>
 
-        <div className="subpage-layout">
-          <motion.aside className="subpage-world-art" aria-hidden="true" {...fade(0.08)} />
+        <section className="topic-layout projects-layout" aria-label="Projects world">
+          <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
 
-          <section className="project-grid" aria-label="Project grid">
-            <p className="sr-only">Project slots are intentionally empty for now.</p>
-            {projectSlots.map((slot, index) => (
-              <motion.div
-                aria-hidden="true"
-                className="project-slot"
+          <section className="project-grid project-grid-showcase" aria-label="Project grid">
+            {projects.map((project, index) => (
+              <a
+                className="project-card-live"
+                key={project.href}
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ animationDelay: `${0.08 + index * 0.045}s` }}
+              >
+                <span className="project-shot">
+                  <Image
+                    src={project.image}
+                    alt={`${project.title} website screenshot`}
+                    fill
+                    sizes="(max-width: 760px) 100vw, (max-width: 1100px) 46vw, 360px"
+                  />
+                </span>
+                <span className="project-meta">
+                  <small>{project.label}</small>
+                  <strong>{project.title}</strong>
+                  <span>{project.description}</span>
+                </span>
+              </a>
+            ))}
+
+            {projectOpenSlots.map((slot, index) => (
+              <article
+                className="project-slot project-slot-open"
                 key={slot}
-                {...fade(0.1 + index * 0.04)}
-              />
+                style={{ animationDelay: `${0.24 + index * 0.045}s` }}
+              >
+                <span>Open slot</span>
+                <strong>{slot}</strong>
+              </article>
             ))}
           </section>
-        </div>
+        </section>
       </main>
     </div>
   );
