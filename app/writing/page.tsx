@@ -1,4 +1,5 @@
 import SiteNav from "@/components/SiteNav";
+import WritingLight from "@/components/WritingLight";
 import { essays } from "@/content/portfolio";
 
 const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
@@ -7,6 +8,7 @@ const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best 
 export default function WritingPage() {
   return (
     <div className="cosmic-subpage subpage-writing subpage-topic topic-page">
+      <WritingLight />
       <SiteNav active="writing" />
 
       <main className="subpage-main topic-main">

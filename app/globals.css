@@ -726,7 +726,8 @@ select {
   --topic-position: 58% center;
 }
 
-.subpage-writing {
+.subpage-writing,
+.subpage-projects {
   --topic-image: none;
   --topic-card-image: none;
   --topic-accent: 202 152 96;
@@ -738,7 +739,8 @@ select {
     linear-gradient(135deg, #120d12 0%, #070813 54%, #050610 100%);
 }
 
-.subpage-writing.cosmic-subpage::before {
+.subpage-writing.cosmic-subpage::before,
+.subpage-projects.cosmic-subpage::before {
   opacity: 0.18;
   background:
     linear-gradient(rgba(244, 210, 163, 0.055) 1px, transparent 1px),
@@ -747,7 +749,8 @@ select {
   transform: none;
 }
 
-.subpage-writing.cosmic-subpage::after {
+.subpage-writing.cosmic-subpage::after,
+.subpage-projects.cosmic-subpage::after {
   background:
     radial-gradient(circle at 18% 12%, rgba(202, 152, 96, 0.18), transparent 24rem),
     linear-gradient(180deg, rgba(18, 13, 18, 0.7), rgba(7, 8, 19, 0.34) 42%, rgba(5, 6, 16, 0.92)),
@@ -764,14 +767,6 @@ select {
 
 .subpage-writing .subpage-hero p {
   max-width: 42ch;
-}
-
-.subpage-projects {
-  --topic-image: url("/cosmic-projects-v6-sharp.webp");
-  --topic-card-image: url("/cosmic-projects-v6-sharp.webp");
-  --topic-accent: 112 219 220;
-  --topic-warm: 170 232 222;
-  --topic-position: 54% center;
 }
 
 .subpage-life {
@@ -1258,6 +1253,7 @@ select {
 
 .archive-row {
   position: relative;
+  z-index: 0;
   display: grid;
   grid-template-columns: minmax(7.4rem, 7.4rem) minmax(0, 38rem) minmax(6.75rem, max-content);
   column-gap: clamp(1.15rem, 2.4vw, 2.25rem);
@@ -1267,13 +1263,47 @@ select {
   outline-offset: 0.35rem;
   padding: clamp(1.2rem, 2.6vw, 1.8rem) 0;
   color: inherit;
+  isolation: isolate;
   text-decoration: none;
-  transition: border-color 180ms var(--cw-ease), transform 180ms var(--cw-ease);
+  transition: border-color 220ms var(--cw-ease), transform 220ms var(--cw-ease), opacity 220ms var(--cw-ease);
+}
+
+.archive-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 -1.15rem;
+  z-index: -1;
+  border-radius: 6px;
+  background:
+    radial-gradient(ellipse at 32% 52%, rgba(244, 210, 163, 0.16), transparent 46%),
+    linear-gradient(90deg, rgba(244, 210, 163, 0.075), transparent 68%);
+  opacity: 0;
+  transform: scaleX(0.96);
+  transform-origin: left center;
+  transition: opacity 420ms var(--cw-ease), transform 520ms var(--cw-ease);
 }
 
 .archive-row:hover {
   border-color: rgba(244, 210, 163, 0.28);
   transform: translate3d(0.12rem, 0, 0);
+}
+
+.archive-row.is-lit {
+  border-color: rgba(244, 210, 163, 0.3);
+}
+
+.archive-row.is-lit::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.archive-row.is-lit .archive-main strong {
+  color: rgb(255, 242, 214);
+}
+
+.archive-row.is-lit .archive-meta,
+.archive-row.is-lit .archive-action {
+  color: rgba(255, 225, 183, 0.76);
 }
 
 .archive-row:focus-visible {
