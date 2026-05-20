@@ -16,7 +16,12 @@ export default function WritingPage() {
 
         <section className="writing-archive" aria-label="Substack essay archive">
           <ArchiveGroup title="Essays" entries={essayEntries} />
-          <ArchiveGroup title="Reading Lists" entries={readingLists} offset={essayEntries.length} />
+          <ArchiveGroup
+            title="Reading Lists"
+            entries={readingLists}
+            offset={essayEntries.length}
+            showSubtitles={false}
+          />
         </section>
       </main>
     </div>
@@ -26,10 +31,12 @@ export default function WritingPage() {
 function ArchiveGroup({
   entries,
   offset = 0,
+  showSubtitles = true,
   title,
 }: {
   entries: typeof essays;
   offset?: number;
+  showSubtitles?: boolean;
   title: string;
 }) {
   return (
@@ -50,12 +57,13 @@ function ArchiveGroup({
             >
               <span className="archive-main">
                 <strong>{essay.title}</strong>
-                <span>{essay.subtitle}</span>
+                {showSubtitles ? <span>{essay.subtitle}</span> : null}
               </span>
               <span className="archive-meta">
                 <time dateTime={toDateTime(essay.date)}>{essay.date}</time>
               </span>
-              <span className="archive-action">Read on Substack</span>
+              <span className="archive-action" aria-hidden="true">read →</span>
+              <span className="sr-only">Open on Substack</span>
             </a>
           );
         })}

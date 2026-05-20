@@ -438,7 +438,7 @@ select {
 }
 
 .cosmic-hero {
-  --world-image: url("/cosmic-hero-v6-sharp.webp");
+  --world-image: url("/cosmic-hero-cohesive-v1.webp");
   --world-position: left top;
   --quiet-left: rgba(3, 6, 17, 0.34);
   --quiet-right: rgba(3, 6, 17, 0.34);
@@ -511,7 +511,7 @@ select {
 }
 
 .world-section:not(:first-of-type)::before {
-  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 5%, #000 14%, #000 100%);
 }
 
 .hero-copy,
@@ -522,6 +522,11 @@ select {
   max-width: 420px;
   margin: 0;
   text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
+}
+
+.world-work .world-intro,
+.world-projects .world-intro {
+  top: clamp(-3.5rem, -5svh, -2.25rem);
 }
 
 .hero-copy {
@@ -572,8 +577,27 @@ select {
   margin-top: 0.72rem;
 }
 
+.hero-copy p span,
+.world-projects .world-copy span {
+  display: block;
+}
+
 .world-copy em {
   font-style: italic;
+}
+
+.world-copy a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 247, 234, 0.36);
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.17em;
+  transition: text-decoration-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
+}
+
+.world-copy a:hover {
+  color: var(--cw-paper);
+  text-decoration-color: rgba(255, 247, 234, 0.7);
 }
 
 .world-intro h2 {
@@ -617,7 +641,7 @@ select {
 .scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: clamp(1.35rem, 4vw, 2.5rem);
+  bottom: clamp(5.5rem, 11svh, 7.75rem);
   z-index: 6;
   display: inline-flex;
   align-items: center;
@@ -1282,7 +1306,7 @@ select {
 .archive-group-heading {
   margin: 0;
   color: rgba(255, 247, 234, 0.58);
-  font-size: var(--type-caption);
+  font-size: clamp(1.05rem, 1.45vw, 1.35rem);
   font-weight: 700;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
@@ -1320,11 +1344,6 @@ select {
   transition: border-color 220ms var(--cw-ease), transform 220ms var(--cw-ease), opacity 220ms var(--cw-ease);
 }
 
-.archive-row:hover {
-  border-color: rgba(244, 210, 163, 0.28);
-  transform: translate3d(0.12rem, 0, 0);
-}
-
 .archive-row:focus-visible {
   border-color: rgba(244, 210, 163, 0.28);
   outline: 1px solid rgba(255, 247, 234, 0.34);
@@ -1334,7 +1353,6 @@ select {
   transform: translate3d(0.06rem, 0, 0);
 }
 
-.archive-row:hover .archive-action,
 .archive-row:focus-visible .archive-action {
   color: rgba(255, 247, 234, 0.76);
 }
@@ -1391,12 +1409,12 @@ select {
   grid-row: 1;
   justify-self: end;
   align-self: end;
-  color: rgba(255, 247, 234, 0.58);
-  font-size: var(--type-caption);
+  translate: 0 0.32rem;
+  color: rgba(255, 247, 234, 0.5);
+  font-size: clamp(0.78rem, 0.86vw, 0.9rem);
   font-weight: 700;
-  letter-spacing: var(--tracking-caps);
+  letter-spacing: 0;
   line-height: 1.2;
-  text-transform: uppercase;
   transition: color 180ms var(--cw-ease);
   white-space: nowrap;
 }
@@ -1413,11 +1431,6 @@ select {
   outline-offset: 0.35rem;
   text-decoration: none;
   transition: border-color 180ms var(--cw-ease), transform 180ms var(--cw-ease);
-}
-
-.project-row:hover {
-  border-color: rgb(var(--topic-warm) / 0.3);
-  transform: translate3d(0.16rem, 0, 0);
 }
 
 .project-row:focus-visible {
@@ -1492,7 +1505,6 @@ select {
   transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
 }
 
-.project-row:hover em,
 .project-row:focus-visible em {
   border-color: rgb(var(--topic-warm) / 0.66);
   color: var(--cw-paper);
@@ -1502,11 +1514,6 @@ select {
   border-bottom-color: rgba(92, 154, 255, 0.16);
 }
 
-.subpage-projects .project-row:hover {
-  border-color: rgba(92, 154, 255, 0.38);
-}
-
-.subpage-projects .project-row:hover em,
 .subpage-projects .project-row:focus-visible em {
   border-color: rgba(183, 211, 255, 0.76);
 }
@@ -1591,11 +1598,13 @@ select {
     grid-template-columns: minmax(0, 1fr);
     min-height: 100svh;
     margin-top: -3svh;
+    align-items: start;
     padding: clamp(7.5rem, 18vw, 9rem) clamp(1.25rem, 5vw, 3rem) clamp(5rem, 14vw, 7rem);
   }
 
   .cosmic-hero {
     margin-top: 0;
+    align-items: center;
     --world-position: 28% top;
   }
 
@@ -1678,15 +1687,21 @@ select {
   }
 
   .world-work {
-    --world-position: 63% center;
+    --world-position: 68% center;
+    --quiet-left: rgba(3, 6, 17, 0.94);
+    --quiet-right: rgba(3, 6, 17, 0.08);
   }
 
   .world-writing {
     --world-position: 38% center;
+    --quiet-left: rgba(3, 6, 17, 0.9);
+    --quiet-right: rgba(3, 6, 17, 0.18);
   }
 
   .world-projects {
-    --world-position: 34% center;
+    --world-position: 43% center;
+    --quiet-left: rgba(3, 6, 17, 0.16);
+    --quiet-right: rgba(3, 6, 17, 0.94);
   }
 
   .site-nav {
@@ -1719,8 +1734,20 @@ select {
 
   .world-section {
     min-height: 100svh;
-    padding-top: 7.2rem;
+    padding-top: max(calc(var(--nav-clearance) + 0.9rem), 7.2rem);
     padding-bottom: 4.9rem;
+  }
+
+  .world-work .world-intro,
+  .world-projects .world-intro {
+    top: 0;
+  }
+
+  .world-intro,
+  .world-writing .world-intro,
+  .world-projects .world-intro {
+    width: min(calc(100vw - 2rem), 23rem);
+    max-width: min(calc(100vw - 2rem), 23rem);
   }
 
   .hero-copy h1 {
@@ -1814,10 +1841,13 @@ select {
   }
 
   .archive-action {
-    grid-row: 3;
-    justify-self: start;
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    align-self: end;
+    translate: 0 0.18rem;
     color: rgba(255, 247, 234, 0.42);
-    font-size: var(--type-caption);
+    font-size: 0.82rem;
   }
 
   .research-panel {
@@ -1841,7 +1871,7 @@ select {
   }
 
   .site-nav {
-    width: min(calc(100vw - 0.75rem), 22.5rem);
+    width: calc(100vw - 1rem);
   }
 
   .site-nav-social {
@@ -1858,7 +1888,7 @@ select {
   }
 
   .hero-copy {
-    width: min(calc(100vw - 7rem), 17.5rem);
+    width: min(calc(100vw - 2rem), 22rem);
   }
 
   .hero-copy h1 {
@@ -1879,7 +1909,14 @@ select {
   .subpage-hero p,
   .archive-main span,
   .project-row-copy > span {
-    max-width: 22ch;
+    max-width: 28ch;
+  }
+
+  .world-intro,
+  .world-writing .world-intro,
+  .world-projects .world-intro {
+    width: min(calc(100vw - 2rem), 21rem);
+    max-width: min(calc(100vw - 2rem), 21rem);
   }
 
   .archive-main,
@@ -1889,18 +1926,46 @@ select {
   }
 }
 
+@media (max-width: 760px) and (orientation: landscape), (max-height: 540px) {
+  :root {
+    --nav-clearance: 5.35rem;
+  }
+
+  .cosmic-hero,
+  .world-section {
+    min-height: max(100svh, 30rem);
+    padding-top: max(calc(var(--nav-clearance) + 0.65rem), 5.85rem);
+    padding-bottom: 3.6rem;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(2.9rem, 8vw, 4.2rem);
+  }
+
+  .world-intro h2 {
+    font-size: clamp(2.95rem, 9vw, 4.5rem);
+  }
+
+  .scroll-cue {
+    bottom: 2.4rem;
+  }
+}
+
+@media (hover: none) {
+  .world-title-link:hover,
+  .world-intro > a:hover,
+  .scroll-cue:hover {
+    transform: none;
+    text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
+  }
+}
+
 @supports not (height: 100svh) {
   .cosmic-home,
   .cosmic-subpage,
   .cosmic-hero,
   .world-section {
     min-height: 100vh;
-  }
-}
-
-@media (hover: none) {
-  .archive-row:hover {
-    transform: none;
   }
 }
 
@@ -1924,10 +1989,8 @@ select {
   .world-section,
   .hero-copy,
   .world-intro,
-  .project-row:hover,
   .archive-row:active,
   .archive-row:focus-visible,
-  .archive-row:hover,
   .research-link-grid a:hover {
     transform: none;
     translate: 0;

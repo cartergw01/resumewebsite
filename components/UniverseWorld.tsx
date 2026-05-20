@@ -35,10 +35,16 @@ const worlds: World[] = [
     id: "writing",
     title: "Writing",
     copy: (
-      <p>
-        Curious how human nature, culture, and technology intertwine to shape progress. Writing a
-        Substack, <em>flying Arrows</em>.
-      </p>
+      <>
+        <p>Curious how human nature, culture, and technology intertwine to shape progress.</p>
+        <p>
+          Writing a{" "}
+          <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
+            Substack
+          </a>
+          , <em>flying Arrows</em>.
+        </p>
+      </>
     ),
     cta: "read my writing",
     href: "/writing",
@@ -46,7 +52,12 @@ const worlds: World[] = [
   {
     id: "projects",
     title: "Projects",
-    copy: <p>Currently learning how to vibe code. Just playing around and building things for fun.</p>,
+    copy: (
+      <p>
+        <span>Currently learning how to vibe code.</span>
+        <span>Building things for fun.</span>
+      </p>
+    ),
     cta: "check out my projects",
     href: "/projects",
   },
@@ -59,9 +70,14 @@ function Hero() {
         <h1 id="hero-title">Carter Wang</h1>
         <div className="title-star" aria-hidden="true" />
         <p>
-          From SoCal, now in Taipei, working at 886 Studios with the founders of Twitch and Guitar
-          Hero. Outside of work, I&apos;m usually watching the Lakers, playing poker, biking around
-          Taipei, or writing.
+          <span>
+            From SoCal, now in Taipei, working as an associate at 886 Studios with the founders of
+            Twitch and Guitar Hero.
+          </span>
+          <span>
+            Outside of work, I&apos;m usually watching the Lakers, playing poker, biking around
+            Taipei, or writing.
+          </span>
         </p>
       </div>
       <div className="hero-visual" aria-hidden="true" />

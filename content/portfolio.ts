@@ -64,7 +64,7 @@ export const essays = [
     },
   },
   {
-    title: "Slop & Spiral",
+    title: "Slop and Spiral",
     subtitle:
       "Why do we keep scrolling? Maybe it's because the moment we stop, we're alone with ourselves.",
     href: "https://carterko.substack.com/p/slop-and-spiral",
@@ -161,6 +161,17 @@ export const essays = [
       top: "94 65 42",
       bottom: "47 29 22",
       accent: "207 192 176",
+    },
+  },
+  {
+    title: "An Ode to Ignorance",
+    subtitle: "The power of \"I don't know\" and venturing out into the unknown.",
+    href: "https://carterko.substack.com/p/an-ode-to-ignorance",
+    date: "May 26, 2023",
+    spine: {
+      top: "37 48 67",
+      bottom: "14 23 38",
+      accent: "211 182 126",
     },
   },
 ];

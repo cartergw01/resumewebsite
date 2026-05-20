@@ -10,9 +10,9 @@ const worldThemes: Record<string, [number, number, number]> = {
 };
 
 const worldImages: Record<string, string> = {
-  work: 'url("/cosmic-work-v7-sharp.webp")',
-  writing: 'url("/cosmic-writing-v6-sharp.webp")',
-  projects: 'url("/cosmic-life-v8-left-sharp.webp")',
+  work: 'url("/cosmic-work-cohesive-v1.webp")',
+  writing: 'url("/cosmic-writing-no-nebula-v1.webp")',
+  projects: 'url("/cosmic-projects-cohesive-v1.webp")',
 };
 
 export default function ScrollTransport() {
