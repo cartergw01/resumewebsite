@@ -413,8 +413,7 @@ select {
   opacity: 0.78;
 }
 
-.cosmic-home main,
-.section-dots {
+.cosmic-home main {
   position: relative;
   z-index: 4;
 }
@@ -573,11 +572,14 @@ select {
   text-wrap: pretty;
 }
 
+.hero-copy p {
+  max-width: 76ch;
+}
+
 .world-copy p + p {
   margin-top: 0.72rem;
 }
 
-.hero-copy p span,
 .world-projects .world-copy span {
   display: block;
 }
@@ -683,41 +685,6 @@ select {
 .world-writing .world-intro > a:hover,
 .world-projects .world-intro > a:hover {
   transform: translate3d(-0.18rem, 0, 0);
-}
-
-.section-dots {
-  position: fixed;
-  top: 50%;
-  right: clamp(0.75rem, 2vw, 1.4rem);
-  z-index: 55;
-  display: grid;
-  gap: 0.72rem;
-  transform: translateY(-50%);
-}
-
-.section-dots a {
-  position: relative;
-  display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 999px;
-  background: transparent;
-}
-
-.section-dots a::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: inherit;
-  background: rgba(255, 247, 234, 0.24);
-  transition: width 220ms var(--cw-ease), height 220ms var(--cw-ease), background-color 220ms var(--cw-ease);
-}
-
-.section-dots a.active::before {
-  width: 6px;
-  height: 18px;
-  background: rgba(255, 247, 234, 0.78);
 }
 
 /* Subpages */
@@ -1763,10 +1730,6 @@ select {
     max-width: 30ch;
     font-size: var(--type-body);
     line-height: var(--leading-body);
-  }
-
-  .section-dots {
-    display: none;
   }
 
   .subpage-main {

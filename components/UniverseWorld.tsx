@@ -74,6 +74,7 @@ function Hero() {
             From SoCal, now in Taipei, working as an associate at 886 Studios with the founders of
             Twitch and Guitar Hero.
           </span>
+          {" "}
           <span>
             Outside of work, I&apos;m usually watching the Lakers, playing poker, biking around
             Taipei, or writing.
@@ -129,16 +130,6 @@ export default function UniverseWorld() {
           ))}
         </div>
       </main>
-      <nav className="section-dots" aria-label="Section shortcuts">
-        {worlds.map((world, index) => (
-          <a
-            key={world.id}
-            href={`#${world.id}`}
-            aria-label={`Jump to ${world.title}`}
-            className={index === 0 ? "active" : undefined}
-          />
-        ))}
-      </nav>
     </div>
   );
 }

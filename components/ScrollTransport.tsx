@@ -21,7 +21,6 @@ export default function ScrollTransport() {
     const worlds = sections.filter((section) => section.classList.contains("world-section"));
     const home = document.querySelector<HTMLElement>(".cosmic-home");
     const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".cosmic-home .site-nav-primary a"));
-    const dotLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".cosmic-home .section-dots a"));
     let activeWorld = "";
     let worldObserver: IntersectionObserver | null = null;
     let imageObserver: IntersectionObserver | null = null;
@@ -54,9 +53,6 @@ export default function ScrollTransport() {
         }
       });
 
-      dotLinks.forEach((link) => {
-        link.classList.toggle("active", link.getAttribute("href") === `#${world}`);
-      });
     };
 
     worlds.slice(0, 2).forEach(loadWorldImage);
