@@ -760,14 +760,14 @@ select {
 .subpage-projects {
   --topic-image: none;
   --topic-card-image: none;
-  --topic-accent: 118 191 180;
-  --topic-warm: 226 177 111;
+  --topic-accent: 92 154 255;
+  --topic-warm: 183 211 255;
   --topic-position: 42% center;
   background:
-    radial-gradient(circle at 12% 18%, rgba(50, 118, 112, 0.24), transparent 25rem),
-    radial-gradient(circle at 82% 18%, rgba(30, 72, 105, 0.2), transparent 28rem),
-    radial-gradient(circle at 54% 78%, rgba(135, 91, 52, 0.12), transparent 30rem),
-    linear-gradient(135deg, #071313 0%, #080d17 48%, #050710 100%);
+    radial-gradient(circle at 12% 18%, rgba(42, 101, 208, 0.34), transparent 26rem),
+    radial-gradient(circle at 82% 16%, rgba(71, 154, 255, 0.18), transparent 29rem),
+    radial-gradient(circle at 58% 80%, rgba(153, 112, 62, 0.1), transparent 30rem),
+    linear-gradient(135deg, #06111f 0%, #070d1c 48%, #040814 100%);
 }
 
 .subpage-writing.cosmic-subpage::before {
@@ -780,11 +780,11 @@ select {
 }
 
 .subpage-projects.cosmic-subpage::before {
-  opacity: 0.22;
+  opacity: 0.25;
   background:
-    linear-gradient(rgba(118, 191, 180, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(118, 191, 180, 0.045) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 0 48%, rgba(226, 177, 111, 0.04) 49% 51%, transparent 52% 100%);
+    linear-gradient(rgba(92, 154, 255, 0.065) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(92, 154, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 0 48%, rgba(183, 211, 255, 0.045) 49% 51%, transparent 52% 100%);
   background-size: 34px 34px, 34px 34px, 220px 220px;
   transform: none;
 }
@@ -798,10 +798,10 @@ select {
 
 .subpage-projects.cosmic-subpage::after {
   background:
-    radial-gradient(circle at 16% 12%, rgba(118, 191, 180, 0.18), transparent 23rem),
-    radial-gradient(circle at 86% 30%, rgba(226, 177, 111, 0.1), transparent 22rem),
-    linear-gradient(180deg, rgba(6, 18, 20, 0.76), rgba(5, 10, 18, 0.36) 42%, rgba(4, 6, 14, 0.94)),
-    linear-gradient(90deg, rgba(4, 14, 17, 0.9), rgba(7, 13, 21, 0.44) 54%, rgba(4, 7, 15, 0.84));
+    radial-gradient(circle at 16% 12%, rgba(92, 154, 255, 0.24), transparent 24rem),
+    radial-gradient(circle at 86% 30%, rgba(183, 211, 255, 0.12), transparent 22rem),
+    linear-gradient(180deg, rgba(5, 16, 31, 0.78), rgba(5, 10, 24, 0.34) 42%, rgba(3, 6, 15, 0.95)),
+    linear-gradient(90deg, rgba(3, 11, 24, 0.92), rgba(6, 12, 28, 0.42) 54%, rgba(3, 7, 17, 0.86));
 }
 
 .subpage-writing .subpage-main {
@@ -1256,7 +1256,7 @@ select {
 }
 
 .subpage-projects .project-list {
-  border-top-color: rgba(118, 191, 180, 0.22);
+  border-top-color: rgba(92, 154, 255, 0.24);
 }
 
 .writing-archive {
@@ -1320,42 +1320,9 @@ select {
   transition: border-color 220ms var(--cw-ease), transform 220ms var(--cw-ease), opacity 220ms var(--cw-ease);
 }
 
-.archive-row::before {
-  content: "";
-  position: absolute;
-  inset: 0 -1.15rem;
-  z-index: -1;
-  border-radius: 6px;
-  background:
-    radial-gradient(ellipse at 32% 52%, rgba(244, 210, 163, 0.16), transparent 46%),
-    linear-gradient(90deg, rgba(244, 210, 163, 0.075), transparent 68%);
-  opacity: 0;
-  transform: scaleX(0.96);
-  transform-origin: left center;
-  transition: opacity 420ms var(--cw-ease), transform 520ms var(--cw-ease);
-}
-
 .archive-row:hover {
   border-color: rgba(244, 210, 163, 0.28);
   transform: translate3d(0.12rem, 0, 0);
-}
-
-.archive-row.is-lit {
-  border-color: rgba(244, 210, 163, 0.3);
-}
-
-.archive-row.is-lit::before {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-.archive-row.is-lit .archive-main strong {
-  color: rgb(255, 242, 214);
-}
-
-.archive-row.is-lit .archive-meta,
-.archive-row.is-lit .archive-action {
-  color: rgba(255, 225, 183, 0.76);
 }
 
 .archive-row:focus-visible {
@@ -1473,11 +1440,11 @@ select {
 }
 
 .subpage-projects .project-shot {
-  border-color: rgba(118, 191, 180, 0.18);
+  border-color: rgba(92, 154, 255, 0.22);
   background:
-    linear-gradient(135deg, rgba(118, 191, 180, 0.06), transparent 42%),
-    rgba(3, 10, 17, 0.82);
-  box-shadow: inset 0 1px 0 rgba(255, 247, 234, 0.06), 0 20px 42px rgba(0, 0, 0, 0.26);
+    linear-gradient(135deg, rgba(92, 154, 255, 0.08), transparent 42%),
+    rgba(3, 9, 20, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 247, 234, 0.06), 0 20px 46px rgba(0, 0, 0, 0.3);
 }
 
 .project-shot img {
@@ -1532,16 +1499,16 @@ select {
 }
 
 .subpage-projects .project-row {
-  border-bottom-color: rgba(118, 191, 180, 0.14);
+  border-bottom-color: rgba(92, 154, 255, 0.16);
 }
 
 .subpage-projects .project-row:hover {
-  border-color: rgba(118, 191, 180, 0.34);
+  border-color: rgba(92, 154, 255, 0.38);
 }
 
 .subpage-projects .project-row:hover em,
 .subpage-projects .project-row:focus-visible em {
-  border-color: rgba(226, 177, 111, 0.72);
+  border-color: rgba(183, 211, 255, 0.76);
 }
 
 .workshop-queue {
