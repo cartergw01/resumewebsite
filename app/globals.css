@@ -416,10 +416,30 @@ select {
 .cosmic-home main {
   position: relative;
   z-index: 4;
+  isolation: isolate;
 }
 
-.cosmic-home main {
-  background: linear-gradient(180deg, rgba(3, 6, 17, 0.08) 0%, rgba(3, 6, 17, 0.02) 52%, rgba(3, 6, 17, 0.44) 100%);
+.cosmic-home main::before,
+.cosmic-home main::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.cosmic-home main::before {
+  z-index: -4;
+  background-image: url("/cosmic-universe-scroll-v1.webp");
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.cosmic-home main::after {
+  z-index: -3;
+  background:
+    linear-gradient(180deg, rgba(3, 6, 17, 0.22) 0%, rgba(3, 6, 17, 0.03) 18%, rgba(3, 6, 17, 0.02) 78%, rgba(3, 6, 17, 0.5) 100%),
+    linear-gradient(90deg, rgba(3, 6, 17, 0.32), transparent 22%, transparent 78%, rgba(3, 6, 17, 0.28));
 }
 
 .cosmic-hero,
@@ -431,13 +451,12 @@ select {
   align-items: center;
   margin: 0;
   padding: clamp(7rem, 10vw, 9.5rem) var(--page-x) clamp(5.75rem, 8vw, 7.5rem);
-  background: #030611;
+  background: transparent;
   overflow: hidden;
   isolation: isolate;
 }
 
 .cosmic-hero {
-  --world-image: url("/cosmic-hero-cohesive-v1.webp");
   --world-position: left top;
   --quiet-left: rgba(3, 6, 17, 0.34);
   --quiet-right: rgba(3, 6, 17, 0.34);
@@ -453,21 +472,18 @@ select {
 }
 
 .world-work {
-  --world-image: none;
   --world-position: 58% center;
   --quiet-left: rgba(3, 6, 17, 0.9);
   --quiet-right: rgba(3, 6, 17, 0.1);
 }
 
 .world-writing {
-  --world-image: none;
   --world-position: 42% center;
   --quiet-left: rgba(3, 6, 17, 0.1);
   --quiet-right: rgba(3, 6, 17, 0.92);
 }
 
 .world-projects {
-  --world-image: none;
   --world-position: 36% center;
   --quiet-left: rgba(3, 6, 17, 0.12);
   --quiet-right: rgba(3, 6, 17, 0.9);
@@ -485,15 +501,7 @@ select {
 
 .cosmic-hero::before,
 .world-section::before {
-  inset: -1.5%;
-  z-index: -4;
-  background-image: var(--world-image, none);
-  background-position: var(--world-position, center);
-  background-repeat: no-repeat;
-  background-size: cover;
-  opacity: 0.9;
-  transform: scale(1.002);
-  transform-origin: center;
+  display: none;
 }
 
 .cosmic-hero::after,
@@ -505,12 +513,7 @@ select {
       rgba(var(--journey-r, 143), var(--journey-g, 183), var(--journey-b, 255), 0.035),
       transparent 34rem
     ),
-    linear-gradient(180deg, rgba(3, 6, 17, 0.42) 0%, rgba(3, 6, 17, 0.08) 34%, rgba(3, 6, 17, 0.18) 72%, rgba(3, 6, 17, 0.88) 100%),
     linear-gradient(90deg, var(--quiet-left, rgba(3, 6, 17, 0.86)) 0%, rgba(3, 6, 17, 0.36) 35%, rgba(3, 6, 17, 0.12) 65%, var(--quiet-right, rgba(3, 6, 17, 0.38)) 100%);
-}
-
-.world-section:not(:first-of-type)::before {
-  mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 5%, #000 14%, #000 100%);
 }
 
 .hero-copy,
@@ -664,11 +667,16 @@ select {
   transform: translateX(-50%) translateY(0.12rem);
 }
 
-.world-writing .world-intro,
-.world-projects .world-intro {
+.world-writing .world-intro {
   grid-column: 2;
   justify-self: end;
   text-align: right;
+}
+
+.world-projects .world-intro {
+  grid-column: 1;
+  justify-self: start;
+  text-align: left;
 }
 
 .world-work .world-intro {
@@ -677,13 +685,11 @@ select {
   text-align: left;
 }
 
-.world-writing .world-intro > a,
-.world-projects .world-intro > a {
+.world-writing .world-intro > a {
   justify-content: flex-end;
 }
 
-.world-writing .world-intro > a:hover,
-.world-projects .world-intro > a:hover {
+.world-writing .world-intro > a:hover {
   transform: translate3d(-0.18rem, 0, 0);
 }
 
@@ -1576,8 +1582,7 @@ select {
   }
 
   .hero-copy,
-  .world-intro,
-  .world-writing .world-intro {
+  .world-intro {
     grid-column: 1;
     justify-self: start;
     max-width: min(560px, 100%);
@@ -1587,19 +1592,6 @@ select {
   .hero-copy {
     justify-self: center;
     text-align: center;
-  }
-
-  .world-writing .world-intro > a {
-    justify-content: flex-start;
-  }
-
-  .world-projects .world-intro {
-    justify-self: end;
-    text-align: right;
-  }
-
-  .world-projects .world-intro > a {
-    justify-content: flex-end;
   }
 
   .topic-layout,
@@ -1654,9 +1646,9 @@ select {
   }
 
   .world-work {
-    --world-position: 68% center;
+    --world-position: 36% center;
     --quiet-left: rgba(3, 6, 17, 0.94);
-    --quiet-right: rgba(3, 6, 17, 0.08);
+    --quiet-right: rgba(3, 6, 17, 0.16);
   }
 
   .world-writing {
@@ -1666,9 +1658,9 @@ select {
   }
 
   .world-projects {
-    --world-position: 43% center;
-    --quiet-left: rgba(3, 6, 17, 0.16);
-    --quiet-right: rgba(3, 6, 17, 0.94);
+    --world-position: 62% center;
+    --quiet-left: rgba(3, 6, 17, 0.92);
+    --quiet-right: rgba(3, 6, 17, 0.16);
   }
 
   .site-nav {
@@ -1678,6 +1670,12 @@ select {
   .site-nav-primary {
     max-width: 100%;
     gap: clamp(0.56rem, 2.7vw, 0.9rem);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .site-nav-primary::-webkit-scrollbar {
+    display: none;
   }
 
   .site-nav-social {
@@ -1717,6 +1715,37 @@ select {
     max-width: min(calc(100vw - 2rem), 23rem);
   }
 
+  .world-writing .world-intro {
+    justify-self: end;
+    text-align: right;
+    width: min(calc(100vw - 2rem), 20rem);
+    max-width: min(calc(100vw - 2rem), 20rem);
+    margin-top: -0.65rem;
+  }
+
+  .world-writing .world-intro > a {
+    justify-content: flex-end;
+  }
+
+  .world-writing .world-intro > a:hover {
+    transform: translate3d(-0.18rem, 0, 0);
+  }
+
+  .world-work .world-intro {
+    width: min(calc(100vw - 2rem), 19rem);
+    max-width: min(calc(100vw - 2rem), 19rem);
+    margin-top: -1rem;
+  }
+
+  .world-work .world-copy p {
+    font-size: 0.95rem;
+    line-height: 1.54;
+  }
+
+  .world-work .world-copy p + p {
+    margin-top: 0.48rem;
+  }
+
   .hero-copy h1 {
     font-size: clamp(3.05rem, 12vw, 3.7rem);
   }
@@ -1727,13 +1756,13 @@ select {
 
   .hero-copy p,
   .world-copy p {
-    max-width: 30ch;
+    max-width: min(34ch, 100%);
     font-size: var(--type-body);
     line-height: var(--leading-body);
   }
 
   .subpage-main {
-    width: min(1160px, calc(100% - 1rem));
+    width: min(1160px, calc(100% - 1.5rem));
     padding-top: var(--nav-clearance);
   }
 
@@ -1759,10 +1788,16 @@ select {
   .project-row,
   .workshop-line {
     grid-template-columns: 1fr;
+    gap: 0.9rem;
   }
 
   .subpage-projects .project-shot {
-    aspect-ratio: 1.8;
+    aspect-ratio: 1.58;
+  }
+
+  .project-row-copy strong,
+  .workshop-line strong {
+    font-size: clamp(1.85rem, 8.5vw, 2.65rem);
   }
 
   .writing-archive {
@@ -1805,10 +1840,10 @@ select {
 
   .archive-action {
     grid-column: 1;
-    grid-row: 2;
+    grid-row: 3;
     justify-self: end;
     align-self: end;
-    translate: 0 0.18rem;
+    translate: 0;
     color: rgba(255, 247, 234, 0.42);
     font-size: 0.82rem;
   }
@@ -1842,12 +1877,12 @@ select {
   }
 
   .subpage-main {
-    width: min(calc(100vw - 7rem), 17.5rem);
+    width: min(calc(100vw - 1.5rem), 38rem);
     padding-top: var(--nav-clearance);
   }
 
   .subpage-writing .subpage-main {
-    width: min(calc(100vw - 7rem), 17.5rem);
+    width: min(calc(100vw - 1.5rem), 38rem);
   }
 
   .hero-copy {
@@ -1872,7 +1907,7 @@ select {
   .subpage-hero p,
   .archive-main span,
   .project-row-copy > span {
-    max-width: 28ch;
+    max-width: min(32ch, 100%);
   }
 
   .world-intro,
@@ -1882,10 +1917,24 @@ select {
     max-width: min(calc(100vw - 2rem), 21rem);
   }
 
+  .world-writing .world-intro {
+    width: min(calc(100vw - 2rem), 19rem);
+    max-width: min(calc(100vw - 2rem), 19rem);
+  }
+
+  .world-work .world-intro {
+    width: min(calc(100vw - 2rem), 18rem);
+    max-width: min(calc(100vw - 2rem), 18rem);
+  }
+
   .archive-main,
   .project-row-copy,
   .project-shot {
     max-width: 100%;
+  }
+
+  .scroll-cue {
+    bottom: max(2.25rem, calc(env(safe-area-inset-bottom) + 1.35rem));
   }
 }
 

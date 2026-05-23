@@ -37,8 +37,9 @@ export default function ProjectsPage() {
                       src={project.image}
                       alt={`${project.title} website screenshot`}
                       fill
-                      quality={90}
-                      sizes="(max-width: 760px) 100vw, (max-width: 1200px) 31vw, 360px"
+                      priority={index === 0}
+                      quality={86}
+                      sizes="(max-width: 760px) calc(100vw - 1.5rem), (max-width: 1200px) 31vw, 360px"
                     />
                   </span>
                   <span className="project-row-copy">
