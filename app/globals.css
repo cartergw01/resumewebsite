@@ -429,17 +429,26 @@ select {
 
 .cosmic-home main::before {
   z-index: -4;
-  background-image: url("/cosmic-universe-scroll-v1.webp");
+  background:
+    radial-gradient(ellipse at 50% 2%, rgba(255, 247, 234, 0.12), transparent 14rem),
+    radial-gradient(ellipse at 50% 99%, rgba(72, 137, 226, 0.34), transparent 13rem),
+    radial-gradient(ellipse at 18% 11%, rgba(255, 247, 234, 0.3), transparent 10rem),
+    radial-gradient(ellipse at 78% 22%, rgba(84, 122, 210, 0.2), transparent 22rem),
+    linear-gradient(116deg, transparent 0 30%, rgba(48, 84, 158, 0.06) 38%, rgba(255, 225, 185, 0.075) 48%, rgba(71, 102, 180, 0.13) 55%, transparent 67%),
+    radial-gradient(circle at 17% 24%, rgba(255, 255, 255, 0.48) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 71% 12%, rgba(190, 212, 255, 0.42) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 41% 72%, rgba(255, 247, 234, 0.36) 0 1px, transparent 1.6px),
+    linear-gradient(180deg, #02050f 0%, #031024 35%, #040b1a 68%, #02050f 100%);
   background-position: center top;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, no-repeat;
+  background-size: 100% 100%, 100% 100%, 100% 26%, 100% 42%, 100% 100%, 280px 280px, 420px 420px, 520px 520px, 100% 100%;
 }
 
 .cosmic-home main::after {
   z-index: -3;
   background:
-    linear-gradient(180deg, rgba(3, 6, 17, 0.22) 0%, rgba(3, 6, 17, 0.03) 18%, rgba(3, 6, 17, 0.02) 78%, rgba(3, 6, 17, 0.5) 100%),
-    linear-gradient(90deg, rgba(3, 6, 17, 0.32), transparent 22%, transparent 78%, rgba(3, 6, 17, 0.28));
+    linear-gradient(180deg, rgba(3, 6, 17, 0.08) 0%, rgba(3, 6, 17, 0.01) 22%, rgba(3, 6, 17, 0.06) 76%, rgba(3, 6, 17, 0.38) 100%),
+    linear-gradient(90deg, rgba(3, 6, 17, 0.5), transparent 24%, transparent 76%, rgba(3, 6, 17, 0.46));
 }
 
 .cosmic-hero,
@@ -472,18 +481,33 @@ select {
 }
 
 .world-work {
+  --world-asset: url("/world-work-cutout-v1.webp");
+  --world-aspect: 16 / 9;
+  --world-width: min(72vw, 72rem);
+  --world-right: clamp(-7rem, -5vw, -2.5rem);
+  --world-top: 50%;
   --world-position: 58% center;
   --quiet-left: rgba(3, 6, 17, 0.9);
   --quiet-right: rgba(3, 6, 17, 0.1);
 }
 
 .world-writing {
+  --world-asset: url("/world-writing-cutout-v1.webp");
+  --world-aspect: 16 / 9;
+  --world-width: min(70vw, 66rem);
+  --world-left: clamp(-8rem, -6vw, -3rem);
+  --world-top: 53%;
   --world-position: 42% center;
   --quiet-left: rgba(3, 6, 17, 0.1);
   --quiet-right: rgba(3, 6, 17, 0.92);
 }
 
 .world-projects {
+  --world-asset: url("/world-projects-cutout-v2.webp");
+  --world-aspect: 16 / 9;
+  --world-width: min(74vw, 73rem);
+  --world-right: clamp(-9rem, -6vw, -3rem);
+  --world-top: 48%;
   --world-position: 36% center;
   --quiet-left: rgba(3, 6, 17, 0.12);
   --quiet-right: rgba(3, 6, 17, 0.9);
@@ -502,6 +526,14 @@ select {
 .cosmic-hero::before,
 .world-section::before {
   display: none;
+}
+
+.cosmic-hero::before {
+  z-index: -1;
+  display: block;
+  background:
+    radial-gradient(ellipse at 50% 110%, rgba(103, 165, 255, 0.34) 0%, rgba(103, 165, 255, 0.18) 8%, transparent 24%),
+    radial-gradient(ellipse at 50% 112%, rgba(255, 247, 234, 0.18), transparent 18%);
 }
 
 .cosmic-hero::after,
@@ -560,9 +592,28 @@ select {
 }
 
 .title-star,
-.hero-visual,
-.world-visual {
+.hero-visual {
   display: none;
+}
+
+.world-visual {
+  position: absolute;
+  top: var(--world-top, 50%);
+  right: var(--world-right, auto);
+  bottom: var(--world-bottom, auto);
+  left: var(--world-left, auto);
+  z-index: 1;
+  display: block;
+  width: var(--world-width, min(70vw, 70rem));
+  aspect-ratio: var(--world-aspect, 16 / 9);
+  background-image: var(--world-asset);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 2rem 4rem rgba(0, 0, 0, 0.46));
+  opacity: 0.94;
+  transform: translate3d(0, -50%, 0);
+  pointer-events: none;
 }
 
 .hero-copy p,
@@ -1569,7 +1620,7 @@ select {
   .cosmic-hero,
   .world-section {
     grid-template-columns: minmax(0, 1fr);
-    min-height: 100svh;
+    min-height: 104svh;
     margin-top: -3svh;
     align-items: start;
     padding: clamp(7.5rem, 18vw, 9rem) clamp(1.25rem, 5vw, 3rem) clamp(5rem, 14vw, 7rem);
@@ -1592,6 +1643,37 @@ select {
   .hero-copy {
     justify-self: center;
     text-align: center;
+  }
+
+  .world-visual {
+    top: var(--world-top, auto);
+    bottom: var(--world-bottom, -2rem);
+    opacity: 0.86;
+    transform: none;
+  }
+
+  .world-work {
+    --world-width: min(118vw, 58rem);
+    --world-right: clamp(-17rem, -30vw, -6rem);
+    --world-left: auto;
+    --world-top: auto;
+    --world-bottom: -2.4rem;
+  }
+
+  .world-writing {
+    --world-width: min(116vw, 52rem);
+    --world-left: clamp(-16rem, -31vw, -7rem);
+    --world-right: auto;
+    --world-top: auto;
+    --world-bottom: 0.5rem;
+  }
+
+  .world-projects {
+    --world-width: min(120vw, 58rem);
+    --world-right: clamp(-18rem, -34vw, -7rem);
+    --world-left: auto;
+    --world-top: auto;
+    --world-bottom: -2.5rem;
   }
 
   .topic-layout,
@@ -1698,7 +1780,7 @@ select {
   }
 
   .world-section {
-    min-height: 100svh;
+    min-height: 108svh;
     padding-top: max(calc(var(--nav-clearance) + 0.9rem), 7.2rem);
     padding-bottom: 4.9rem;
   }
@@ -1744,6 +1826,28 @@ select {
 
   .world-work .world-copy p + p {
     margin-top: 0.48rem;
+  }
+
+  .world-visual {
+    opacity: 0.8;
+  }
+
+  .world-work {
+    --world-width: min(136vw, 42rem);
+    --world-right: clamp(-17rem, -42vw, -8rem);
+    --world-bottom: -1.25rem;
+  }
+
+  .world-writing {
+    --world-width: min(128vw, 38rem);
+    --world-left: clamp(-15rem, -39vw, -7rem);
+    --world-bottom: 4rem;
+  }
+
+  .world-projects {
+    --world-width: min(138vw, 44rem);
+    --world-right: clamp(-18rem, -45vw, -8rem);
+    --world-bottom: -0.5rem;
   }
 
   .hero-copy h1 {
@@ -1925,6 +2029,28 @@ select {
   .world-work .world-intro {
     width: min(calc(100vw - 2rem), 18rem);
     max-width: min(calc(100vw - 2rem), 18rem);
+  }
+
+  .world-visual {
+    opacity: 0.76;
+  }
+
+  .world-work {
+    --world-width: 42rem;
+    --world-right: -18rem;
+    --world-bottom: -1.5rem;
+  }
+
+  .world-writing {
+    --world-width: 37rem;
+    --world-left: -15rem;
+    --world-bottom: 4.6rem;
+  }
+
+  .world-projects {
+    --world-width: 43rem;
+    --world-right: -18.5rem;
+    --world-bottom: -0.65rem;
   }
 
   .archive-main,

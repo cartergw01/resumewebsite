@@ -49,9 +49,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`dark ${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
-      <head>
-        <link rel="preload" as="image" href="/cosmic-universe-scroll-v1.webp" />
-      </head>
+      <head />
       <body className="min-h-screen font-sans antialiased">
         {children}
       </body>
