@@ -21,6 +21,9 @@ export default function ScrollTransport() {
     let activeWorld = "";
     let worldObserver: IntersectionObserver | null = null;
     let heroFrame = 0;
+    let spaceFrame = 0;
+    let targetScrollY = window.scrollY;
+    let easedScrollY = targetScrollY;
 
     const setActiveWorld = (world: string) => {
       if (!home || world === activeWorld) return;
@@ -58,7 +61,7 @@ export default function ScrollTransport() {
       heroCopy.style.pointerEvents = opacity < 0.08 ? "none" : "";
     };
 
-    const updateSpaceMotion = () => {
+    const setSpaceMotion = (scrollY: number) => {
       if (!home) return;
 
       if (prefersReducedMotion.matches) {
@@ -69,16 +72,33 @@ export default function ScrollTransport() {
         return;
       }
 
-      const scrollY = window.scrollY;
       home.style.setProperty("--space-galaxy-y", `${Math.min(scrollY * 0.07, 140).toFixed(2)}px`);
       home.style.setProperty("--space-nebula-y", `${Math.min(scrollY * 0.05, 110).toFixed(2)}px`);
       home.style.setProperty("--space-vignette-y", `${Math.min(scrollY * 0.035, 80).toFixed(2)}px`);
       home.style.setProperty("--space-stars-y", `${Math.min(scrollY * 0.035, 90).toFixed(2)}px`);
     };
 
-    const updateScrollEffects = () => {
-      updateHeroCopy();
-      updateSpaceMotion();
+    const animateSpaceMotion = () => {
+      const delta = targetScrollY - easedScrollY;
+
+      if (Math.abs(delta) < 0.35) {
+        easedScrollY = targetScrollY;
+        setSpaceMotion(easedScrollY);
+        spaceFrame = 0;
+        return;
+      }
+
+      easedScrollY += delta * 0.14;
+      setSpaceMotion(easedScrollY);
+      spaceFrame = window.requestAnimationFrame(animateSpaceMotion);
+    };
+
+    const scheduleSpaceMotion = () => {
+      targetScrollY = window.scrollY;
+
+      if (!spaceFrame) {
+        spaceFrame = window.requestAnimationFrame(animateSpaceMotion);
+      }
     };
 
     const scheduleHeroUpdate = () => {
@@ -86,11 +106,13 @@ export default function ScrollTransport() {
 
       heroFrame = window.requestAnimationFrame(() => {
         heroFrame = 0;
-        updateScrollEffects();
+        updateHeroCopy();
+        scheduleSpaceMotion();
       });
     };
 
-    updateScrollEffects();
+    updateHeroCopy();
+    setSpaceMotion(easedScrollY);
     window.addEventListener("scroll", scheduleHeroUpdate, { passive: true });
     window.addEventListener("resize", scheduleHeroUpdate);
 
@@ -122,6 +144,9 @@ export default function ScrollTransport() {
       window.removeEventListener("resize", scheduleHeroUpdate);
       if (heroFrame) {
         window.cancelAnimationFrame(heroFrame);
+      }
+      if (spaceFrame) {
+        window.cancelAnimationFrame(spaceFrame);
       }
     };
   }, []);

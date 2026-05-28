@@ -585,97 +585,6 @@ select {
   animation: star-drift-near 52s linear infinite;
 }
 
-.meteor-field {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  opacity: 0.9;
-}
-
-.shooting-star {
-  --meteor-top: 16%;
-  --meteor-left: 76%;
-  --meteor-delay: 2s;
-  --meteor-duration: 8s;
-  position: absolute;
-  top: var(--meteor-top);
-  left: var(--meteor-left);
-  width: clamp(5rem, 12vw, 12rem);
-  height: 1px;
-  border-radius: 999px;
-  background:
-    linear-gradient(90deg, transparent 0%, rgba(170, 205, 255, 0.08) 18%, rgba(226, 238, 255, 0.72) 60%, rgba(255, 250, 234, 0.95) 100%);
-  box-shadow:
-    0 0 0.45rem rgba(154, 190, 255, 0.45),
-    0 0 1.1rem rgba(255, 247, 230, 0.22);
-  opacity: 0;
-  transform: rotate(-18deg) translate3d(24vw, 0, 0);
-  transform-origin: right center;
-  animation: shooting-star var(--meteor-duration) var(--meteor-delay) cubic-bezier(0.16, 1, 0.3, 1) infinite;
-}
-
-.shooting-star::after {
-  position: absolute;
-  top: 50%;
-  right: -0.05rem;
-  width: 0.22rem;
-  height: 0.22rem;
-  border-radius: 999px;
-  content: "";
-  background: rgba(255, 252, 238, 0.98);
-  box-shadow: 0 0 0.65rem rgba(255, 255, 255, 0.86);
-  transform: translateY(-50%);
-}
-
-.shooting-star:nth-child(1) {
-  --meteor-top: 12%;
-  --meteor-left: 82%;
-  --meteor-delay: -7.5s;
-  --meteor-duration: 9.6s;
-}
-
-.shooting-star:nth-child(2) {
-  --meteor-top: 28%;
-  --meteor-left: 62%;
-  --meteor-delay: -3.1s;
-  --meteor-duration: 11.5s;
-}
-
-.shooting-star:nth-child(3) {
-  --meteor-top: 47%;
-  --meteor-left: 91%;
-  --meteor-delay: -10.2s;
-  --meteor-duration: 10.8s;
-}
-
-.shooting-star:nth-child(4) {
-  --meteor-top: 66%;
-  --meteor-left: 73%;
-  --meteor-delay: -1.6s;
-  --meteor-duration: 12.2s;
-}
-
-.shooting-star:nth-child(5) {
-  --meteor-top: 19%;
-  --meteor-left: 43%;
-  --meteor-delay: -13.8s;
-  --meteor-duration: 13.6s;
-}
-
-.shooting-star:nth-child(6) {
-  --meteor-top: 54%;
-  --meteor-left: 55%;
-  --meteor-delay: -5.4s;
-  --meteor-duration: 11.8s;
-}
-
-.shooting-star:nth-child(7) {
-  --meteor-top: 78%;
-  --meteor-left: 88%;
-  --meteor-delay: -16.6s;
-  --meteor-duration: 14.4s;
-}
-
 @keyframes star-drift-far {
   from {
     transform: translate3d(0, 0, 0);
@@ -717,28 +626,6 @@ select {
 
   100% {
     opacity: 0.34;
-  }
-}
-
-@keyframes shooting-star {
-  0%,
-  76% {
-    opacity: 0;
-    transform: rotate(-18deg) translate3d(24vw, 0, 0) scaleX(0.78);
-  }
-
-  80% {
-    opacity: 1;
-  }
-
-  88% {
-    opacity: 0;
-    transform: rotate(-18deg) translate3d(-72vw, 28vh, 0) scaleX(1);
-  }
-
-  100% {
-    opacity: 0;
-    transform: rotate(-18deg) translate3d(-72vw, 28vh, 0) scaleX(1);
   }
 }
 
