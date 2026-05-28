@@ -1,6 +1,6 @@
 import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
-import { projects, workshopQueue } from "@/content/portfolio";
+import { projects } from "@/content/portfolio";
 
 export default function ProjectsPage() {
   return (
@@ -10,9 +10,6 @@ export default function ProjectsPage() {
       <main className="subpage-main topic-main projects-main">
         <header className="subpage-hero topic-hero projects-hero">
           <h1>Projects</h1>
-          <p>
-            Small tools and city experiments, kept close enough to keep changing.
-          </p>
         </header>
 
         <section className="topic-layout projects-layout" aria-label="Projects world">
@@ -51,21 +48,6 @@ export default function ProjectsPage() {
               ))}
             </section>
 
-            <section className="workshop-queue" aria-label="On the bench">
-              <div className="project-section-heading">
-                <h2>On the bench</h2>
-                <p>Loose threads I am watching, testing, or waiting for a real reason to build.</p>
-              </div>
-
-              <div className="workshop-ledger">
-                {workshopQueue.map((item) => (
-                  <article className="workshop-line" key={item.title}>
-                    <strong>{item.title}</strong>
-                    <p>{item.description}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
           </section>
         </section>
       </main>
