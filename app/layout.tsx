@@ -48,7 +48,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`dark ${playfair.variable} ${spaceGrotesk.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme="dark"
+      className={`dark ${playfair.variable} ${spaceGrotesk.variable}`}
+      suppressHydrationWarning
+    >
       <head />
       <body className="min-h-screen font-sans antialiased">
         {children}

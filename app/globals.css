@@ -378,13 +378,10 @@ select {
   min-height: 100svh;
   color: var(--cw-paper);
   background:
-    radial-gradient(
-      circle at 50% 18%,
-      rgba(var(--journey-r, 143), var(--journey-g, 183), var(--journey-b, 255), 0.06),
-      transparent 34rem
-    ),
-    radial-gradient(circle at 50% -10%, rgba(102, 138, 220, 0.13), transparent 32rem),
-    linear-gradient(180deg, #030611 0%, #040711 42%, #030611 100%);
+    radial-gradient(ellipse at 21% 18%, rgba(116, 124, 255, 0.2), transparent 30rem),
+    radial-gradient(ellipse at 82% 72%, rgba(219, 83, 167, 0.13), transparent 32rem),
+    radial-gradient(ellipse at 50% 112%, rgba(34, 78, 138, 0.24), transparent 36rem),
+    linear-gradient(180deg, #01020a 0%, #030615 45%, #050716 68%, #010208 100%);
   isolation: isolate;
 }
 
@@ -398,25 +395,72 @@ select {
 }
 
 .cosmic-home::before {
-  opacity: 0.34;
+  z-index: 0;
+  opacity: 0.96;
   background:
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.82) 0 1px, transparent 1.55px),
-    radial-gradient(circle at 82% 24%, rgba(255, 255, 255, 0.62) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 53% 71%, rgba(164, 198, 255, 0.58) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 26% 62%, rgba(255, 247, 234, 0.56) 0 0.8px, transparent 1.35px),
-    radial-gradient(circle at 68% 44%, rgba(188, 211, 255, 0.5) 0 0.9px, transparent 1.45px),
-    radial-gradient(circle at 39% 32%, rgba(255, 255, 255, 0.44) 0 0.7px, transparent 1.25px),
-    radial-gradient(circle at 7% 78%, rgba(186, 211, 255, 0.36) 0 0.65px, transparent 1.15px),
-    radial-gradient(circle at 93% 68%, rgba(255, 247, 234, 0.34) 0 0.65px, transparent 1.15px);
-  background-size: 170px 170px, 230px 230px, 310px 310px, 390px 390px, 500px 500px, 620px 620px, 760px 760px, 880px 880px;
-  mix-blend-mode: screen;
+    radial-gradient(ellipse at 50% 50%, rgba(1, 2, 8, 0) 0 42%, rgba(1, 2, 8, 0.48) 74%, rgba(1, 2, 8, 0.84) 100%),
+    linear-gradient(180deg, rgba(1, 2, 8, 0.08) 0%, rgba(1, 2, 8, 0.2) 58%, rgba(1, 2, 8, 0.56) 100%),
+    url("/cosmic-hero-v6-sharp.webp");
+  background-position: 45% top;
+  background-repeat: no-repeat;
+  background-size: max(122vw, 118rem) auto;
+  filter: brightness(0.96) contrast(1.16) saturate(1.18);
 }
 
 .cosmic-home::after {
+  z-index: 1;
   background:
-    linear-gradient(90deg, rgba(3, 6, 17, 0.68), transparent 24%, transparent 76%, rgba(3, 6, 17, 0.58)),
-    radial-gradient(ellipse at 50% 50%, transparent 0 50%, rgba(3, 6, 17, 0.16) 78%, rgba(3, 6, 17, 0.48) 100%);
-  opacity: 0.78;
+    radial-gradient(ellipse at 24% 19%, rgba(255, 218, 174, 0.16), transparent 22rem),
+    radial-gradient(ellipse at 24% 24%, rgba(102, 111, 255, 0.18), transparent 31rem),
+    linear-gradient(112deg, transparent 0 15%, rgba(83, 118, 255, 0.08) 24%, rgba(255, 168, 119, 0.1) 32%, transparent 48%),
+    linear-gradient(90deg, rgba(1, 2, 8, 0.74), transparent 24%, transparent 78%, rgba(1, 2, 8, 0.78)),
+    radial-gradient(ellipse at 50% 46%, transparent 0 50%, rgba(1, 2, 8, 0.22) 78%, rgba(1, 2, 8, 0.68) 100%),
+    linear-gradient(180deg, rgba(1, 2, 8, 0.02) 0%, transparent 32%, transparent 70%, rgba(1, 2, 8, 0.42) 100%),
+    radial-gradient(circle at 11% 22%, rgba(255, 252, 240, 0.95) 0 0.055rem, transparent 0.075rem),
+    radial-gradient(circle at 72% 16%, rgba(185, 209, 255, 0.86) 0 0.052rem, transparent 0.078rem),
+    radial-gradient(circle at 38% 68%, rgba(255, 255, 255, 0.78) 0 0.045rem, transparent 0.07rem),
+    radial-gradient(circle at 84% 76%, rgba(204, 223, 255, 0.7) 0 0.04rem, transparent 0.066rem),
+    radial-gradient(circle at 24% 84%, rgba(255, 247, 224, 0.62) 0 0.035rem, transparent 0.06rem),
+    radial-gradient(circle at 57% 36%, rgba(151, 184, 255, 0.58) 0 0.032rem, transparent 0.054rem),
+    radial-gradient(circle at 91% 44%, rgba(255, 255, 255, 0.5) 0 0.03rem, transparent 0.052rem),
+    radial-gradient(circle at 33% 27%, rgba(255, 255, 255, 0.4) 0 0.022rem, transparent 0.043rem),
+    radial-gradient(circle at 67% 71%, rgba(187, 211, 255, 0.36) 0 0.02rem, transparent 0.04rem),
+    radial-gradient(circle at 8% 63%, rgba(255, 247, 226, 0.32) 0 0.018rem, transparent 0.038rem);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    13.5rem 15.25rem,
+    18.75rem 16.5rem,
+    23rem 21rem,
+    31rem 28rem,
+    41rem 36rem,
+    52rem 48rem,
+    67rem 58rem,
+    7.5rem 8.5rem,
+    9.75rem 10.5rem,
+    12.25rem 11.5rem;
+  background-position:
+    center,
+    center,
+    center,
+    center,
+    center,
+    center,
+    0.8rem 1.2rem,
+    6rem 2.5rem,
+    3rem 8rem,
+    11rem 7rem,
+    5rem 12rem,
+    18rem 3rem,
+    24rem 15rem,
+    2.5rem 1.75rem,
+    4.8rem 5.2rem,
+    8.3rem 3.6rem;
+  opacity: 0.96;
 }
 
 .cosmic-home main {
@@ -428,7 +472,7 @@ select {
 .cosmic-home main::before,
 .cosmic-home main::after {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
 }
@@ -436,48 +480,272 @@ select {
 .cosmic-home main::before {
   z-index: -4;
   background:
-    radial-gradient(ellipse at 50% 2%, rgba(255, 247, 234, 0.12), transparent 14rem),
-    radial-gradient(ellipse at 50% 99%, rgba(72, 137, 226, 0.34), transparent 13rem),
-    radial-gradient(ellipse at 18% 11%, rgba(255, 247, 234, 0.3), transparent 10rem),
-    radial-gradient(ellipse at 78% 22%, rgba(84, 122, 210, 0.2), transparent 22rem),
-    linear-gradient(116deg, transparent 0 30%, rgba(48, 84, 158, 0.055) 38%, rgba(255, 225, 185, 0.06) 48%, rgba(71, 102, 180, 0.1) 55%, transparent 67%),
-    radial-gradient(circle at 17% 24%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.55px),
-    radial-gradient(circle at 71% 12%, rgba(190, 212, 255, 0.54) 0 1px, transparent 1.65px),
-    radial-gradient(circle at 41% 72%, rgba(255, 247, 234, 0.48) 0 1px, transparent 1.55px),
-    radial-gradient(circle at 88% 58%, rgba(255, 255, 255, 0.48) 0 0.9px, transparent 1.4px),
-    radial-gradient(circle at 9% 82%, rgba(150, 187, 255, 0.46) 0 0.9px, transparent 1.4px),
-    radial-gradient(circle at 63% 38%, rgba(255, 255, 255, 0.32) 0 0.65px, transparent 1.12px),
-    linear-gradient(180deg, #02050f 0%, #031024 35%, #040b1a 68%, #02050f 100%);
+    radial-gradient(ellipse at 18% 12%, rgba(255, 221, 182, 0.18), transparent 18rem),
+    radial-gradient(ellipse at 28% 20%, rgba(103, 112, 255, 0.18), transparent 27rem),
+    radial-gradient(ellipse at 82% 70%, rgba(190, 65, 162, 0.14), transparent 31rem),
+    linear-gradient(118deg, transparent 0 18%, rgba(120, 145, 255, 0.09) 29%, rgba(255, 173, 121, 0.07) 39%, transparent 58%),
+    linear-gradient(180deg, rgba(1, 2, 8, 0.04) 0%, transparent 40%, rgba(1, 2, 8, 0.14) 100%);
   background-position: center top;
-  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, repeat, repeat, repeat, repeat, repeat, repeat, no-repeat;
-  background-size: 100% 100%, 100% 100%, 100% 26%, 100% 42%, 100% 100%, 190px 190px, 285px 285px, 390px 390px, 520px 520px, 660px 660px, 820px 820px, 100% 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  mix-blend-mode: screen;
 }
 
 .cosmic-home main::after {
   z-index: -3;
   background:
-    radial-gradient(ellipse at 18% 34%, rgba(3, 6, 17, 0.42), transparent 34rem),
-    radial-gradient(ellipse at 82% 58%, rgba(3, 6, 17, 0.36), transparent 34rem),
-    linear-gradient(180deg, rgba(3, 6, 17, 0.1) 0%, rgba(3, 6, 17, 0.02) 22%, rgba(3, 6, 17, 0.08) 76%, rgba(3, 6, 17, 0.34) 100%),
-    linear-gradient(90deg, rgba(3, 6, 17, 0.54), transparent 28%, transparent 72%, rgba(3, 6, 17, 0.5));
+    linear-gradient(180deg, rgba(1, 3, 10, 0.08) 0%, transparent 36%, rgba(1, 3, 10, 0.16) 100%),
+    linear-gradient(90deg, rgba(1, 3, 10, 0.58), transparent 30%, transparent 70%, rgba(1, 3, 10, 0.56));
+}
+
+.cosmic-sky {
+  position: fixed;
+  inset: -18vmax;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  contain: paint;
+}
+
+.star-depth,
+.star-depth::before,
+.star-depth::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background-repeat: repeat;
+  transform: translate3d(0, 0, 0);
+  will-change: transform, opacity;
+}
+
+.star-depth {
+  opacity: 0.62;
+}
+
+.star-depth-far {
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.72) 0 0.026rem, transparent 0.052rem),
+    radial-gradient(circle at 72% 22%, rgba(171, 200, 255, 0.64) 0 0.024rem, transparent 0.05rem),
+    radial-gradient(circle at 43% 72%, rgba(255, 247, 230, 0.5) 0 0.021rem, transparent 0.046rem),
+    radial-gradient(circle at 88% 61%, rgba(255, 255, 255, 0.46) 0 0.018rem, transparent 0.043rem);
+  background-size: 7.5rem 8.4rem, 10rem 9rem, 13rem 12rem, 16rem 14rem;
+  animation: star-drift-far 115s linear infinite;
+}
+
+.star-depth-far::before {
+  opacity: 0.58;
+  background-image:
+    radial-gradient(circle at 31% 32%, rgba(255, 255, 255, 0.42) 0 0.018rem, transparent 0.04rem),
+    radial-gradient(circle at 64% 78%, rgba(163, 193, 255, 0.36) 0 0.017rem, transparent 0.038rem),
+    radial-gradient(circle at 4% 68%, rgba(255, 246, 220, 0.32) 0 0.016rem, transparent 0.037rem);
+  background-size: 5.2rem 5.8rem, 7.8rem 7rem, 11rem 10rem;
+  animation: star-drift-far 88s linear infinite reverse;
+}
+
+.star-depth-mid {
+  opacity: 0.52;
+  background-image:
+    radial-gradient(circle at 18% 23%, rgba(255, 255, 255, 0.82) 0 0.042rem, transparent 0.074rem),
+    radial-gradient(circle at 76% 41%, rgba(190, 213, 255, 0.76) 0 0.038rem, transparent 0.07rem),
+    radial-gradient(circle at 51% 82%, rgba(255, 244, 220, 0.62) 0 0.034rem, transparent 0.066rem),
+    radial-gradient(circle at 93% 12%, rgba(255, 255, 255, 0.5) 0 0.028rem, transparent 0.058rem);
+  background-size: 15rem 17rem, 21rem 19rem, 27rem 24rem, 34rem 31rem;
+  animation: star-drift-mid 76s linear infinite;
+}
+
+.star-depth-mid::after {
+  opacity: 0.38;
+  background-image:
+    radial-gradient(circle at 22% 66%, rgba(255, 255, 255, 0.9) 0 0.05rem, transparent 0.082rem),
+    radial-gradient(circle at 68% 18%, rgba(145, 181, 255, 0.76) 0 0.044rem, transparent 0.074rem);
+  background-size: 29rem 26rem, 41rem 37rem;
+  animation: star-twinkle 6.8s var(--cw-ease) infinite alternate;
+}
+
+.star-depth-near {
+  opacity: 0.34;
+  background-image:
+    radial-gradient(circle at 19% 74%, rgba(255, 255, 255, 0.95) 0 0.07rem, transparent 0.11rem),
+    radial-gradient(circle at 58% 31%, rgba(206, 224, 255, 0.86) 0 0.058rem, transparent 0.098rem),
+    radial-gradient(circle at 86% 82%, rgba(255, 244, 218, 0.74) 0 0.052rem, transparent 0.09rem);
+  background-size: 38rem 35rem, 49rem 44rem, 62rem 55rem;
+  filter: drop-shadow(0 0 0.45rem rgba(155, 190, 255, 0.16));
+  animation: star-drift-near 52s linear infinite;
+}
+
+.meteor-field {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0.9;
+}
+
+.shooting-star {
+  --meteor-top: 16%;
+  --meteor-left: 76%;
+  --meteor-delay: 2s;
+  --meteor-duration: 8s;
+  position: absolute;
+  top: var(--meteor-top);
+  left: var(--meteor-left);
+  width: clamp(5rem, 12vw, 12rem);
+  height: 1px;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(170, 205, 255, 0.08) 18%, rgba(226, 238, 255, 0.72) 60%, rgba(255, 250, 234, 0.95) 100%);
+  box-shadow:
+    0 0 0.45rem rgba(154, 190, 255, 0.45),
+    0 0 1.1rem rgba(255, 247, 230, 0.22);
+  opacity: 0;
+  transform: rotate(-18deg) translate3d(24vw, 0, 0);
+  transform-origin: right center;
+  animation: shooting-star var(--meteor-duration) var(--meteor-delay) cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.shooting-star::after {
+  position: absolute;
+  top: 50%;
+  right: -0.05rem;
+  width: 0.22rem;
+  height: 0.22rem;
+  border-radius: 999px;
+  content: "";
+  background: rgba(255, 252, 238, 0.98);
+  box-shadow: 0 0 0.65rem rgba(255, 255, 255, 0.86);
+  transform: translateY(-50%);
+}
+
+.shooting-star:nth-child(1) {
+  --meteor-top: 12%;
+  --meteor-left: 82%;
+  --meteor-delay: -7.5s;
+  --meteor-duration: 9.6s;
+}
+
+.shooting-star:nth-child(2) {
+  --meteor-top: 28%;
+  --meteor-left: 62%;
+  --meteor-delay: -3.1s;
+  --meteor-duration: 11.5s;
+}
+
+.shooting-star:nth-child(3) {
+  --meteor-top: 47%;
+  --meteor-left: 91%;
+  --meteor-delay: -10.2s;
+  --meteor-duration: 10.8s;
+}
+
+.shooting-star:nth-child(4) {
+  --meteor-top: 66%;
+  --meteor-left: 73%;
+  --meteor-delay: -1.6s;
+  --meteor-duration: 12.2s;
+}
+
+.shooting-star:nth-child(5) {
+  --meteor-top: 19%;
+  --meteor-left: 43%;
+  --meteor-delay: -13.8s;
+  --meteor-duration: 13.6s;
+}
+
+.shooting-star:nth-child(6) {
+  --meteor-top: 54%;
+  --meteor-left: 55%;
+  --meteor-delay: -5.4s;
+  --meteor-duration: 11.8s;
+}
+
+.shooting-star:nth-child(7) {
+  --meteor-top: 78%;
+  --meteor-left: 88%;
+  --meteor-delay: -16.6s;
+  --meteor-duration: 14.4s;
+}
+
+@keyframes star-drift-far {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-4rem, 2.5rem, 0);
+  }
+}
+
+@keyframes star-drift-mid {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-7rem, 4rem, 0);
+  }
+}
+
+@keyframes star-drift-near {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-10rem, 6rem, 0);
+  }
+}
+
+@keyframes star-twinkle {
+  0% {
+    opacity: 0.22;
+  }
+
+  45% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0.34;
+  }
+}
+
+@keyframes shooting-star {
+  0%,
+  76% {
+    opacity: 0;
+    transform: rotate(-18deg) translate3d(24vw, 0, 0) scaleX(0.78);
+  }
+
+  80% {
+    opacity: 1;
+  }
+
+  88% {
+    opacity: 0;
+    transform: rotate(-18deg) translate3d(-72vw, 28vh, 0) scaleX(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: rotate(-18deg) translate3d(-72vw, 28vh, 0) scaleX(1);
+  }
 }
 
 .world-stack {
   position: relative;
-  margin-top: clamp(-4.5rem, -7svh, -2.25rem);
+  margin-top: clamp(-18rem, -26svh, -12rem);
 }
 
 .cosmic-hero,
 .world-section {
   position: relative;
   display: grid;
-  min-height: 102svh;
+  min-height: 104svh;
   grid-template-columns: minmax(240px, 0.38fr) minmax(0, 0.62fr);
   align-items: center;
   margin: 0;
-  padding: clamp(7rem, 10vw, 9.5rem) var(--page-x) clamp(5.75rem, 8vw, 7.5rem);
+  padding: clamp(7rem, 10vw, 9.5rem) var(--page-x) clamp(7rem, 10vw, 9rem);
   background: transparent;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
 }
 
@@ -485,19 +753,17 @@ select {
   --world-position: left top;
   --quiet-left: rgba(3, 6, 17, 0.34);
   --quiet-right: rgba(3, 6, 17, 0.34);
-  min-height: 106svh;
+  min-height: 108svh;
+  padding-bottom: clamp(10rem, 16vw, 15rem);
 }
 
 .world-section {
   margin-top: 0;
-  contain: layout paint style;
-  content-visibility: auto;
-  contain-intrinsic-size: 100svh;
   scroll-margin-top: 1rem;
 }
 
 .world-section + .world-section {
-  margin-top: clamp(-7rem, -10svh, -4rem);
+  margin-top: clamp(-11rem, -16svh, -7rem);
 }
 
 .world-work {
@@ -544,40 +810,36 @@ select {
 }
 
 .cosmic-hero::before,
+.cosmic-hero::after {
+  display: none !important;
+}
+
+.cosmic-hero::before,
 .world-section::before {
   display: none;
 }
 
 .cosmic-hero::before {
   z-index: -1;
-  display: block;
-  background:
-    radial-gradient(ellipse at 50% 110%, rgba(103, 165, 255, 0.34) 0%, rgba(103, 165, 255, 0.18) 8%, transparent 24%),
-    radial-gradient(ellipse at 50% 112%, rgba(255, 247, 234, 0.18), transparent 18%);
+  display: none;
 }
 
 .cosmic-hero::after,
 .world-section::after {
   z-index: -2;
-  background:
-    radial-gradient(
-      circle at 50% 48%,
-      rgba(var(--journey-r, 143), var(--journey-g, 183), var(--journey-b, 255), 0.028),
-      transparent 36rem
-    );
-  opacity: 0.72;
+  display: none;
 }
 
 .world-section::after {
-  opacity: 0.46;
+  display: none;
 }
 
 .hero-copy,
 .world-intro {
   position: relative;
   z-index: 3;
-  width: min(100%, 420px);
-  max-width: 420px;
+  width: min(100%, 380px);
+  max-width: 380px;
   margin: 0;
   text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
 }
@@ -604,7 +866,10 @@ select {
   justify-self: center;
   width: min(100%, 760px);
   max-width: 760px;
+  opacity: var(--hero-copy-opacity, 1);
   text-align: center;
+  transform: translate3d(0, var(--hero-copy-y, 0), 0);
+  will-change: opacity, transform;
 }
 
 .hero-copy h1,
@@ -654,11 +919,11 @@ select {
 
 .hero-copy p,
 .world-copy p {
-  max-width: 58ch;
+  max-width: 42ch;
   margin: clamp(0.9rem, 1.8vw, 1.25rem) auto 0;
   color: rgba(255, 247, 234, 0.74);
   font-size: var(--type-body);
-  line-height: var(--leading-body);
+  line-height: 1.56;
   text-wrap: pretty;
 }
 
@@ -716,7 +981,7 @@ select {
   min-height: 44px;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.3rem;
+  margin-top: 0.65rem;
   color: var(--cw-paper);
   font-size: var(--type-small);
   font-weight: 700;
@@ -731,27 +996,11 @@ select {
 }
 
 .scroll-cue {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(5.5rem, 11svh, 7.75rem);
-  z-index: 6;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: rgba(255, 247, 234, 0.58);
-  font-size: var(--type-caption);
-  font-weight: 600;
-  letter-spacing: var(--tracking-caps);
-  text-decoration: none;
-  text-transform: uppercase;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.72);
-  transform: translateX(-50%);
-  transition: color 180ms var(--cw-ease), transform 180ms var(--cw-ease);
+  display: none;
 }
 
 .scroll-cue:hover {
-  color: rgba(255, 247, 234, 0.86);
-  transform: translateX(-50%) translateY(0.12rem);
+  display: none;
 }
 
 .world-writing .world-intro {
@@ -1663,16 +1912,17 @@ select {
   }
 
   .world-stack {
-    margin-top: clamp(-3.5rem, -6svh, -1.5rem);
+    margin-top: clamp(-18rem, -28svh, -12rem);
   }
 
   .world-section + .world-section {
-    margin-top: clamp(-5rem, -7svh, -2.75rem);
+    margin-top: clamp(-8rem, -12svh, -5rem);
   }
 
   .cosmic-hero {
     margin-top: 0;
     align-items: center;
+    padding-bottom: clamp(8rem, 16vw, 11rem);
     --world-position: 28% top;
   }
 
@@ -1680,7 +1930,7 @@ select {
   .world-intro {
     grid-column: 1;
     justify-self: start;
-    max-width: min(560px, 100%);
+    max-width: min(30rem, 100%);
     text-align: left;
   }
 
@@ -1692,7 +1942,7 @@ select {
   .world-visual {
     top: var(--world-top, auto);
     bottom: var(--world-bottom, -2rem);
-    opacity: 0.86;
+    opacity: 0.82;
     transform: none;
   }
 
@@ -1820,25 +2070,25 @@ select {
   .cosmic-hero {
     min-height: 104svh;
     padding-top: 8.6rem;
-    padding-bottom: 4.75rem;
+    padding-bottom: 7rem;
   }
 
   .world-section {
-    min-height: 108svh;
-    padding-top: max(calc(var(--nav-clearance) + 0.9rem), 7.2rem);
-    padding-bottom: 4.9rem;
+    min-height: 98svh;
+    padding-top: max(calc(var(--nav-clearance) + 0.75rem), 6.7rem);
+    padding-bottom: 4.35rem;
   }
 
   .world-stack {
-    margin-top: 0;
+    margin-top: clamp(-14rem, -22svh, -9rem);
   }
 
   .world-section {
-    margin-top: 0;
+    margin-top: clamp(-8rem, -14svh, -5rem);
   }
 
   .world-section + .world-section {
-    margin-top: clamp(-2.6rem, -4svh, -1.35rem);
+    margin-top: clamp(-8rem, -12svh, -5rem);
   }
 
   .world-work .world-intro,
@@ -1849,8 +2099,8 @@ select {
   .world-intro,
   .world-writing .world-intro,
   .world-projects .world-intro {
-    width: min(calc(100vw - 2rem), 23rem);
-    max-width: min(calc(100vw - 2rem), 23rem);
+    width: min(calc(100vw - 2rem), 22rem);
+    max-width: min(calc(100vw - 2rem), 22rem);
   }
 
   .world-writing .world-intro {
@@ -1876,8 +2126,8 @@ select {
   }
 
   .world-work .world-copy p {
-    font-size: 0.95rem;
-    line-height: 1.54;
+    font-size: 0.94rem;
+    line-height: 1.5;
   }
 
   .world-work .world-copy p + p {
@@ -1907,18 +2157,18 @@ select {
   }
 
   .hero-copy h1 {
-    font-size: clamp(3.05rem, 12vw, 3.7rem);
+    font-size: clamp(3.05rem, 12vw, 3.85rem);
   }
 
   .world-intro h2 {
-    font-size: clamp(3.15rem, 14vw, 4.35rem);
+    font-size: clamp(2.95rem, 13vw, 4.05rem);
   }
 
   .hero-copy p,
   .world-copy p {
-    max-width: min(34ch, 100%);
-    font-size: var(--type-body);
-    line-height: var(--leading-body);
+    max-width: min(30ch, 100%);
+    font-size: 0.95rem;
+    line-height: 1.5;
   }
 
   .subpage-main {
@@ -2025,11 +2275,15 @@ select {
 
 @media (max-width: 520px) {
   :root {
-    --nav-clearance: 6.55rem;
+    --nav-clearance: 5.65rem;
   }
 
   .site-nav {
     width: calc(100vw - 1rem);
+  }
+
+  .site-nav-primary {
+    gap: clamp(0.9rem, 6vw, 1.35rem);
   }
 
   .site-nav-social {
@@ -2067,14 +2321,14 @@ select {
   .subpage-hero p,
   .archive-main span,
   .project-row-copy > span {
-    max-width: min(32ch, 100%);
+    max-width: min(29ch, 100%);
   }
 
   .world-intro,
   .world-writing .world-intro,
   .world-projects .world-intro {
-    width: min(calc(100vw - 2rem), 21rem);
-    max-width: min(calc(100vw - 2rem), 21rem);
+    width: min(calc(100vw - 2rem), 20rem);
+    max-width: min(calc(100vw - 2rem), 20rem);
   }
 
   .world-writing .world-intro {
@@ -2083,12 +2337,12 @@ select {
   }
 
   .world-work .world-intro {
-    width: min(calc(100vw - 2rem), 18rem);
-    max-width: min(calc(100vw - 2rem), 18rem);
+    width: min(calc(100vw - 2rem), 17.5rem);
+    max-width: min(calc(100vw - 2rem), 17.5rem);
   }
 
   .world-visual {
-    opacity: 0.76;
+    opacity: 0.72;
   }
 
   .world-work {
@@ -2133,7 +2387,7 @@ select {
   }
 
   .world-stack {
-    margin-top: 0;
+    margin-top: clamp(-10rem, -16svh, -6rem);
   }
 
   .hero-copy h1 {
@@ -2223,4 +2477,17 @@ select {
     background: Canvas;
     opacity: 0.72;
   }
+}
+
+html.dark,
+html[data-theme="dark"],
+html.dark body,
+html[data-theme="dark"] body {
+  color: var(--cw-paper);
+  background: var(--cw-deep);
+}
+
+html.dark a,
+html[data-theme="dark"] a {
+  color: inherit;
 }

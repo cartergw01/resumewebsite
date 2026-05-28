@@ -16,49 +16,33 @@ const worlds: World[] = [
     id: "work",
     title: "Work",
     copy: (
-      <>
-        <p>
-          Currently an associate at 886 Studios, a venture firm in Taipei founded by a group of
-          Silicon Valley founders behind Twitch, Kabam, Guitar Hero, Playdom, EA Sports, HTC Vive,
-          and others.
-        </p>
-        <p>
-          I source, evaluate, and support early-stage startups through our ikigai Launchpad
-          accelerator program.
-        </p>
-      </>
+      <p>Startup work at 886 Studios and ikigai Launchpad in Taipei.</p>
     ),
-    cta: "learn more",
+    cta: "view work",
     href: "/work",
   },
   {
     id: "writing",
     title: "Writing",
     copy: (
-      <>
-        <p>Curious how human nature, culture, and technology intertwine to shape progress.</p>
-        <p>
-          Writing a{" "}
-          <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
-            Substack
-          </a>
-          , <em>flying Arrows</em>.
-        </p>
-      </>
+      <p>
+        Essays on human nature, culture, and technology. I write{" "}
+        <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
+          <em>flying Arrows</em>
+        </a>
+        .
+      </p>
     ),
-    cta: "read my writing",
+    cta: "read essays",
     href: "/writing",
   },
   {
     id: "projects",
     title: "Projects",
     copy: (
-      <p>
-        <span>Currently learning how to vibe code.</span>
-        <span>Building things for fun.</span>
-      </p>
+      <p>Learning to vibe code and shipping small experiments for fun.</p>
     ),
-    cta: "check out my projects",
+    cta: "see projects",
     href: "/projects",
   },
 ];
@@ -121,6 +105,16 @@ export default function UniverseWorld() {
   return (
     <div className="cosmic-home">
       <ScrollTransport />
+      <div className="cosmic-sky" aria-hidden="true">
+        <div className="star-depth star-depth-far" />
+        <div className="star-depth star-depth-mid" />
+        <div className="star-depth star-depth-near" />
+        <div className="meteor-field">
+          {Array.from({ length: 7 }, (_, index) => (
+            <span key={index} className="shooting-star" />
+          ))}
+        </div>
+      </div>
       <SiteNav />
       <main>
         <Hero />

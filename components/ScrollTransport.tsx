@@ -14,9 +14,12 @@ export default function ScrollTransport() {
     const sections = Array.from(document.querySelectorAll<HTMLElement>(".cosmic-hero, .world-section"));
     const worlds = sections.filter((section) => section.classList.contains("world-section"));
     const home = document.querySelector<HTMLElement>(".cosmic-home");
+    const hero = document.querySelector<HTMLElement>(".cosmic-hero");
+    const heroCopy = document.querySelector<HTMLElement>(".hero-copy");
     const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".cosmic-home .site-nav-primary a"));
     let activeWorld = "";
     let worldObserver: IntersectionObserver | null = null;
+    let heroFrame = 0;
 
     const setActiveWorld = (world: string) => {
       if (!home || world === activeWorld) return;
@@ -40,6 +43,32 @@ export default function ScrollTransport() {
       });
 
     };
+
+    const updateHeroCopy = () => {
+      if (!hero || !heroCopy) return;
+
+      const rect = hero.getBoundingClientRect();
+      const fadeDistance = Math.max(180, window.innerHeight * 0.32);
+      const progress = Math.min(1, Math.max(0, -rect.top / fadeDistance));
+      const opacity = Math.max(0, 1 - progress * 1.25);
+
+      heroCopy.style.setProperty("--hero-copy-opacity", opacity.toFixed(3));
+      heroCopy.style.setProperty("--hero-copy-y", `${(-progress * 1.35).toFixed(3)}rem`);
+      heroCopy.style.pointerEvents = opacity < 0.08 ? "none" : "";
+    };
+
+    const scheduleHeroUpdate = () => {
+      if (heroFrame) return;
+
+      heroFrame = window.requestAnimationFrame(() => {
+        heroFrame = 0;
+        updateHeroCopy();
+      });
+    };
+
+    updateHeroCopy();
+    window.addEventListener("scroll", scheduleHeroUpdate, { passive: true });
+    window.addEventListener("resize", scheduleHeroUpdate);
 
     if ("IntersectionObserver" in window) {
       worldObserver = new IntersectionObserver(
@@ -65,6 +94,11 @@ export default function ScrollTransport() {
 
     return () => {
       worldObserver?.disconnect();
+      window.removeEventListener("scroll", scheduleHeroUpdate);
+      window.removeEventListener("resize", scheduleHeroUpdate);
+      if (heroFrame) {
+        window.cancelAnimationFrame(heroFrame);
+      }
     };
   }, []);
 
