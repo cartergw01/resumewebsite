@@ -17,6 +17,7 @@ export default function ScrollTransport() {
     const hero = document.querySelector<HTMLElement>(".cosmic-hero");
     const heroCopy = document.querySelector<HTMLElement>(".hero-copy");
     const navLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".cosmic-home .site-nav-primary a"));
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let activeWorld = "";
     let worldObserver: IntersectionObserver | null = null;
     let heroFrame = 0;
@@ -57,16 +58,39 @@ export default function ScrollTransport() {
       heroCopy.style.pointerEvents = opacity < 0.08 ? "none" : "";
     };
 
+    const updateSpaceMotion = () => {
+      if (!home) return;
+
+      if (prefersReducedMotion.matches) {
+        home.style.setProperty("--space-galaxy-y", "0px");
+        home.style.setProperty("--space-nebula-y", "0px");
+        home.style.setProperty("--space-vignette-y", "0px");
+        home.style.setProperty("--space-stars-y", "0px");
+        return;
+      }
+
+      const scrollY = window.scrollY;
+      home.style.setProperty("--space-galaxy-y", `${Math.min(scrollY * 0.07, 140).toFixed(2)}px`);
+      home.style.setProperty("--space-nebula-y", `${Math.min(scrollY * 0.05, 110).toFixed(2)}px`);
+      home.style.setProperty("--space-vignette-y", `${Math.min(scrollY * 0.035, 80).toFixed(2)}px`);
+      home.style.setProperty("--space-stars-y", `${Math.min(scrollY * 0.035, 90).toFixed(2)}px`);
+    };
+
+    const updateScrollEffects = () => {
+      updateHeroCopy();
+      updateSpaceMotion();
+    };
+
     const scheduleHeroUpdate = () => {
       if (heroFrame) return;
 
       heroFrame = window.requestAnimationFrame(() => {
         heroFrame = 0;
-        updateHeroCopy();
+        updateScrollEffects();
       });
     };
 
-    updateHeroCopy();
+    updateScrollEffects();
     window.addEventListener("scroll", scheduleHeroUpdate, { passive: true });
     window.addEventListener("resize", scheduleHeroUpdate);
 
