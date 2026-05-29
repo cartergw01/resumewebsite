@@ -392,6 +392,7 @@ select {
   inset: -12svh 0;
   z-index: 0;
   pointer-events: none;
+  will-change: transform;
 }
 
 .cosmic-home::before {
@@ -505,6 +506,7 @@ select {
   overflow: hidden;
   pointer-events: none;
   contain: paint;
+  will-change: transform;
 }
 
 .star-depth,
@@ -617,20 +619,67 @@ select {
   }
 }
 
+@keyframes cosmic-background-travel {
+  from {
+    transform: translate3d(0, -2.5svh, 0) scale(1.01);
+  }
+
+  to {
+    transform: translate3d(0, 10svh, 0) scale(1.01);
+  }
+}
+
+@keyframes cosmic-nebula-travel {
+  from {
+    transform: translate3d(0, -1.5svh, 0);
+  }
+
+  to {
+    transform: translate3d(0, 7svh, 0);
+  }
+}
+
+@keyframes cosmic-stars-travel {
+  from {
+    transform: translate3d(0, -1svh, 0);
+  }
+
+  to {
+    transform: translate3d(0, 5svh, 0);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .cosmic-home::before {
+    animation: cosmic-background-travel linear both;
+    animation-timeline: scroll(root);
+  }
+
+  .cosmic-home::after {
+    animation: cosmic-nebula-travel linear both;
+    animation-timeline: scroll(root);
+  }
+
+  .cosmic-sky {
+    animation: cosmic-stars-travel linear both;
+    animation-timeline: scroll(root);
+  }
+}
+
 .world-stack {
   position: relative;
-  margin-top: clamp(-18rem, -26svh, -12rem);
+  margin-top: clamp(-20rem, -29svh, -14rem);
 }
 
 .cosmic-hero,
 .world-section {
   position: relative;
   display: grid;
-  min-height: 104svh;
+  min-height: 100svh;
   grid-template-columns: minmax(240px, 0.38fr) minmax(0, 0.62fr);
   align-items: center;
   margin: 0;
-  padding: clamp(7rem, 10vw, 9.5rem) var(--page-x) clamp(7rem, 10vw, 9rem);
+  padding: clamp(6.75rem, 9vw, 9rem) var(--page-x) clamp(6.75rem, 9vw, 8.5rem);
   background: transparent;
   overflow: visible;
   isolation: isolate;
@@ -650,7 +699,7 @@ select {
 }
 
 .world-section + .world-section {
-  margin-top: clamp(-11rem, -16svh, -7rem);
+  margin-top: clamp(-15rem, -22svh, -9rem);
 }
 
 .world-work {
@@ -2368,6 +2417,13 @@ select {
 
   .world-section {
     mask-image: none;
+  }
+
+  .cosmic-home::before,
+  .cosmic-home::after,
+  .cosmic-sky {
+    animation: none;
+    transform: none;
   }
 }
 
