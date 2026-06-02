@@ -5,7 +5,7 @@ import ScrollTransport from "./ScrollTransport";
 import { RocketCursor } from "./RocketCursor";
 
 type World = {
-  id: "work" | "writing" | "projects";
+  id: "work" | "writing" | "projects" | "life";
   title: string;
   copy: ReactNode;
   cta: string;
@@ -46,6 +46,18 @@ const worlds: World[] = [
     cta: "see projects",
     href: "/projects",
   },
+  {
+    id: "life",
+    title: "Life",
+    copy: (
+      <p>
+        Taipei days, SoCal roots, Lakers, poker, books, bikes, and notes from wandering around the
+        city.
+      </p>
+    ),
+    cta: "see life",
+    href: "/life",
+  },
 ];
 
 function Hero() {
@@ -67,7 +79,7 @@ function Hero() {
         </p>
       </div>
       <div className="hero-visual" aria-hidden="true" />
-      <a href="#work" className="scroll-cue" aria-label="Scroll down to Work">
+      <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
         <span>Scroll down</span>
         <span aria-hidden="true">↓</span>
       </a>
@@ -75,9 +87,15 @@ function Hero() {
   );
 }
 
-function SectionIntro({ world, headingId }: { world: World; headingId: string }) {
+function ConstellationNode({ world }: { world: World }) {
+  const headingId = `${world.id}-heading`;
+
   return (
-    <div className="world-intro">
+    <article id={world.id} className={`constellation-node world-${world.id}`}>
+      <Link href={world.href} className="world-orb" aria-labelledby={headingId}>
+        <span className="world-visual" aria-hidden="true" />
+      </Link>
+      <div className="world-intro">
       <h2 id={headingId}>
         <Link href={world.href} className="world-title-link">
           {world.title}
@@ -87,17 +105,24 @@ function SectionIntro({ world, headingId }: { world: World; headingId: string })
       <Link href={world.href}>
         {world.cta} <span aria-hidden="true">→</span>
       </Link>
-    </div>
+      </div>
+    </article>
   );
 }
 
-function WorldSection({ world }: { world: (typeof worlds)[number] }) {
-  const headingId = `${world.id}-heading`;
-
+function ConstellationMap() {
   return (
-    <section id={world.id} className={`world-section world-${world.id}`} aria-labelledby={headingId}>
-      <SectionIntro world={world} headingId={headingId} />
-      <div className="world-visual" aria-hidden="true" />
+    <section id="constellation" className="constellation-map" aria-labelledby="constellation-title">
+      <div className="constellation-heading">
+        <span>Worlds</span>
+        <h2 id="constellation-title">A few places to land.</h2>
+      </div>
+      <div className="constellation-stage" aria-label="Explore Carter's work, writing, projects, and life">
+        <div className="constellation-thread" aria-hidden="true" />
+        {worlds.map((world) => (
+          <ConstellationNode key={world.id} world={world} />
+        ))}
+      </div>
     </section>
   );
 }
@@ -115,11 +140,7 @@ export default function UniverseWorld() {
       <SiteNav />
       <main>
         <Hero />
-        <div className="world-stack">
-          {worlds.map((world) => (
-            <WorldSection key={world.id} world={world} />
-          ))}
-        </div>
+        <ConstellationMap />
       </main>
     </div>
   );

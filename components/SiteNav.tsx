@@ -8,6 +8,7 @@ const primaryLinks = [
   { id: "work", label: "Work", href: "/work" },
   { id: "writing", label: "Writing", href: "/writing" },
   { id: "projects", label: "Projects", href: "/projects" },
+  { id: "life", label: "Life", href: "/life" },
 ] as const;
 
 const socialLinks = [
