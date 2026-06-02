@@ -5,10 +5,9 @@ import ScrollTransport from "./ScrollTransport";
 import { RocketCursor } from "./RocketCursor";
 
 type World = {
-  id: "work" | "writing" | "projects" | "life";
+  id: "work" | "writing" | "projects";
   title: string;
   copy: ReactNode;
-  cta: string;
   href: string;
 };
 
@@ -16,10 +15,7 @@ const worlds: World[] = [
   {
     id: "work",
     title: "Work",
-    copy: (
-      <p>Associate at 886 Studios. We run ikigai Launchpad, the premier Silicon Valley accelerator in Taipei.</p>
-    ),
-    cta: "view work",
+    copy: <p>Associate at 886 Studios, working on ikigai Launchpad in Taipei.</p>,
     href: "/work",
   },
   {
@@ -27,36 +23,20 @@ const worlds: World[] = [
     title: "Writing",
     copy: (
       <p>
-        Essays on human nature, culture, and technology. I write{" "}
+        Essays on human nature, culture, and technology at{" "}
         <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
           <em>flying Arrows</em>
         </a>
         .
       </p>
     ),
-    cta: "read essays",
     href: "/writing",
   },
   {
     id: "projects",
     title: "Projects",
-    copy: (
-      <p>Learning to vibe code and building fun projects for fun.</p>
-    ),
-    cta: "see projects",
+    copy: <p>Vibe-coded experiments, tools, and playful web projects.</p>,
     href: "/projects",
-  },
-  {
-    id: "life",
-    title: "Life",
-    copy: (
-      <p>
-        Taipei days, SoCal roots, Lakers, poker, books, bikes, and notes from wandering around the
-        city.
-      </p>
-    ),
-    cta: "see life",
-    href: "/life",
   },
 ];
 
@@ -66,17 +46,6 @@ function Hero() {
       <div className="hero-copy">
         <h1 id="hero-title">Carter Wang</h1>
         <div className="title-star" aria-hidden="true" />
-        <p>
-          <span>
-            From SoCal, now in Taipei, working as an associate at 886 Studios with the founders of
-            Twitch and Guitar Hero.
-          </span>
-          {" "}
-          <span>
-            Outside of work, I&apos;m usually watching the Lakers, playing poker, biking around
-            Taipei, or writing.
-          </span>
-        </p>
       </div>
       <div className="hero-visual" aria-hidden="true" />
       <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
@@ -91,20 +60,17 @@ function ConstellationNode({ world }: { world: World }) {
   const headingId = `${world.id}-heading`;
 
   return (
-    <article id={world.id} className={`constellation-node world-${world.id}`}>
+    <article id={world.id} className={`world-card world-${world.id}`}>
       <Link href={world.href} className="world-orb" aria-labelledby={headingId}>
         <span className="world-visual" aria-hidden="true" />
       </Link>
       <div className="world-intro">
-      <h2 id={headingId}>
-        <Link href={world.href} className="world-title-link">
-          {world.title}
-        </Link>
-      </h2>
-      <div className="world-copy">{world.copy}</div>
-      <Link href={world.href}>
-        {world.cta} <span aria-hidden="true">→</span>
-      </Link>
+        <h2 id={headingId}>
+          <Link href={world.href} className="world-title-link">
+            {world.title}
+          </Link>
+        </h2>
+        <div className="world-copy">{world.copy}</div>
       </div>
     </article>
   );
@@ -115,10 +81,9 @@ function ConstellationMap() {
     <section id="constellation" className="constellation-map" aria-labelledby="constellation-title">
       <div className="constellation-heading">
         <span>Worlds</span>
-        <h2 id="constellation-title">A few places to land.</h2>
+        <h2 id="constellation-title">Choose a world.</h2>
       </div>
-      <div className="constellation-stage" aria-label="Explore Carter's work, writing, projects, and life">
-        <div className="constellation-thread" aria-hidden="true" />
+      <div className="world-gallery" aria-label="Explore Carter's work, writing, and projects">
         {worlds.map((world) => (
           <ConstellationNode key={world.id} world={world} />
         ))}

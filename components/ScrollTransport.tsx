@@ -7,7 +7,6 @@ const worldThemes: Record<string, [number, number, number]> = {
   work: [143, 183, 255],
   writing: [151, 169, 218],
   projects: [190, 174, 142],
-  life: [236, 171, 105],
 };
 
 export default function ScrollTransport() {
