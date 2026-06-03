@@ -408,7 +408,7 @@ select {
 .cosmic-home::after {
   content: "";
   position: fixed;
-  inset: -12svh 0;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
 }
