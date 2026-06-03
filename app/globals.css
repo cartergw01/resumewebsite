@@ -392,6 +392,8 @@ select {
   --home-space-lg: clamp(2.25rem, 4vw, 3.75rem);
   --home-space-xl: clamp(4.5rem, 8vw, 7rem);
   position: relative;
+  display: flex;
+  flex-direction: column;
   min-height: 100svh;
   color: var(--cw-paper);
   background:
@@ -3091,9 +3093,16 @@ select {
   align-self: end;
 }
 
+.cosmic-home > main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .cosmic-home .constellation-map {
+  flex: 1;
   margin-top: 0;
-  padding: 0 var(--page-x) clamp(2.5rem, 4vw, 3.5rem);
+  padding: 0 var(--page-x) clamp(1rem, 2vw, 1.5rem);
 }
 
 .cosmic-home .world-gallery {
