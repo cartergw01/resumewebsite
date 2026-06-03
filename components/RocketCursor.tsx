@@ -21,9 +21,9 @@ interface Streak {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_POS        = 0.16;  // cursor smoothing
-const LERP_ANGLE      = 0.10;  // tilt smoothing
-const LERP_SCALE      = 0.11;  // hover scale smoothing
+const LERP_POS        = 0.42;  // cursor smoothing
+const LERP_ANGLE      = 0.24;  // tilt smoothing
+const LERP_SCALE      = 0.28;  // hover scale smoothing
 const MAX_TILT_DEG    = 28;    // max rocket tilt degrees
 const PARTICLE_CAP    = 160;   // max live particles
 const STREAK_SPEED    = 7;     // min px/frame to spawn warp streaks

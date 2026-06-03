@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import SiteNav from "./SiteNav";
 import ScrollTransport from "./ScrollTransport";
-import { RocketCursor } from "./RocketCursor";
 
 type World = {
   id: "work" | "writing" | "projects";
@@ -95,7 +94,6 @@ function ConstellationMap() {
 export default function UniverseWorld() {
   return (
     <div className="cosmic-home">
-      <RocketCursor />
       <ScrollTransport />
       <div className="cosmic-sky" aria-hidden="true">
         <div className="star-depth star-depth-far" />
