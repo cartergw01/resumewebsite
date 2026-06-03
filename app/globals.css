@@ -349,13 +349,19 @@ select {
   letter-spacing: 0.01em;
   text-decoration: none;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
-  transition: color 180ms var(--cw-ease), opacity 180ms var(--cw-ease);
+  transition: color 200ms var(--cw-ease), transform 200ms var(--cw-ease), text-shadow 200ms var(--cw-ease);
   white-space: nowrap;
 }
 
-.site-nav a:hover,
+/* Primary nav — warm amber glow on hover */
+.site-nav-primary a:hover,
 .site-nav a.is-active {
   color: var(--cw-paper);
+  transform: translateY(-2px);
+  text-shadow:
+    0 0 16px rgba(230, 183, 122, 0.85),
+    0 0 40px rgba(230, 183, 122, 0.35),
+    0 2px 12px rgba(0, 0, 0, 0.72);
 }
 
 .site-nav-social a {
@@ -365,8 +371,14 @@ select {
   letter-spacing: 0.02em;
 }
 
+/* Social links — cool starlight glow on hover */
 .site-nav-social a:hover {
-  color: rgba(255, 247, 234, 0.78);
+  color: var(--cw-paper);
+  transform: translateY(-2px);
+  text-shadow:
+    0 0 14px rgba(160, 200, 255, 0.9),
+    0 0 36px rgba(143, 183, 255, 0.4),
+    0 2px 12px rgba(0, 0, 0, 0.72);
 }
 
 /* Landing page */
