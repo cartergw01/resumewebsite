@@ -17,28 +17,28 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Carter Wang",
-  description: "Carter Wang is a venture associate at 886 Studios in Taipei, backing early-stage startups alongside the founders of Twitch and Guitar Hero. Writing essays and building projects on the side.",
+  description: "Carter Wang's corner of the internet",
   metadataBase: new URL("https://carterkowang.com"),
   openGraph: {
     title: "Carter Wang",
-    description: "Venture associate at 886 Studios in Taipei, backing early-stage startups. Writing essays and building projects on the side.",
+    description: "Carter Wang's corner of the internet",
     url: "https://carterkowang.com",
     siteName: "Carter Wang",
     type: "website",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/og-preview.png",
         width: 1200,
         height: 630,
-        alt: "Carter Wang portfolio preview",
+        alt: "Carter Wang",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Carter Wang",
-    description: "Venture associate at 886 Studios in Taipei, backing early-stage startups. Writing essays and building projects on the side.",
-    images: ["/opengraph-image"],
+    description: "Carter Wang's corner of the internet",
+    images: ["/og-preview.png"],
   },
   icons: {
     icon: "/icon",
