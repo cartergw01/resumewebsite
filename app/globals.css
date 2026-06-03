@@ -2928,7 +2928,7 @@ select {
   }
 
   .site-nav {
-    width: calc(100vw - 1rem);
+    width: calc(100vw - 2.5rem);
   }
 
   .site-nav-primary {
