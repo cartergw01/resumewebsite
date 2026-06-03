@@ -1379,6 +1379,12 @@ select {
 }
 
 /* Subpages */
+/* Sub-page nav scrolls away — user scrolls back to top to navigate */
+.cosmic-subpage .site-nav,
+.legacy-work-root .site-nav {
+  position: absolute;
+}
+
 .cosmic-subpage {
   position: relative;
   min-height: 100svh;
