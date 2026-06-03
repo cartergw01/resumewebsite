@@ -45,7 +45,7 @@ function Hero() {
     <section className="cosmic-hero" aria-labelledby="hero-title">
       <div className="hero-copy">
         <h1 id="hero-title">Carter Wang</h1>
-        <div className="title-star" aria-hidden="true" />
+        <p>Venture associate at 886 Studios in Taipei. I back founders, write about ideas that won&rsquo;t leave me alone, and build things on the internet.</p>
       </div>
       <div className="hero-visual" aria-hidden="true" />
       <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
