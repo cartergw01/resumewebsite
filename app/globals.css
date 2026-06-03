@@ -3294,44 +3294,50 @@ select {
     padding: 0 clamp(1rem, 5vw, 1.25rem) clamp(1rem, 5vw, 1.5rem);
   }
 
+  /* Vertical single-column stack on mobile */
   .cosmic-home .world-gallery {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(0.65rem, 3vw, 0.95rem);
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 320px;
+    margin-inline: auto;
   }
 
   .cosmic-home .world-card {
-    gap: 0.28rem;
+    gap: 0.6rem;
   }
 
   .cosmic-home .world-card .world-orb {
     width: 100%;
-    height: clamp(6.5rem, 24vw, 8rem);
+    height: clamp(10rem, 56vw, 13rem);
   }
 
   .cosmic-home .world-card .world-intro,
   .cosmic-home .world-card.world-work .world-intro,
   .cosmic-home .world-card.world-writing .world-intro,
   .cosmic-home .world-card.world-projects .world-intro {
+    width: 100%;
     margin-top: 0;
-    padding-top: 0.75rem;
+    padding-top: 0.25rem;
+    justify-items: center;
+    text-align: center;
   }
 
   .cosmic-home .world-card .world-visual {
-    inset: 0;
-  }
-
-  .cosmic-home .world-card.world-writing .world-visual {
-    inset: 0;
+    inset: -8% -5%;
   }
 
   .cosmic-home .world-card .world-intro h2 {
-    font-size: clamp(0.98rem, 4.7vw, 1.35rem);
+    font-size: clamp(1.8rem, 8vw, 2.4rem);
   }
 
   .cosmic-home .world-card .world-copy p {
-    max-width: 16ch;
-    font-size: clamp(0.75rem, 3vw, 0.88rem);
-    line-height: 1.45;
+    max-width: 28ch;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .world-enter-cue {
+    font-size: 0.78rem;
   }
 
 }
