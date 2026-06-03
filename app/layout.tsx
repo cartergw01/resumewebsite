@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-preview.png",
+        url: "/og-preview.png?v=2",
         width: 1200,
         height: 630,
         alt: "Carter Wang",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Carter Wang",
     description: "Carter Wang's corner of the internet",
-    images: ["/og-preview.png"],
+    images: ["/og-preview.png?v=2"],
   },
   icons: {
     icon: "/icon",
