@@ -1389,7 +1389,8 @@ select {
 }
 
 /* Subpages */
-/* Sub-page nav scrolls away — user scrolls back to top to navigate */
+/* Nav scrolls away on all pages — user scrolls back to top to navigate */
+.cosmic-home .site-nav,
 .cosmic-subpage .site-nav,
 .legacy-work-root .site-nav {
   position: absolute;
