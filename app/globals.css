@@ -3124,13 +3124,7 @@ select {
 }
 
 .cosmic-home .world-card .world-orb::after {
-  content: "";
-  position: absolute;
-  inset: auto 13% 9%;
-  z-index: -2;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 247, 234, 0.18), transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .cosmic-home .world-card .world-visual {
