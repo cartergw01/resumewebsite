@@ -3320,7 +3320,7 @@ select {
   }
 
   .cosmic-home .world-card {
-    gap: 0.6rem;
+    gap: 0;
   }
 
   .cosmic-home .world-card .world-orb {
@@ -3328,13 +3328,20 @@ select {
     height: clamp(10rem, 56vw, 13rem);
   }
 
+  .cosmic-home .world-card .world-orb::before {
+    background: linear-gradient(
+      180deg,
+      rgba(3, 6, 17, 0) 36%,
+      rgba(3, 6, 17, 0.74) 100%
+    );
+  }
+
   .cosmic-home .world-card .world-intro,
   .cosmic-home .world-card.world-work .world-intro,
   .cosmic-home .world-card.world-writing .world-intro,
   .cosmic-home .world-card.world-projects .world-intro {
     width: 100%;
-    margin-top: 0;
-    padding-top: 0.25rem;
+    margin-top: -3.5rem;
     justify-items: center;
     text-align: center;
   }
