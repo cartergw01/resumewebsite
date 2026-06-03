@@ -2411,7 +2411,7 @@ select {
 @media (max-width: 760px) {
   :root {
     --nav-top: 0.55rem;
-    --nav-clearance: 7.6rem;
+    --nav-clearance: 4.8rem;
   }
 
   .cosmic-hero {
@@ -2447,9 +2447,9 @@ select {
   }
 
   .site-nav::before {
-    height: calc(var(--nav-clearance) + 1.85rem);
+    height: calc(var(--nav-clearance) + 1.5rem);
     background:
-      linear-gradient(180deg, rgba(3, 6, 17, 0.99) 0%, rgba(3, 6, 17, 0.96) 66%, rgba(3, 6, 17, 0.64) 86%, rgba(3, 6, 17, 0) 100%);
+      linear-gradient(180deg, rgba(3, 6, 17, 0.78) 0%, rgba(3, 6, 17, 0.58) 52%, rgba(3, 6, 17, 0.22) 80%, rgba(3, 6, 17, 0) 100%);
   }
 
   .site-nav-primary {
@@ -2924,7 +2924,7 @@ select {
 
 @media (max-width: 520px) {
   :root {
-    --nav-clearance: 5.65rem;
+    --nav-clearance: 4.2rem;
   }
 
   .site-nav {
