@@ -12,7 +12,7 @@ const profileFacts = [
 ];
 
 const skills =
-  "Startup due diligence, investment analysis, founder evaluation, writing, and community building.";
+  "Startup due diligence, investment analysis, market research, founder evaluation, writing, copywriting, social media marketing, community building, event planning, vibe-coding, Codex, Claude Code, Notion, Google Workspace, Canva, Microsoft Office, X, LinkedIn, Instagram, Threads, Discord.";
 
 const interests =
   "Writing, poker, playing basketball, reading, traveling, watching the Lakers, snowboarding, and biking";
@@ -551,14 +551,14 @@ export default function PortfolioHome() {
               <Card className="timeline-featured rounded-[26px] border shadow-none">
                 <CardBody className="gap-3 p-5">
                   <div className="flex flex-col gap-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
-                      <p className="shrink-0 text-sm text-[var(--muted)]">2024 – Present</p>
+                    <h2 className="text-2xl font-semibold text-[var(--foreground)]">{featuredExperience.company}</h2>
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm font-semibold text-[var(--foreground)]">Associate</p>
+                      <p className="shrink-0 text-sm text-[var(--muted)]">{featuredExperience.dates}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-[var(--muted)]">
-                      <span className="font-semibold text-[var(--foreground)]">Associate</span>
-                      <span aria-hidden="true">·</span>
-                      <span>Venture Fellow (Jun–Sep 2024)</span>
+                    <div className="flex items-baseline justify-between">
+                      <p className="text-sm text-[var(--muted)]">Venture Fellow</p>
+                      <p className="shrink-0 text-sm text-[var(--muted)]">June 2024 - September 2024</p>
                     </div>
                   </div>
                   <ul className="grid gap-2 text-sm leading-7 text-[var(--foreground)]">
@@ -578,7 +578,8 @@ export default function PortfolioHome() {
           </ScrollReveal>
 
           <ScrollReveal className="h-full">
-            <Card className="portfolio-card-archive h-full rounded-[26px] border-none shadow-none">
+            <TiltCard>
+              <Card className="portfolio-card-archive h-full rounded-[26px] border-none shadow-none">
                 <CardBody className="flex h-full flex-col gap-4 p-5">
                   <div>
                     <h2 className="text-2xl font-semibold text-[var(--foreground)]">Earlier Experience</h2>
@@ -652,6 +653,7 @@ export default function PortfolioHome() {
                   </Accordion>
                 </CardBody>
               </Card>
+            </TiltCard>
           </ScrollReveal>
         </div>
 
@@ -692,7 +694,7 @@ export default function PortfolioHome() {
                     >
                       <motion.span variants={rowBgVariants} className="pointer-events-none absolute inset-0 rounded-xl bg-[var(--accent-soft)]" />
                       <motion.span variants={rowBarVariants} style={{ originY: 0 }} className="pointer-events-none absolute left-0 top-0 h-full w-[2px] rounded-l-xl bg-[var(--accent)]" />
-                      <span className="relative z-10 flex-1 text-[13px] tracking-[0.1em] text-[var(--muted)]">
+                      <span className="relative z-10 flex-1 text-[11px] tracking-[0.14em] text-[var(--muted)]">
                         Read more on Substack
                       </span>
                       <motion.span variants={rowArrowVariants} className="relative z-10 shrink-0 text-base text-[var(--accent)]" aria-hidden="true">→</motion.span>
@@ -706,7 +708,8 @@ export default function PortfolioHome() {
 
           {/* Skills / Interests card */}
           <ScrollReveal className="h-full">
-            <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
+            <TiltCard>
+              <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
                 <CardBody className="flex h-full flex-col gap-5 p-5 sm:p-6">
                   <div className="grid gap-4">
                     {profileFacts.map((fact) => (
@@ -726,6 +729,7 @@ export default function PortfolioHome() {
                   </div>
                 </CardBody>
               </Card>
+            </TiltCard>
           </ScrollReveal>
         </div>
       </div>
