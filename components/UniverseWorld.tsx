@@ -14,7 +14,7 @@ const worlds: World[] = [
   {
     id: "work",
     title: "Work",
-    copy: <p>associate at 886 Studios, working on ikigai Launchpad in Taipei.</p>,
+    copy: <p>associate at <a href="https://886studios.com" target="_blank" rel="noopener noreferrer">886 Studios</a>, working on <a href="https://withikigai.com" target="_blank" rel="noopener noreferrer">ikigai Launchpad</a> in Taipei.</p>,
     href: "/work",
   },
   {
