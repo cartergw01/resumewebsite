@@ -2078,12 +2078,12 @@ select {
   justify-self: end;
   align-self: end;
   translate: 0 0.32rem;
-  color: rgba(255, 247, 234, 0.5);
+  color: rgba(255, 247, 234, 0.58);
   font-size: clamp(0.78rem, 0.86vw, 0.9rem);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.2;
-  transition: color 180ms var(--cw-ease);
+  transition: color 180ms var(--cw-ease), letter-spacing 180ms var(--cw-ease);
   white-space: nowrap;
 }
 
@@ -2151,6 +2151,7 @@ select {
   object-fit: cover;
   object-position: top center;
   transform: scale(1.01);
+  transition: transform 420ms var(--cw-ease);
 }
 
 .project-row-copy {
