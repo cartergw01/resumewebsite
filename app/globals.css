@@ -1987,6 +1987,16 @@ select {
   transition: border-color 220ms var(--cw-ease), transform 220ms var(--cw-ease), opacity 220ms var(--cw-ease);
 }
 
+.archive-row:hover {
+  border-color: rgba(244, 210, 163, 0.24);
+  transform: translate3d(0.22rem, 0, 0);
+}
+
+.archive-row:hover .archive-action {
+  color: rgba(255, 247, 234, 0.9);
+  letter-spacing: 0.04em;
+}
+
 .archive-row:focus-visible {
   border-color: rgba(244, 210, 163, 0.28);
   outline: 1px solid rgba(255, 247, 234, 0.34);
