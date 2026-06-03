@@ -3232,8 +3232,8 @@ select {
 .world-enter-cue {
   display: block;
   margin-top: 0.3rem;
-  font-size: 0.7rem;
-  letter-spacing: 0.13em;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
   color: rgba(255, 247, 234, 0.45);
   opacity: 0;
   transform: translateY(5px);
