@@ -3151,9 +3151,60 @@ select {
   line-height: 1.34;
 }
 
+/* World card pop-out on hover */
+.cosmic-home .world-card {
+  transition: transform 340ms var(--cw-ease);
+  will-change: transform;
+  transform-origin: center bottom;
+}
+
+.cosmic-home .world-card:hover {
+  transform: translateY(-14px) scale(1.06);
+}
+
+/* Island floats up an extra layer within the card */
+.cosmic-home .world-card .world-visual {
+  transition: transform 340ms var(--cw-ease), filter 340ms var(--cw-ease);
+}
+
+.cosmic-home .world-card:hover .world-visual {
+  transform: translateY(-7px);
+  filter:
+    drop-shadow(0 2.2rem 3rem rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 2.8rem rgba(200, 185, 255, 0.22));
+}
+
+/* Orb stays put — the card is already moving */
 .cosmic-home .world-card:hover .world-orb {
   box-shadow: none;
-  transform: translate3d(0, -0.35rem, 0);
+  transform: none;
+}
+
+/* Glow pool under island intensifies */
+.cosmic-home .world-card .world-orb::before {
+  transition: opacity 340ms var(--cw-ease);
+}
+
+.cosmic-home .world-card:hover .world-orb::before {
+  opacity: 0.85;
+}
+
+/* "Enter" cue fades in below the world title on hover */
+.world-enter-cue {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.13em;
+  color: rgba(255, 247, 234, 0.45);
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 260ms var(--cw-ease), transform 260ms var(--cw-ease);
+  pointer-events: none;
+}
+
+.cosmic-home .world-card:hover .world-enter-cue {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 760px) {
