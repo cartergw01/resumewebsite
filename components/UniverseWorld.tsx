@@ -14,7 +14,7 @@ const worlds: World[] = [
   {
     id: "work",
     title: "Work",
-    copy: <p>Associate at 886 Studios, working on ikigai Launchpad in Taipei.</p>,
+    copy: <p>associate at 886 Studios, working on ikigai Launchpad in Taipei.</p>,
     href: "/work",
   },
   {
@@ -22,7 +22,7 @@ const worlds: World[] = [
     title: "Writing",
     copy: (
       <p>
-        Essays on human nature, culture, and technology at{" "}
+        essays on human nature, culture, and technology at{" "}
         <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
           <em>flying Arrows</em>
         </a>
@@ -34,7 +34,7 @@ const worlds: World[] = [
   {
     id: "projects",
     title: "Projects",
-    copy: <p>Vibe-coded experiments, tools, and playful web projects.</p>,
+    copy: <p>vibe-coded experiments, tools, and playful web projects.</p>,
     href: "/projects",
   },
 ];
@@ -44,7 +44,7 @@ function Hero() {
     <section className="cosmic-hero" aria-labelledby="hero-title">
       <div className="hero-copy">
         <h1 id="hero-title">Carter Wang</h1>
-        <p>Venture associate at 886 Studios in Taipei. I back founders, write about ideas that won&rsquo;t leave me alone, and build things on the internet.</p>
+        <p>Working in Taipei at 886 Studios alongside the founders of Twitch and Guitar Hero, backing early-stage startups. Writing and building things for fun on the side.</p>
       </div>
       <div className="hero-visual" aria-hidden="true" />
       <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
