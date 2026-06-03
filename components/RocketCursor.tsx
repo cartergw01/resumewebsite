@@ -1,47 +1,54 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-// Stardust particle — emitted from engine bell, drifts + fades
 interface Particle {
   x: number; y: number;
-  vx: number; vy: number;      // gentle drift
-  size: number;                // radius 0.4–2.0px
+  vx: number; vy: number;
+  size: number;
   life: number; maxLife: number;
-  r: number; g: number; b: number;  // pre-baked color
+  r: number; g: number; b: number;
 }
 interface Streak {
   x: number; y: number;
-  dx: number; dy: number;   // unit vector, backward direction
+  dx: number; dy: number;
   len: number;
   life: number; maxLife: number;
+}
+interface Shockwave {
+  x: number; y: number;
+  radius: number; maxRadius: number;
+  life: number; maxLife: number;
+  r: number; g: number; b: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_POS        = 0.82;  // cursor smoothing
-const LERP_ANGLE      = 0.40;  // tilt smoothing
-const LERP_SCALE      = 0.50;  // hover scale smoothing
-const MAX_TILT_DEG    = 28;    // max rocket tilt degrees
-const PARTICLE_CAP    = 160;   // max live particles
-const STREAK_SPEED    = 7;     // min px/frame to spawn warp streaks
-const STREAK_EVERY    = 2;     // spawn streaks every N frames
+const LERP_POS         = 0.82;
+const LERP_ANGLE       = 0.40;
+const LERP_SCALE       = 0.50;
+const MAX_TILT_DEG     = 28;
+const PARTICLE_CAP     = 240;
+const STREAK_SPEED     = 7;
+const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
+const LAUNCH_DURATION  = 520;   // ms — fast & snappy
+const WARP_IN_DURATION = 340;   // ms
 
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rocketRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const routerRef = useRef(router);
+  routerRef.current = router;
 
   useEffect(() => {
-    // ── Guard: disable only when NO fine pointer is available ────────────────
-    // Use any-pointer, not pointer — iPad with Magic Keyboard has a fine trackpad
-    // as a secondary input even though its primary pointer is touch (coarse).
     if (!window.matchMedia("(any-pointer: fine)").matches) return;
-
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) return;
 
@@ -51,10 +58,8 @@ export function RocketCursor() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // ── Hide system cursor ────────────────────────────────────────────────────
     document.body.classList.add("rocket-cursor-active");
 
-    // ── Canvas sizing ─────────────────────────────────────────────────────────
     let W = window.innerWidth;
     let H = window.innerHeight;
     canvas.width = W;
@@ -69,7 +74,7 @@ export function RocketCursor() {
     window.addEventListener("resize", onResize);
 
     // ── State ─────────────────────────────────────────────────────────────────
-    let mouseX = -200, mouseY = -200;  // raw — off screen until first move
+    let mouseX = -200, mouseY = -200;
     let cursorX = -200, cursorY = -200;
     let prevX = -200, prevY = -200;
     let velX = 0, velY = 0;
@@ -82,18 +87,30 @@ export function RocketCursor() {
     let animId: number;
     let frameCount = 0;
 
-    const particles: Particle[] = [];
-    const streaks: Streak[] = [];
+    // Exhaust position — updated every frame, read by click handler
+    let exhaustX = -200, exhaustY = -200;
+
+    // ── Launch state ──────────────────────────────────────────────────────────
+    let isLaunching = false;
+    let launchStartMs = 0;
+    let launchFromX = 0, launchFromY = 0;
+    let launchAngleStart = 0;
+
+    // ── Warp-in state ─────────────────────────────────────────────────────────
+    let isWarpingIn = false;
+    let warpStartMs = 0;
+    let warpBurstDone = false;
+
+    const particles: Particle[]  = [];
+    const streaks:   Streak[]    = [];
+    const shockwaves: Shockwave[] = [];
 
     // ── Mouse tracking ────────────────────────────────────────────────────────
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
-      // Reveal rocket on first move — mouseenter only fires when re-entering
-      // from outside the viewport, missing the common already-on-page case.
-      rocket.style.opacity = "1";
+      if (!isLaunching) rocket.style.opacity = "1";
 
-      // Detect interactive element under cursor
       const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
       if (el) {
         const style = window.getComputedStyle(el);
@@ -105,234 +122,320 @@ export function RocketCursor() {
       }
     };
 
-    const onMouseLeave = () => { rocket.style.opacity = "0"; };
+    const onMouseLeave = () => {
+      if (!isLaunching) rocket.style.opacity = "0";
+    };
 
     document.addEventListener("mousemove",  onMouseMove);
     document.addEventListener("mouseleave", onMouseLeave);
 
+    // ── Nav click → launch ────────────────────────────────────────────────────
+    const onNavClick = (e: MouseEvent) => {
+      if (isLaunching) return;
+      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+      if (!link) return;
+      const href = link.getAttribute("href") ?? "";
+      // Only intercept internal links
+      if (!href || href.startsWith("#") || /^https?:/.test(href) || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      isLaunching = true;
+      isHovering  = false;
+      launchStartMs    = performance.now();
+      launchFromX      = cursorX;
+      launchFromY      = cursorY;
+      launchAngleStart = angle;
+
+      // Shockwave burst at exhaust — immediate punch
+      const sx = exhaustX > -100 ? exhaustX : launchFromX;
+      const sy = exhaustY > -100 ? exhaustY : launchFromY + 25;
+      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: 22, r: 255, g: 150, b: 50 });
+      setTimeout(() => {
+        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: 30, r: 255, g: 90, b: 15 });
+      }, 55);
+
+      setTimeout(() => {
+        // Teleport cursor back to mouse so warp-in plays at cursor position
+        cursorX = mouseX;
+        cursorY = mouseY;
+        isLaunching  = false;
+        isWarpingIn  = true;
+        warpStartMs  = performance.now();
+        warpBurstDone = false;
+        routerRef.current.push(href);
+      }, LAUNCH_DURATION);
+    };
+
+    document.addEventListener("click", onNavClick, true);
+
     // ── Animation loop ────────────────────────────────────────────────────────
     const draw = () => {
       frameCount++;
+      const now = performance.now();
 
-      // Smooth position
-      prevX   = cursorX;
-      prevY   = cursorY;
-      cursorX += (mouseX - cursorX) * LERP_POS;
-      cursorY += (mouseY - cursorY) * LERP_POS;
+      ctx.clearRect(0, 0, W, H);
 
-      velX  = cursorX - prevX;
-      velY  = cursorY - prevY;
-      speed = Math.sqrt(velX * velX + velY * velY);
+      // ── Position + angle update ───────────────────────────────────────────
+      if (isLaunching) {
+        const rawT = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        const eased = rawT * rawT;  // quadratic ease-in: feels snappy
 
-      // Tilt: atan2(velX, -velY) gives 0° when moving up, +° when moving right
-      if (speed > 0.25) {
-        const raw = Math.atan2(velX, -velY) * (180 / Math.PI);
-        const tiltBlend = Math.min(speed / 10, 1);
-        targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
+        cursorX    = launchFromX;
+        cursorY    = launchFromY - (launchFromY + 160) * eased;
+        angle      = launchAngleStart * Math.max(0, 1 - rawT * 5); // snap straight up fast
+        hoverScale = 1 + eased * 2.2;
+        hoverRingAlpha = 0;
+        speed = 0;
       } else {
-        targetAngle *= 0.72; // snap back to vertical when still
+        prevX   = cursorX;
+        prevY   = cursorY;
+        cursorX += (mouseX - cursorX) * LERP_POS;
+        cursorY += (mouseY - cursorY) * LERP_POS;
+        velX  = cursorX - prevX;
+        velY  = cursorY - prevY;
+        speed = Math.sqrt(velX * velX + velY * velY);
+
+        if (speed > 0.25) {
+          const raw = Math.atan2(velX, -velY) * (180 / Math.PI);
+          const tiltBlend = Math.min(speed / 10, 1);
+          targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
+        } else {
+          targetAngle *= 0.72;
+        }
+        angle      += (targetAngle - angle)          * LERP_ANGLE;
+        hoverScale += ((isHovering ? 1.28 : 1) - hoverScale)   * LERP_SCALE;
+        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.10;
       }
-      angle += (targetAngle - angle) * LERP_ANGLE;
 
-      // Hover scale + ring
-      hoverScale    += ((isHovering ? 1.28 : 1) - hoverScale)    * LERP_SCALE;
-      hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.10;
-
-      // ── Rocket element transform ─────────────────────────────────────────
-      // SVG: 18×34 viewBox. Keep point (9, 4) on the cursor hotspot.
+      // ── Rocket element ────────────────────────────────────────────────────
       rocket.style.transform =
         `translate(${cursorX - ROCKET_PIVOT_X}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
-      rocket.style.filter = isHovering
+      rocket.style.filter = (isHovering || isLaunching)
         ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
         : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
 
-      // ── Canvas: trail + streaks ───────────────────────────────────────────
-      ctx.clearRect(0, 0, W, H);
+      // ── Engine plume ──────────────────────────────────────────────────────
+      const rad    = angle * (Math.PI / 180);
+      const pDirX  = -Math.sin(rad);
+      const pDirY  =  Math.cos(rad);
+      const perpX  =  Math.cos(rad);
+      const perpY  =  Math.sin(rad);
 
-      if (!prefersReduced) {
-        // ── Engine plume ──────────────────────────────────────────────────────
-        // Direction vectors along the plume axis.
-        // CSS rotate(θ) matrix: x' = x·cos-y·sin, y' = x·sin+y·cos
-        // Engine bell is at SVG (9,29), pivot at (9,4) → local offset (0, 25).
-        // After rotate(θ): engine offset = (-sin(θ)·25, cos(θ)·25)
-        // So the plume exits toward (-sin, +cos), NOT (+sin, +cos).
-        const rad    = angle * (Math.PI / 180);
-        const pDirX  = -Math.sin(rad);   // plume direction: opposite x of nose lean
-        const pDirY  =  Math.cos(rad);   // always downward (engine is below nose)
-        const perpX  =  Math.cos(rad);   // perpendicular to plume axis (dot = 0 ✓)
-        const perpY  =  Math.sin(rad);
+      const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
+      exhaustX = cursorX + pDirX * exhaustOffset;
+      exhaustY = cursorY + pDirY * exhaustOffset;
 
-        // Match the DOM rocket transform so the flame stays attached while tilted or scaled.
-        const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-        const exhaustX = cursorX + pDirX * exhaustOffset;
-        const exhaustY = cursorY + pDirY * exhaustOffset;
+      let launchBoost = 0;
+      if (isLaunching) {
+        const rawT = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        launchBoost = rawT * rawT * 260;
+      }
+      const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
+      const tipX = exhaustX + pDirX * plumeLen;
+      const tipY = exhaustY + pDirY * plumeLen;
 
-        // Plume tip: always some length at idle, extends with speed
-        const plumeLen = 14 + Math.min(speed * 3.8, 52);
-        const tipX = exhaustX + pDirX * plumeLen;
-        const tipY = exhaustY + pDirY * plumeLen;
+      const flicker  = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
+      const flutter  = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
+      const plumeStr = isLaunching
+        ? Math.min(0.45 + Math.min((now - launchStartMs) / LAUNCH_DURATION, 1) * 0.55, 1.0)
+        : 0.45 + Math.min(speed / 8, 1) * 0.55;
 
-        // Subtle flicker — makes the flame feel alive even when still
-        const flicker = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
-        const flutter = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
-        // Overall brightness: always on at 45%, grows to 100% when moving
-        const plumeStr = 0.45 + Math.min(speed / 8, 1) * 0.55;
-
-        // Helper: draw one triangular plume cone with a linear gradient fill
-        const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
-          const lx = exhaustX + perpX * hw;
-          const ly = exhaustY + perpY * hw;
-          const rx = exhaustX - perpX * hw;
-          const ry = exhaustY - perpY * hw;
-          const grad = ctx.createLinearGradient(exhaustX, exhaustY, tipX, tipY);
-          grad.addColorStop(0,    `rgba(${r},${g},${b},${baseOp * plumeStr * flic})`);
-          grad.addColorStop(0.35, `rgba(${r},${g},${b},${baseOp * 0.38 * plumeStr * flic})`);
-          grad.addColorStop(1,    `rgba(${r},${g},${b},0)`);
-          ctx.beginPath();
-          ctx.moveTo(lx, ly);
-          ctx.lineTo(tipX, tipY);
-          ctx.lineTo(rx, ry);
-          ctx.closePath();
-          ctx.fillStyle = grad;
-          ctx.fill();
-        };
-
-        // Additive blending so layers brighten where they overlap — hot core
-        // naturally emerges where all three cones stack up
-        ctx.save();
-        ctx.globalCompositeOperation = "lighter";
-
-        // Layer 1 — outer flame envelope: wide, deep orange-red
-        drawCone(6.5, 255,  55,  8,  0.18, flutter);
-        // Layer 2 — main flame body: bright orange
-        drawCone(3.2, 255, 145, 20,  0.55);
-        // Layer 3 — inner hot core: yellow-white (hottest combustion zone)
-        drawCone(1.5, 255, 235, 130, 0.95);
-
-        ctx.restore();
-
-        // Nozzle bloom — warm white glow right at the engine bell
-        const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
-        bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
-        bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
-        bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
+      const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
+        const lx = exhaustX + perpX * hw;
+        const ly = exhaustY + perpY * hw;
+        const rx = exhaustX - perpX * hw;
+        const ry = exhaustY - perpY * hw;
+        const grad = ctx.createLinearGradient(exhaustX, exhaustY, tipX, tipY);
+        grad.addColorStop(0,    `rgba(${r},${g},${b},${baseOp * plumeStr * flic})`);
+        grad.addColorStop(0.35, `rgba(${r},${g},${b},${baseOp * 0.38 * plumeStr * flic})`);
+        grad.addColorStop(1,    `rgba(${r},${g},${b},0)`);
         ctx.beginPath();
-        ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
-        ctx.fillStyle = bellGlow;
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(tipX, tipY);
+        ctx.lineTo(rx, ry);
+        ctx.closePath();
+        ctx.fillStyle = grad;
+        ctx.fill();
+      };
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      // Base plume — always present
+      drawCone(6.5, 255,  55,  8,  0.18, flutter);
+      drawCone(3.2, 255, 145, 20,  0.55);
+      drawCone(1.5, 255, 235, 130, 0.95);
+      // Launch boost — wide outer flame that grows with acceleration
+      if (isLaunching) {
+        const boost = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        const b2 = boost * boost;
+        drawCone(16 * b2, 255,  75, 10, 0.22 * b2, 1);
+        drawCone( 9 * b2, 255, 165, 45, 0.38 * b2, 1);
+      }
+      ctx.restore();
+
+      // Nozzle bloom
+      const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
+      bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
+      bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
+      bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
+      ctx.beginPath();
+      ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
+      ctx.fillStyle = bellGlow;
+      ctx.fill();
+
+      // ── Exhaust particles ─────────────────────────────────────────────────
+      const emitCount = isLaunching ? 5 : speed > 5 ? 2 : speed > 0.7 ? 1 : 0;
+      if (particles.length < PARTICLE_CAP && emitCount > 0) {
+        for (let i = 0; i < emitCount; i++) {
+          const driftSpd = 0.10 + Math.random() * (isLaunching ? 0.45 : 0.13);
+          particles.push({
+            x:       tipX + (Math.random() - 0.5) * 4,
+            y:       tipY + (Math.random() - 0.5) * 4,
+            vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.12,
+            vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.12,
+            size:    0.38 + Math.random() * (isLaunching ? 2.5 : 0.80),
+            life:    0,
+            maxLife: 28 + Math.random() * 22,
+            r:       255,
+            g:       110 + Math.floor(Math.random() * 70),
+            b:        10 + Math.floor(Math.random() * 30),
+          });
+        }
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life++;
+        if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
+
+        const t  = p.life / p.maxLife;
+        const op = Math.sin(t * Math.PI) * 0.52 * Math.min(p.size / 0.9, 1);
+        if (op < 0.015) continue;
+
+        const glowR = p.size * 3;
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+        grd.addColorStop(0,    `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
+        grd.addColorStop(0.38, `rgba(${p.r},${p.g},${p.b},${op * 0.20})`);
+        grd.addColorStop(1,    `rgba(${p.r},${p.g},${p.b},0)`);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
         ctx.fill();
 
-        // ── Exhaust trail particles ────────────────────────────────────────────
-        // Emitted from the plume TIP (not the nozzle) — these are cooling exhaust
-        // gases drifting away, not hot combustion. Sparse so the shaped plume
-        // remains the hero.
-        if (speed > 0.7 && particles.length < PARTICLE_CAP) {
-          const emitCount = speed > 5 ? 2 : 1;
-          for (let i = 0; i < emitCount; i++) {
-            const driftSpd = 0.10 + Math.random() * 0.13;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * 0.36, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${Math.min(p.r+10,255)},${Math.min(p.g+60,255)},${Math.min(p.b+20,255)},${op})`;
+        ctx.fill();
+      }
+
+      // ── Warp streaks (high-speed motion blur) ─────────────────────────────
+      if (!isLaunching && speed > STREAK_SPEED && frameCount % STREAK_EVERY === 0) {
+        const count = Math.min(Math.floor(speed / STREAK_EVERY), 3);
+        for (let s = 0; s < count; s++) {
+          const scatter = (Math.random() - 0.5) * 5;
+          streaks.push({
+            x:   cursorX + scatter,
+            y:   cursorY + scatter,
+            dx:  -(velX / speed),
+            dy:  -(velY / speed),
+            len: speed * 2.5 + 10 + Math.random() * 12,
+            life: 0,
+            maxLife: 8 + Math.random() * 6,
+          });
+        }
+      }
+
+      for (let i = streaks.length - 1; i >= 0; i--) {
+        const s = streaks[i];
+        s.life++;
+        if (s.life >= s.maxLife) { streaks.splice(i, 1); continue; }
+
+        const t  = 1 - s.life / s.maxLife;
+        const op = t * t * 0.48;
+        if (op < 0.02) continue;
+
+        const ex = s.x + s.dx * s.len;
+        const ey = s.y + s.dy * s.len;
+        const sg = ctx.createLinearGradient(s.x, s.y, ex, ey);
+        sg.addColorStop(0, `rgba(210, 230, 255, ${op})`);
+        sg.addColorStop(1,  "rgba(210, 230, 255, 0)");
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(ex, ey);
+        ctx.strokeStyle = sg;
+        ctx.lineWidth = 0.55 + t * 0.65;
+        ctx.lineCap = "round";
+        ctx.stroke();
+      }
+
+      // ── Shockwaves ────────────────────────────────────────────────────────
+      for (let i = shockwaves.length - 1; i >= 0; i--) {
+        const sw = shockwaves[i];
+        sw.life++;
+        if (sw.life >= sw.maxLife) { shockwaves.splice(i, 1); continue; }
+
+        const t = sw.life / sw.maxLife;
+        sw.radius = sw.maxRadius * (1 - (1 - t) * (1 - t)); // ease-out expansion
+        const alpha = (1 - t) * (1 - t) * 0.72;
+
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${sw.r}, ${sw.g}, ${sw.b}, ${alpha})`;
+        ctx.lineWidth = 2.5 * (1 - t) + 0.5;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // ── Warp-in arrival burst ─────────────────────────────────────────────
+      if (isWarpingIn) {
+        const warpT = (now - warpStartMs) / WARP_IN_DURATION;
+        if (warpT >= 1) {
+          isWarpingIn = false;
+        } else if (!warpBurstDone) {
+          warpBurstDone = true;
+          // Ring of blue-white particles radiating outward
+          for (let i = 0; i < 32; i++) {
+            const a = (i / 32) * Math.PI * 2;
+            const spd = 2.8 + Math.random() * 4.2;
             particles.push({
-              x:       tipX + (Math.random() - 0.5) * 3,
-              y:       tipY + (Math.random() - 0.5) * 3,
-              vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.10,
-              vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.10,
-              size:    0.38 + Math.random() * 0.80,
+              x:       cursorX,
+              y:       cursorY,
+              vx:      Math.cos(a) * spd,
+              vy:      Math.sin(a) * spd,
+              size:    0.9 + Math.random() * 1.4,
               life:    0,
-              maxLife: 28 + Math.random() * 22,
-              r:       255,
-              g:       110 + Math.floor(Math.random() * 70),
-              b:        10 + Math.floor(Math.random() * 30),
+              maxLife: 18 + Math.random() * 14,
+              r:       170 + Math.floor(Math.random() * 85),
+              g:       200 + Math.floor(Math.random() * 55),
+              b:       255,
             });
           }
+          // Blue-white shockwaves — double ring for depth
+          shockwaves.push({ x: cursorX, y: cursorY, radius: 0, maxRadius:  70, life: 0, maxLife: 16, r: 160, g: 200, b: 255 });
+          shockwaves.push({ x: cursorX, y: cursorY, radius: 0, maxRadius: 115, life: 0, maxLife: 26, r: 140, g: 180, b: 255 });
         }
+      }
 
-        // Update + draw trail particles
-        for (let i = particles.length - 1; i >= 0; i--) {
-          const p = particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          p.life++;
-          if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
-
-          const t  = p.life / p.maxLife;
-          const op = Math.sin(t * Math.PI) * 0.52 * Math.min(p.size / 0.9, 1);
-          if (op < 0.015) continue;
-
-          const glowR = p.size * 3;
-          const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-          grd.addColorStop(0,    `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
-          grd.addColorStop(0.38, `rgba(${p.r},${p.g},${p.b},${op * 0.20})`);
-          grd.addColorStop(1,    `rgba(${p.r},${p.g},${p.b},0)`);
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
-          ctx.fillStyle = grd;
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 0.36, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${Math.min(p.r+10,255)},${Math.min(p.g+60,255)},${Math.min(p.b+20,255)},${op})`;
-          ctx.fill();
-        }
-
-        // Spawn warp streaks above speed threshold
-        if (speed > STREAK_SPEED && frameCount % STREAK_EVERY === 0) {
-          const count = Math.min(Math.floor(speed / STREAK_EVERY), 3);
-          for (let s = 0; s < count; s++) {
-            const scatter = (Math.random() - 0.5) * 5;
-            streaks.push({
-              x:   cursorX + scatter,
-              y:   cursorY + scatter,
-              dx:  -(velX / speed),   // unit vector pointing backward
-              dy:  -(velY / speed),
-              len: speed * 2.5 + 10 + Math.random() * 12,
-              life: 0,
-              maxLife: 8 + Math.random() * 6,
-            });
-          }
-        }
-
-        // Age + draw streaks
-        for (let i = streaks.length - 1; i >= 0; i--) {
-          const s = streaks[i];
-          s.life++;
-          if (s.life >= s.maxLife) { streaks.splice(i, 1); continue; }
-
-          const t = 1 - s.life / s.maxLife;
-          const op = t * t * 0.48;
-          if (op < 0.02) continue;
-
-          const ex = s.x + s.dx * s.len;
-          const ey = s.y + s.dy * s.len;
-
-          const sg = ctx.createLinearGradient(s.x, s.y, ex, ey);
-          sg.addColorStop(0, `rgba(210, 230, 255, ${op})`);
-          sg.addColorStop(1,  "rgba(210, 230, 255, 0)");
-
-          ctx.beginPath();
-          ctx.moveTo(s.x, s.y);
-          ctx.lineTo(ex, ey);
-          ctx.strokeStyle = sg;
-          ctx.lineWidth = 0.55 + t * 0.65;
-          ctx.lineCap = "round";
-          ctx.stroke();
-        }
-
-        // Hover ring — thin scan circle that fades in/out on interactive elements
-        if (hoverRingAlpha > 0.015) {
-          const ring = ctx.createRadialGradient(
-            cursorX, cursorY, 14,
-            cursorX, cursorY, 22
-          );
-          ring.addColorStop(0, `rgba(180, 210, 255, ${hoverRingAlpha * 0.28})`);
-          ring.addColorStop(1, "rgba(180, 210, 255, 0)");
-          ctx.beginPath();
-          ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
-          ctx.strokeStyle = `rgba(200, 220, 255, ${hoverRingAlpha * 0.22})`;
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
-          ctx.fillStyle = ring;
-          ctx.fill();
-        }
+      // ── Hover ring ────────────────────────────────────────────────────────
+      if (hoverRingAlpha > 0.015) {
+        const ring = ctx.createRadialGradient(cursorX, cursorY, 14, cursorX, cursorY, 22);
+        ring.addColorStop(0, `rgba(180, 210, 255, ${hoverRingAlpha * 0.28})`);
+        ring.addColorStop(1,  "rgba(180, 210, 255, 0)");
+        ctx.beginPath();
+        ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(200, 220, 255, ${hoverRingAlpha * 0.22})`;
+        ctx.lineWidth = 0.7;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
+        ctx.fillStyle = ring;
+        ctx.fill();
       }
 
       animId = requestAnimationFrame(draw);
@@ -341,27 +444,25 @@ export function RocketCursor() {
     animId = requestAnimationFrame(draw);
 
     const onVisibility = () => {
-      if (document.hidden) {
-        cancelAnimationFrame(animId);
-      } else {
-        animId = requestAnimationFrame(draw);
-      }
+      if (document.hidden) cancelAnimationFrame(animId);
+      else animId = requestAnimationFrame(draw);
     };
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       cancelAnimationFrame(animId);
       document.body.classList.remove("rocket-cursor-active");
-      window.removeEventListener("resize",    onResize);
-      document.removeEventListener("mousemove",  onMouseMove);
-      document.removeEventListener("mouseleave", onMouseLeave);
+      window.removeEventListener("resize",          onResize);
+      document.removeEventListener("mousemove",     onMouseMove);
+      document.removeEventListener("mouseleave",    onMouseLeave);
+      document.removeEventListener("click",         onNavClick, true);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
   return (
     <>
-      {/* Trail + streak canvas — full-screen, non-interactive */}
+      {/* Trail + shockwave canvas — full-screen, non-interactive */}
       <canvas
         ref={canvasRef}
         aria-hidden="true"
@@ -385,7 +486,7 @@ export function RocketCursor() {
           zIndex: 9999,
           pointerEvents: "none",
           willChange: "transform, filter",
-          transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,   // pivot near the nose tip
+          transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,
           opacity: 0,
           transition: "opacity 0.18s ease",
         }}
