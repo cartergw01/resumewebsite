@@ -365,10 +365,10 @@ select {
 }
 
 .site-nav-social a {
-  color: rgba(255, 247, 234, 0.62);
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 247, 234, 0.55);
 }
 
 /* Social links — cool starlight glow on hover */
