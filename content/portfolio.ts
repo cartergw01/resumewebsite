@@ -196,7 +196,7 @@ export const projects = [
     title: "Carter's Taipei Guide",
     href: "https://taipei-guide-etaa.vercel.app/",
     image: "/project-shots/taipei-guide.webp",
-    description: "A Taipei city guide built for my friends that visit Taipei. Covers where to eat, drink, and explore — my recommendations, tourist hot spots, and other popular spots.",
+    description: "A Taipei city guide built for my friends that visit Taipei! It covers where to eat, drink, and places to explore including my recommendations, tourist hot spots, and other popular spots.",
   },
   {
     title: "Stocker",
