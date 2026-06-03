@@ -2265,8 +2265,8 @@ select {
   }
 
   .cosmic-home::before {
-    background-position: 48% top;
-    background-size: auto 132svh;
+    background-position: 52% 8%;
+    background-size: 220% auto;
   }
 
   .site-nav {
