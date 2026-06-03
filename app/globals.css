@@ -3075,8 +3075,8 @@ select {
 .cosmic-home .world-card .world-orb {
   overflow: visible;
   min-height: 44px;
-  width: min(100%, 13.5rem);
-  height: clamp(8.25rem, 16vw, 11.5rem);
+  width: min(100%, 16rem);
+  height: clamp(10rem, 19vw, 14rem);
   aspect-ratio: auto;
   border: 0;
   border-radius: 0;
