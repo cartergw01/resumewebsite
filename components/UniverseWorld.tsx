@@ -34,7 +34,7 @@ const worlds: World[] = [
   {
     id: "projects",
     title: "Projects",
-    copy: <p>vibe-coded experiments, tools, and playful web projects.</p>,
+    copy: <p>fun projects i made.</p>,
     href: "/projects",
   },
 ];
