@@ -2936,7 +2936,12 @@ select {
   }
 
   .site-nav-social {
-    display: none;
+    gap: clamp(0.6rem, 4vw, 0.9rem);
+  }
+
+  .site-nav-social a svg {
+    width: 14px;
+    height: 14px;
   }
 
   .subpage-main {
