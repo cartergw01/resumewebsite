@@ -18,11 +18,11 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Carter Wang",
   description: "A personal website for Carter Wang featuring work experience, background, and writing.",
-  metadataBase: new URL("https://portfolio-website-cartergw01s-projects.vercel.app"),
+  metadataBase: new URL("https://carterkowang.com"),
   openGraph: {
     title: "Carter Wang",
     description: "Venture work, writing, and background from Carter Wang.",
-    url: "https://portfolio-website-cartergw01s-projects.vercel.app",
+    url: "https://carterkowang.com",
     siteName: "Carter Wang",
     type: "website",
     images: [
