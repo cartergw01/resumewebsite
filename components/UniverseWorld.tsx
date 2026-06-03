@@ -44,7 +44,7 @@ function Hero() {
     <section className="cosmic-hero" aria-labelledby="hero-title">
       <div className="hero-copy">
         <h1 id="hero-title">Carter Wang</h1>
-        <p>Working in Taipei at 886 Studios alongside the founders of Twitch and Guitar Hero, backing early-stage startups. Writing and building things for fun on the side.</p>
+        <p>working in Taipei at 886 Studios alongside the founders of Twitch and Guitar Hero, backing early-stage startups. writing and building things for fun on the side.</p>
       </div>
       <div className="hero-visual" aria-hidden="true" />
       <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
