@@ -3287,8 +3287,7 @@ select {
   }
 
   .cosmic-home .hero-copy p {
-    font-size: 0.82rem;
-    line-height: 1.5;
+    display: none;
   }
 
   .cosmic-home .constellation-map {
