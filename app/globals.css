@@ -3253,6 +3253,25 @@ select {
 }
 
 @media (max-width: 760px) {
+  /* Simplified overlays for portrait mobile — strip the landscape-only
+     horizontal vignette and lighten the radial darkening */
+  .cosmic-home::before {
+    background:
+      linear-gradient(180deg, rgba(1, 2, 8, 0.12) 0%, rgba(1, 2, 8, 0.06) 40%, rgba(1, 2, 8, 0.28) 100%),
+      url("/cosmic-hero-v6-sharp.webp");
+    background-position: 40% center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: brightness(0.92) contrast(1.12) saturate(1.22);
+  }
+
+  .cosmic-home::after {
+    background:
+      radial-gradient(ellipse at 50% 20%, rgba(255, 218, 174, 0.1), transparent 16rem),
+      linear-gradient(180deg, rgba(1, 2, 8, 0.04) 0%, transparent 30%, transparent 65%, rgba(1, 2, 8, 0.38) 100%);
+    background-size: 100% 100%, 100% 100%;
+  }
+
   .cosmic-home .site-nav::before {
     height: calc(var(--nav-clearance) + 1.35rem);
   }
