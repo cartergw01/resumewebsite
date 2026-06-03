@@ -2581,13 +2581,42 @@ select {
     gap: 0.9rem;
   }
 
-  .subpage-projects .project-shot {
-    aspect-ratio: 1.58;
-  }
-
   .project-row-copy strong,
   .workshop-line strong {
     font-size: clamp(1.85rem, 8.5vw, 2.65rem);
+  }
+
+  /* Projects page: compact thumbnail + copy side-by-side on mobile */
+  .subpage-projects .project-row {
+    grid-template-columns: 140px 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: clamp(0.85rem, 3vw, 1.15rem) 0;
+  }
+
+  .subpage-projects .project-shot {
+    aspect-ratio: 1.48;
+    border-radius: 6px;
+  }
+
+  .subpage-projects .project-row-copy {
+    gap: 0.3rem;
+  }
+
+  .subpage-projects .project-row-copy strong {
+    font-size: clamp(1.05rem, 4.8vw, 1.3rem);
+    line-height: 1.1;
+  }
+
+  .subpage-projects .project-row-copy > span {
+    font-size: 0.78rem;
+    line-height: 1.42;
+    max-width: none;
+  }
+
+  .subpage-projects .project-row-copy em {
+    margin-top: 0.15rem;
+    font-size: 0.62rem;
   }
 
   .writing-archive {
