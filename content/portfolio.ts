@@ -190,19 +190,25 @@ export const projects = [
     title: "TaipeiFlix",
     href: "https://taipei-flix.onrender.com/",
     image: "/project-shots/taipei-flix.webp",
-    description: "A Taipei movie guide that checks theaters and makes showtimes easier to browse.",
+    description: "A web app that aggregates movie showtimes across theaters in Taipei, with critic scores and movie info, for those who want to go to the movies in Taipei.",
   },
   {
-    title: "Taipei Guide",
+    title: "Carter's Taipei Guide",
     href: "https://taipei-guide-etaa.vercel.app/",
     image: "/project-shots/taipei-guide.webp",
-    description: "A personal guide for friends visiting Taipei, with food, places, and small local rituals.",
+    description: "A Taipei city guide built for my friends that visit Taipei. Covers where to eat, drink, and explore — my recommendations, tourist hot spots, and other popular spots.",
   },
   {
-    title: "Poker Odds",
+    title: "Stocker",
+    href: "https://stocker-app-one.vercel.app/",
+    image: "/project-shots/stocker.webp",
+    description: "My personal long-term investing research tool that pulls financials, earnings, latest news, and filings for stocks in my portfolio into a single clean dashboard.",
+  },
+  {
+    title: "Poker Odds Calculator",
     href: "https://poker-odds-app-pink.vercel.app/",
     image: "/project-shots/poker-odds.webp",
-    description: "A Texas Hold'em odds calculator with a felt-table interface and fast card selection.",
+    description: "A Texas Hold'em poker odds calculator that tracks hand strength, position, pot equity, and decision math in real time as you play through a hand.",
   },
 ];
 
