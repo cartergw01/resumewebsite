@@ -2086,6 +2086,25 @@ select {
   transition: border-color 180ms var(--cw-ease), transform 180ms var(--cw-ease);
 }
 
+.project-row:hover {
+  border-color: rgb(var(--topic-accent) / 0.28);
+}
+
+.project-row:hover .project-shot {
+  filter: brightness(1.08);
+}
+
+.project-row:hover .project-shot img {
+  transform: scale(1.04);
+  transition: transform 420ms var(--cw-ease);
+}
+
+.project-row:hover em {
+  border-color: rgb(var(--topic-warm) / 0.62);
+  color: var(--cw-paper);
+  letter-spacing: calc(var(--tracking-caps) + 0.02em);
+}
+
 .project-row:focus-visible {
   border-color: rgb(var(--topic-warm) / 0.42);
   outline: 1px solid rgb(var(--topic-warm) / 0.48);
