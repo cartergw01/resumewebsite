@@ -681,6 +681,16 @@ select {
     animation: cosmic-stars-travel linear both;
     animation-timeline: scroll(root);
   }
+
+  /* Disable scroll-linked parallax on mobile — the galaxy sliding
+     12svh+ as you scroll feels wrong in portrait */
+  @media (max-width: 760px) {
+    .cosmic-home::before,
+    .cosmic-home::after,
+    .cosmic-sky {
+      animation: none;
+    }
+  }
 }
 
 .world-stack {
