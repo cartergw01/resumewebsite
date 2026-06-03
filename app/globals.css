@@ -856,7 +856,8 @@ select {
 
 .hero-copy h1 {
   font-size: clamp(3.8rem, 7.5vw, 6.75rem);
-  line-height: 0.88;
+  line-height: 0.9;
+  letter-spacing: -0.015em;
   text-shadow:
     0 0 16px rgba(255, 247, 234, 0.2),
     0 0 46px rgba(143, 183, 255, 0.28),
