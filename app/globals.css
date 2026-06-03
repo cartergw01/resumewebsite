@@ -2245,7 +2245,7 @@ select {
 
 @media (max-width: 980px) {
   :root {
-    --nav-clearance: clamp(7.25rem, 16vw, 8.75rem);
+    --nav-clearance: clamp(5.5rem, 10vw, 7rem);
   }
 
   .cosmic-home::before {
@@ -2254,20 +2254,21 @@ select {
   }
 
   .site-nav {
-    grid-template-columns: 1fr;
-    justify-items: center;
+    grid-template-columns: 1fr auto;
+    justify-items: start;
     gap: 0;
   }
 
-  .site-nav-primary,
-  .site-nav-social {
+  .site-nav-primary {
     grid-column: 1;
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .site-nav-social {
+    grid-column: 2;
+    justify-self: end;
     padding-left: 0;
-    transform: translateY(-0.28rem);
+    transform: none;
   }
 
   .cosmic-hero,
