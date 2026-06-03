@@ -409,7 +409,6 @@ select {
   inset: -12svh 0;
   z-index: 0;
   pointer-events: none;
-  will-change: transform;
 }
 
 .cosmic-home::before {
@@ -636,62 +635,6 @@ select {
   }
 }
 
-@keyframes cosmic-background-travel {
-  from {
-    transform: translate3d(0, -2.5svh, 0) scale(1.01);
-  }
-
-  to {
-    transform: translate3d(0, 10svh, 0) scale(1.01);
-  }
-}
-
-@keyframes cosmic-nebula-travel {
-  from {
-    transform: translate3d(0, -1.5svh, 0);
-  }
-
-  to {
-    transform: translate3d(0, 7svh, 0);
-  }
-}
-
-@keyframes cosmic-stars-travel {
-  from {
-    transform: translate3d(0, -1svh, 0);
-  }
-
-  to {
-    transform: translate3d(0, 5svh, 0);
-  }
-}
-
-@supports (animation-timeline: scroll()) {
-  .cosmic-home::before {
-    animation: cosmic-background-travel linear both;
-    animation-timeline: scroll(root);
-  }
-
-  .cosmic-home::after {
-    animation: cosmic-nebula-travel linear both;
-    animation-timeline: scroll(root);
-  }
-
-  .cosmic-sky {
-    animation: cosmic-stars-travel linear both;
-    animation-timeline: scroll(root);
-  }
-
-  /* Disable scroll-linked parallax on mobile — the galaxy sliding
-     12svh+ as you scroll feels wrong in portrait */
-  @media (max-width: 760px) {
-    .cosmic-home::before,
-    .cosmic-home::after,
-    .cosmic-sky {
-      animation: none;
-    }
-  }
-}
 
 .world-stack {
   position: relative;
