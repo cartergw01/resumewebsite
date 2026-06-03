@@ -3213,13 +3213,18 @@ select {
   }
 
   .cosmic-home .cosmic-hero {
-    min-height: clamp(16rem, 34svh, 21rem);
+    min-height: clamp(14rem, 28svh, 18rem);
     padding-top: var(--nav-clearance);
-    padding-bottom: clamp(0.5rem, 2.2vw, 0.9rem);
+    padding-bottom: clamp(0.25rem, 1.5vw, 0.5rem);
   }
 
   .cosmic-home .hero-copy {
-    width: min(calc(100vw - 2rem), 21rem);
+    width: min(calc(100vw - 2rem), 20rem);
+  }
+
+  .cosmic-home .hero-copy p {
+    font-size: 0.82rem;
+    line-height: 1.5;
   }
 
   .cosmic-home .constellation-map {
@@ -3237,7 +3242,7 @@ select {
 
   .cosmic-home .world-card .world-orb {
     width: 100%;
-    height: clamp(4.65rem, 18vw, 5.6rem);
+    height: clamp(6.5rem, 24vw, 8rem);
   }
 
   .cosmic-home .world-card .world-intro,
