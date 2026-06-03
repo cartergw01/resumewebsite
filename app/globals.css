@@ -3064,8 +3064,7 @@ select {
 }
 
 .cosmic-home .world-gallery::before {
-  inset: clamp(5rem, 10vw, 7rem) 6% auto;
-  opacity: 0.52;
+  display: none;
 }
 
 .cosmic-home .world-card {
