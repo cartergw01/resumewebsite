@@ -21,9 +21,9 @@ interface Streak {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_POS        = 0.42;  // cursor smoothing
-const LERP_ANGLE      = 0.24;  // tilt smoothing
-const LERP_SCALE      = 0.28;  // hover scale smoothing
+const LERP_POS        = 0.82;  // cursor smoothing
+const LERP_ANGLE      = 0.40;  // tilt smoothing
+const LERP_SCALE      = 0.50;  // hover scale smoothing
 const MAX_TILT_DEG    = 28;    // max rocket tilt degrees
 const PARTICLE_CAP    = 160;   // max live particles
 const STREAK_SPEED    = 7;     // min px/frame to spawn warp streaks
@@ -130,7 +130,7 @@ export function RocketCursor() {
         const tiltBlend = Math.min(speed / 10, 1);
         targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
       } else {
-        targetAngle *= 0.85; // drift back to vertical when still
+        targetAngle *= 0.72; // snap back to vertical when still
       }
       angle += (targetAngle - angle) * LERP_ANGLE;
 
