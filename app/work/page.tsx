@@ -1,3 +1,5 @@
+"use client";
+
 import dynamic from "next/dynamic";
 
 // HeroUI + Framer Motion are heavy (~180 KB gzipped). Dynamic import keeps
