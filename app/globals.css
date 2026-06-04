@@ -309,7 +309,8 @@ select {
   pointer-events: none;
 }
 
-/* Subtle fade keeps scrolled content readable above the nav */
+/* Top gradient — keep a very subtle fade so links stay readable when
+   bright content scrolls behind the nav */
 .site-nav::before {
   content: "";
   position: absolute;
@@ -320,29 +321,21 @@ select {
   height: calc(var(--nav-clearance) + 1rem);
   background: linear-gradient(
     180deg,
-    rgba(3, 6, 17, 0.55) 0%,
-    rgba(3, 6, 17, 0.22) 55%,
+    rgba(3, 6, 17, 0.38) 0%,
+    rgba(3, 6, 17, 0.12) 55%,
     rgba(3, 6, 17, 0) 100%
   );
   transform: translateX(-50%);
   pointer-events: none;
 }
 
-/* ── Shared pill style ──────────────────────────────────── */
+/* ── Nav groups — fully transparent, space shows through ── */
 .site-nav-primary,
 .site-nav-social {
   display: inline-flex;
   align-items: center;
   height: 40px;
   padding: 0 4px;
-  background: rgba(6, 10, 24, 0.80);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 247, 234, 0.11);
-  border-radius: 999px;
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
   pointer-events: auto;
   white-space: nowrap;
 }
@@ -2402,10 +2395,6 @@ select {
     background-size: cover;
   }
 
-  .site-nav-primary,
-  .site-nav-social {
-    height: 38px;
-  }
 
   .cosmic-hero,
   .world-section {
@@ -3064,12 +3053,6 @@ select {
 @media (max-width: 520px) {
   :root {
     --nav-clearance: 4.2rem;
-  }
-
-  .site-nav-primary,
-  .site-nav-social {
-    height: 34px;
-    padding: 0 2px;
   }
 
   .site-nav a {
