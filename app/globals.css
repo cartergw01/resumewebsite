@@ -3301,9 +3301,7 @@ select {
   inset: 0;
   background-position: center bottom;
   background-size: var(--world-art-size, 100%) auto;
-  filter:
-    drop-shadow(0 1.2rem 2rem rgba(0, 0, 0, 0.42))
-    drop-shadow(0 0 1.6rem rgba(143, 183, 255, 0.1));
+  filter: drop-shadow(0 0 1.6rem rgba(143, 183, 255, 0.1));
 }
 
 .cosmic-home .world-card.world-work .world-visual {
@@ -3363,9 +3361,7 @@ select {
 
 .cosmic-home .world-card:hover .world-visual {
   transform: translateY(-7px);
-  filter:
-    drop-shadow(0 2.2rem 3rem rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 2.8rem rgba(200, 185, 255, 0.22));
+  filter: drop-shadow(0 0 2.8rem rgba(200, 185, 255, 0.22));
 }
 
 /* Orb stays put — the card is already moving */
