@@ -3413,7 +3413,6 @@ select {
     background-position: 40% center;
     background-size: cover;
     background-repeat: no-repeat;
-    filter: brightness(0.92) contrast(1.12) saturate(1.22);
   }
 
   .cosmic-home::after {
