@@ -15,8 +15,6 @@ export default function WritingPage() {
           <h1>Writing</h1>
         </header>
 
-        <SubstackSubscribe />
-
         <section className="writing-archive" aria-label="Substack essay archive">
           <ArchiveGroup title="Essays" entries={essayEntries} />
           <ArchiveGroup
@@ -26,6 +24,8 @@ export default function WritingPage() {
             showSubtitles={false}
           />
         </section>
+
+        <SubstackSubscribe />
       </main>
     </div>
   );
