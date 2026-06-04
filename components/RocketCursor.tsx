@@ -226,8 +226,13 @@ export function RocketCursor() {
       }
 
       // ── Rocket element ────────────────────────────────────────────────────
+      // exhaustOffset is computed first so the tilt-correction translate can
+      // use it — this keeps the engine bell pinned to cursorX regardless of
+      // how much the rocket leans. The nose tips left/right; the bottom never drifts.
+      const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
+      const tiltCorrX = Math.sin(angle * (Math.PI / 180)) * exhaustOffset;
       rocket.style.transform =
-        `translate(${cursorX - ROCKET_PIVOT_X}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
+        `translate(${cursorX - ROCKET_PIVOT_X + tiltCorrX}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
       // Only write filter when it actually changes — avoids redundant GPU work
       const nextFilter = (isHovering || isLaunching)
         ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
@@ -235,16 +240,14 @@ export function RocketCursor() {
       if (rocket.style.filter !== nextFilter) rocket.style.filter = nextFilter;
 
       // ── Engine plume ──────────────────────────────────────────────────────
-      // Flame is always anchored to center-bottom of the rocket and always
-      // points straight down — guaranteed regardless of tilt angle or speed.
-      // The rocket SVG still tilts visually; at 10° the engine bell is only
-      // ~4px off-center so the nozzle glow covers any gap seamlessly.
-      const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-      exhaustX = cursorX;                    // always center
-      exhaustY = cursorY + exhaustOffset;    // always straight below
-      const pDirX = 0;                       // always down
+      // Engine is geometrically pinned to cursorX by the tilt correction above,
+      // so the canvas flame at (cursorX, cursorY+exhaustOffset) is always
+      // pixel-perfect at the engine bell — on every page, at every speed.
+      exhaustX = cursorX;
+      exhaustY = cursorY + exhaustOffset;
+      const pDirX = 0;   // always straight down
       const pDirY = 1;
-      const perpX = 1;                       // spread horizontally
+      const perpX = 1;   // horizontal cone spread
       const perpY = 0;
 
       let launchBoost = 0;
