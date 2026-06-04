@@ -217,15 +217,22 @@ export function RocketCursor() {
         : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
 
       // ── Engine plume ──────────────────────────────────────────────────────
+      // Engine position follows the rocket tilt so the flame attaches correctly.
+      // Flame direction is always straight down — keeps the fire at the bottom
+      // regardless of which way the rocket is leaning.
       const rad    = angle * (Math.PI / 180);
-      const pDirX  = -Math.sin(rad);
-      const pDirY  =  Math.cos(rad);
-      const perpX  =  Math.cos(rad);
-      const perpY  =  Math.sin(rad);
+      const engDirX = -Math.sin(rad);   // where the engine actually points
+      const engDirY =  Math.cos(rad);
 
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-      exhaustX = cursorX + pDirX * exhaustOffset;
-      exhaustY = cursorY + pDirY * exhaustOffset;
+      exhaustX = cursorX + engDirX * exhaustOffset;  // attached to tilted engine
+      exhaustY = cursorY + engDirY * exhaustOffset;
+
+      // Flame always exits straight down (world space), never to the side
+      const pDirX = 0;
+      const pDirY = 1;
+      const perpX = 1;
+      const perpY = 0;
 
       let launchBoost = 0;
       if (isLaunching) {
