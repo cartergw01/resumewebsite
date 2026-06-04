@@ -40,31 +40,32 @@ export function SubstackSubscribe() {
 
         <div className="fa-body">
           <p className="fa-name">flying Arrows</p>
-          <p className="fa-tagline">some will hit. some will miss. but they will be shot.</p>
+          <p className="fa-tagline">essays on tech, culture, and human nature.</p>
 
           {status === "sent" ? (
             <p className="fa-thanks">
               Check Substack — confirm your email there to subscribe. ✦
             </p>
           ) : (
-            <form className="fa-form" onSubmit={handleSubmit} noValidate>
-              <label className="sr-only" htmlFor={id}>Email address</label>
-              <input
-                id={id}
-                className="fa-input"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                inputMode="email"
-              />
-              <button className="fa-btn" type="submit">Subscribe</button>
-            </form>
+            <>
+              <p className="fa-cta">Subscribe to keep up to date on new essays.</p>
+              <form className="fa-form" onSubmit={handleSubmit} noValidate>
+                <label className="sr-only" htmlFor={id}>Email address</label>
+                <input
+                  id={id}
+                  className="fa-input"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
+                  inputMode="email"
+                />
+                <button className="fa-btn" type="submit">Subscribe</button>
+              </form>
+            </>
           )}
-
-          <p className="fa-byline">By Carter · Free to read</p>
         </div>
       </div>
     </div>

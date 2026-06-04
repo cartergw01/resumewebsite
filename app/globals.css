@@ -1589,18 +1589,18 @@ select {
   filter: brightness(0.96);
 }
 
+.fa-cta {
+  margin: 0.35rem 0 0;
+  color: rgba(255, 200, 140, 0.52);
+  font-size: var(--type-small);
+  line-height: var(--leading-body);
+}
+
 .fa-thanks {
   margin: 0.5rem 0 0;
   color: rgba(255, 200, 140, 0.78);
   font-size: var(--type-small);
   line-height: var(--leading-body);
-}
-
-.fa-byline {
-  margin: 0.25rem 0 0;
-  color: rgba(255, 200, 140, 0.38);
-  font-size: var(--type-caption);
-  letter-spacing: 0.04em;
 }
 
 @media (max-width: 560px) {
