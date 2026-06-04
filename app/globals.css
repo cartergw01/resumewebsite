@@ -439,7 +439,6 @@ select {
   background-position: 45% top;
   background-repeat: no-repeat;
   background-size: max(122vw, 118rem) auto;
-  filter: brightness(0.96) contrast(1.16) saturate(1.18);
 }
 
 .cosmic-home::after {
@@ -1383,7 +1382,6 @@ select {
   background-image: var(--topic-image);
   background-position: var(--topic-position, center);
   background-size: cover;
-  transform: scale(1.015);
 }
 
 .cosmic-subpage::after {
@@ -3609,4 +3607,18 @@ html[data-theme="dark"] body {
 html.dark a,
 html[data-theme="dark"] a {
   color: inherit;
+}
+
+/* ── Touch / mobile: remove GPU-layer hints that cause iOS scroll zoom ── */
+@media (any-pointer: coarse) {
+  .cosmic-sky {
+    will-change: auto;
+  }
+
+  .star-depth-far,
+  .star-depth-far::before,
+  .star-depth-mid,
+  .star-depth-near {
+    animation: none;
+  }
 }
