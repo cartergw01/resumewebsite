@@ -230,18 +230,17 @@ export function RocketCursor() {
       if (rocket.style.filter !== nextFilter) rocket.style.filter = nextFilter;
 
       // ── Engine plume ──────────────────────────────────────────────────────
-      // All vectors derived from the same angle so the flame position, direction,
-      // and spread all align with the engine bell. MAX_TILT_DEG is kept small (10°)
-      // so the engine never drifts far from center-bottom — flame stays attached.
-      const rad    = angle * (Math.PI / 180);
-      const pDirX  = -Math.sin(rad);
-      const pDirY  =  Math.cos(rad);
-      const perpX  =  Math.cos(rad);
-      const perpY  =  Math.sin(rad);
-
+      // Flame is always anchored to center-bottom of the rocket and always
+      // points straight down — guaranteed regardless of tilt angle or speed.
+      // The rocket SVG still tilts visually; at 10° the engine bell is only
+      // ~4px off-center so the nozzle glow covers any gap seamlessly.
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-      exhaustX = cursorX + pDirX * exhaustOffset;
-      exhaustY = cursorY + pDirY * exhaustOffset;
+      exhaustX = cursorX;                    // always center
+      exhaustY = cursorY + exhaustOffset;    // always straight below
+      const pDirX = 0;                       // always down
+      const pDirY = 1;
+      const perpX = 1;                       // spread horizontally
+      const perpY = 0;
 
       let launchBoost = 0;
       if (isLaunching) {
