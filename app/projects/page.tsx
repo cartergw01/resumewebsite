@@ -43,7 +43,7 @@ export default function ProjectsPage() {
                     <strong>{project.title}</strong>
                     <span>{project.description}</span>
                   </span>
-                  <em>Open project</em>
+                  <em>View →</em>
                 </a>
               ))}
             </section>

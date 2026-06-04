@@ -65,7 +65,7 @@ function ArchiveGroup({
               <span className="archive-meta">
                 <time dateTime={toDateTime(essay.date)}>{essay.date}</time>
               </span>
-              <span className="archive-action" aria-hidden="true">read →</span>
+              <span className="archive-action" aria-hidden="true">View →</span>
               <span className="sr-only">Open on Substack</span>
             </a>
           );

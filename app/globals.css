@@ -2087,6 +2087,7 @@ select {
   max-width: 880px;
   margin-top: clamp(2.15rem, 5vw, 4rem);
   padding-top: clamp(0.35rem, 1vw, 0.6rem);
+  border-top: 1px solid rgb(var(--topic-accent) / 0.16);
   padding-left: clamp(0rem, 2.2vw, 1.5rem);
   font-kerning: normal;
   font-feature-settings: "kern" 1;
@@ -2330,9 +2331,8 @@ select {
   font-size: var(--type-caption);
   font-style: normal;
   font-weight: 700;
-  letter-spacing: var(--tracking-caps);
+  letter-spacing: 0.04em;
   line-height: 1.2;
-  text-transform: uppercase;
   transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
 }
 
@@ -3620,5 +3620,9 @@ html[data-theme="dark"] a {
   .star-depth-mid,
   .star-depth-near {
     animation: none;
+  }
+
+  .world-enter-cue {
+    display: none;
   }
 }
