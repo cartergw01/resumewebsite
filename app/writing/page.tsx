@@ -1,4 +1,5 @@
 import SiteNav from "@/components/SiteNav";
+import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 
 const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
@@ -13,6 +14,8 @@ export default function WritingPage() {
         <header className="subpage-hero topic-hero writing-hero">
           <h1>Writing</h1>
         </header>
+
+        <SubstackSubscribe />
 
         <section className="writing-archive" aria-label="Substack essay archive">
           <ArchiveGroup title="Essays" entries={essayEntries} />

@@ -1460,6 +1460,123 @@ select {
   max-width: 42ch;
 }
 
+/* ── Substack subscribe block ──────────────────────────────────────────────── */
+
+.substack-subscribe {
+  max-width: 880px;
+  margin-top: clamp(2rem, 4vw, 3rem);
+  padding-left: clamp(0rem, 2.2vw, 1.5rem);
+}
+
+.substack-inner {
+  display: flex;
+  align-items: center;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid rgb(var(--topic-accent) / 0.18);
+  border-radius: 1rem;
+  background: rgba(7, 12, 25, 0.48);
+  padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(1.25rem, 2.8vw, 2rem);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.substack-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.substack-name {
+  margin: 0 0 0.3rem;
+  color: var(--cw-paper);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.substack-desc {
+  margin: 0;
+  color: var(--cw-dim);
+  font-size: var(--type-small);
+  line-height: var(--leading-body);
+}
+
+.substack-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.substack-input {
+  width: clamp(11rem, 18vw, 16rem);
+  border: 1px solid rgb(var(--topic-accent) / 0.22);
+  border-radius: 0.5rem;
+  background: rgba(255, 247, 234, 0.05);
+  padding: 0.55rem 0.85rem;
+  color: var(--cw-paper);
+  font-size: var(--type-small);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 180ms var(--cw-ease), background 180ms var(--cw-ease);
+}
+
+.substack-input::placeholder {
+  color: var(--cw-dim);
+}
+
+.substack-input:focus {
+  border-color: rgb(var(--topic-accent) / 0.55);
+  background: rgba(255, 247, 234, 0.08);
+}
+
+.substack-btn {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 0.5rem;
+  background: rgb(var(--topic-accent) / 0.9);
+  padding: 0.55rem 1.1rem;
+  color: #0d1a10;
+  font-size: var(--type-small);
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 160ms var(--cw-ease), transform 160ms var(--cw-ease);
+}
+
+.substack-btn:hover {
+  background: rgb(var(--topic-accent) / 1);
+  transform: translateY(-1px);
+}
+
+.substack-btn:active {
+  transform: translateY(0);
+}
+
+.substack-thanks {
+  margin: 0;
+  color: var(--cw-muted);
+  font-size: var(--type-small);
+  line-height: var(--leading-body);
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .substack-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .substack-form {
+    flex-direction: column;
+  }
+
+  .substack-input {
+    width: 100%;
+  }
+}
+
 .subpage-life {
   --topic-image: url("/cosmic-life-v7-left.webp");
   --topic-card-image: url("/cosmic-life-v7-left.webp");
