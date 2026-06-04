@@ -2085,7 +2085,7 @@ select {
 .writing-archive {
   position: relative;
   max-width: 880px;
-  margin-top: clamp(2.15rem, 5vw, 4rem);
+  margin-top: clamp(2.4rem, 5vw, 4rem);
   padding-top: clamp(0.35rem, 1vw, 0.6rem);
   border-top: 1px solid rgb(var(--topic-accent) / 0.16);
   padding-left: clamp(0rem, 2.2vw, 1.5rem);
@@ -3630,5 +3630,11 @@ html[data-theme="dark"] a {
 
   .world-enter-cue {
     display: none;
+  }
+
+  /* Prevent iOS sticky-hover from highlighting multiple nav items at once */
+  .site-nav-primary a:not(.is-active):hover {
+    background: none;
+    color: rgba(255, 247, 234, 0.72);
   }
 }
