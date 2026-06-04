@@ -42,8 +42,8 @@ export default function ProjectsPage() {
                   <span className="project-row-copy">
                     <strong>{project.title}</strong>
                     <span>{project.description}</span>
-                    <em>Open project</em>
                   </span>
+                  <em>Open project</em>
                 </a>
               ))}
             </section>

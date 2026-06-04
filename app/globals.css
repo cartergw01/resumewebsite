@@ -51,6 +51,7 @@ body {
   min-height: 100%;
   margin: 0;
   overflow-x: clip;
+  overscroll-behavior: none;
 }
 
 .legacy-work-root {
@@ -377,11 +378,22 @@ select {
   justify-content: center;
   padding: 0 10px;
   color: rgba(255, 247, 234, 0.58);
+  transition: color 150ms var(--cw-ease), background 150ms var(--cw-ease), transform 200ms var(--cw-ease);
+}
+
+.site-nav-social a svg {
+  transition: transform 200ms var(--cw-ease), filter 200ms var(--cw-ease);
 }
 
 .site-nav-social a:hover {
   color: var(--cw-paper);
-  background: rgba(255, 247, 234, 0.08);
+  background: rgba(255, 247, 234, 0.09);
+  transform: translateY(-2px);
+}
+
+.site-nav-social a:hover svg {
+  transform: scale(1.18);
+  filter: drop-shadow(0 0 5px rgba(255, 247, 234, 0.35));
 }
 
 /* Landing page */
@@ -522,7 +534,7 @@ select {
 
 .cosmic-sky {
   position: fixed;
-  inset: -14vmax;
+  inset: -14svmax;
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -1272,7 +1284,6 @@ select {
   background-position: center bottom;
   background-repeat: no-repeat;
   background-size: contain;
-  filter: drop-shadow(0 1.2rem 2.25rem rgba(0, 0, 0, 0.46));
   opacity: 0.96;
   transform: none;
 }
@@ -2215,7 +2226,7 @@ select {
 
 .project-row {
   display: grid;
-  grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1fr) auto;
   gap: clamp(1rem, 3vw, 2.4rem);
   align-items: center;
   border-bottom: 1px solid rgb(var(--topic-accent) / 0.14);
@@ -2305,9 +2316,11 @@ select {
   text-wrap: pretty;
 }
 
-.project-row-copy em {
+.project-row > em {
+  align-self: center;
+  justify-self: end;
   width: fit-content;
-  margin-top: clamp(0.2rem, 0.8vw, 0.45rem);
+  white-space: nowrap;
   border-bottom: 1px solid rgb(var(--topic-warm) / 0.36);
   color: rgba(255, 247, 234, 0.82);
   font-size: var(--type-caption);
@@ -2757,8 +2770,8 @@ select {
     max-width: none;
   }
 
-  .subpage-projects .project-row-copy em {
-    margin-top: 0.2rem;
+  .subpage-projects .project-row > em {
+    justify-self: end;
     font-size: 0.66rem;
   }
 
@@ -3477,7 +3490,7 @@ select {
   }
 
   .world-enter-cue {
-    font-size: 0.78rem;
+    display: none;
   }
 
 }

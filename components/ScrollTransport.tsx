@@ -68,7 +68,15 @@ export default function ScrollTransport() {
 
     updateHeroCopy();
     window.addEventListener("scroll", scheduleHeroUpdate, { passive: true });
-    window.addEventListener("resize", scheduleHeroUpdate);
+
+    let lastWidth = window.innerWidth;
+    const onResize = () => {
+      if (window.innerWidth !== lastWidth) {
+        lastWidth = window.innerWidth;
+        scheduleHeroUpdate();
+      }
+    };
+    window.addEventListener("resize", onResize);
 
     if ("IntersectionObserver" in window) {
       worldObserver = new IntersectionObserver(
@@ -95,7 +103,7 @@ export default function ScrollTransport() {
     return () => {
       worldObserver?.disconnect();
       window.removeEventListener("scroll", scheduleHeroUpdate);
-      window.removeEventListener("resize", scheduleHeroUpdate);
+      window.removeEventListener("resize", onResize);
       if (heroFrame) {
         window.cancelAnimationFrame(heroFrame);
       }

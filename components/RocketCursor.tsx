@@ -101,6 +101,11 @@ export function RocketCursor() {
     let warpStartMs = 0;
     let warpBurstDone = false;
 
+    // ── Jetpack state ─────────────────────────────────────────────────────────
+    let jetpackOffsetY = 0;
+    let jetpackVelY = 0;
+    let jetpackFiringUntil = 0;
+
     const particles: Particle[]  = [];
     const streaks:   Streak[]    = [];
     const shockwaves: Shockwave[] = [];
@@ -120,6 +125,32 @@ export function RocketCursor() {
 
     document.addEventListener("mousemove",  onMouseMove);
     document.addEventListener("mouseleave", onMouseLeave);
+
+    // ── Jetpack fire on click ─────────────────────────────────────────────────
+    const onJetpackFire = () => {
+      if (isLaunching) return;
+      jetpackVelY = -13;
+      jetpackFiringUntil = performance.now() + 110;
+      // Burst of downward thrust particles from exhaust
+      const burstCount = Math.min(PARTICLE_CAP - particles.length, 7);
+      for (let i = 0; i < burstCount; i++) {
+        particles.push({
+          x:       exhaustX + (Math.random() - 0.5) * 4,
+          y:       exhaustY + (Math.random() - 0.5) * 3,
+          vx:      (Math.random() - 0.5) * 1.0,
+          vy:      1.8 + Math.random() * 2.8,
+          size:    0.7 + Math.random() * 2.0,
+          life:    0,
+          maxLife: 16 + Math.random() * 12,
+          r:       255,
+          g:       120 + Math.floor(Math.random() * 90),
+          b:       10  + Math.floor(Math.random() * 20),
+        });
+      }
+      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 38, life: 0, maxLife: 12, r: 255, g: 150, b: 50 });
+    };
+
+    document.addEventListener("mousedown", onJetpackFire);
 
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
@@ -185,6 +216,8 @@ export function RocketCursor() {
         hoverScale = 1 + eased * 2.2;
         hoverRingAlpha = 0;
         speed = 0;
+        jetpackOffsetY = 0;
+        jetpackVelY    = 0;
       } else {
         // Cursor follows mouse instantly — no position lag
         const rawVelX = mouseX - prevMouseX;
@@ -193,6 +226,12 @@ export function RocketCursor() {
         prevMouseY = mouseY;
         cursorX = mouseX;
         cursorY = mouseY;
+
+        // Spring physics for jetpack bounce
+        jetpackVelY += (0 - jetpackOffsetY) * 0.22;
+        jetpackVelY *= 0.65;
+        jetpackOffsetY += jetpackVelY;
+        if (Math.abs(jetpackOffsetY) < 0.08 && Math.abs(jetpackVelY) < 0.04) jetpackOffsetY = 0;
 
         // Smooth velocity separately — only used for tilt, not position
         smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
@@ -227,7 +266,7 @@ export function RocketCursor() {
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
       const tiltCorrX = Math.sin(angle * (Math.PI / 180)) * exhaustOffset;
       rocket.style.transform =
-        `translate(${cursorX - ROCKET_PIVOT_X + tiltCorrX}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
+        `translate(${cursorX - ROCKET_PIVOT_X + tiltCorrX}px, ${cursorY - ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
       // Only write filter when it actually changes — avoids redundant GPU work
       const nextFilter = (isHovering || isLaunching)
         ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
@@ -239,7 +278,7 @@ export function RocketCursor() {
       // so the canvas flame at (cursorX, cursorY+exhaustOffset) is always
       // pixel-perfect at the engine bell — on every page, at every speed.
       exhaustX = cursorX;
-      exhaustY = cursorY + exhaustOffset;
+      exhaustY = cursorY + jetpackOffsetY + exhaustOffset;
       const pDirX = 0;   // always straight down
       const pDirY = 1;
       const perpX = 1;   // horizontal cone spread
@@ -256,9 +295,10 @@ export function RocketCursor() {
 
       const flicker  = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
       const flutter  = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
+      const jetpackBoost = now < jetpackFiringUntil ? (jetpackFiringUntil - now) / 110 : 0;
       const plumeStr = isLaunching
         ? Math.min(0.45 + Math.min((now - launchStartMs) / LAUNCH_DURATION, 1) * 0.55, 1.0)
-        : 0.45 + Math.min(speed / 8, 1) * 0.55;
+        : 0.45 + Math.min(speed / 8, 1) * 0.55 + jetpackBoost * 0.45;
 
       const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
         const lx = exhaustX + perpX * hw;
@@ -476,6 +516,7 @@ export function RocketCursor() {
       window.removeEventListener("resize",          onResize);
       document.removeEventListener("mousemove",     onMouseMove);
       document.removeEventListener("mouseleave",    onMouseLeave);
+      document.removeEventListener("mousedown",     onJetpackFire);
       document.removeEventListener("click",         onNavClick, true);
       document.removeEventListener("visibilitychange", onVisibility);
     };
