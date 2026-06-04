@@ -3385,20 +3385,26 @@ select {
 
 /* "Enter" cue fades in below the world title on hover */
 .world-enter-cue {
-  display: block;
-  margin-top: 0.3rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  color: rgba(255, 247, 234, 0.45);
-  opacity: 0;
-  transform: translateY(5px);
-  transition: opacity 260ms var(--cw-ease), transform 260ms var(--cw-ease);
+  display: none;
 }
 
-.cosmic-home .world-card:hover .world-enter-cue {
-  opacity: 1;
-  transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+  .world-enter-cue {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    color: rgba(255, 247, 234, 0.45);
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity 260ms var(--cw-ease), transform 260ms var(--cw-ease);
+  }
+
+  .cosmic-home .world-card:hover .world-enter-cue {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 760px) {
