@@ -7,122 +7,158 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function OpenGraphImage() {
+// Dynamic so Satori can fetch the hero image and fonts at request time
+export const dynamic = "force-dynamic";
+
+const HERO_URL = "https://carterkowang.com/cosmic-hero-v6-sharp.webp";
+
+export default async function OpenGraphImage() {
+  // Fetch Playfair Display 700 — Firefox 27 UA returns WOFF which Satori supports
+  let playfairData: ArrayBuffer | null = null;
+  try {
+    const cssRes = await fetch(
+      "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap",
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0",
+        },
+      }
+    );
+    const css = await cssRes.text();
+    const url = css.match(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/)?.[1];
+    if (url) playfairData = await fetch(url).then((r) => r.arrayBuffer());
+  } catch {
+    // fall back to serif
+  }
+
   return new ImageResponse(
     (
       <div
         style={{
-          background:
-            "radial-gradient(circle at top left, rgba(63, 120, 255, 0.45), transparent 34%), radial-gradient(circle at 82% 18%, rgba(255, 139, 75, 0.24), transparent 22%), linear-gradient(180deg, #0d2037 0%, #08111f 100%)",
-          color: "#ecf4ff",
+          width: 1200,
+          height: 630,
           display: "flex",
-          height: "100%",
-          padding: "56px",
           position: "relative",
-          width: "100%",
+          background: "#010208",
+          overflow: "hidden",
         }}
       >
+        {/* Hero background — Satori fetches this URL directly */}
+        <img
+          src={HERO_URL}
+          alt=""
+          width={1200}
+          height={630}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+          }}
+        />
+
+        {/* Top-to-bottom vignette */}
         <div
           style={{
-            border: "1px solid rgba(137, 172, 214, 0.18)",
-            borderRadius: 34,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              "linear-gradient(180deg, rgba(1,2,8,0.28) 0%, rgba(1,2,8,0.04) 38%, rgba(1,2,8,0.72) 100%)",
             display: "flex",
-            flex: 1,
+          }}
+        />
+
+        {/* Radial edge darkening */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background:
+              "radial-gradient(ellipse at 50% 46%, transparent 36%, rgba(1,2,8,0.44) 70%, rgba(1,2,8,0.78) 100%)",
+            display: "flex",
+          }}
+        />
+
+        {/* Centred name + tagline */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            overflow: "hidden",
-            padding: "42px 44px",
-            position: "relative",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 22,
           }}
         >
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(255, 139, 75, 0.16), rgba(12, 28, 48, 0.02))",
-              inset: 0,
-              position: "absolute",
+              fontFamily: playfairData ? "Playfair Display" : "serif",
+              fontSize: 108,
+              fontWeight: 700,
+              color: "#f5f8ff",
+              lineHeight: 1,
+              letterSpacing: "-2px",
+              display: "flex",
             }}
-          />
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 18, position: "relative" }}>
-            <div
-              style={{
-                color: "rgba(214, 228, 245, 0.76)",
-                display: "flex",
-                fontSize: 28,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
-            >
-              Carter Wang
-            </div>
-            <div
-              style={{
-                display: "flex",
-                fontSize: 82,
-                fontWeight: 700,
-                letterSpacing: "-0.06em",
-                lineHeight: 1,
-                maxWidth: 760,
-              }}
-            >
-              venture, writing, and personal portfolio
-            </div>
+          >
+            Carter Wang
           </div>
 
           <div
             style={{
-              alignItems: "flex-end",
+              fontSize: 25,
+              fontWeight: 400,
+              color: "rgba(236,244,255,0.62)",
+              letterSpacing: "3px",
               display: "flex",
-              justifyContent: "space-between",
-              position: "relative",
             }}
           >
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 690 }}>
-              <div
-                style={{
-                  color: "rgba(236, 244, 255, 0.84)",
-                  display: "flex",
-                  fontSize: 30,
-                  lineHeight: 1.35,
-                }}
-              >
-                venture associate at 886 studios, former contrary research fellow, and essays on tech, culture, and
-                human nature.
-              </div>
-              <div
-                style={{
-                  color: "#ff8b4b",
-                  display: "flex",
-                  fontSize: 24,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                portfolio-website-cartergw01s-projects.vercel.app
-              </div>
-            </div>
-
-            <div
-              style={{
-                alignItems: "center",
-                border: "1px solid rgba(255, 139, 75, 0.42)",
-                borderRadius: 28,
-                display: "flex",
-                height: 120,
-                justifyContent: "center",
-                minWidth: 120,
-                fontSize: 44,
-                fontWeight: 700,
-                letterSpacing: "-0.08em",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-              }}
-            >
-              CW
-            </div>
+            WORKING IN TAIPEI · WRITING · BUILDING
           </div>
+        </div>
+
+        {/* Domain */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: 42,
+            left: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "center",
+            fontSize: 18,
+            color: "rgba(236,244,255,0.34)",
+            letterSpacing: "3px",
+          }}
+        >
+          CARTERKOWANG.COM
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      fonts: playfairData
+        ? [
+            {
+              name: "Playfair Display",
+              data: playfairData,
+              weight: 700,
+              style: "normal",
+            },
+          ]
+        : [],
+    }
   );
 }
