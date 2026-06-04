@@ -32,7 +32,7 @@ const LERP_SCALE       = 0.50;
 const VEL_SMOOTH       = 0.30;  // velocity smoothing (for tilt only, not position)
 const MAX_TILT_DEG     = 10;
 const PARTICLE_CAP     = 240;
-const STREAK_SPEED     = 7;
+const STREAK_SPEED     = 18;  // only at very fast flicks, not normal scrolling
 const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
@@ -152,6 +152,11 @@ export function RocketCursor() {
         // Teleport cursor back to mouse so warp-in plays at cursor position
         cursorX = mouseX;
         cursorY = mouseY;
+        // Reset velocity tracking — prevents spike on first frame of new page
+        prevMouseX  = mouseX;
+        prevMouseY  = mouseY;
+        smoothVelX  = 0;
+        smoothVelY  = 0;
         isLaunching  = false;
         isWarpingIn  = true;
         warpStartMs  = performance.now();
@@ -300,17 +305,20 @@ export function RocketCursor() {
       ctx.fillStyle = bellGlow;
       ctx.fill();
 
-      // ── Exhaust particles ─────────────────────────────────────────────────
-      const emitCount = isLaunching ? 5 : speed > 5 ? 2 : speed > 0.7 ? 1 : 0;
+      // ── Exhaust particles (launch only) ───────────────────────────────────
+      // During normal movement, particles from prior frames drift left/right
+      // of the current cursor and create a misleading off-center glow blob.
+      // Particles are only emitted during launch where the effect is intentional.
+      const emitCount = isLaunching ? 5 : 0;
       if (particles.length < PARTICLE_CAP && emitCount > 0) {
         for (let i = 0; i < emitCount; i++) {
-          const driftSpd = 0.10 + Math.random() * (isLaunching ? 0.45 : 0.13);
+          const driftSpd = 0.10 + Math.random() * 0.45;
           particles.push({
             x:       tipX + (Math.random() - 0.5) * 4,
             y:       tipY + (Math.random() - 0.5) * 4,
             vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.12,
             vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.12,
-            size:    0.38 + Math.random() * (isLaunching ? 2.5 : 0.80),
+            size:    0.38 + Math.random() * 2.5,
             life:    0,
             maxLife: 28 + Math.random() * 22,
             r:       255,
