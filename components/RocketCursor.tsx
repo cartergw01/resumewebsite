@@ -27,9 +27,9 @@ interface Shockwave {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_POS         = 0.82;
-const LERP_ANGLE       = 0.40;
+const LERP_ANGLE       = 0.55;  // snappier tilt response
 const LERP_SCALE       = 0.50;
+const VEL_SMOOTH       = 0.30;  // velocity smoothing (for tilt only, not position)
 const MAX_TILT_DEG     = 10;
 const PARTICLE_CAP     = 240;
 const STREAK_SPEED     = 7;
@@ -75,9 +75,9 @@ export function RocketCursor() {
 
     // ── State ─────────────────────────────────────────────────────────────────
     let mouseX = -200, mouseY = -200;
+    let prevMouseX = -200, prevMouseY = -200;  // for frame-to-frame delta
     let cursorX = -200, cursorY = -200;
-    let prevX = -200, prevY = -200;
-    let velX = 0, velY = 0;
+    let smoothVelX = 0, smoothVelY = 0;        // smoothed velocity (tilt only)
     let speed = 0;
     let angle = 0;
     let targetAngle = 0;
@@ -106,20 +106,12 @@ export function RocketCursor() {
     const shockwaves: Shockwave[] = [];
 
     // ── Mouse tracking ────────────────────────────────────────────────────────
+    // Only record coordinates here — hover check runs in rAF (throttled) so
+    // elementFromPoint never blocks the mousemove event.
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
       if (!isLaunching) rocket.style.opacity = "1";
-
-      const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
-      if (el) {
-        const style = window.getComputedStyle(el);
-        isHovering =
-          style.cursor === "pointer" ||
-          !!el.closest("a, button, [role='button'], [data-cursor-hover]");
-      } else {
-        isHovering = false;
-      }
     };
 
     const onMouseLeave = () => {
@@ -184,37 +176,58 @@ export function RocketCursor() {
 
         cursorX    = launchFromX;
         cursorY    = launchFromY - (launchFromY + 160) * eased;
-        angle      = launchAngleStart * Math.max(0, 1 - rawT * 5); // snap straight up fast
+        angle      = launchAngleStart * Math.max(0, 1 - rawT * 5);
         hoverScale = 1 + eased * 2.2;
         hoverRingAlpha = 0;
         speed = 0;
       } else {
-        prevX   = cursorX;
-        prevY   = cursorY;
-        cursorX += (mouseX - cursorX) * LERP_POS;
-        cursorY += (mouseY - cursorY) * LERP_POS;
-        velX  = cursorX - prevX;
-        velY  = cursorY - prevY;
-        speed = Math.sqrt(velX * velX + velY * velY);
+        // Cursor follows mouse instantly — no position lag
+        const rawVelX = mouseX - prevMouseX;
+        const rawVelY = mouseY - prevMouseY;
+        prevMouseX = mouseX;
+        prevMouseY = mouseY;
+        cursorX = mouseX;
+        cursorY = mouseY;
+
+        // Smooth velocity separately — only used for tilt, not position
+        smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
+        smoothVelY += (rawVelY - smoothVelY) * VEL_SMOOTH;
+        speed = Math.sqrt(smoothVelX * smoothVelX + smoothVelY * smoothVelY);
 
         if (speed > 0.25) {
-          const raw = Math.atan2(velX, -velY) * (180 / Math.PI);
-          const tiltBlend = Math.min(speed / 10, 1);
+          const raw = Math.atan2(smoothVelX, -smoothVelY) * (180 / Math.PI);
+          const tiltBlend = Math.min(speed / 8, 1);
           targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
         } else {
           targetAngle *= 0.72;
         }
-        angle      += (targetAngle - angle)          * LERP_ANGLE;
-        hoverScale += ((isHovering ? 1.28 : 1) - hoverScale)   * LERP_SCALE;
+        angle      += (targetAngle - angle) * LERP_ANGLE;
+        hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * LERP_SCALE;
         hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.10;
+
+        // Hover check — runs in rAF every 3 frames so elementFromPoint never
+        // blocks mousemove. ~50ms cadence at 60fps, imperceptible to users.
+        if (frameCount % 3 === 0) {
+          const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
+          if (el) {
+            const style = window.getComputedStyle(el);
+            isHovering =
+              style.cursor === "pointer" ||
+              !!el.closest("a, button, [role='button'], [data-cursor-hover]");
+          } else {
+            isHovering = false;
+          }
+        }
       }
 
       // ── Rocket element ────────────────────────────────────────────────────
       rocket.style.transform =
         `translate(${cursorX - ROCKET_PIVOT_X}px, ${cursorY - ROCKET_PIVOT_Y}px) rotate(${angle}deg) scale(${hoverScale})`;
-      rocket.style.filter = (isHovering || isLaunching)
+      // Only write filter when it actually changes — avoids redundant GPU work
+      const nextFilter = (isHovering || isLaunching)
         ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
         : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
+      if (rocket.style.filter !== nextFilter) rocket.style.filter = nextFilter;
 
       // ── Engine plume ──────────────────────────────────────────────────────
       // All vectors derived from the same angle so the flame position, direction,
@@ -343,8 +356,8 @@ export function RocketCursor() {
           streaks.push({
             x:   cursorX + scatter,
             y:   cursorY + scatter,
-            dx:  -(velX / speed),
-            dy:  -(velY / speed),
+            dx:  -(smoothVelX / speed),
+            dy:  -(smoothVelY / speed),
             len: speed * 2.5 + 10 + Math.random() * 12,
             life: 0,
             maxLife: 8 + Math.random() * 6,
