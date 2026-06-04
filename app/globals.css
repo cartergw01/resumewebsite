@@ -3372,11 +3372,11 @@ select {
   margin-top: 0.3rem;
   font-size: 0.78rem;
   letter-spacing: 0.1em;
+  text-decoration: none;
   color: rgba(255, 247, 234, 0.45);
   opacity: 0;
   transform: translateY(5px);
   transition: opacity 260ms var(--cw-ease), transform 260ms var(--cw-ease);
-  pointer-events: none;
 }
 
 .cosmic-home .world-card:hover .world-enter-cue {

@@ -70,7 +70,7 @@ function ConstellationNode({ world }: { world: World }) {
           </Link>
         </h2>
         <div className="world-copy">{world.copy}</div>
-        <span className="world-enter-cue" aria-hidden="true">View →</span>
+        <Link href={world.href} className="world-enter-cue" tabIndex={-1} aria-hidden="true">View →</Link>
       </div>
     </article>
   );
