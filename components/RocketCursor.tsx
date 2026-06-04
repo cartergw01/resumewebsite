@@ -30,7 +30,7 @@ interface Shockwave {
 const LERP_POS         = 0.82;
 const LERP_ANGLE       = 0.40;
 const LERP_SCALE       = 0.50;
-const MAX_TILT_DEG     = 28;
+const MAX_TILT_DEG     = 10;
 const PARTICLE_CAP     = 240;
 const STREAK_SPEED     = 7;
 const STREAK_EVERY     = 2;
@@ -217,22 +217,18 @@ export function RocketCursor() {
         : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
 
       // ── Engine plume ──────────────────────────────────────────────────────
-      // Engine position follows the rocket tilt so the flame attaches correctly.
-      // Flame direction is always straight down — keeps the fire at the bottom
-      // regardless of which way the rocket is leaning.
+      // All vectors derived from the same angle so the flame position, direction,
+      // and spread all align with the engine bell. MAX_TILT_DEG is kept small (10°)
+      // so the engine never drifts far from center-bottom — flame stays attached.
       const rad    = angle * (Math.PI / 180);
-      const engDirX = -Math.sin(rad);   // where the engine actually points
-      const engDirY =  Math.cos(rad);
+      const pDirX  = -Math.sin(rad);
+      const pDirY  =  Math.cos(rad);
+      const perpX  =  Math.cos(rad);
+      const perpY  =  Math.sin(rad);
 
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-      exhaustX = cursorX + engDirX * exhaustOffset;  // attached to tilted engine
-      exhaustY = cursorY + engDirY * exhaustOffset;
-
-      // Flame always exits straight down (world space), never to the side
-      const pDirX = 0;
-      const pDirY = 1;
-      const perpX = 1;
-      const perpY = 0;
+      exhaustX = cursorX + pDirX * exhaustOffset;
+      exhaustY = cursorY + pDirY * exhaustOffset;
 
       let launchBoost = 0;
       if (isLaunching) {
