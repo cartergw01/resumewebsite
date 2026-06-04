@@ -212,16 +212,11 @@ export function RocketCursor() {
 
         // Hover check — runs in rAF every 3 frames so elementFromPoint never
         // blocks mousemove. ~50ms cadence at 60fps, imperceptible to users.
-        if (frameCount % 3 === 0) {
+        // Check hover every 4 frames (~66ms at 60fps). Pure DOM closest()
+        // — no getComputedStyle, no style recalc, much cheaper on busy pages.
+        if (frameCount % 4 === 0) {
           const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
-          if (el) {
-            const style = window.getComputedStyle(el);
-            isHovering =
-              style.cursor === "pointer" ||
-              !!el.closest("a, button, [role='button'], [data-cursor-hover]");
-          } else {
-            isHovering = false;
-          }
+          isHovering = !!el?.closest("a, button, [role='button'], [data-cursor-hover]");
         }
       }
 

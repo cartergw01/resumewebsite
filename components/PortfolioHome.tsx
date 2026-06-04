@@ -532,6 +532,7 @@ export default function PortfolioHome() {
                     alt="Carter Wang headshot"
                     src="/headshot.jpg"
                     fill
+                    priority
                     sizes="(min-width: 1024px) 520px, 100vw"
                     className="object-cover object-[center_25%]"
                   />
