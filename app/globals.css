@@ -843,7 +843,6 @@ select {
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  filter: drop-shadow(0 2rem 4rem rgba(0, 0, 0, 0.46));
   opacity: 0.94;
   transform: translate3d(0, -50%, 0);
   pointer-events: none;
