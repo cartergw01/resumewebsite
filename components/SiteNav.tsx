@@ -57,38 +57,34 @@ function externalLinkProps(href: string) {
 export default function SiteNav({ active = "home" }: SiteNavProps) {
   return (
     <header className="site-nav">
-      <div className="site-nav-pill">
-        <nav aria-label="Primary navigation" className="site-nav-primary">
-          {active !== "home" && (
-            <Link href="/">Home</Link>
-          )}
-          {primaryLinks.map((link) => (
-            <Link
-              key={link.id}
-              href={link.href}
-              className={active === link.id ? "is-active" : undefined}
-              aria-current={active === link.id ? "page" : undefined}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
+      <nav aria-label="Primary navigation" className="site-nav-primary">
+        {active !== "home" && (
+          <Link href="/">Home</Link>
+        )}
+        {primaryLinks.map((link) => (
+          <Link
+            key={link.id}
+            href={link.href}
+            className={active === link.id ? "is-active" : undefined}
+            aria-current={active === link.id ? "page" : undefined}
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
 
-        <span className="site-nav-divider" aria-hidden="true" />
-
-        <nav aria-label="Social links" className="site-nav-social">
-          {socialLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              aria-label={link.label}
-              {...externalLinkProps(link.href)}
-            >
-              {link.icon}
-            </a>
-          ))}
-        </nav>
-      </div>
+      <nav aria-label="Social links" className="site-nav-social">
+        {socialLinks.map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            aria-label={link.label}
+            {...externalLinkProps(link.href)}
+          >
+            {link.icon}
+          </a>
+        ))}
+      </nav>
     </header>
   );
 }
