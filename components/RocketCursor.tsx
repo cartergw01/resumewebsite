@@ -129,8 +129,7 @@ export function RocketCursor() {
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = () => {
       if (isLaunching) return;
-      jetpackVelY = -52;
-      jetpackFiringUntil = performance.now() + 180;
+      jetpackFiringUntil = performance.now() + 420;  // sustained burn
       // Burst of downward thrust particles from exhaust
       const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
       for (let i = 0; i < burstCount; i++) {
@@ -226,11 +225,17 @@ export function RocketCursor() {
         cursorX = mouseX;
         cursorY = mouseY;
 
-        // Spring physics for jetpack bounce
-        jetpackVelY += (0 - jetpackOffsetY) * 0.07;
-        jetpackVelY *= 0.78;
+        // Jetpack: burn phase → powered ascent, then soft drift back
+        if (now < jetpackFiringUntil) {
+          // Sustained thrust — accelerate upward, cap at terminal velocity
+          jetpackVelY = Math.max(jetpackVelY - 1.2, -4.2);
+        } else {
+          // Engines off — very soft spring pulls rocket back to cursor
+          jetpackVelY += (0 - jetpackOffsetY) * 0.028;
+          jetpackVelY *= 0.91;
+        }
         jetpackOffsetY += jetpackVelY;
-        if (Math.abs(jetpackOffsetY) < 0.1 && Math.abs(jetpackVelY) < 0.05) jetpackOffsetY = 0;
+        if (Math.abs(jetpackOffsetY) < 0.12 && Math.abs(jetpackVelY) < 0.06) jetpackOffsetY = 0;
 
         // Smooth velocity separately — only used for tilt, not position
         smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
@@ -294,7 +299,8 @@ export function RocketCursor() {
 
       const flicker  = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
       const flutter  = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
-      const jetpackBoost = now < jetpackFiringUntil ? (jetpackFiringUntil - now) / 110 : 0;
+      const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 420 : 0;
+      const jetpackBoost  = Math.min(jetpackBurnT * 1.4, 1);
       const plumeStr = isLaunching
         ? Math.min(0.45 + Math.min((now - launchStartMs) / LAUNCH_DURATION, 1) * 0.55, 1.0)
         : 0.45 + Math.min(speed / 8, 1) * 0.55 + jetpackBoost * 0.45;
