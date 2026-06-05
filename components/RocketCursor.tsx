@@ -129,25 +129,26 @@ export function RocketCursor() {
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = () => {
       if (isLaunching) return;
-      jetpackVelY = -13;
-      jetpackFiringUntil = performance.now() + 110;
+      jetpackVelY = -52;
+      jetpackFiringUntil = performance.now() + 180;
       // Burst of downward thrust particles from exhaust
-      const burstCount = Math.min(PARTICLE_CAP - particles.length, 7);
+      const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
       for (let i = 0; i < burstCount; i++) {
         particles.push({
-          x:       exhaustX + (Math.random() - 0.5) * 4,
-          y:       exhaustY + (Math.random() - 0.5) * 3,
-          vx:      (Math.random() - 0.5) * 1.0,
-          vy:      1.8 + Math.random() * 2.8,
-          size:    0.7 + Math.random() * 2.0,
+          x:       exhaustX + (Math.random() - 0.5) * 6,
+          y:       exhaustY + (Math.random() - 0.5) * 4,
+          vx:      (Math.random() - 0.5) * 2.0,
+          vy:      2.5 + Math.random() * 4.5,
+          size:    1.0 + Math.random() * 2.8,
           life:    0,
-          maxLife: 16 + Math.random() * 12,
+          maxLife: 22 + Math.random() * 18,
           r:       255,
           g:       120 + Math.floor(Math.random() * 90),
           b:       10  + Math.floor(Math.random() * 20),
         });
       }
-      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 38, life: 0, maxLife: 12, r: 255, g: 150, b: 50 });
+      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 60, life: 0, maxLife: 16, r: 255, g: 150, b: 50 });
+      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 38, life: 0, maxLife: 10, r: 255, g: 220, b: 120 });
     };
 
     document.addEventListener("mousedown", onJetpackFire);
@@ -228,10 +229,10 @@ export function RocketCursor() {
         cursorY = mouseY;
 
         // Spring physics for jetpack bounce
-        jetpackVelY += (0 - jetpackOffsetY) * 0.22;
-        jetpackVelY *= 0.65;
+        jetpackVelY += (0 - jetpackOffsetY) * 0.07;
+        jetpackVelY *= 0.78;
         jetpackOffsetY += jetpackVelY;
-        if (Math.abs(jetpackOffsetY) < 0.08 && Math.abs(jetpackVelY) < 0.04) jetpackOffsetY = 0;
+        if (Math.abs(jetpackOffsetY) < 0.1 && Math.abs(jetpackVelY) < 0.05) jetpackOffsetY = 0;
 
         // Smooth velocity separately — only used for tilt, not position
         smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
