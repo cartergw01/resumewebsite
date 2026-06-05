@@ -147,8 +147,6 @@ export function RocketCursor() {
           b:       10  + Math.floor(Math.random() * 20),
         });
       }
-      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 60, life: 0, maxLife: 16, r: 255, g: 150, b: 50 });
-      shockwaves.push({ x: exhaustX, y: exhaustY, radius: 0, maxRadius: 38, life: 0, maxLife: 10, r: 255, g: 220, b: 120 });
     };
 
     document.addEventListener("mousedown", onJetpackFire);
