@@ -127,8 +127,14 @@ export function RocketCursor() {
     document.addEventListener("mouseleave", onMouseLeave);
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
-    const onJetpackFire = () => {
+    const onJetpackFire = (e: MouseEvent) => {
       if (isLaunching) return;
+      // Skip jetpack on internal nav links — the launch animation handles those
+      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+      if (link) {
+        const href = link.getAttribute("href") ?? "";
+        if (href && !href.startsWith("#") && !/^https?:/.test(href) && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
+      }
       jetpackFiringUntil = performance.now() + 420;  // sustained burn
       // Burst of downward thrust particles from exhaust
       const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
