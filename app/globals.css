@@ -362,7 +362,7 @@ select {
   font-weight: 600;
   letter-spacing: 0.01em;
   text-decoration: none;
-  transition: color 150ms var(--cw-ease), background 150ms var(--cw-ease);
+  transition: color 150ms var(--cw-ease), background 150ms var(--cw-ease), transform 200ms var(--cw-ease), text-shadow 200ms var(--cw-ease);
   white-space: nowrap;
 }
 
@@ -370,6 +370,11 @@ select {
 .site-nav a.is-active {
   color: var(--cw-paper);
   background: rgba(255, 247, 234, 0.10);
+}
+
+.site-nav-primary a:hover {
+  transform: translateY(-2px);
+  text-shadow: 0 0 12px rgba(255, 247, 234, 0.40);
 }
 
 .site-nav-social a {
