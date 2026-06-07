@@ -27,9 +27,9 @@ interface Shockwave {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LERP_ANGLE       = 0.55;  // snappier tilt response
-const LERP_SCALE       = 0.50;
-const VEL_SMOOTH       = 0.30;  // velocity smoothing (for tilt only, not position)
+const LERP_ANGLE       = 0.78;  // fast tilt response
+const LERP_SCALE       = 0.68;  // fast hover scale
+const VEL_SMOOTH       = 0.52;  // velocity smoothing (for tilt only, not position)
 const MAX_TILT_DEG     = 10;
 const PARTICLE_CAP     = 240;
 const STREAK_SPEED     = 18;  // only at very fast flicks, not normal scrolling
@@ -135,7 +135,7 @@ export function RocketCursor() {
         const href = link.getAttribute("href") ?? "";
         if (href && !href.startsWith("#") && !/^https?:/.test(href) && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
       }
-      jetpackFiringUntil = performance.now() + 420;  // sustained burn
+      jetpackFiringUntil = performance.now() + 260;  // sustained burn
       // Burst of downward thrust particles from exhaust
       const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
       for (let i = 0; i < burstCount; i++) {
@@ -253,17 +253,14 @@ export function RocketCursor() {
           const tiltBlend = Math.min(speed / 8, 1);
           targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
         } else {
-          targetAngle *= 0.72;
+          targetAngle *= 0.80;
         }
         angle      += (targetAngle - angle) * LERP_ANGLE;
         hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * LERP_SCALE;
-        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.10;
+        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.18;
 
-        // Hover check — runs in rAF every 3 frames so elementFromPoint never
-        // blocks mousemove. ~50ms cadence at 60fps, imperceptible to users.
-        // Check hover every 4 frames (~66ms at 60fps). Pure DOM closest()
-        // — no getComputedStyle, no style recalc, much cheaper on busy pages.
-        if (frameCount % 4 === 0) {
+        // Hover check every 2 frames (~33ms at 60fps) — snappy hover detection.
+        if (frameCount % 2 === 0) {
           const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
           isHovering = !!el?.closest("a, button, [role='button'], [data-cursor-hover]");
         }
@@ -305,7 +302,7 @@ export function RocketCursor() {
 
       const flicker  = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
       const flutter  = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
-      const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 420 : 0;
+      const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 260 : 0;
       const jetpackBoost  = Math.min(jetpackBurnT * 1.4, 1);
       const plumeStr = isLaunching
         ? Math.min(0.45 + Math.min((now - launchStartMs) / LAUNCH_DURATION, 1) * 0.55, 1.0)
