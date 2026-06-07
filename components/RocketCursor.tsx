@@ -42,7 +42,8 @@ const WARP_IN_DURATION = 340;   // ms
 
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rocketRef = useRef<HTMLDivElement>(null);
+  const posRef    = useRef<HTMLDivElement>(null);   // position — updated in mousemove (zero lag)
+  const rocketRef = useRef<HTMLDivElement>(null);   // tilt / scale / effects — updated in rAF
   const router = useRouter();
   const routerRef = useRef(router);
   routerRef.current = router;
@@ -53,8 +54,9 @@ export function RocketCursor() {
     if (prefersReduced) return;
 
     const canvas = canvasRef.current;
+    const pos    = posRef.current;
     const rocket = rocketRef.current;
-    if (!canvas || !rocket) return;
+    if (!canvas || !pos || !rocket) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -116,7 +118,11 @@ export function RocketCursor() {
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
-      if (!isLaunching) rocket.style.opacity = "1";
+      if (!isLaunching) {
+        // Update position immediately — no rAF lag for the cursor itself
+        pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
+        rocket.style.opacity = "1";
+      }
     };
 
     const onMouseLeave = () => {
@@ -259,26 +265,25 @@ export function RocketCursor() {
         hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * LERP_SCALE;
         hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.18;
 
-        // Hover check every 2 frames (~33ms at 60fps) — snappy hover detection.
-        if (frameCount % 2 === 0) {
+        // Hover check every 4 frames (~66ms at 60fps) — imperceptible, avoids layout thrash.
+        if (frameCount % 4 === 0) {
           const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
           isHovering = !!el?.closest("a, button, [role='button'], [data-cursor-hover]");
         }
       }
 
       // ── Rocket element ────────────────────────────────────────────────────
-      // exhaustOffset is computed first so the tilt-correction translate can
-      // use it — this keeps the engine bell pinned to cursorX regardless of
-      // how much the rocket leans. The nose tips left/right; the bottom never drifts.
+      // pos outer wrapper: holds position only.
+      //   • In mousemove (above): updated instantly when NOT launching.
+      //   • Here in rAF: driven by animation when launching.
+      // rocket inner div: tilt + scale + jetpack offset only — no position.
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
       const tiltCorrX = Math.sin(angle * (Math.PI / 180)) * exhaustOffset;
+      if (isLaunching) {
+        pos.style.transform = `translate(${cursorX}px,${cursorY}px)`;
+      }
       rocket.style.transform =
-        `translate(${cursorX - ROCKET_PIVOT_X + tiltCorrX}px, ${cursorY - ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
-      // Only write filter when it actually changes — avoids redundant GPU work
-      const nextFilter = (isHovering || isLaunching)
-        ? "drop-shadow(0 0 5px rgba(255,200,120,0.9)) drop-shadow(0 0 14px rgba(255,140,40,0.4))"
-        : "drop-shadow(0 0 2.5px rgba(255,220,160,0.5))";
-      if (rocket.style.filter !== nextFilter) rocket.style.filter = nextFilter;
+        `translate(${-ROCKET_PIVOT_X + tiltCorrX}px,${-ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
 
       // ── Engine plume ──────────────────────────────────────────────────────
       // Engine is geometrically pinned to cursorX by the tilt correction above,
@@ -546,16 +551,24 @@ export function RocketCursor() {
         }}
       />
 
-      {/* Rocket — NASA/SpaceX minimal silhouette */}
+      {/* Outer: position only — updated in mousemove for zero lag */}
       <div
-        ref={rocketRef}
+        ref={posRef}
         style={{
           position: "fixed",
           top: 0,
           left: 0,
           zIndex: 9999,
           pointerEvents: "none",
-          willChange: "transform, filter",
+          willChange: "transform",
+          transform: "translate(-200px,-200px)",
+        }}
+      >
+      {/* Inner: tilt / scale / jetpack — updated in rAF */}
+      <div
+        ref={rocketRef}
+        style={{
+          willChange: "transform",
           transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,
           opacity: 0,
           transition: "opacity 0.18s ease",
@@ -619,6 +632,7 @@ export function RocketCursor() {
           {/* ── Hull center line ── very subtle seam */}
           <line x1="9" y1="1.5" x2="9" y2="12" stroke="white" strokeOpacity="0.07" strokeWidth="0.5" />
         </svg>
+      </div>
       </div>
     </>
   );
