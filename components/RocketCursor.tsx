@@ -231,17 +231,17 @@ export function RocketCursor() {
         cursorX = mouseX;
         cursorY = mouseY;
 
-        // Jetpack: burn phase → powered ascent, then soft drift back
+        // Jetpack: burn phase → powered ascent, then graceful glide back (no bounce)
         if (now < jetpackFiringUntil) {
           // Sustained thrust — accelerate upward, cap at terminal velocity
           jetpackVelY = Math.max(jetpackVelY - 1.2, -4.2);
+          jetpackOffsetY += jetpackVelY;
         } else {
-          // Engines off — very soft spring pulls rocket back to cursor
-          jetpackVelY += (0 - jetpackOffsetY) * 0.028;
-          jetpackVelY *= 0.91;
+          // Engines off — exponential decay straight back, no spring oscillation
+          jetpackOffsetY *= 0.88;
+          jetpackVelY = 0;
+          if (Math.abs(jetpackOffsetY) < 0.12) jetpackOffsetY = 0;
         }
-        jetpackOffsetY += jetpackVelY;
-        if (Math.abs(jetpackOffsetY) < 0.12 && Math.abs(jetpackVelY) < 0.06) jetpackOffsetY = 0;
 
         // Smooth velocity separately — only used for tilt, not position
         smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
