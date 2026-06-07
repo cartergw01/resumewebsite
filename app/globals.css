@@ -2327,7 +2327,7 @@ select {
 }
 
 .project-row > em {
-  align-self: center;
+  align-self: end;
   justify-self: end;
   width: fit-content;
   white-space: nowrap;
