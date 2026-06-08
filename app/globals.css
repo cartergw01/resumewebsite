@@ -3517,11 +3517,88 @@ select {
 }
 
 @media (hover: none) {
+  /* ── Cancel all hover effects on touch devices ── */
+
+  /* World links */
   .world-title-link:hover,
   .world-intro > a:hover,
   .scroll-cue:hover {
     transform: none;
     text-shadow: 0 3px 22px rgba(0, 0, 0, 0.74);
+  }
+
+  /* Nav links */
+  .site-nav-primary a:hover {
+    transform: none;
+    text-shadow: none;
+    background: transparent;
+    color: rgba(255, 247, 234, 0.72);
+  }
+  .site-nav-social a:hover {
+    transform: none;
+    background: transparent;
+  }
+  .site-nav-social a:hover svg {
+    transform: none;
+    filter: none;
+  }
+
+  /* Writing archive rows */
+  .archive-row:hover {
+    transform: none;
+    border-color: rgba(244, 210, 163, 0.14);
+  }
+  .archive-row:hover .archive-action {
+    color: rgba(255, 247, 234, 0.58);
+    letter-spacing: 0;
+  }
+
+  /* Project rows */
+  .project-row:hover {
+    border-color: rgb(var(--topic-accent) / 0.14);
+  }
+  .project-row:hover .project-shot {
+    filter: none;
+  }
+  .project-row:hover .project-shot img {
+    transform: scale(1.01);
+  }
+  .project-row:hover em {
+    border-color: rgb(var(--topic-warm) / 0.36);
+    color: rgba(255, 247, 234, 0.82);
+    letter-spacing: 0.04em;
+  }
+
+  /* World cards (landing page) */
+  .cosmic-home .world-card:hover,
+  .world-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .cosmic-home .world-card:hover .world-visual {
+    transform: none;
+  }
+  .cosmic-home .world-card:hover .world-orb,
+  .world-card:hover .world-orb {
+    transform: none;
+    box-shadow: none;
+  }
+  .cosmic-home .world-card:hover .world-orb::before {
+    opacity: 0;
+  }
+
+  /* Constellation nodes */
+  .constellation-node:hover .world-orb {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Misc */
+  .world-copy a:hover,
+  .research-link-grid a:hover,
+  .fa-btn:hover {
+    transform: none;
+    background: transparent;
   }
 }
 
