@@ -429,7 +429,6 @@ select {
   content: "";
   position: fixed;
   inset: 0;
-  height: 100lvh;
   z-index: 0;
   pointer-events: none;
 }
@@ -513,7 +512,6 @@ select {
   content: "";
   position: fixed;
   inset: 0;
-  height: 100lvh;
   pointer-events: none;
 }
 
@@ -543,7 +541,7 @@ select {
   top: -14svmax;
   left: -14svmax;
   right: -14svmax;
-  height: calc(100lvh + 28svmax);
+  height: calc(100svh + 28svmax);
   z-index: 2;
   overflow: hidden;
   pointer-events: none;
@@ -1377,7 +1375,6 @@ select {
   content: "";
   position: fixed;
   inset: 0;
-  height: 100lvh;
   pointer-events: none;
 }
 
