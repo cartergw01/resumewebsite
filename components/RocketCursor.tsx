@@ -135,11 +135,11 @@ export function RocketCursor() {
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
       if (isLaunching) return;
-      // Skip jetpack on internal nav links — the launch animation handles those
+      // Skip jetpack on any navigating link — the launch animation handles those
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (link) {
         const href = link.getAttribute("href") ?? "";
-        if (href && !href.startsWith("#") && !/^https?:/.test(href) && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
+        if (href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
       }
       jetpackFiringUntil = performance.now() + 260;  // sustained burn
       // Burst of downward thrust particles from exhaust
@@ -168,8 +168,10 @@ export function RocketCursor() {
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (!link) return;
       const href = link.getAttribute("href") ?? "";
-      // Only intercept internal links
-      if (!href || href.startsWith("#") || /^https?:/.test(href) || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+      // Skip anchors, mailto, tel — anything that isn't a real navigation
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+      const isExternal = /^https?:/.test(href);
 
       e.preventDefault();
       e.stopPropagation();
@@ -190,19 +192,28 @@ export function RocketCursor() {
       }, 55);
 
       setTimeout(() => {
-        // Teleport cursor back to mouse so warp-in plays at cursor position
-        cursorX = mouseX;
-        cursorY = mouseY;
-        // Reset velocity tracking — prevents spike on first frame of new page
-        prevMouseX  = mouseX;
-        prevMouseY  = mouseY;
-        smoothVelX  = 0;
-        smoothVelY  = 0;
-        isLaunching  = false;
-        isWarpingIn  = true;
-        warpStartMs  = performance.now();
-        warpBurstDone = false;
-        routerRef.current.push(href);
+        // Reset velocity tracking — prevents spike on first frame
+        cursorX    = mouseX;
+        cursorY    = mouseY;
+        prevMouseX = mouseX;
+        prevMouseY = mouseY;
+        smoothVelX = 0;
+        smoothVelY = 0;
+        isLaunching = false;
+
+        if (isExternal) {
+          // External link — open in new tab, rocket warps back in
+          window.open(href, "_blank", "noopener,noreferrer");
+          isWarpingIn   = true;
+          warpStartMs   = performance.now();
+          warpBurstDone = false;
+        } else {
+          // Internal link — navigate + warp-in on new page
+          isWarpingIn   = true;
+          warpStartMs   = performance.now();
+          warpBurstDone = false;
+          routerRef.current.push(href);
+        }
       }, LAUNCH_DURATION);
     };
 
