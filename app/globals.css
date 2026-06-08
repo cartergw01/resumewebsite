@@ -3259,7 +3259,7 @@ select {
 }
 
 .cosmic-home .world-gallery {
-  width: min(960px, 100%);
+  width: min(1140px, 100%);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(1.75rem, 5vw, 4.25rem);
   align-items: start;
@@ -3277,8 +3277,8 @@ select {
 .cosmic-home .world-card .world-orb {
   overflow: visible;
   min-height: 44px;
-  width: min(100%, 16rem);
-  height: clamp(10rem, 19vw, 14rem);
+  width: min(100%, 20rem);
+  height: clamp(12rem, 23vw, 17rem);
   aspect-ratio: auto;
   border: 0;
   border-radius: 0;
@@ -3307,17 +3307,17 @@ select {
 }
 
 .cosmic-home .world-card.world-work .world-visual {
-  --world-art-size: 116%;
+  --world-art-size: 128%;
   inset: 0;
 }
 
 .cosmic-home .world-card.world-writing .world-visual {
-  --world-art-size: 116%;
+  --world-art-size: 128%;
   inset: 0;
 }
 
 .cosmic-home .world-card.world-projects .world-visual {
-  --world-art-size: 98%;
+  --world-art-size: 128%;
   inset: 0;
 }
 
@@ -3335,13 +3335,13 @@ select {
 }
 
 .cosmic-home .world-card .world-intro h2 {
-  font-size: clamp(1.65rem, 3vw, 2.55rem);
+  font-size: clamp(2rem, 3.75vw, 3.15rem);
 }
 
 .cosmic-home .world-card .world-copy p {
   max-width: 22ch;
   margin-inline: auto;
-  font-size: clamp(0.88rem, 1.2vw, 1rem);
+  font-size: clamp(0.95rem, 1.5vw, 1.18rem);
   line-height: 1.55;
 }
 
