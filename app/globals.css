@@ -3317,9 +3317,9 @@ select {
 }
 
 .cosmic-home .world-card.world-projects .world-visual {
-  --world-art-size: 128%;
+  --world-art-size: 105%;
   inset: 0;
-  background-position: 80% bottom;
+  background-position: 69% bottom;
 }
 
 .cosmic-home .world-card .world-intro,
