@@ -3303,7 +3303,6 @@ select {
   inset: 0;
   background-position: center bottom;
   background-size: var(--world-art-size, 100%) auto;
-  filter: drop-shadow(0 0 1.6rem rgba(143, 183, 255, 0.1));
 }
 
 .cosmic-home .world-card.world-work .world-visual {
@@ -3359,12 +3358,11 @@ select {
 
 /* Island floats up an extra layer within the card */
 .cosmic-home .world-card .world-visual {
-  transition: transform 340ms var(--cw-ease), filter 340ms var(--cw-ease);
+  transition: transform 340ms var(--cw-ease);
 }
 
 .cosmic-home .world-card:hover .world-visual {
   transform: translateY(-7px);
-  filter: drop-shadow(0 0 2.8rem rgba(200, 185, 255, 0.22));
 }
 
 /* Orb stays put — the card is already moving */
