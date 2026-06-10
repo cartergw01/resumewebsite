@@ -3270,6 +3270,7 @@ select {
 }
 
 .cosmic-home .world-card {
+  position: relative;
   justify-items: center;
   gap: clamp(0.45rem, 1vw, 0.75rem);
 }
@@ -3296,7 +3297,9 @@ select {
 }
 
 .cosmic-home .world-card .world-orb::after {
-  display: none;
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
 .cosmic-home .world-card .world-visual {
@@ -3341,6 +3344,17 @@ select {
   margin-inline: auto;
   font-size: clamp(0.95rem, 1.5vw, 1.18rem);
   line-height: 1.55;
+}
+
+/* Intro area is transparent to pointer events so the card-wide link underneath receives clicks */
+.cosmic-home .world-card .world-intro {
+  pointer-events: none;
+}
+
+/* Re-enable on links so external copy links and title links remain clickable */
+.cosmic-home .world-title-link,
+.cosmic-home .world-card .world-copy a {
+  pointer-events: auto;
 }
 
 /* World card pop-out on hover */
