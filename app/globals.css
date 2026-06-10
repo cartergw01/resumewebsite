@@ -2353,6 +2353,10 @@ select {
   border-bottom-color: rgba(92, 154, 255, 0.16);
 }
 
+.subpage-projects .project-row-copy {
+  max-width: 36rem;
+}
+
 .subpage-projects .project-row:focus-visible em {
   border-color: rgba(183, 211, 255, 0.76);
 }
@@ -3346,6 +3350,7 @@ select {
 .cosmic-home .world-card.world-projects .world-intro {
   width: 100%;
   max-width: none;
+  min-height: clamp(5.25rem, 11.25vw, 9rem);
   margin-top: 0;
   gap: 0.35rem;
   padding-top: clamp(0.25rem, 0.8vw, 0.45rem);
@@ -3506,6 +3511,7 @@ select {
   .cosmic-home .world-card.world-writing .world-intro,
   .cosmic-home .world-card.world-projects .world-intro {
     width: 100%;
+    min-height: 5rem;
     margin-top: -3.5rem;
     justify-items: center;
     text-align: center;
