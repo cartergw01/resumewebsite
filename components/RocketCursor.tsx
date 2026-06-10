@@ -49,9 +49,17 @@ export function RocketCursor() {
   routerRef.current = router;
 
   useEffect(() => {
-    if (!window.matchMedia("(any-pointer: fine)").matches) return;
+    const cursorQuery = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 761px)");
+    const hasDesktopCursor = cursorQuery.matches;
+    if (!hasDesktopCursor) {
+      document.body.classList.remove("rocket-cursor-active");
+      return;
+    }
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
+    if (prefersReduced) {
+      document.body.classList.remove("rocket-cursor-active");
+      return;
+    }
 
     const canvas = canvasRef.current;
     const pos    = posRef.current;
@@ -60,7 +68,18 @@ export function RocketCursor() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    document.body.classList.add("rocket-cursor-active");
+    let cursorEnabled: boolean = hasDesktopCursor;
+
+    const syncCursorCapability = () => {
+      cursorEnabled = cursorQuery.matches;
+      document.body.classList.toggle("rocket-cursor-active", cursorEnabled);
+      if (!cursorEnabled) {
+        rocket.style.opacity = "0";
+        pos.style.transform = "translate(-200px,-200px)";
+      }
+    };
+
+    syncCursorCapability();
 
     let W = window.innerWidth;
     let H = window.innerHeight;
@@ -72,8 +91,10 @@ export function RocketCursor() {
       H = window.innerHeight;
       canvas.width = W;
       canvas.height = H;
+      syncCursorCapability();
     };
     window.addEventListener("resize", onResize);
+    cursorQuery.addEventListener("change", syncCursorCapability);
 
     // ── State ─────────────────────────────────────────────────────────────────
     let mouseX = -200, mouseY = -200;
@@ -116,6 +137,7 @@ export function RocketCursor() {
     // Only record coordinates here — hover check runs in rAF (throttled) so
     // elementFromPoint never blocks the mousemove event.
     const onMouseMove = (e: MouseEvent) => {
+      if (!cursorEnabled) return;
       mouseX = e.clientX;
       mouseY = e.clientY;
       if (!isLaunching) {
@@ -126,6 +148,7 @@ export function RocketCursor() {
     };
 
     const onMouseLeave = () => {
+      if (!cursorEnabled) return;
       if (!isLaunching) rocket.style.opacity = "0";
     };
 
@@ -134,6 +157,7 @@ export function RocketCursor() {
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
+      if (!cursorEnabled) return;
       if (isLaunching) return;
       // Skip jetpack on any navigating link — the launch animation handles those
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
@@ -164,6 +188,7 @@ export function RocketCursor() {
 
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
+      if (!cursorEnabled) return;
       if (isLaunching) return;
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (!link) return;
@@ -225,6 +250,11 @@ export function RocketCursor() {
       const now = performance.now();
 
       ctx.clearRect(0, 0, W, H);
+
+      if (!cursorEnabled) {
+        animId = requestAnimationFrame(draw);
+        return;
+      }
 
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
@@ -538,6 +568,7 @@ export function RocketCursor() {
       cancelAnimationFrame(animId);
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",          onResize);
+      cursorQuery.removeEventListener("change", syncCursorCapability);
       document.removeEventListener("mousemove",     onMouseMove);
       document.removeEventListener("mouseleave",    onMouseLeave);
       document.removeEventListener("mousedown",     onJetpackFire);
