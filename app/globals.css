@@ -2105,9 +2105,9 @@ select {
 }
 
 .archive-group + .archive-group {
-  margin-top: clamp(0.95rem, 2vw, 1.4rem);
+  margin-top: 0;
   border-top: 1px solid rgb(var(--topic-accent) / 0.14);
-  padding-top: clamp(0.55rem, 1vw, 0.75rem);
+  padding-top: clamp(0.45rem, 0.8vw, 0.6rem);
 }
 
 .archive-group-heading {
@@ -2806,8 +2806,8 @@ select {
   }
 
   .archive-group + .archive-group {
-    margin-top: clamp(0.9rem, 4vw, 1.25rem);
-    padding-top: clamp(0.5rem, 2.2vw, 0.7rem);
+    margin-top: 0;
+    padding-top: clamp(0.45rem, 2vw, 0.6rem);
   }
 
   .archive-row {
