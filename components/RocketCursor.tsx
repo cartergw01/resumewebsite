@@ -318,24 +318,24 @@ export function RocketCursor() {
       //   • In mousemove (above): updated instantly when NOT launching.
       //   • Here in rAF: driven by animation when launching.
       // rocket inner div: tilt + scale + jetpack offset only — no position.
+      const angleRad = angle * (Math.PI / 180);
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
-      const tiltCorrX = Math.sin(angle * (Math.PI / 180)) * exhaustOffset;
       if (isLaunching) {
         pos.style.transform = `translate(${cursorX}px,${cursorY}px)`;
       }
       rocket.style.transform =
-        `translate(${-ROCKET_PIVOT_X + tiltCorrX}px,${-ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
+        `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
 
       // ── Engine plume ──────────────────────────────────────────────────────
-      // Engine is geometrically pinned to cursorX by the tilt correction above,
-      // so the canvas flame at (cursorX, cursorY+exhaustOffset) is always
-      // pixel-perfect at the engine bell — on every page, at every speed.
-      exhaustX = cursorX;
-      exhaustY = cursorY + jetpackOffsetY + exhaustOffset;
-      const pDirX = 0;   // always straight down
-      const pDirY = 1;
-      const perpX = 1;   // horizontal cone spread
-      const perpY = 0;
+      // Anchor the canvas flame to the same rotated engine-bell point as the
+      // SVG. If the plume stays vertical while the rocket tilts, it visually
+      // detaches to one side during fast cursor movement.
+      exhaustX = cursorX - Math.sin(angleRad) * exhaustOffset;
+      exhaustY = cursorY + jetpackOffsetY + Math.cos(angleRad) * exhaustOffset;
+      const pDirX = -Math.sin(angleRad);
+      const pDirY = Math.cos(angleRad);
+      const perpX = Math.cos(angleRad);
+      const perpY = Math.sin(angleRad);
 
       let launchBoost = 0;
       if (isLaunching) {
