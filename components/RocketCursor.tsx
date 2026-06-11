@@ -372,30 +372,35 @@ export function RocketCursor() {
         ctx.fill();
       };
 
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      // Base plume — always present
-      drawCone(6.5, 255,  55,  8,  0.18, flutter);
-      drawCone(3.2, 255, 145, 20,  0.55);
-      drawCone(1.5, 255, 235, 130, 0.95);
-      // Launch boost — wide outer flame that grows with acceleration
+      const canvasFlameActive = isLaunching;
+      if (canvasFlameActive) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        // Launch boost is canvas-based because the rocket leaves the viewport.
+        drawCone(6.5, 255,  55,  8,  0.18, flutter);
+        drawCone(3.2, 255, 145, 20,  0.55);
+        drawCone(1.5, 255, 235, 130, 0.95);
+      }
       if (isLaunching) {
         const boost = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
         const b2 = boost * boost;
         drawCone(16 * b2, 255,  75, 10, 0.22 * b2, 1);
         drawCone( 9 * b2, 255, 165, 45, 0.38 * b2, 1);
       }
-      ctx.restore();
+      if (canvasFlameActive) {
+        ctx.restore();
 
-      // Nozzle bloom
-      const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
-      bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
-      bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
-      bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
-      ctx.beginPath();
-      ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
-      ctx.fillStyle = bellGlow;
-      ctx.fill();
+        // Nozzle bloom for launch only; normal movement uses the SVG flame so it
+        // cannot visually lag behind the rocket.
+        const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
+        bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
+        bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
+        bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
+        ctx.beginPath();
+        ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
+        ctx.fillStyle = bellGlow;
+        ctx.fill();
+      }
 
       // ── Exhaust particles (launch only) ───────────────────────────────────
       // During normal movement, particles from prior frames drift left/right
@@ -619,7 +624,7 @@ export function RocketCursor() {
         {/*
           SVG: 18 × 34 viewBox
           Nose tip: (9, 1)   ← actual pointer hotspot offset
-          Layer order: fins → engine → body → nosecone → details → cockpit
+          Layer order: fins → flame → engine → body → nosecone → details → cockpit
         */}
         <svg
           width="18"
@@ -632,6 +637,24 @@ export function RocketCursor() {
           {/* ── Fins ── drawn first so body sits on top */}
           <path d="M4.5 19.5 L0.5 28.5 L4.5 23 Z"   fill="#b8c8e2" />
           <path d="M13.5 19.5 L17.5 28.5 L13.5 23 Z" fill="#b8c8e2" />
+
+          {/* ── Normal flame ── part of the SVG so it stays locked to the engine */}
+          <g>
+            <path
+              d="M6.2 28.3 C5.9 30.7 7.25 32.65 9 33.75 C10.75 32.65 12.1 30.7 11.8 28.3 C10.35 29.05 7.65 29.05 6.2 28.3 Z"
+              fill="#ff6f12"
+              fillOpacity="0.9"
+            >
+              <animate attributeName="fill-opacity" values="0.72;0.95;0.78" dur="0.28s" repeatCount="indefinite" />
+            </path>
+            <path
+              d="M7.45 28.7 C7.35 30.45 8.2 31.9 9 32.72 C9.8 31.9 10.65 30.45 10.55 28.7 C9.65 29.2 8.35 29.2 7.45 28.7 Z"
+              fill="#ffd06a"
+              fillOpacity="0.92"
+            >
+              <animate attributeName="fill-opacity" values="0.78;1;0.84" dur="0.18s" repeatCount="indefinite" />
+            </path>
+          </g>
 
           {/* ── Engine bell ── trapezoid below body */}
           <path d="M6.5 22 L5.2 29 L12.8 29 L11.5 22 Z" fill="#8da0be" />
