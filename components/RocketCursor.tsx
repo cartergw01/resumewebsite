@@ -49,7 +49,7 @@ export function RocketCursor() {
   routerRef.current = router;
 
   useEffect(() => {
-    const cursorQuery = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 761px)");
+    const cursorQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine) and (min-width: 761px)");
     const hasDesktopCursor = cursorQuery.matches;
     if (!hasDesktopCursor) {
       document.body.classList.remove("rocket-cursor-active");
