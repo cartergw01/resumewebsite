@@ -193,6 +193,12 @@ export const projects = [
     description: "A web app that aggregates movie showtimes across theaters in Taipei, with critic scores and movie info, for those who want to go to the movies in Taipei.",
   },
   {
+    title: "886 Studios",
+    href: "https://886studios.com",
+    image: "/project-shots/886studios.webp",
+    description: "I built and designed my firm's website.",
+  },
+  {
     title: "Carter's Taipei Guide",
     href: "https://taipei-guide-etaa.vercel.app/",
     image: "/project-shots/taipei-guide.webp",
