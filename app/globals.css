@@ -2101,13 +2101,13 @@ select {
 
 .archive-group {
   display: grid;
-  gap: clamp(0.55rem, 1.1vw, 0.85rem);
+  gap: clamp(0.7rem, 1.2vw, 1rem);
 }
 
 .archive-group + .archive-group {
-  margin-top: 0;
+  margin-top: clamp(0.85rem, 1.6vw, 1.25rem);
   border-top: 1px solid rgb(var(--topic-accent) / 0.14);
-  padding-top: clamp(0.45rem, 0.8vw, 0.6rem);
+  padding-top: clamp(0.55rem, 0.9vw, 0.7rem);
 }
 
 .archive-group-heading {
@@ -2806,32 +2806,29 @@ select {
   }
 
   .archive-group + .archive-group {
-    margin-top: 0;
-    padding-top: clamp(0.45rem, 2vw, 0.6rem);
+    margin-top: clamp(0.75rem, 3.5vw, 1rem);
+    padding-top: clamp(0.55rem, 2.4vw, 0.7rem);
   }
 
   .archive-row {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    gap: 0.7rem;
-    padding: clamp(1.05rem, 4.5vw, 1.35rem) 0;
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-rows: auto auto;
+    column-gap: 0.85rem;
+    row-gap: 0.55rem;
+    padding: clamp(0.95rem, 4vw, 1.2rem) 0;
   }
 
   .archive-main strong {
     font-size: clamp(1.45rem, 6vw, 1.78rem);
   }
 
-  .archive-main,
-  .archive-meta,
-  .archive-action {
-    grid-column: 1;
-  }
-
   .archive-main {
+    grid-column: 1 / -1;
     grid-row: 2;
   }
 
   .archive-meta {
+    grid-column: 1;
     grid-row: 1;
     justify-items: start;
     padding-top: 0;
@@ -2839,11 +2836,11 @@ select {
   }
 
   .archive-action {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 1;
     justify-self: end;
-    align-self: end;
-    translate: 0;
+    align-self: start;
+    translate: 0 0.02rem;
     color: rgba(255, 247, 234, 0.42);
     font-size: 0.82rem;
   }
