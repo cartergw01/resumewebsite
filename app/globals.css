@@ -87,7 +87,7 @@ body {
 
 .portfolio-card {
   border: 1px solid var(--glass-border);
-  background: rgba(12, 26, 48, 0.82);
+  background: rgba(12, 26, 48, 0.90);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -98,7 +98,7 @@ body {
 
 .portfolio-card-profile {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.84);
+  background: rgba(10, 22, 44, 0.92);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
@@ -109,7 +109,7 @@ body {
 
 .portfolio-card-strong {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 42, 0.88);
+  background: rgba(10, 22, 42, 0.94);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
@@ -120,7 +120,7 @@ body {
 
 .portfolio-card-archive {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.84);
+  background: rgba(10, 22, 44, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -132,7 +132,7 @@ body {
 .portfolio-paper {
   border: 1px solid var(--glass-border);
   background:
-    linear-gradient(160deg, rgba(255, 200, 140, 0.09) 0%, rgba(10, 20, 40, 0.82) 60%);
+    linear-gradient(160deg, rgba(255, 200, 140, 0.09) 0%, rgba(10, 20, 40, 0.90) 60%);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -168,7 +168,7 @@ body {
 .timeline-featured {
   border-color: rgba(255, 139, 75, 0.24);
   background:
-    linear-gradient(135deg, rgba(255, 139, 75, 0.12) 0%, rgba(10, 20, 40, 0.78) 55%);
+    linear-gradient(135deg, rgba(255, 139, 75, 0.12) 0%, rgba(10, 20, 40, 0.90) 55%);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
