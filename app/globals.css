@@ -3308,9 +3308,8 @@ select {
   inset: 18% 7% 0;
   z-index: -1;
   border-radius: 999px;
-  background:
-    radial-gradient(ellipse at 50% 62%, rgba(143, 183, 255, 0.2), rgba(143, 183, 255, 0.06) 44%, transparent 72%);
-  filter: blur(0.25rem);
+  background: none;
+  filter: none;
 }
 
 .cosmic-home .world-card .world-orb::after {
@@ -3403,14 +3402,6 @@ select {
   transform: none;
 }
 
-/* Glow pool under island intensifies */
-.cosmic-home .world-card .world-orb::before {
-  transition: opacity 340ms var(--cw-ease);
-}
-
-.cosmic-home .world-card:hover .world-orb::before {
-  opacity: 0.85;
-}
 
 /* "Enter" cue fades in below the world title on hover */
 .world-enter-cue {
@@ -3496,11 +3487,7 @@ select {
   }
 
   .cosmic-home .world-card .world-orb::before {
-    background: linear-gradient(
-      180deg,
-      rgba(3, 6, 17, 0) 36%,
-      rgba(3, 6, 17, 0.74) 100%
-    );
+    background: none;
   }
 
   .cosmic-home .world-card .world-intro,
@@ -3614,9 +3601,6 @@ select {
   .world-card:hover .world-orb {
     transform: none;
     box-shadow: none;
-  }
-  .cosmic-home .world-card:hover .world-orb::before {
-    opacity: 0;
   }
 
   /* Constellation nodes */
