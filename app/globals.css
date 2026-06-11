@@ -3442,7 +3442,7 @@ select {
   .cosmic-home::before {
     background:
       linear-gradient(180deg, rgba(1, 2, 8, 0.12) 0%, rgba(1, 2, 8, 0.06) 40%, rgba(1, 2, 8, 0.28) 100%),
-      url("/cosmic-hero-v6-sharp-mobile.webp");
+      url("/cosmic-hero-v6-sharp.webp");
     background-position: 40% center;
     background-size: cover;
     background-repeat: no-repeat;
@@ -3744,12 +3744,4 @@ html[data-theme="dark"] a {
     color: rgba(255, 247, 234, 0.72);
   }
 
-  .world-life {
-    --world-asset: url("/cosmic-life-v8-left-sharp-mobile.webp");
-  }
-
-  .subpage-work {
-    --topic-image: url("/cosmic-work-v7-sharp-mobile.webp");
-    --topic-card-image: url("/cosmic-work-v7-sharp-mobile.webp");
-  }
 }
