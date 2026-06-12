@@ -42,31 +42,40 @@ export async function makeOgImage({
           overflow: "hidden",
         }}
       >
-        {/* Deep space glow — top-left blue nebula */}
+        {/* Blue nebula — top-left */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background:
               "radial-gradient(ellipse 80% 60% at 15% 30%, rgba(30,50,120,0.55) 0%, transparent 70%)",
             display: "flex",
           }}
         />
-        {/* Bottom-right warm glow */}
+        {/* Purple glow — bottom-right */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background:
               "radial-gradient(ellipse 60% 50% at 85% 75%, rgba(60,20,80,0.45) 0%, transparent 70%)",
             display: "flex",
           }}
         />
-        {/* Center vignette to punch text forward */}
+        {/* Center vignette */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background:
               "radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(1,2,8,0.5) 100%)",
             display: "flex",
@@ -89,10 +98,14 @@ export async function makeOgImage({
           </div>
         )}
 
+        {/* Centered name + subtitle */}
         <div
           style={{
             position: "absolute",
-            inset: 0,
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -127,6 +140,7 @@ export async function makeOgImage({
           )}
         </div>
 
+        {/* Domain */}
         <div
           style={{
             position: "absolute",
