@@ -60,15 +60,12 @@ function ConstellationNode({ world }: { world: World }) {
 
   return (
     <article id={world.id} className={`world-card world-${world.id}`}>
-      <Link href={world.href} className="world-orb" aria-labelledby={headingId}>
+      <Link href={world.href} className="world-card-hitarea" aria-labelledby={headingId} />
+      <span className="world-orb" aria-hidden="true">
         <span className="world-visual" aria-hidden="true" />
-      </Link>
+      </span>
       <div className="world-intro">
-        <h2 id={headingId}>
-          <Link href={world.href} className="world-title-link">
-            {world.title}
-          </Link>
-        </h2>
+        <h2 id={headingId}>{world.title}</h2>
         <div className="world-copy">{world.copy}</div>
       </div>
     </article>

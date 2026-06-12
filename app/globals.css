@@ -67,6 +67,7 @@ body {
   --blue-glow: rgba(55, 119, 255, 0.16);
   --glass-border: rgba(180, 210, 255, 0.16);
   --glass-highlight: rgba(255, 255, 255, 0.07);
+  --work-panel-surface: rgba(10, 22, 42, 0.96);
   position: relative;
   min-height: 100svh;
   background:
@@ -87,7 +88,7 @@ body {
 
 .portfolio-card {
   border: 1px solid var(--glass-border);
-  background: rgba(12, 26, 48, 0.98);
+  background: var(--work-panel-surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -98,7 +99,7 @@ body {
 
 .portfolio-card-profile {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.98);
+  background: var(--work-panel-surface);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
@@ -109,7 +110,7 @@ body {
 
 .portfolio-card-strong {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 42, 0.98);
+  background: var(--work-panel-surface);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
@@ -120,7 +121,7 @@ body {
 
 .portfolio-card-archive {
   border: 1px solid var(--glass-border);
-  background: rgba(10, 22, 44, 0.98);
+  background: var(--work-panel-surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -132,7 +133,8 @@ body {
 .portfolio-paper {
   border: 1px solid var(--glass-border);
   background:
-    linear-gradient(160deg, rgba(255, 200, 140, 0.09) 0%, rgba(10, 20, 40, 0.98) 60%);
+    linear-gradient(160deg, rgba(255, 200, 140, 0.08), transparent 58%),
+    var(--work-panel-surface);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   contain: layout style;
@@ -168,7 +170,8 @@ body {
 .timeline-featured {
   border-color: rgba(255, 139, 75, 0.24);
   background:
-    linear-gradient(135deg, rgba(255, 139, 75, 0.12) 0%, rgba(10, 20, 40, 0.98) 55%);
+    linear-gradient(135deg, rgba(255, 139, 75, 0.1), transparent 56%),
+    var(--work-panel-surface);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   contain: layout style;
@@ -1252,9 +1255,18 @@ select {
   align-content: start;
 }
 
+.world-card-hitarea {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 1.35rem;
+  text-decoration: none;
+}
+
 .world-card .world-orb {
   position: relative;
   display: block;
+  z-index: 1;
   overflow: hidden;
   aspect-ratio: 1 / 0.82;
   border: 1px solid rgba(218, 232, 255, 0.14);
@@ -1324,6 +1336,16 @@ select {
   justify-self: start;
   text-align: left;
   text-shadow: 0 3px 18px rgba(0, 0, 0, 0.74);
+}
+
+.world-card .world-intro {
+  pointer-events: none;
+}
+
+.world-card .world-copy a {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
 }
 
 .world-card .world-intro::before {
