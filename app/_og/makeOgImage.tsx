@@ -1,8 +1,16 @@
+import { readFile } from "fs/promises";
+import path from "path";
 import { ImageResponse } from "next/og";
 
-const HERO_URL = "https://carterkowang.com/cosmic-hero-v6-sharp.webp";
-
 export const ogSize = { width: 1200, height: 630 };
+
+async function loadHero(): Promise<string | null> {
+  try {
+    const buf = await readFile(path.join(process.cwd(), "public/cosmic-hero-v6-sharp.webp"));
+    return `data:image/webp;base64,${buf.toString("base64")}`;
+  } catch {}
+  return null;
+}
 
 async function loadPlayfair(): Promise<ArrayBuffer | null> {
   try {
@@ -29,7 +37,7 @@ export async function makeOgImage({
   label?: string;
   subtitle: string;
 }) {
-  const playfairData = await loadPlayfair();
+  const [playfairData, heroSrc] = await Promise.all([loadPlayfair(), loadHero()]);
   const fontFamily = playfairData ? "Playfair Display" : "serif";
 
   return new ImageResponse(
@@ -44,13 +52,13 @@ export async function makeOgImage({
           overflow: "hidden",
         }}
       >
-        <img
-          src={HERO_URL}
+        {heroSrc && <img
+          src={heroSrc}
           alt=""
           width={1200}
           height={630}
           style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-        />
+        />}
         <div
           style={{
             position: "absolute",
