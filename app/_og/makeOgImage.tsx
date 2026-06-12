@@ -110,16 +110,18 @@ export async function makeOgImage({
           >
             Carter Wang
           </div>
-          <div
-            style={{
-              fontSize: 22,
-              color: "rgba(236,244,255,0.62)",
-              letterSpacing: "3.5px",
-              display: "flex",
-            }}
-          >
-            {subtitle.toUpperCase()}
-          </div>
+          {subtitle && (
+            <div
+              style={{
+                fontSize: 22,
+                color: "rgba(236,244,255,0.62)",
+                letterSpacing: "3.5px",
+                display: "flex",
+              }}
+            >
+              {subtitle.toUpperCase()}
+            </div>
+          )}
         </div>
 
         <div

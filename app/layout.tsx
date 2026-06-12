@@ -18,11 +18,11 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Carter Wang",
-  description: "Carter Wang's corner of the internet",
+  description: "Carter Wang's world",
   metadataBase: new URL("https://carterkowang.com"),
   openGraph: {
     title: "Carter Wang",
-    description: "Carter Wang's corner of the internet",
+    description: "Carter Wang's world",
     url: "https://carterkowang.com",
     siteName: "Carter Wang",
     type: "website",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Carter Wang",
-    description: "Carter Wang's corner of the internet",
+    description: "Carter Wang's world",
   },
   icons: {
     icon: [

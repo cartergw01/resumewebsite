@@ -5,5 +5,5 @@ export const contentType = "image/png";
 export const dynamic = "force-dynamic";
 
 export default async function OpenGraphImage() {
-  return makeOgImage({ subtitle: "Working in Taipei · Writing · Building" });
+  return makeOgImage({ subtitle: "" });
 }
