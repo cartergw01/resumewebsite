@@ -204,12 +204,19 @@ export function RocketCursor() {
       isLaunching = true;
       isHovering  = false;
       launchStartMs    = performance.now();
-      launchFromX      = cursorX;
-      launchFromY      = cursorY;
+      // Use real-time mouse position, not the rAF-tracked cursorX/Y which can
+      // lag up to 16ms behind. The SVG rocket is already at mouseX/mouseY
+      // (updated instantly in onMouseMove), so canvas effects must match.
+      cursorX      = mouseX;
+      cursorY      = mouseY;
+      launchFromX  = mouseX;
+      launchFromY  = mouseY;
       launchAngleStart = 0;
       angle            = 0;
       hoverScale       = 1;
 
+      // Freeze pos at the exact current mouse position before rAF takes over
+      pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
       // Snap the SVG rocket to vertical immediately — don't wait for next rAF
       rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
 
