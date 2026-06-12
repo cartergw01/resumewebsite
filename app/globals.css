@@ -2173,41 +2173,22 @@ select {
   color: inherit;
   isolation: isolate;
   text-decoration: none;
-  transition: border-color 160ms var(--cw-ease), transform 160ms var(--cw-ease), opacity 160ms var(--cw-ease);
-}
-
-.archive-row::before {
-  content: "";
-  position: absolute;
-  inset: 0 -0.35rem;
-  z-index: -1;
-  border-radius: 8px;
-  background: linear-gradient(90deg, rgba(244, 210, 163, 0.06), rgba(244, 210, 163, 0.015), transparent 72%);
-  opacity: 0;
-  transition: opacity 180ms var(--cw-ease);
+  transition: border-color 180ms var(--cw-ease), transform 180ms var(--cw-ease);
 }
 
 .archive-row:hover {
-  border-color: rgba(244, 210, 163, 0.24);
-  transform: translate3d(0.18rem, 0, 0);
-}
-
-.archive-row:hover::before {
-  opacity: 1;
+  border-color: rgb(var(--topic-accent) / 0.28);
 }
 
 .archive-row:hover .archive-action {
-  color: rgba(255, 247, 234, 0.9);
-  letter-spacing: 0.04em;
+  border-color: rgb(var(--topic-warm) / 0.62);
+  color: var(--cw-paper);
+  letter-spacing: calc(var(--tracking-caps) + 0.02em);
 }
 
 .archive-row:focus-visible {
-  border-color: rgba(244, 210, 163, 0.28);
-  outline: 1px solid rgba(255, 247, 234, 0.34);
-}
-
-.archive-row:focus-visible::before {
-  opacity: 1;
+  border-color: rgb(var(--topic-warm) / 0.42);
+  outline: 1px solid rgb(var(--topic-warm) / 0.48);
 }
 
 .archive-row:active {
@@ -2215,7 +2196,8 @@ select {
 }
 
 .archive-row:focus-visible .archive-action {
-  color: rgba(255, 247, 234, 0.76);
+  border-color: rgb(var(--topic-warm) / 0.66);
+  color: var(--cw-paper);
 }
 
 .archive-main {
@@ -2271,12 +2253,14 @@ select {
   justify-self: end;
   align-self: end;
   translate: 0 0.32rem;
+  width: fit-content;
+  border-bottom: 1px solid rgb(var(--topic-warm) / 0.36);
   color: rgba(255, 247, 234, 0.52);
   font-size: clamp(0.78rem, 0.86vw, 0.9rem);
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: 0.04em;
   line-height: 1.2;
-  transition: color 180ms var(--cw-ease), letter-spacing 180ms var(--cw-ease);
+  transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
   white-space: nowrap;
 }
 
@@ -3615,8 +3599,9 @@ select {
     border-color: rgba(244, 210, 163, 0.14);
   }
   .archive-row:hover .archive-action {
-    color: rgba(255, 247, 234, 0.58);
-    letter-spacing: 0;
+    border-color: rgb(var(--topic-warm) / 0.36);
+    color: rgba(255, 247, 234, 0.52);
+    letter-spacing: 0.04em;
   }
 
   /* Project rows */
