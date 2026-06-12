@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Projects — Carter Wang",
+  description: "Fun side projects by Carter Wang — building things on the internet.",
+};
 import SiteNav from "@/components/SiteNav";
 import { projects } from "@/content/portfolio";
 

@@ -16,8 +16,6 @@ const spaceGrotesk = Space_Grotesk({
   display: "swap",
 });
 
-const ogVersion = process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "local";
-
 export const metadata: Metadata = {
   title: "Carter Wang",
   description: "Carter Wang's corner of the internet",
@@ -28,20 +26,11 @@ export const metadata: Metadata = {
     url: "https://carterkowang.com",
     siteName: "Carter Wang",
     type: "website",
-    images: [
-      {
-        url: `/og-preview.png?v=${ogVersion}`,
-        width: 1200,
-        height: 630,
-        alt: "Carter Wang",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Carter Wang",
     description: "Carter Wang's corner of the internet",
-    images: [`/og-preview.png?v=${ogVersion}`],
   },
   icons: {
     icon: [

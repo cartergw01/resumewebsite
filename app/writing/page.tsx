@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
+
+export const metadata: Metadata = {
+  title: "Writing — Carter Wang",
+  description:
+    "Essays on human nature, culture, and technology at flying Arrows on Substack.",
+};
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 

@@ -4,6 +4,9 @@ export const size = ogSize;
 export const contentType = "image/png";
 export const dynamic = "force-dynamic";
 
-export default async function OpenGraphImage() {
-  return makeOgImage({ subtitle: "Working in Taipei · Writing · Building" });
+export default async function ProjectsOgImage() {
+  return makeOgImage({
+    label: "Projects",
+    subtitle: "Building Things for Fun",
+  });
 }
