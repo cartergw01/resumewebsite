@@ -206,11 +206,13 @@ export function RocketCursor() {
       launchStartMs    = performance.now();
       launchFromX      = cursorX;
       launchFromY      = cursorY;
-      launchAngleStart = angle;
+      launchAngleStart = 0;
 
-      // Shockwave burst at exhaust — immediate punch
-      const sx = exhaustX > -100 ? exhaustX : launchFromX;
-      const sy = exhaustY > -100 ? exhaustY : launchFromY + 25;
+      // Shockwave burst at the screen-vertical engine point. Launch is a
+      // straight upward takeoff, so its flame/effects should never drift left.
+      const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
+      const sx = launchFromX;
+      const sy = launchExhaustY;
       shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: 22, r: 255, g: 150, b: 50 });
       setTimeout(() => {
         shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: 30, r: 255, g: 90, b: 15 });
@@ -263,7 +265,8 @@ export function RocketCursor() {
 
         cursorX    = launchFromX;
         cursorY    = launchFromY - (launchFromY + 160) * eased;
-        angle      = launchAngleStart * Math.max(0, 1 - rawT * 5);
+        angle      = launchAngleStart;
+        targetAngle = 0;
         hoverScale = 1 + eased * 2.2;
         hoverRingAlpha = 0;
         speed = 0;
@@ -318,7 +321,6 @@ export function RocketCursor() {
       //   • In mousemove (above): updated instantly when NOT launching.
       //   • Here in rAF: driven by animation when launching.
       // rocket inner div: tilt + scale + jetpack offset only — no position.
-      const angleRad = angle * (Math.PI / 180);
       const exhaustOffset = (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
       if (isLaunching) {
         pos.style.transform = `translate(${cursorX}px,${cursorY}px)`;
@@ -327,15 +329,15 @@ export function RocketCursor() {
         `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y + jetpackOffsetY}px) rotate(${angle}deg) scale(${hoverScale})`;
 
       // ── Engine plume ──────────────────────────────────────────────────────
-      // Anchor the canvas flame to the same rotated engine-bell point as the
-      // SVG. If the plume stays vertical while the rocket tilts, it visually
-      // detaches to one side during fast cursor movement.
-      exhaustX = cursorX - Math.sin(angleRad) * exhaustOffset;
-      exhaustY = cursorY + jetpackOffsetY + Math.cos(angleRad) * exhaustOffset;
-      const pDirX = -Math.sin(angleRad);
-      const pDirY = Math.cos(angleRad);
-      const perpX = Math.cos(angleRad);
-      const perpY = Math.sin(angleRad);
+      // Canvas exhaust effects are always screen-vertical and centered below
+      // the cursor. The SVG owns the tiny normal flame; canvas handles bursts,
+      // shockwaves, and launch boosts, where sideways drift looks broken.
+      exhaustX = cursorX;
+      exhaustY = cursorY + jetpackOffsetY + exhaustOffset;
+      const pDirX = 0;
+      const pDirY = 1;
+      const perpX = 1;
+      const perpY = 0;
 
       let launchBoost = 0;
       if (isLaunching) {
