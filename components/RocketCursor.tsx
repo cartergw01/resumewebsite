@@ -37,7 +37,8 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 520;   // ms — fast & snappy
+const LAUNCH_DURATION  = 520;   // ms — fast & snappy (cursor devices)
+const TOUCH_LAUNCH_DURATION = 430;  // ms — a touch snappier on phones so nav never feels delayed
 const WARP_IN_DURATION = 340;   // ms
 
 export function RocketCursor() {
@@ -49,17 +50,20 @@ export function RocketCursor() {
   routerRef.current = router;
 
   useEffect(() => {
-    const cursorQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine) and (min-width: 761px)");
-    const hasDesktopCursor = cursorQuery.matches;
-    if (!hasDesktopCursor) {
-      document.body.classList.remove("rocket-cursor-active");
-      return;
-    }
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
       document.body.classList.remove("rocket-cursor-active");
       return;
     }
+
+    // Two modes share all the launch/warp/canvas machinery below:
+    //   • cursor mode (desktop, laptop, trackpad iPad): a rocket follows the
+    //     pointer and launches on nav click.
+    //   • tap mode (phones, pure-touch tablets, narrow windows): no persistent
+    //     rocket — a one-shot rocket launches from the tapped point on nav, so
+    //     touch users get the same "shoot off into the next page" moment.
+    const cursorQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine) and (min-width: 761px)");
+    const isDesktopCursor = cursorQuery.matches;
 
     const canvas = canvasRef.current;
     const pos    = posRef.current;
@@ -68,12 +72,18 @@ export function RocketCursor() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let cursorEnabled: boolean = hasDesktopCursor;
+    // Declared early so syncCursorCapability (called below) can avoid hiding the
+    // rocket mid-launch in tap mode.
+    let isLaunching = false;
+
+    // cursorEnabled drives the pointer-following rocket. In tap mode it stays
+    // false (no persistent rocket); the one-shot launch still works via clicks.
+    let cursorEnabled: boolean = isDesktopCursor;
 
     const syncCursorCapability = () => {
       cursorEnabled = cursorQuery.matches;
       document.body.classList.toggle("rocket-cursor-active", cursorEnabled);
-      if (!cursorEnabled) {
+      if (!cursorEnabled && !isLaunching) {
         rocket.style.opacity = "0";
         pos.style.transform = "translate(-200px,-200px)";
       }
@@ -133,10 +143,15 @@ export function RocketCursor() {
     let exhaustX = -200, exhaustY = -200;
 
     // ── Launch state ──────────────────────────────────────────────────────────
-    let isLaunching = false;
+    // isLaunching declared above
     let launchStartMs = 0;
     let launchFromX = 0, launchFromY = 0;
     let launchAngleStart = 0;
+    let launchDuration = LAUNCH_DURATION;  // per-launch: shorter on touch
+
+    // rAF loop run state. Cursor mode runs the loop continuously; tap mode wakes
+    // it on a launch and sleeps when idle to save battery on phones.
+    let running = false;
 
     // ── Warp-in state ─────────────────────────────────────────────────────────
     let isWarpingIn = false;
@@ -171,8 +186,12 @@ export function RocketCursor() {
       if (!isLaunching) rocket.style.opacity = "0";
     };
 
-    document.addEventListener("mousemove",  onMouseMove);
-    document.addEventListener("mouseleave", onMouseLeave);
+    // Pointer-follow + jetpack only matter for cursor devices. Tap mode skips
+    // them entirely (and avoids reacting to synthetic mouse events from taps).
+    if (isDesktopCursor) {
+      document.addEventListener("mousemove",  onMouseMove);
+      document.addEventListener("mouseleave", onMouseLeave);
+    }
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
@@ -203,11 +222,12 @@ export function RocketCursor() {
       }
     };
 
-    document.addEventListener("mousedown", onJetpackFire);
+    if (isDesktopCursor) {
+      document.addEventListener("mousedown", onJetpackFire);
+    }
 
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
-      if (!cursorEnabled) return;
       if (isLaunching) return;
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (!link) return;
@@ -216,6 +236,16 @@ export function RocketCursor() {
       if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
 
       const isExternal = /^https?:/.test(href);
+      // In tap mode, leave external links alone — they open in a new tab, and
+      // deferring window.open behind an async timeout would trip mobile popup
+      // blockers. The launch effect is for in-site page transitions.
+      if (!cursorEnabled && isExternal) return;
+
+      // Launch origin: cursor mode uses the tracked pointer; tap mode uses the
+      // exact point that was tapped (the rocket is otherwise hidden).
+      const originX = cursorEnabled ? mouseX : e.clientX;
+      const originY = cursorEnabled ? mouseY : e.clientY;
+      launchDuration = cursorEnabled ? LAUNCH_DURATION : TOUCH_LAUNCH_DURATION;
 
       e.preventDefault();
       e.stopPropagation();
@@ -223,21 +253,23 @@ export function RocketCursor() {
       isLaunching = true;
       isHovering  = false;
       launchStartMs    = performance.now();
-      // Use real-time mouse position, not the rAF-tracked cursorX/Y which can
-      // lag up to 16ms behind. The SVG rocket is already at mouseX/mouseY
-      // (updated instantly in onMouseMove), so canvas effects must match.
-      cursorX      = mouseX;
-      cursorY      = mouseY;
-      launchFromX  = mouseX;
-      launchFromY  = mouseY;
+      cursorX      = originX;
+      cursorY      = originY;
+      launchFromX  = originX;
+      launchFromY  = originY;
       launchAngleStart = 0;
       angle            = 0;
       hoverScale       = 1;
 
-      // Freeze pos at the exact current mouse position before rAF takes over
-      pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
-      // Snap the SVG rocket to vertical immediately — don't wait for next rAF
+      // Place + reveal the rocket at the origin before rAF takes over. Snapping
+      // here (not next frame) keeps the SVG rocket, canvas flame, and shockwave
+      // aligned from frame zero.
+      pos.style.transform = `translate(${originX}px,${originY}px)`;
       rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
+      rocket.style.opacity = "1";
+
+      // Tap mode: the loop is asleep — wake it so the launch animates.
+      if (!cursorEnabled) ensureRunning();
 
       // Shockwave burst at the screen-vertical engine point. Launch is a
       // straight upward takeoff, so its flame/effects should never drift left.
@@ -250,29 +282,37 @@ export function RocketCursor() {
       }, 55);
 
       setTimeout(() => {
-        // Reset velocity tracking — prevents spike on first frame
-        cursorX    = mouseX;
-        cursorY    = mouseY;
-        prevMouseX = mouseX;
-        prevMouseY = mouseY;
-        smoothVelX = 0;
-        smoothVelY = 0;
         isLaunching = false;
 
-        if (isExternal) {
-          // External link — open in new tab, rocket warps back in
-          window.open(href, "_blank", "noopener,noreferrer");
-          isWarpingIn   = true;
-          warpStartMs   = performance.now();
-          warpBurstDone = false;
+        if (cursorEnabled) {
+          // Reset velocity tracking — prevents a tilt spike on the first frame
+          cursorX    = mouseX;
+          cursorY    = mouseY;
+          prevMouseX = mouseX;
+          prevMouseY = mouseY;
+          smoothVelX = 0;
+          smoothVelY = 0;
         } else {
-          // Internal link — navigate + warp-in on new page
-          isWarpingIn   = true;
-          warpStartMs   = performance.now();
-          warpBurstDone = false;
+          // Tap mode: no cursor to return to. Hide the rocket and aim the
+          // arrival burst at the upper-center as a "warped into a new world" beat.
+          rocket.style.opacity = "0";
+          cursorX = W / 2;
+          cursorY = H * 0.32;
+        }
+
+        isWarpingIn   = true;
+        warpStartMs   = performance.now();
+        warpBurstDone = false;
+
+        if (isExternal) {
+          window.open(href, "_blank", "noopener,noreferrer");
+        } else {
           routerRef.current.push(href);
         }
-      }, LAUNCH_DURATION);
+
+        // Tap mode: make sure the loop is still awake to play the arrival burst.
+        if (!cursorEnabled) ensureRunning();
+      }, launchDuration);
     };
 
     document.addEventListener("click", onNavClick, true);
@@ -284,14 +324,9 @@ export function RocketCursor() {
 
       ctx.clearRect(0, 0, W, H);
 
-      if (!cursorEnabled) {
-        animId = requestAnimationFrame(draw);
-        return;
-      }
-
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
-        const rawT = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
         const eased = rawT * rawT;  // quadratic ease-in: feels snappy
 
         cursorX    = launchFromX;
@@ -303,7 +338,7 @@ export function RocketCursor() {
         speed = 0;
         jetpackOffsetY = 0;
         jetpackVelY    = 0;
-      } else {
+      } else if (cursorEnabled) {
         // Cursor follows mouse instantly — no position lag
         const rawVelX = mouseX - prevMouseX;
         const rawVelY = mouseY - prevMouseY;
@@ -372,7 +407,7 @@ export function RocketCursor() {
 
       let launchBoost = 0;
       if (isLaunching) {
-        const rawT = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
         launchBoost = rawT * rawT * 260;
       }
       const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
@@ -384,7 +419,7 @@ export function RocketCursor() {
       const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 260 : 0;
       const jetpackBoost  = Math.min(jetpackBurnT * 1.4, 1);
       const plumeStr = isLaunching
-        ? Math.min(0.45 + Math.min((now - launchStartMs) / LAUNCH_DURATION, 1) * 0.55, 1.0)
+        ? Math.min(0.45 + Math.min((now - launchStartMs) / launchDuration, 1) * 0.55, 1.0)
         : 0.45 + Math.min(speed / 8, 1) * 0.55 + jetpackBoost * 0.45;
 
       const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
@@ -415,7 +450,7 @@ export function RocketCursor() {
         drawCone(1.5, 255, 235, 130, 0.95);
       }
       if (isLaunching) {
-        const boost = Math.min((now - launchStartMs) / LAUNCH_DURATION, 1);
+        const boost = Math.min((now - launchStartMs) / launchDuration, 1);
         const b2 = boost * boost;
         drawCone(16 * b2, 255,  75, 10, 0.22 * b2, 1);
         drawCone( 9 * b2, 255, 165, 45, 0.38 * b2, 1);
@@ -591,14 +626,36 @@ export function RocketCursor() {
         ctx.fill();
       }
 
-      animId = requestAnimationFrame(draw);
+      // Cursor mode animates continuously (the rocket follows the pointer).
+      // Tap mode only needs frames while something is on screen, then sleeps so
+      // a phone isn't clearing a full-screen canvas 60×/sec for nothing.
+      if (cursorEnabled) {
+        animId = requestAnimationFrame(draw);
+      } else if (isLaunching || isWarpingIn || particles.length || shockwaves.length || streaks.length) {
+        animId = requestAnimationFrame(draw);
+      } else {
+        running = false;
+      }
     };
 
-    animId = requestAnimationFrame(draw);
+    // Start (or restart) the loop if it isn't already running.
+    const ensureRunning = () => {
+      if (!running && !document.hidden) {
+        running = true;
+        animId = requestAnimationFrame(draw);
+      }
+    };
+
+    // Cursor mode runs immediately; tap mode waits for the first launch.
+    if (cursorEnabled) ensureRunning();
 
     const onVisibility = () => {
-      if (document.hidden) cancelAnimationFrame(animId);
-      else animId = requestAnimationFrame(draw);
+      if (document.hidden) {
+        cancelAnimationFrame(animId);
+        running = false;
+      } else if (cursorEnabled || isLaunching || isWarpingIn || particles.length || shockwaves.length) {
+        ensureRunning();
+      }
     };
     document.addEventListener("visibilitychange", onVisibility);
 
