@@ -1,16 +1,6 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { ImageResponse } from "next/og";
 
 export const ogSize = { width: 1200, height: 630 };
-
-async function loadHero(): Promise<string | null> {
-  try {
-    const buf = await readFile(path.join(process.cwd(), "public/cosmic-hero-v6-sharp.webp"));
-    return `data:image/webp;base64,${buf.toString("base64")}`;
-  } catch {}
-  return null;
-}
 
 async function loadPlayfair(): Promise<ArrayBuffer | null> {
   try {
@@ -37,7 +27,7 @@ export async function makeOgImage({
   label?: string;
   subtitle: string;
 }) {
-  const [playfairData, heroSrc] = await Promise.all([loadPlayfair(), loadHero()]);
+  const playfairData = await loadPlayfair();
   const fontFamily = playfairData ? "Playfair Display" : "serif";
 
   return new ImageResponse(
@@ -52,28 +42,33 @@ export async function makeOgImage({
           overflow: "hidden",
         }}
       >
-        {heroSrc && <img
-          src={heroSrc}
-          alt=""
-          width={1200}
-          height={630}
-          style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
-        />}
+        {/* Deep space glow — top-left blue nebula */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(180deg, rgba(1,2,8,0.28) 0%, rgba(1,2,8,0.04) 38%, rgba(1,2,8,0.72) 100%)",
+              "radial-gradient(ellipse 80% 60% at 15% 30%, rgba(30,50,120,0.55) 0%, transparent 70%)",
             display: "flex",
           }}
         />
+        {/* Bottom-right warm glow */}
         <div
           style={{
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(ellipse at 50% 46%, transparent 36%, rgba(1,2,8,0.44) 70%, rgba(1,2,8,0.78) 100%)",
+              "radial-gradient(ellipse 60% 50% at 85% 75%, rgba(60,20,80,0.45) 0%, transparent 70%)",
+            display: "flex",
+          }}
+        />
+        {/* Center vignette to punch text forward */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(1,2,8,0.5) 100%)",
             display: "flex",
           }}
         />
