@@ -81,16 +81,33 @@ export function RocketCursor() {
 
     syncCursorCapability();
 
-    let W = window.innerWidth;
-    let H = window.innerHeight;
-    canvas.width = W;
-    canvas.height = H;
+    // Size the canvas backing store to its actual *rendered* CSS box times
+    // devicePixelRatio, then scale the context so all drawing happens in CSS
+    // pixels. Using window.innerWidth would include the scrollbar — but the
+    // fixed canvas renders at the scrollbar-excluded width, so the backing
+    // store would be squished horizontally and the flame would drift left of
+    // the rocket (a DOM element positioned in CSS px). The drift grows toward
+    // the right edge, which is exactly the reported "flame off to the left on
+    // nav click" bug. A ResizeObserver (not just window 'resize') is required
+    // because a scrollbar appearing after content loads shrinks the canvas
+    // without firing a resize event. DPR scaling also keeps the flame sharp.
+    let W = 0, H = 0;
+    const sizeCanvas = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      W = rect.width || document.documentElement.clientWidth;
+      H = rect.height || document.documentElement.clientHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    sizeCanvas();
+
+    const canvasResizeObserver = new ResizeObserver(() => sizeCanvas());
+    canvasResizeObserver.observe(canvas);
 
     const onResize = () => {
-      W = window.innerWidth;
-      H = window.innerHeight;
-      canvas.width = W;
-      canvas.height = H;
+      sizeCanvas();
       syncCursorCapability();
     };
     window.addEventListener("resize", onResize);
@@ -585,6 +602,7 @@ export function RocketCursor() {
 
     return () => {
       cancelAnimationFrame(animId);
+      canvasResizeObserver.disconnect();
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",          onResize);
       cursorQuery.removeEventListener("change", syncCursorCapability);
