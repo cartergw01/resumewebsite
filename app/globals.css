@@ -2129,7 +2129,6 @@ select {
 
 .archive-group + .archive-group {
   margin-top: clamp(1rem, 1.9vw, 1.45rem);
-  border-top: 1px solid rgb(var(--topic-accent) / 0.14);
   padding-top: clamp(0.7rem, 1vw, 0.85rem);
 }
 
