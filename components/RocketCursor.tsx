@@ -93,7 +93,9 @@ export function RocketCursor() {
     // without firing a resize event. DPR scaling also keeps the flame sharp.
     let W = 0, H = 0;
     const sizeCanvas = () => {
-      const dpr = window.devicePixelRatio || 1;
+      // Cap at 2× — the canvas is full-screen and cleared every frame, so 3×+
+      // on hi-DPI screens quadruples fill cost for no visible gain on a flame.
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
       W = rect.width || document.documentElement.clientWidth;
       H = rect.height || document.documentElement.clientHeight;
