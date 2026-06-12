@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { RocketCursor } from "@/components/RocketCursor";
 import "./globals.css";
 
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-screen font-sans antialiased">
         <RocketCursor />
         {children}
+        <Analytics />
       </body>
     </html>
   );
