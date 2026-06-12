@@ -207,10 +207,15 @@ export function RocketCursor() {
       launchFromX      = cursorX;
       launchFromY      = cursorY;
       launchAngleStart = 0;
+      angle            = 0;
+      hoverScale       = 1;
+
+      // Snap the SVG rocket to vertical immediately — don't wait for next rAF
+      rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
 
       // Shockwave burst at the screen-vertical engine point. Launch is a
       // straight upward takeoff, so its flame/effects should never drift left.
-      const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y) * hoverScale;
+      const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y);
       const sx = launchFromX;
       const sy = launchExhaustY;
       shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: 22, r: 255, g: 150, b: 50 });
