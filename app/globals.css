@@ -3406,6 +3406,22 @@ select {
   pointer-events: auto;
 }
 
+/* Title link inherits the heading's look — it's a tap target, not a styled link */
+.cosmic-home .world-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Asset tap target overlays the orb. Inert on desktop — the full-card
+   hitarea handles clicks there; activated on mobile (see breakpoint below). */
+.cosmic-home .world-orb-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
 /* World card pop-out on hover */
 .cosmic-home .world-card {
   transition: transform 340ms var(--cw-ease);
@@ -3505,6 +3521,16 @@ select {
     gap: 2rem;
     max-width: 320px;
     margin-inline: auto;
+  }
+
+  /* On mobile, only the asset and title are tappable — drop the full-card
+     hitarea so empty card space doesn't eat taps on a small screen. */
+  .cosmic-home .world-card-hitarea {
+    display: none;
+  }
+
+  .cosmic-home .world-orb-link {
+    pointer-events: auto;
   }
 
   .cosmic-home .world-card {

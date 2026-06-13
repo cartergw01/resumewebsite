@@ -60,12 +60,18 @@ function ConstellationNode({ world }: { world: World }) {
 
   return (
     <article id={world.id} className={`world-card world-${world.id}`}>
+      {/* Desktop: whole-card click target. Hidden on mobile (globals.css) so only
+          the asset and title are tappable — small screens don't need a big hitarea. */}
       <Link href={world.href} className="world-card-hitarea" aria-labelledby={headingId} />
       <span className="world-orb" aria-hidden="true">
         <span className="world-visual" aria-hidden="true" />
+        {/* Mobile tap target over the island art (aria-hidden — title link carries the name) */}
+        <Link href={world.href} className="world-orb-link" tabIndex={-1} aria-hidden="true" />
       </span>
       <div className="world-intro">
-        <h2 id={headingId}>{world.title}</h2>
+        <h2 id={headingId}>
+          <Link href={world.href} className="world-title-link">{world.title}</Link>
+        </h2>
         <div className="world-copy">{world.copy}</div>
       </div>
     </article>
