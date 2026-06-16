@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 
-// HeroUI + Framer Motion are heavy (~180 KB gzipped). Dynamic import keeps
-// them out of the shared bundle so every other page loads faster.
-const LegacyWorkPage = dynamic(() => import("@/components/LegacyWorkPage"), {
+// HeroUI and the Work page effects are heavy, so keep the whole shell loaded
+// only on this route while avoiding the old LegacyWorkPage wrapper name.
+const WorkPageClient = dynamic(() => import("@/components/WorkPageClient"), {
   ssr: false,
 });
 
 export default function WorkPage() {
-  return <LegacyWorkPage />;
+  return <WorkPageClient />;
 }

@@ -4,7 +4,7 @@ import { HeroUIProvider } from "@heroui/react";
 import PortfolioHome from "@/components/PortfolioHome";
 import SiteNav from "@/components/SiteNav";
 
-export default function LegacyWorkPage() {
+export default function WorkPageClient() {
   return (
     <HeroUIProvider>
       <SiteNav active="work" />
