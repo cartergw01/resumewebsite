@@ -4,83 +4,14 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { Accordion, AccordionItem, Card, CardBody, Link } from "@heroui/react";
 import { motion, useMotionValue, useSpring, useTransform, useInView, useReducedMotion } from "framer-motion";
-
-const profileFacts = [
-  { label: "Based In", value: "Taipei" },
-  { label: "From", value: "Irvine, California" },
-  { label: "Education", value: "UC Santa Cruz, Business Management Economics" },
-];
-
-const skills =
-  "Startup due diligence, investment analysis, market research, founder evaluation, writing, copywriting, social media marketing, community building, event planning, vibe-coding, Codex, Claude Code, Notion, Google Workspace, Canva, Microsoft Office, X, LinkedIn, Instagram, Threads, Discord.";
-
-const interests =
-  "Writing, poker, playing basketball, reading, traveling, watching the Lakers, snowboarding, and biking";
-
-const bio = [
-  "Hey, I'm Carter! I grew up in Southern California, studied Business Management Economics at UC Santa Cruz, and am now living in Taipei working as an associate at 886 Studios alongside the founders of Twitch and Guitar Hero.",
-  "We're building an accelerator that backs and supports early-stage startups, bringing a slice of Silicon Valley to Asia. Before that, I was a Research Fellow at Contrary Research, where I profiled and wrote about leading startups.",
-  "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, or writing.",
-];
-
-const experience = [
-  {
-    company: "886 Studios",
-    role: "Venture Associate",
-    dates: "October 2024 - Present",
-    details: [
-      "Lead deal sourcing for a new accelerator. Screen and interview 250+ early-stage startups, own the full application pipeline from inbound through review, run diligence on 100+ startups, design and manage the admissions process, and contribute to final selection decisions.",
-      "Serve on the core team that launched ikigai Launchpad in Taiwan, helping shape the selection rubric and supporting 15+ batch teams through workshops, office hours, investor matching, partnerships, and corporate perks.",
-      "Spearhead Launch Station, a community-building program for founders, and manage newsletters, socials, website updates, events, and Demo Day planning.",
-    ],
-  },
-  {
-    company: "Contrary Research",
-    role: "Research Fellow",
-    dates: "March 2023 - March 2024",
-    details: [
-      "Conducted in-depth research and analysis on a wide range of technology companies, with a focus on startups.",
-      "Authored comprehensive investment memos that distilled complex information into clear, concise, and compelling analysis.",
-      "Collaborated with a team of writers and editors to help advance the development of Contrary Research.",
-    ],
-    links: [
-      { label: "Shield AI", href: "https://research.contrary.com/company/shield-ai" },
-      { label: "SpaceX", href: "https://research.contrary.com/company/spacex" },
-      { label: "Turo", href: "https://research.contrary.com/company/turo" },
-      { label: "Chime", href: "https://research.contrary.com/company/chime/" },
-      { label: "Hive", href: "https://research.contrary.com/company/hive" },
-    ],
-  },
-  {
-    company: "Slug Fund Investment Group",
-    role: "Equity Research Analyst -> Vice President & Head of the Venture Analyst Team",
-    dates: "January 2021 - July 2023",
-    details: [
-      "Performed fundamental research on public companies and supported the development of investment theses.",
-      "Contributed to written reports and stock pitches presented within the fund.",
-      "Assisted in restructuring the club, recruiting, managing projects and presentations, and leading meetings and discussions.",
-      "Created and led a team of venture analysts that researched early-stage companies and developed 15+ investment memos for a fantasy VC portfolio.",
-      "Led equity analysts that performed due diligence, developed in-depth research reports, and presented stock pitches.",
-    ],
-  },
-  {
-    company: "Korobra Capital",
-    role: "Portfolio Manager",
-    dates: "November 2020 - Present",
-    details: [
-      "Established a fund as a wealth-creation vehicle for family and friends with $180K+ in assets under management.",
-      "Construct and monitor a long-term investment portfolio across high-growth industries including AI, fintech, crypto, robotics, digital media, autonomous vehicles, and e-commerce.",
-    ],
-  },
-];
-
-const essays = [
-  { title: "Slop & Spiral", subtitle: "We numb our minds and eventually our souls, and yet we are stimulated. For we have found not the fountain of living water, but the abyss of infinite cheap dopamine.", href: "https://carterko.substack.com/p/slop-and-spiral" },
-  { title: "We All Have Superpowers", subtitle: "We invent technology to extend ourselves", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
-  { title: "The Mirage of Identity", subtitle: "Our social world in the 21st century", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
-  { title: "From Crash to Curiosity", subtitle: "My Investing adVENTURE, thus far…", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
-  { title: "Work as Play", subtitle: "A reflection on the cusp of my career", href: "https://carterko.substack.com/p/work-as-play" },
-];
+import {
+  workPageBio,
+  workPageEssays,
+  workPageExperience,
+  workPageInterests,
+  workPageProfileFacts,
+  workPageSkills,
+} from "@/content/portfolio";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -493,8 +424,8 @@ function ScrollReveal({
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function PortfolioHome() {
-  const featuredExperience = experience[0];
-  const earlierExperience = experience.slice(1);
+  const featuredExperience = workPageExperience[0];
+  const earlierExperience = workPageExperience.slice(1);
 
   return (
     <>
@@ -512,7 +443,7 @@ export default function PortfolioHome() {
               <CardBody className="flex h-full flex-col justify-start gap-2 p-4 sm:p-5">
                 <AnimatedName />
                 <div className="grid gap-2 text-sm leading-[1.7] text-[var(--muted)]">
-                  {bio.map((paragraph) => (
+                  {workPageBio.map((paragraph) => (
                     <p key={paragraph} className="max-w-5xl">
                       {paragraph}
                     </p>
@@ -676,7 +607,7 @@ export default function PortfolioHome() {
 
                   {/* Essay rows */}
                   <div className="mt-1 flex flex-col gap-1">
-                    {essays.map((essay, index) => (
+                    {workPageEssays.map((essay, index) => (
                       <EssayRow key={essay.title} essay={essay} index={index} />
                     ))}
                   </div>
@@ -713,7 +644,7 @@ export default function PortfolioHome() {
               <Card className="portfolio-card-profile h-full rounded-[30px] border-none shadow-none">
                 <CardBody className="flex h-full flex-col gap-5 p-5 sm:p-6">
                   <div className="grid gap-4">
-                    {profileFacts.map((fact) => (
+                    {workPageProfileFacts.map((fact) => (
                       <div key={fact.label} className="border-b border-[var(--line)] pb-4 last:border-b-0 last:pb-0">
                         <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">{fact.label}</p>
                         <p className="mt-2 text-sm leading-7 text-[var(--foreground)]">{fact.value}</p>
@@ -722,11 +653,11 @@ export default function PortfolioHome() {
                   </div>
                   <div className="grid gap-3">
                     <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">Skills</p>
-                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{skills}</p>
+                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{workPageSkills}</p>
                   </div>
                   <div className="grid gap-3">
                     <p className="text-[11px] tracking-[0.14em] text-[var(--muted)]">Interests</p>
-                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{interests}</p>
+                    <p className="text-sm leading-[1.75] text-[var(--foreground)]">{workPageInterests}</p>
                   </div>
                 </CardBody>
               </Card>

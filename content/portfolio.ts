@@ -51,6 +51,83 @@ export const workFocus = [
   ["Community", "Building founder programs, events, newsletters, and touchpoints that help teams move faster."],
 ];
 
+export const workPageProfileFacts = [
+  { label: "Based In", value: "Taipei" },
+  { label: "From", value: "Irvine, California" },
+  { label: "Education", value: "UC Santa Cruz, Business Management Economics" },
+];
+
+export const workPageSkills =
+  "Startup due diligence, investment analysis, market research, founder evaluation, writing, copywriting, social media marketing, community building, event planning, vibe-coding, Codex, Claude Code, Notion, Google Workspace, Canva, Microsoft Office, X, LinkedIn, Instagram, Threads, Discord.";
+
+export const workPageInterests =
+  "Writing, poker, playing basketball, reading, traveling, watching the Lakers, snowboarding, and biking";
+
+export const workPageBio = [
+  "Hey, I'm Carter! I grew up in Southern California, studied Business Management Economics at UC Santa Cruz, and am now living in Taipei working as an associate at 886 Studios alongside the founders of Twitch and Guitar Hero.",
+  "We're building an accelerator that backs and supports early-stage startups, bringing a slice of Silicon Valley to Asia. Before that, I was a Research Fellow at Contrary Research, where I profiled and wrote about leading startups.",
+  "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, or writing.",
+];
+
+export const workPageExperience = [
+  {
+    company: "886 Studios",
+    role: "Venture Associate",
+    dates: "October 2024 - Present",
+    details: [
+      "Lead deal sourcing for a new accelerator. Screen and interview 250+ early-stage startups, own the full application pipeline from inbound through review, run diligence on 100+ startups, design and manage the admissions process, and contribute to final selection decisions.",
+      "Serve on the core team that launched ikigai Launchpad in Taiwan, helping shape the selection rubric and supporting 15+ batch teams through workshops, office hours, investor matching, partnerships, and corporate perks.",
+      "Spearhead Launch Station, a community-building program for founders, and manage newsletters, socials, website updates, events, and Demo Day planning.",
+    ],
+  },
+  {
+    company: "Contrary Research",
+    role: "Research Fellow",
+    dates: "March 2023 - March 2024",
+    details: [
+      "Conducted in-depth research and analysis on a wide range of technology companies, with a focus on startups.",
+      "Authored comprehensive investment memos that distilled complex information into clear, concise, and compelling analysis.",
+      "Collaborated with a team of writers and editors to help advance the development of Contrary Research.",
+    ],
+    links: [
+      { label: "Shield AI", href: "https://research.contrary.com/company/shield-ai" },
+      { label: "SpaceX", href: "https://research.contrary.com/company/spacex" },
+      { label: "Turo", href: "https://research.contrary.com/company/turo" },
+      { label: "Chime", href: "https://research.contrary.com/company/chime/" },
+      { label: "Hive", href: "https://research.contrary.com/company/hive" },
+    ],
+  },
+  {
+    company: "Slug Fund Investment Group",
+    role: "Equity Research Analyst -> Vice President & Head of the Venture Analyst Team",
+    dates: "January 2021 - July 2023",
+    details: [
+      "Performed fundamental research on public companies and supported the development of investment theses.",
+      "Contributed to written reports and stock pitches presented within the fund.",
+      "Assisted in restructuring the club, recruiting, managing projects and presentations, and leading meetings and discussions.",
+      "Created and led a team of venture analysts that researched early-stage companies and developed 15+ investment memos for a fantasy VC portfolio.",
+      "Led equity analysts that performed due diligence, developed in-depth research reports, and presented stock pitches.",
+    ],
+  },
+  {
+    company: "Korobra Capital",
+    role: "Portfolio Manager",
+    dates: "November 2020 - Present",
+    details: [
+      "Established a fund as a wealth-creation vehicle for family and friends with $180K+ in assets under management.",
+      "Construct and monitor a long-term investment portfolio across high-growth industries including AI, fintech, crypto, robotics, digital media, autonomous vehicles, and e-commerce.",
+    ],
+  },
+];
+
+export const workPageEssays = [
+  { title: "Slop & Spiral", subtitle: "We numb our minds and eventually our souls, and yet we are stimulated. For we have found not the fountain of living water, but the abyss of infinite cheap dopamine.", href: "https://carterko.substack.com/p/slop-and-spiral" },
+  { title: "We All Have Superpowers", subtitle: "We invent technology to extend ourselves", href: "https://carterko.substack.com/p/we-all-have-superpowers" },
+  { title: "The Mirage of Identity", subtitle: "Our social world in the 21st century", href: "https://carterko.substack.com/p/the-mirage-of-identity" },
+  { title: "From Crash to Curiosity", subtitle: "My Investing adVENTURE, thus far…", href: "https://carterko.substack.com/p/from-crash-to-curiosity" },
+  { title: "Work as Play", subtitle: "A reflection on the cusp of my career", href: "https://carterko.substack.com/p/work-as-play" },
+];
+
 export const essays = [
   {
     title: "The Cost of Keeping Up",
