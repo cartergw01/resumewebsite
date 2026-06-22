@@ -14,7 +14,7 @@ const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best 
 
 export default function WritingPage() {
   return (
-    <div className="cosmic-subpage subpage-writing subpage-topic topic-page">
+    <div className="cosmic-subpage subpage-writing subpage-topic topic-page" data-rocket-launch-zone>
       <SiteNav active="writing" />
 
       <main className="subpage-main topic-main">

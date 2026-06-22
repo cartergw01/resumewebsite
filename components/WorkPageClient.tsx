@@ -8,7 +8,7 @@ export default function WorkPageClient() {
   return (
     <HeroUIProvider>
       <SiteNav active="work" />
-      <div className="legacy-work-root">
+      <div className="legacy-work-root" data-rocket-launch-zone>
         <PortfolioHome />
       </div>
     </HeroUIProvider>

@@ -167,88 +167,22 @@ export function RocketCursor() {
     const streaks:   Streak[]    = [];
     const shockwaves: Shockwave[] = [];
 
-    // ── Mouse tracking ────────────────────────────────────────────────────────
-    // Only record coordinates here — hover check runs in rAF (throttled) so
-    // elementFromPoint never blocks the mousemove event.
-    const onMouseMove = (e: MouseEvent) => {
-      if (!cursorEnabled) return;
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-      if (!isLaunching) {
-        // Update position immediately — no rAF lag for the cursor itself
-        pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
-        rocket.style.opacity = "1";
-      }
-    };
+    const startLaunch = ({
+      href,
+      isExternal = false,
+      originX,
+      originY,
+      showArrival = false,
+    }: {
+      href?: string;
+      isExternal?: boolean;
+      originX: number;
+      originY: number;
+      showArrival?: boolean;
+    }) => {
+      if (isLaunching) return false;
 
-    const onMouseLeave = () => {
-      if (!cursorEnabled) return;
-      if (!isLaunching) rocket.style.opacity = "0";
-    };
-
-    // Pointer-follow + jetpack only matter for cursor devices. Tap mode skips
-    // them entirely (and avoids reacting to synthetic mouse events from taps).
-    if (isDesktopCursor) {
-      document.addEventListener("mousemove",  onMouseMove);
-      document.addEventListener("mouseleave", onMouseLeave);
-    }
-
-    // ── Jetpack fire on click ─────────────────────────────────────────────────
-    const onJetpackFire = (e: MouseEvent) => {
-      if (!cursorEnabled) return;
-      if (isLaunching) return;
-      // Skip jetpack on any navigating link — the launch animation handles those
-      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
-      if (link) {
-        const href = link.getAttribute("href") ?? "";
-        if (href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
-      }
-      jetpackFiringUntil = performance.now() + 260;  // sustained burn
-      // Burst of downward thrust particles from exhaust
-      const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
-      for (let i = 0; i < burstCount; i++) {
-        particles.push({
-          x:       exhaustX + (Math.random() - 0.5) * 6,
-          y:       exhaustY + (Math.random() - 0.5) * 4,
-          vx:      (Math.random() - 0.5) * 2.0,
-          vy:      2.5 + Math.random() * 4.5,
-          size:    1.0 + Math.random() * 2.8,
-          life:    0,
-          maxLife: 22 + Math.random() * 18,
-          r:       255,
-          g:       120 + Math.floor(Math.random() * 90),
-          b:       10  + Math.floor(Math.random() * 20),
-        });
-      }
-    };
-
-    if (isDesktopCursor) {
-      document.addEventListener("mousedown", onJetpackFire);
-    }
-
-    // ── Nav click → launch ────────────────────────────────────────────────────
-    const onNavClick = (e: MouseEvent) => {
-      if (isLaunching) return;
-      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
-      if (!link) return;
-      const href = link.getAttribute("href") ?? "";
-      // Skip anchors, mailto, tel — anything that isn't a real navigation
-      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
-
-      const isExternal = /^https?:/.test(href);
-      // In tap mode, leave external links alone — they open in a new tab, and
-      // deferring window.open behind an async timeout would trip mobile popup
-      // blockers. The launch effect is for in-site page transitions.
-      if (!cursorEnabled && isExternal) return;
-
-      // Launch origin: cursor mode uses the tracked pointer; tap mode uses the
-      // exact point that was tapped (the rocket is otherwise hidden).
-      const originX = cursorEnabled ? mouseX : e.clientX;
-      const originY = cursorEnabled ? mouseY : e.clientY;
       launchDuration = cursorEnabled ? LAUNCH_DURATION : TOUCH_LAUNCH_DURATION;
-
-      e.preventDefault();
-      e.stopPropagation();
 
       isLaunching = true;
       isHovering  = false;
@@ -293,29 +227,145 @@ export function RocketCursor() {
           smoothVelX = 0;
           smoothVelY = 0;
         } else {
-          // Tap mode: no cursor to return to. Hide the rocket and aim the
-          // arrival burst at the upper-center as a "warped into a new world" beat.
+          // Tap mode: no cursor to return to after the one-shot launch.
           rocket.style.opacity = "0";
           cursorX = W / 2;
           cursorY = H * 0.32;
         }
 
-        isWarpingIn   = true;
-        warpStartMs   = performance.now();
-        warpBurstDone = false;
-
-        if (isExternal) {
-          window.open(href, "_blank", "noopener,noreferrer");
-        } else {
-          routerRef.current.push(href);
+        if (showArrival) {
+          isWarpingIn   = true;
+          warpStartMs   = performance.now();
+          warpBurstDone = false;
         }
 
-        // Tap mode: make sure the loop is still awake to play the arrival burst.
+        if (href) {
+          if (isExternal) {
+            window.open(href, "_blank", "noopener,noreferrer");
+          } else {
+            routerRef.current.push(href);
+          }
+        }
+
+        // Tap mode: make sure the loop is still awake to finish any particles
+        // and, on route transitions, the arrival burst.
         if (!cursorEnabled) ensureRunning();
       }, launchDuration);
+
+      return true;
+    };
+
+    // ── Mouse tracking ────────────────────────────────────────────────────────
+    // Only record coordinates here — hover check runs in rAF (throttled) so
+    // elementFromPoint never blocks the mousemove event.
+    const onMouseMove = (e: MouseEvent) => {
+      if (!cursorEnabled) return;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!isLaunching) {
+        // Update position immediately — no rAF lag for the cursor itself
+        pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
+        rocket.style.opacity = "1";
+      }
+    };
+
+    const onMouseLeave = () => {
+      if (!cursorEnabled) return;
+      if (!isLaunching) rocket.style.opacity = "0";
+    };
+
+    // Pointer-follow + jetpack only matter for cursor devices. Tap mode skips
+    // them entirely (and avoids reacting to synthetic mouse events from taps).
+    if (isDesktopCursor) {
+      document.addEventListener("mousemove",  onMouseMove);
+      document.addEventListener("mouseleave", onMouseLeave);
+    }
+
+    // ── Jetpack fire on click ─────────────────────────────────────────────────
+    const onJetpackFire = (e: MouseEvent) => {
+      if (!cursorEnabled) return;
+      if (isLaunching) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest("[data-rocket-launch-zone]")) return;
+
+      // Skip jetpack on any navigating link — the launch animation handles those
+      const link = target?.closest("a[href]") as HTMLAnchorElement | null;
+      if (link) {
+        const href = link.getAttribute("href") ?? "";
+        if (href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:")) return;
+      }
+      jetpackFiringUntil = performance.now() + 260;  // sustained burn
+      // Burst of downward thrust particles from exhaust
+      const burstCount = Math.min(PARTICLE_CAP - particles.length, 14);
+      for (let i = 0; i < burstCount; i++) {
+        particles.push({
+          x:       exhaustX + (Math.random() - 0.5) * 6,
+          y:       exhaustY + (Math.random() - 0.5) * 4,
+          vx:      (Math.random() - 0.5) * 2.0,
+          vy:      2.5 + Math.random() * 4.5,
+          size:    1.0 + Math.random() * 2.8,
+          life:    0,
+          maxLife: 22 + Math.random() * 18,
+          r:       255,
+          g:       120 + Math.floor(Math.random() * 90),
+          b:       10  + Math.floor(Math.random() * 20),
+        });
+      }
+    };
+
+    if (isDesktopCursor) {
+      document.addEventListener("mousedown", onJetpackFire);
+    }
+
+    // ── Nav click → launch ────────────────────────────────────────────────────
+    const onNavClick = (e: MouseEvent) => {
+      if (isLaunching) return;
+      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+      if (!link) return;
+      const href = link.getAttribute("href") ?? "";
+      // Skip anchors, mailto, tel — anything that isn't a real navigation
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+      const isExternal = /^https?:/.test(href);
+      // In tap mode, leave external links alone — they open in a new tab, and
+      // deferring window.open behind an async timeout would trip mobile popup
+      // blockers. The launch effect is for in-site page transitions.
+      if (!cursorEnabled && isExternal) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      // Launch origin: cursor mode uses the tracked pointer; tap mode uses the
+      // exact point that was tapped (the rocket is otherwise hidden).
+      startLaunch({
+        href,
+        isExternal,
+        originX: cursorEnabled ? mouseX : e.clientX,
+        originY: cursorEnabled ? mouseY : e.clientY,
+        showArrival: true,
+      });
+    };
+
+    const onSubpageClick = (e: MouseEvent) => {
+      const target = e.target instanceof Element ? e.target : null;
+      if (!target || !target.closest("[data-rocket-launch-zone]")) return;
+      if (target.closest("input, textarea, select, [contenteditable='true']")) return;
+
+      const link = target.closest("a[href]") as HTMLAnchorElement | null;
+      const href = link?.getAttribute("href") ?? "";
+      if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+      // Internal and desktop external links are handled by onNavClick above.
+      if (link && (!/^https?:/.test(href) || cursorEnabled)) return;
+
+      startLaunch({
+        originX: e.clientX,
+        originY: e.clientY,
+      });
     };
 
     document.addEventListener("click", onNavClick, true);
+    document.addEventListener("click", onSubpageClick);
 
     // ── Animation loop ────────────────────────────────────────────────────────
     const draw = () => {
@@ -669,6 +719,7 @@ export function RocketCursor() {
       document.removeEventListener("mouseleave",    onMouseLeave);
       document.removeEventListener("mousedown",     onJetpackFire);
       document.removeEventListener("click",         onNavClick, true);
+      document.removeEventListener("click",         onSubpageClick);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);

@@ -10,7 +10,7 @@ import { projects } from "@/content/portfolio";
 
 export default function ProjectsPage() {
   return (
-    <div className="cosmic-subpage subpage-projects subpage-topic topic-page">
+    <div className="cosmic-subpage subpage-projects subpage-topic topic-page" data-rocket-launch-zone>
       <SiteNav active="projects" />
 
       <main className="subpage-main topic-main projects-main">
