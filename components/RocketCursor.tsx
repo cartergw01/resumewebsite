@@ -37,9 +37,114 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 520;   // ms — fast & snappy (cursor devices)
-const TOUCH_LAUNCH_DURATION = 430;  // ms — a touch snappier on phones so nav never feels delayed
-const WARP_IN_DURATION = 340;   // ms
+const LAUNCH_DURATION  = 340;   // ms — quick enough that route clicks never feel held
+const TOUCH_LAUNCH_DURATION = 260;  // ms — phones/tablets need instant-feeling taps
+const WARP_IN_DURATION = 260;   // ms
+const ROCKET_OPACITY_TRANSITION = "opacity 0.08s ease-out";
+
+type WorldAsset = {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  height: number;
+  width: number;
+};
+
+const WORLD_ASSET_URLS = [
+  "/world-work-cutout-v1.webp",
+  "/world-writing-cutout-v1.webp",
+  "/world-projects-cutout-v2.webp",
+];
+
+const worldAssetCache = new Map<string, WorldAsset>();
+const worldAssetLoads = new Map<string, Promise<void>>();
+
+function absoluteAssetUrl(url: string) {
+  return new URL(url, window.location.href).href;
+}
+
+function backgroundImageUrl(value: string) {
+  const match = value.match(/url\((['"]?)(.*?)\1\)/);
+  return match?.[2] ? absoluteAssetUrl(match[2]) : null;
+}
+
+function loadWorldAsset(url: string) {
+  const absoluteUrl = absoluteAssetUrl(url);
+  if (worldAssetCache.has(absoluteUrl)) return;
+  if (worldAssetLoads.has(absoluteUrl)) return;
+
+  const load = new Promise<void>((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        worldAssetCache.set(absoluteUrl, {
+          canvas,
+          ctx,
+          height: img.naturalHeight,
+          width: img.naturalWidth,
+        });
+      }
+      resolve();
+    };
+    img.onerror = () => resolve();
+    img.src = absoluteUrl;
+  });
+
+  worldAssetLoads.set(absoluteUrl, load);
+}
+
+function cssLength(value: string, basis: number, natural: number) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "auto") return natural;
+  if (trimmed.endsWith("%")) return basis * (Number.parseFloat(trimmed) / 100);
+  if (trimmed.endsWith("px")) return Number.parseFloat(trimmed);
+  const numeric = Number.parseFloat(trimmed);
+  return Number.isFinite(numeric) ? numeric : natural;
+}
+
+function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY: number) {
+  const visual = link.parentElement?.querySelector<HTMLElement>(".world-visual");
+  if (!visual) return false;
+
+  const style = window.getComputedStyle(visual);
+  const assetUrl = backgroundImageUrl(style.backgroundImage);
+  if (!assetUrl) return false;
+
+  const asset = worldAssetCache.get(assetUrl);
+  if (!asset) {
+    loadWorldAsset(assetUrl);
+    return false;
+  }
+
+  const visualRect = visual.getBoundingClientRect();
+  const [rawSizeX = "auto", rawSizeY = "auto"] = style.backgroundSize.split(/\s+/);
+  let renderedWidth = cssLength(rawSizeX, visualRect.width, asset.width);
+  const renderedHeight = rawSizeY === "auto"
+    ? renderedWidth * (asset.height / asset.width)
+    : cssLength(rawSizeY, visualRect.height, asset.height);
+
+  if (rawSizeX === "auto" && rawSizeY !== "auto") {
+    renderedWidth = renderedHeight * (asset.width / asset.height);
+  }
+
+  const baselineShift = Number.parseFloat(style.getPropertyValue("--world-baseline-shift")) || 0;
+  const renderedLeft = visualRect.left + (visualRect.width - renderedWidth) / 2;
+  const renderedTop = visualRect.top + visualRect.height - renderedHeight + baselineShift;
+  const imageX = ((clientX - renderedLeft) / renderedWidth) * asset.width;
+  const imageY = ((clientY - renderedTop) / renderedHeight) * asset.height;
+
+  if (imageX < 0 || imageY < 0 || imageX >= asset.width || imageY >= asset.height) {
+    return false;
+  }
+
+  const alpha = asset.ctx.getImageData(Math.floor(imageX), Math.floor(imageY), 1, 1).data[3];
+  return alpha > 24;
+}
 
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,7 +168,6 @@ export function RocketCursor() {
     //     rocket — a one-shot rocket launches from the tapped point on nav, so
     //     touch users get the same "shoot off into the next page" moment.
     const cursorQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine) and (min-width: 761px)");
-    const isDesktopCursor = cursorQuery.matches;
 
     const canvas = canvasRef.current;
     const pos    = posRef.current;
@@ -72,13 +176,15 @@ export function RocketCursor() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    WORLD_ASSET_URLS.forEach(loadWorldAsset);
+
     // Declared early so syncCursorCapability (called below) can avoid hiding the
     // rocket mid-launch in tap mode.
     let isLaunching = false;
 
     // cursorEnabled drives the pointer-following rocket. In tap mode it stays
     // false (no persistent rocket); the one-shot launch still works via clicks.
-    let cursorEnabled: boolean = isDesktopCursor;
+    let cursorEnabled: boolean = cursorQuery.matches;
 
     const syncCursorCapability = () => {
       cursorEnabled = cursorQuery.matches;
@@ -152,6 +258,7 @@ export function RocketCursor() {
     // rAF loop run state. Cursor mode runs the loop continuously; tap mode wakes
     // it on a launch and sleeps when idle to save battery on phones.
     let running = false;
+    let restoreOpacityTransitionId = 0;
 
     // ── Warp-in state ─────────────────────────────────────────────────────────
     let isWarpingIn = false;
@@ -166,6 +273,15 @@ export function RocketCursor() {
     const particles: Particle[]  = [];
     const streaks:   Streak[]    = [];
     const shockwaves: Shockwave[] = [];
+
+    const revealRocketNow = () => {
+      cancelAnimationFrame(restoreOpacityTransitionId);
+      rocket.style.transition = "none";
+      rocket.style.opacity = "1";
+      restoreOpacityTransitionId = requestAnimationFrame(() => {
+        rocket.style.transition = ROCKET_OPACITY_TRANSITION;
+      });
+    };
 
     const startLaunch = ({
       href,
@@ -200,7 +316,7 @@ export function RocketCursor() {
       // aligned from frame zero.
       pos.style.transform = `translate(${originX}px,${originY}px)`;
       rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
-      rocket.style.opacity = "1";
+      revealRocketNow();
 
       // Tap mode: the loop is asleep — wake it so the launch animates.
       if (!cursorEnabled) ensureRunning();
@@ -274,12 +390,11 @@ export function RocketCursor() {
       if (!isLaunching) rocket.style.opacity = "0";
     };
 
-    // Pointer-follow + jetpack only matter for cursor devices. Tap mode skips
-    // them entirely (and avoids reacting to synthetic mouse events from taps).
-    if (isDesktopCursor) {
-      document.addEventListener("mousemove",  onMouseMove);
-      document.addEventListener("mouseleave", onMouseLeave);
-    }
+    // Pointer-follow + jetpack only matter when cursorEnabled is true, but the
+    // media query can change when an iPad gains/loses a trackpad or a viewport
+    // crosses the breakpoint. Keep listeners installed; the handlers are gated.
+    document.addEventListener("mousemove",  onMouseMove);
+    document.addEventListener("mouseleave", onMouseLeave);
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
@@ -313,9 +428,7 @@ export function RocketCursor() {
       }
     };
 
-    if (isDesktopCursor) {
-      document.addEventListener("mousedown", onJetpackFire);
-    }
+    document.addEventListener("mousedown", onJetpackFire);
 
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
@@ -325,6 +438,12 @@ export function RocketCursor() {
       const href = link.getAttribute("href") ?? "";
       // Skip anchors, mailto, tel — anything that isn't a real navigation
       if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+      if (link.classList.contains("world-orb-link") && !isOpaqueWorldOrbClick(link, e.clientX, e.clientY)) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
 
       const isExternal = /^https?:/.test(href);
       // In tap mode, leave external links alone — they open in a new tab, and
@@ -340,8 +459,8 @@ export function RocketCursor() {
       startLaunch({
         href,
         isExternal,
-        originX: cursorEnabled ? mouseX : e.clientX,
-        originY: cursorEnabled ? mouseY : e.clientY,
+        originX: e.clientX,
+        originY: e.clientY,
         showArrival: true,
       });
     };
@@ -711,6 +830,7 @@ export function RocketCursor() {
 
     return () => {
       cancelAnimationFrame(animId);
+      cancelAnimationFrame(restoreOpacityTransitionId);
       canvasResizeObserver.disconnect();
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",          onResize);
@@ -760,7 +880,7 @@ export function RocketCursor() {
           willChange: "transform",
           transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,
           opacity: 0,
-          transition: "opacity 0.18s ease",
+          transition: ROCKET_OPACITY_TRANSITION,
         }}
       >
         {/*

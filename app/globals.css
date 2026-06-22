@@ -3127,7 +3127,7 @@ select {
   }
 
   .cosmic-home .world-orb-link {
-    inset: 0 0 30%;
+    inset: 0;
     pointer-events: auto;
   }
 
@@ -3138,6 +3138,10 @@ select {
   .cosmic-home .world-card .world-orb {
     width: 100%;
     height: clamp(10rem, 56vw, 13rem);
+  }
+
+  .cosmic-home .world-card.world-work .world-visual {
+    --world-art-size: 112%;
   }
 
   .cosmic-home .world-card .world-orb::before {
@@ -3377,7 +3381,7 @@ html[data-theme="dark"] a {
   }
 
   .cosmic-home .world-orb-link {
-    inset: 0 0 30%;
+    inset: 0;
   }
 
   /* Prevent iOS sticky-hover from highlighting multiple nav items at once */
