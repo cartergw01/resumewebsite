@@ -3123,9 +3123,11 @@ select {
      hitarea so empty card space doesn't eat taps on a small screen. */
   .cosmic-home .world-card-hitarea {
     display: none;
+    pointer-events: none;
   }
 
   .cosmic-home .world-orb-link {
+    inset: 0 0 30%;
     pointer-events: auto;
   }
 
@@ -3359,6 +3361,23 @@ html[data-theme="dark"] a {
 
   .world-enter-cue {
     display: none;
+  }
+
+  /* Touch devices should never get the desktop whole-card hit area. Keep taps
+     limited to the island overlay and the actual text links. */
+  .cosmic-home .world-card-hitarea {
+    display: none;
+    pointer-events: none;
+  }
+
+  .cosmic-home .world-orb-link,
+  .cosmic-home .world-title-link,
+  .cosmic-home .world-card .world-copy a {
+    pointer-events: auto;
+  }
+
+  .cosmic-home .world-orb-link {
+    inset: 0 0 30%;
   }
 
   /* Prevent iOS sticky-hover from highlighting multiple nav items at once */
