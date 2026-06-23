@@ -1887,9 +1887,9 @@ select {
 .writing-archive {
   position: relative;
   max-width: 880px;
-  margin-top: clamp(1.75rem, 3.5vw, 2.6rem);
-  padding-top: clamp(0.7rem, 1.2vw, 0.95rem);
-  border-top: 1px solid rgb(var(--topic-accent) / 0.16);
+  margin-top: clamp(2.15rem, 4.4vw, 3.35rem);
+  padding-top: 0;
+  border-top: 0;
   padding-left: clamp(0rem, 2.2vw, 1.5rem);
   font-kerning: normal;
   font-feature-settings: "kern" 1;
@@ -2552,7 +2552,7 @@ select {
   }
 
   .writing-archive {
-    margin-top: clamp(1.35rem, 5vw, 2rem);
+    margin-top: clamp(1.75rem, 6vw, 2.35rem);
     padding-left: 0;
   }
 
