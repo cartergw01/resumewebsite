@@ -1441,14 +1441,6 @@ select {
   }
 }
 
-.subpage-life {
-  --topic-image: url("/cosmic-life-v7-left.webp");
-  --topic-card-image: url("/cosmic-life-v7-left.webp");
-  --topic-accent: 236 171 105;
-  --topic-warm: 248 200 132;
-  --topic-position: 38% center;
-}
-
 .subpage-main {
   position: relative;
   z-index: 2;
@@ -1466,7 +1458,6 @@ select {
 
 .subpage-hero > span,
 .work-focus-card > span,
-.life-note > span,
 .research-panel span,
 .work-current > span,
 .resume-facts span,
@@ -1518,8 +1509,7 @@ select {
   align-items: start;
 }
 
-.writing-layout,
-.life-layout {
+.writing-layout {
   grid-template-columns: minmax(0, 0.66fr) minmax(250px, 0.34fr);
 }
 
@@ -1527,8 +1517,7 @@ select {
   display: block;
 }
 
-.writing-layout .topic-world-art,
-.life-layout .topic-world-art {
+.writing-layout .topic-world-art {
   grid-column: 2;
   grid-row: 1;
 }
@@ -1564,7 +1553,6 @@ select {
 }
 
 .subpage-panel,
-.life-note,
 .research-panel,
 .resume-facts,
 .skill-panel {
@@ -1574,8 +1562,7 @@ select {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 18px 54px rgba(0, 0, 0, 0.24);
 }
 
-.subpage-panel,
-.life-note {
+.subpage-panel {
   padding: clamp(1.15rem, 2.5vw, 1.75rem);
 }
 
@@ -1671,8 +1658,7 @@ select {
   gap: 0.55rem;
 }
 
-.subpage-panel h2,
-.life-note h2 {
+.subpage-panel h2 {
   margin: 0.7rem 0 0;
   color: var(--cw-paper);
   font-family: var(--font-display);
@@ -1689,7 +1675,6 @@ select {
 
 .subpage-panel p,
 .subpage-panel li,
-.life-note p,
 .research-panel p {
   color: rgba(255, 247, 234, 0.68);
   font-size: 0.95rem;
@@ -1827,22 +1812,6 @@ select {
   border-color: rgb(var(--topic-warm) / 0.36);
   color: var(--cw-paper);
   transform: translate3d(0, -1px, 0);
-}
-
-.life-grid-refined {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(0.75rem, 1.5vw, 1rem);
-}
-
-.life-note p {
-  margin: 1rem 0 0;
-}
-
-.life-current {
-  background:
-    radial-gradient(circle at 84% 24%, rgb(var(--topic-warm) / 0.12), transparent 24%),
-    linear-gradient(145deg, rgba(8, 14, 29, 0.76), rgba(6, 10, 22, 0.52));
 }
 
 .projects-workshop {
@@ -2203,7 +2172,6 @@ select {
 .subpage-hero,
 .subpage-world-art,
 .subpage-panel,
-.life-note,
 .project-row,
 .archive-row,
 .workshop-line,
@@ -2289,13 +2257,11 @@ select {
 
   .topic-layout,
   .writing-layout,
-  .life-layout,
   .projects-layout {
     grid-template-columns: 1fr;
   }
 
-  .writing-layout .topic-world-art,
-  .life-layout .topic-world-art {
+  .writing-layout .topic-world-art {
     grid-column: 1;
     grid-row: auto;
   }
@@ -2308,7 +2274,6 @@ select {
   }
 
   .work-focus-grid,
-  .life-grid-refined,
   .work-resume-intro {
     grid-template-columns: 1fr;
   }
@@ -3315,7 +3280,6 @@ select {
 @media (forced-colors: active) {
   .site-nav,
   .subpage-panel,
-  .life-note,
   .project-row,
   .archive-row,
   .workshop-line,

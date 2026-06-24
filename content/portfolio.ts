@@ -253,15 +253,6 @@ export const essays = [
   },
 ];
 
-export const lifeNotes = [
-  ["From", "Irvine", "Southern California is still the reference point."],
-  ["Now", "Taipei", "Dense, convenient, energetic, and easy to wander through."],
-  ["Team", "Lakers", "Still watching, even when it hurts."],
-  ["Game", "Poker", "Texas Hold'em, usually cash games."],
-  ["Motion", "Biking", "My favorite way to learn the city."],
-  ["Shelf", "Books", "Biographies, essays, technology, and culture."],
-];
-
 export const projects = [
   {
     title: "TaipeiFlix",

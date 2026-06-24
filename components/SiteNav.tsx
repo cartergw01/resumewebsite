@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 type SiteNavProps = {
-  active?: "home" | "work" | "writing" | "projects" | "life";
+  active?: "home" | "work" | "writing" | "projects";
 };
 
 const primaryLinks = [
