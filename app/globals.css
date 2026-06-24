@@ -1922,7 +1922,7 @@ select {
 }
 
 .archive-row:hover .archive-action {
-  border-color: rgb(var(--topic-warm) / 0.62);
+  border-color: rgb(var(--cta-line) / 0.62);
   color: var(--cw-paper);
   letter-spacing: calc(var(--tracking-caps) + 0.02em);
 }
@@ -1937,7 +1937,7 @@ select {
 }
 
 .archive-row:focus-visible .archive-action {
-  border-color: rgb(var(--topic-warm) / 0.66);
+  border-color: rgb(var(--cta-line) / 0.76);
   color: var(--cw-paper);
 }
 
@@ -1988,20 +1988,27 @@ select {
   white-space: nowrap;
 }
 
+.archive-action,
+.project-row > em {
+  --cta-line: 183 211 255;
+  width: fit-content;
+  white-space: nowrap;
+  border-bottom: 1px solid rgb(var(--cta-line) / 0.36);
+  color: rgba(255, 247, 234, 0.82);
+  font-size: var(--type-caption);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
+}
+
 .archive-action {
   grid-column: 3;
   grid-row: 1;
   justify-self: end;
   align-self: end;
   translate: 0 0.32rem;
-  width: fit-content;
-  border-bottom: 1px solid rgb(var(--topic-warm) / 0.36);
-  color: rgba(255, 247, 234, 0.52);
-  font-size: clamp(0.78rem, 0.86vw, 0.9rem);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
   white-space: nowrap;
 }
 
@@ -2033,7 +2040,7 @@ select {
 }
 
 .project-row:hover em {
-  border-color: rgb(var(--topic-warm) / 0.62);
+  border-color: rgb(var(--cta-line) / 0.62);
   color: var(--cw-paper);
   letter-spacing: calc(var(--tracking-caps) + 0.02em);
 }
@@ -2100,20 +2107,10 @@ select {
 .project-row > em {
   align-self: end;
   justify-self: end;
-  width: fit-content;
-  white-space: nowrap;
-  border-bottom: 1px solid rgb(var(--topic-warm) / 0.36);
-  color: rgba(255, 247, 234, 0.82);
-  font-size: var(--type-caption);
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1.2;
-  transition: border-color 180ms var(--cw-ease), color 180ms var(--cw-ease);
 }
 
 .project-row:focus-visible em {
-  border-color: rgb(var(--topic-warm) / 0.66);
+  border-color: rgb(var(--cta-line) / 0.76);
   color: var(--cw-paper);
 }
 
@@ -2559,8 +2556,7 @@ select {
     justify-self: end;
     align-self: end;
     translate: 0 0;
-    color: rgba(255, 247, 234, 0.42);
-    font-size: 0.78rem;
+    font-size: 0.66rem;
   }
 
   .research-panel {
@@ -3191,8 +3187,8 @@ select {
     border-color: rgba(244, 210, 163, 0.14);
   }
   .archive-row:hover .archive-action {
-    border-color: rgb(var(--topic-warm) / 0.36);
-    color: rgba(255, 247, 234, 0.52);
+    border-color: rgb(var(--cta-line) / 0.36);
+    color: rgba(255, 247, 234, 0.82);
     letter-spacing: 0.04em;
   }
 
@@ -3207,7 +3203,7 @@ select {
     transform: scale(1.01);
   }
   .project-row:hover em {
-    border-color: rgb(var(--topic-warm) / 0.36);
+    border-color: rgb(var(--cta-line) / 0.36);
     color: rgba(255, 247, 234, 0.82);
     letter-spacing: 0.04em;
   }
