@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { RocketCursor } from "@/components/RocketCursor";
+import ClientChrome from "@/components/ClientChrome";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -48,12 +48,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html
       lang="en"
       data-theme="dark"
+      data-scroll-behavior="smooth"
       className={`dark ${playfair.variable} ${spaceGrotesk.variable}`}
       suppressHydrationWarning
     >
-      <head />
       <body className="min-h-screen font-sans antialiased">
-        <RocketCursor />
+        <ClientChrome />
         {children}
         <Analytics />
       </body>

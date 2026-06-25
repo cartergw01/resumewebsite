@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
+import { SubstackSubscribe } from "@/components/SubstackSubscribe";
+import { essays } from "@/content/portfolio";
 
 export const metadata: Metadata = {
   title: "Writing — Carter Wang",
   description:
     "Essays on human nature, culture, and technology at flying Arrows on Substack.",
 };
-import { SubstackSubscribe } from "@/components/SubstackSubscribe";
-import { essays } from "@/content/portfolio";
 
 const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
 const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best Things I Read"));

@@ -51,7 +51,9 @@ const socialLinks = [
 ];
 
 function externalLinkProps(href: string) {
-  return href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
+  return href.startsWith("http")
+    ? { target: "_blank", rel: "noopener noreferrer" }
+    : {};
 }
 
 export default function SiteNav({ active = "home" }: SiteNavProps) {

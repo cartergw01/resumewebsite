@@ -36,6 +36,7 @@ export function SubstackSubscribe() {
           width={88}
           height={88}
           quality={90}
+          sizes="88px"
         />
 
         <div className="fa-body">

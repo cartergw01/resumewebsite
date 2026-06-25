@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import SiteNav from "@/components/SiteNav";
+import { projects } from "@/content/portfolio";
 
 export const metadata: Metadata = {
   title: "Projects — Carter Wang",
   description: "Fun side projects by Carter Wang — building things on the internet.",
 };
-import SiteNav from "@/components/SiteNav";
-import { projects } from "@/content/portfolio";
 
 export default function ProjectsPage() {
   return (
@@ -40,7 +40,7 @@ export default function ProjectsPage() {
                       src={project.image}
                       alt={`${project.title} website screenshot`}
                       fill
-                      priority={index === 0}
+                      priority={index < 2}
                       quality={86}
                       sizes="(max-width: 760px) calc(100vw - 1.5rem), (max-width: 1200px) 31vw, 360px"
                     />

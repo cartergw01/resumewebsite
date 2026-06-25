@@ -1,13 +1,13 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-// HeroUI and the Work page effects are heavy, so keep the whole shell loaded
-// only on this route.
-const WorkPageClient = dynamic(() => import("@/components/WorkPageClient"), {
-  ssr: false,
-});
+import PortfolioHome from "@/components/PortfolioHome";
+import SiteNav from "@/components/SiteNav";
 
 export default function WorkPage() {
-  return <WorkPageClient />;
+  return (
+    <>
+      <SiteNav active="work" />
+      <div className="legacy-work-root" data-rocket-launch-zone>
+        <PortfolioHome />
+      </div>
+    </>
+  );
 }
