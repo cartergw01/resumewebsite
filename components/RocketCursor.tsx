@@ -107,6 +107,36 @@ function cssLength(value: string, basis: number, natural: number) {
   return Number.isFinite(numeric) ? numeric : natural;
 }
 
+function isModifiedNavigationClick(e: MouseEvent) {
+  return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
+}
+
+function internalRouteHref(link: HTMLAnchorElement) {
+  const href = link.getAttribute("href") ?? "";
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return null;
+  if (link.hasAttribute("download")) return null;
+  if (link.target && link.target !== "_self") return null;
+
+  const url = new URL(href, window.location.href);
+  if (url.origin !== window.location.origin) return null;
+
+  const samePath = url.pathname === window.location.pathname;
+  const sameSearch = url.search === window.location.search;
+  if (samePath && sameSearch && url.hash) return null;
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function externalNavigationHref(link: HTMLAnchorElement) {
+  const href = link.getAttribute("href") ?? "";
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return null;
+  if (link.hasAttribute("download")) return null;
+  if (link.target && link.target !== "_self") return null;
+
+  const url = new URL(href, window.location.href);
+  return url.origin === window.location.origin ? null : url.href;
+}
+
 function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY: number) {
   const visual = link.parentElement?.querySelector<HTMLElement>(".world-visual");
   if (!visual) return false;
@@ -433,11 +463,10 @@ export function RocketCursor() {
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
       if (isLaunching) return;
+      if (isModifiedNavigationClick(e)) return;
+
       const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (!link) return;
-      const href = link.getAttribute("href") ?? "";
-      // Skip anchors, mailto, tel — anything that isn't a real navigation
-      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
 
       if (link.classList.contains("world-orb-link") && !isOpaqueWorldOrbClick(link, e.clientX, e.clientY)) {
         e.preventDefault();
@@ -445,23 +474,21 @@ export function RocketCursor() {
         return;
       }
 
-      const isExternal = /^https?:/.test(href);
-      // In tap mode, leave external links alone — they open in a new tab, and
-      // deferring window.open behind an async timeout would trip mobile popup
-      // blockers. The launch effect is for in-site page transitions.
-      if (!cursorEnabled && isExternal) return;
+      const internalHref = internalRouteHref(link);
+      const externalHref = externalNavigationHref(link);
+      if (!internalHref && !externalHref) return;
 
       e.preventDefault();
       e.stopPropagation();
 
-      // Launch origin: cursor mode uses the tracked pointer; tap mode uses the
-      // exact point that was tapped (the rocket is otherwise hidden).
+      // Launch origin: desktop and touch both use the exact click/tap point so
+      // every internal route transition feels like the same gesture.
       startLaunch({
-        href,
-        isExternal,
+        href: internalHref ?? externalHref ?? undefined,
+        isExternal: Boolean(externalHref),
         originX: e.clientX,
         originY: e.clientY,
-        showArrival: true,
+        showArrival: Boolean(internalHref),
       });
     };
 
@@ -474,8 +501,10 @@ export function RocketCursor() {
       const href = link?.getAttribute("href") ?? "";
       if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
 
-      // Internal and desktop external links are handled by onNavClick above.
-      if (link && (!/^https?:/.test(href) || cursorEnabled)) return;
+      // Real navigation links are handled by onNavClick so the route-transition
+      // effect stays consistent. This branch is only for decorative click bursts
+      // inside subpage content.
+      if (link) return;
 
       startLaunch({
         originX: e.clientX,
