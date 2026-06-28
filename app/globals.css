@@ -3101,8 +3101,12 @@ select {
     height: clamp(10rem, 56vw, 13rem);
   }
 
+  .cosmic-home .world-card.world-work .world-orb {
+    height: clamp(12rem, 66vw, 15rem);
+  }
+
   .cosmic-home .world-card.world-work .world-visual {
-    --world-art-size: 112%;
+    --world-art-size: 100%;
   }
 
   .cosmic-home .world-card .world-orb::before {
