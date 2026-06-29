@@ -37,9 +37,9 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 230;   // ms — snappy enough that route clicks never feel held
-const TOUCH_LAUNCH_DURATION = 180;  // ms — phones/tablets need instant-feeling taps
-const WARP_IN_DURATION = 260;   // ms
+const LAUNCH_DURATION  = 330;   // ms — brisk, but long enough to read as a launch
+const TOUCH_LAUNCH_DURATION = 290;  // ms — still responsive on taps without feeling rushed
+const WARP_IN_DURATION = 280;   // ms
 const ROCKET_OPACITY_TRANSITION = "opacity 0.08s ease-out";
 
 type WorldAsset = {
@@ -525,7 +525,7 @@ export function RocketCursor() {
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        const eased = 1 - Math.pow(1 - rawT, 3);  // quick takeoff, smooth finish
+        const eased = rawT * rawT * (3 - 2 * rawT);  // smooth acceleration, then clean exit
 
         cursorX    = launchFromX;
         cursorY    = launchFromY - (launchFromY + 160) * eased;
