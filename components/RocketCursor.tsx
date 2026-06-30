@@ -139,10 +139,23 @@ function externalNavigationHref(link: HTMLAnchorElement) {
   const href = link.getAttribute("href") ?? "";
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return null;
   if (link.hasAttribute("download")) return null;
-  if (link.target && link.target !== "_self") return null;
 
   const url = new URL(href, window.location.href);
   return url.origin === window.location.origin ? null : url.href;
+}
+
+function newTabNavigationHref(link: HTMLAnchorElement) {
+  const href = link.getAttribute("href") ?? "";
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return null;
+  if (link.hasAttribute("download")) return null;
+  if (!link.target || link.target === "_self") return null;
+
+  const url = new URL(href, window.location.href);
+  const samePath = url.pathname === window.location.pathname;
+  const sameSearch = url.search === window.location.search;
+  if (url.origin === window.location.origin && samePath && sameSearch) return null;
+
+  return url.href;
 }
 
 function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY: number) {
@@ -512,8 +525,9 @@ export function RocketCursor() {
         return;
       }
 
-      const internalHref = internalRouteHref(link);
-      const externalHref = externalNavigationHref(link);
+      const newTabHref = newTabNavigationHref(link);
+      const internalHref = newTabHref ? null : internalRouteHref(link);
+      const externalHref = newTabHref ?? externalNavigationHref(link);
       if (!internalHref && !externalHref) return;
 
       e.preventDefault();
