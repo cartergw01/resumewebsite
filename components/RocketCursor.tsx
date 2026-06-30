@@ -37,10 +37,10 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 330;   // ms — brisk, but long enough to read as a launch
-const TOUCH_LAUNCH_DURATION = 290;  // ms — still responsive on taps without feeling rushed
+const LAUNCH_DURATION  = 280;   // ms — quick enough to feel like navigation, still readable
+const TOUCH_LAUNCH_DURATION = 245;  // ms — snappy on taps without masking the route change
 const WARP_IN_DURATION = 280;   // ms
-const ROCKET_OPACITY_TRANSITION = "opacity 0.08s ease-out";
+const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
 
 type WorldAsset = {
   canvas: HTMLCanvasElement;
@@ -111,6 +111,14 @@ function isModifiedNavigationClick(e: MouseEvent) {
   return e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0;
 }
 
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function smoothStep(t: number) {
+  return t * t * (3 - 2 * t);
+}
+
 function internalRouteHref(link: HTMLAnchorElement) {
   const href = link.getAttribute("href") ?? "";
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return null;
@@ -122,7 +130,7 @@ function internalRouteHref(link: HTMLAnchorElement) {
 
   const samePath = url.pathname === window.location.pathname;
   const sameSearch = url.search === window.location.search;
-  if (samePath && sameSearch && url.hash) return null;
+  if (samePath && sameSearch) return null;
 
   return `${url.pathname}${url.search}${url.hash}`;
 }
@@ -277,6 +285,7 @@ export function RocketCursor() {
 
     // Exhaust position — updated every frame, read by click handler
     let exhaustX = -200, exhaustY = -200;
+    let lastPointerPoint: { x: number; y: number; time: number } | null = null;
 
     // ── Launch state ──────────────────────────────────────────────────────────
     // isLaunching declared above
@@ -420,11 +429,40 @@ export function RocketCursor() {
       if (!isLaunching) rocket.style.opacity = "0";
     };
 
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      if (e.isPrimary === false) return;
+
+      lastPointerPoint = {
+        x: e.clientX,
+        y: e.clientY,
+        time: performance.now(),
+      };
+    };
+
+    const launchOriginForClick = (e: MouseEvent, link: HTMLAnchorElement) => {
+      const clickHasPointerCoordinates = e.detail > 0 || e.clientX !== 0 || e.clientY !== 0;
+      if (clickHasPointerCoordinates) {
+        return { originX: e.clientX, originY: e.clientY };
+      }
+
+      if (lastPointerPoint && performance.now() - lastPointerPoint.time < 700) {
+        return { originX: lastPointerPoint.x, originY: lastPointerPoint.y };
+      }
+
+      const rect = link.getBoundingClientRect();
+      return {
+        originX: rect.left + rect.width / 2,
+        originY: rect.top + rect.height / 2,
+      };
+    };
+
     // Pointer-follow + jetpack only matter when cursorEnabled is true, but the
     // media query can change when an iPad gains/loses a trackpad or a viewport
     // crosses the breakpoint. Keep listeners installed; the handlers are gated.
     document.addEventListener("mousemove",  onMouseMove);
     document.addEventListener("mouseleave", onMouseLeave);
+    document.addEventListener("pointerdown", onPointerDown, true);
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
@@ -481,13 +519,15 @@ export function RocketCursor() {
       e.preventDefault();
       e.stopPropagation();
 
-      // Launch origin: desktop and touch both use the exact click/tap point so
-      // every internal route transition feels like the same gesture.
+      // Launch origin: pointer clicks/taps use the exact activation point; keyboard
+      // link activation falls back to the link center so every route transition
+      // still gets the launch instead of a hidden 0,0 animation.
+      const { originX, originY } = launchOriginForClick(e, link);
       startLaunch({
         href: internalHref ?? externalHref ?? undefined,
         isExternal: Boolean(externalHref),
-        originX: e.clientX,
-        originY: e.clientY,
+        originX,
+        originY,
         showArrival: Boolean(internalHref),
       });
     };
@@ -525,7 +565,7 @@ export function RocketCursor() {
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        const eased = rawT * rawT * (3 - 2 * rawT);  // smooth acceleration, then clean exit
+        const eased = smoothStep(rawT);
 
         cursorX    = launchFromX;
         cursorY    = launchFromY - (launchFromY + 160) * eased;
@@ -606,7 +646,7 @@ export function RocketCursor() {
       let launchBoost = 0;
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        launchBoost = (1 - (1 - rawT) * (1 - rawT)) * 300;
+        launchBoost = easeOutCubic(rawT) * 300;
       }
       const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
       const tipX = exhaustX + pDirX * plumeLen;
@@ -866,6 +906,7 @@ export function RocketCursor() {
       cursorQuery.removeEventListener("change", syncCursorCapability);
       document.removeEventListener("mousemove",     onMouseMove);
       document.removeEventListener("mouseleave",    onMouseLeave);
+      document.removeEventListener("pointerdown",   onPointerDown, true);
       document.removeEventListener("mousedown",     onJetpackFire);
       document.removeEventListener("click",         onNavClick, true);
       document.removeEventListener("click",         onSubpageClick);
