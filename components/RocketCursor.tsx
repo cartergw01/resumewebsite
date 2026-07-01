@@ -756,19 +756,20 @@ export function RocketCursor() {
         const op = Math.sin(t * Math.PI) * 0.52 * Math.min(p.size / 0.9, 1);
         if (op < 0.015) continue;
 
+        // Single gradient covering both the bright core and the soft falloff —
+        // was two separate fills (glow + inner dot); merging halves the
+        // per-particle fill-rate cost, which is what made the trail stutter
+        // when dozens of particles were alive at once (e.g. the arrival burst).
         const glowR = p.size * 3;
+        const cr = Math.min(p.r + 10, 255), cg = Math.min(p.g + 60, 255), cb = Math.min(p.b + 20, 255);
         const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-        grd.addColorStop(0,    `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
+        grd.addColorStop(0,    `rgba(${cr},${cg},${cb},${op})`);
+        grd.addColorStop(0.14, `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
         grd.addColorStop(0.38, `rgba(${p.r},${p.g},${p.b},${op * 0.20})`);
         grd.addColorStop(1,    `rgba(${p.r},${p.g},${p.b},0)`);
         ctx.beginPath();
         ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
         ctx.fillStyle = grd;
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.36, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${Math.min(p.r+10,255)},${Math.min(p.g+60,255)},${Math.min(p.b+20,255)},${op})`;
         ctx.fill();
       }
 
@@ -839,9 +840,13 @@ export function RocketCursor() {
           isWarpingIn = false;
         } else if (!warpBurstDone) {
           warpBurstDone = true;
-          // Ring of blue-white particles radiating outward
-          for (let i = 0; i < 32; i++) {
-            const a = (i / 32) * Math.PI * 2;
+          // Ring of blue-white particles radiating outward. Kept to 18 (was
+          // 32) — this burst lands on the same frame the destination page is
+          // mounting (new canvases, images, layout), so the fewer gradient
+          // fills this frame does, the less likely it is to stutter.
+          const warpBurstCount = 18;
+          for (let i = 0; i < warpBurstCount; i++) {
+            const a = (i / warpBurstCount) * Math.PI * 2;
             const spd = 2.8 + Math.random() * 4.2;
             particles.push({
               x:       cursorX,
