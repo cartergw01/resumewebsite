@@ -3238,7 +3238,7 @@ select {
   }
 
   .cosmic-home .world-card.world-work .world-visual {
-    --world-art-size: 108%;
+    --world-art-size: 128%;
   }
 
   .cosmic-home .world-card .world-orb::before {
