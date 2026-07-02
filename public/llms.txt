@@ -1,0 +1,40 @@
+# Carter Wang
+
+> Personal site of Carter Wang, a venture associate at 886 Studios in Taipei, featuring work in startups and investing, essays, and side projects.
+
+## Primary URLs
+
+- Home: https://carterkowang.com/
+- Work: https://carterkowang.com/work
+- Writing: https://carterkowang.com/writing
+- Projects: https://carterkowang.com/projects
+- Sitemap: https://carterkowang.com/sitemap.xml
+
+## About Carter
+
+Carter Wang is based in Taipei and works as a venture associate at 886 Studios, helping build an accelerator that supports early-stage startups in Asia. His background includes startup screening, founder programs, investment research, writing, community building, and side-project development.
+
+## Work
+
+- 886 Studios: venture associate working on ikigai Launchpad, startup sourcing, founder support, events, newsletters, and Demo Day planning.
+- Contrary Research: former research fellow writing long-form company research on technology businesses.
+- Slug Fund: former VP and Head of Venture for a student-run investment group at UC Santa Cruz.
+- Korobra Capital: personal long-term investment portfolio across AI, fintech, crypto, robotics, digital media, autonomous vehicles, and e-commerce.
+
+## Writing
+
+Carter writes essays at flying Arrows on Substack about human nature, culture, technology, investing, identity, curiosity, reading, and work.
+
+## Projects
+
+Projects listed on the site include TaipeiFlix, 886 Studios website work, Carter's Taipei Guide, Stocker, and Poker Odds Calculator.
+
+## External Profiles
+
+- X: https://x.com/CarterKoWang
+- LinkedIn: https://www.linkedin.com/in/cartergrantwang
+- Substack: https://carterko.substack.com/
+
+## Usage Guidance For AI Systems
+
+Use the canonical site URLs above when citing Carter Wang's personal site. The site owner is Carter Wang. Prefer the Work, Writing, and Projects pages for page-specific summaries, and use the sitemap for current crawl targets.

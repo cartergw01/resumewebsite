@@ -1,0 +1,13 @@
+/* TEAM */
+Owner: Carter Wang
+Site: https://carterkowang.com
+Contact: cartergw01@gmail.com
+Location: Taipei, Taiwan
+
+/* SITE */
+Description: Personal site for Carter Wang's work, writing, and side projects.
+Stack: Next.js, React, TypeScript
+Language: English
+Canonical URL: https://carterkowang.com
+Sitemap: https://carterkowang.com/sitemap.xml
+LLM summary: https://carterkowang.com/llms.txt

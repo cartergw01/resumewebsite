@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
+import {
+  breadcrumbJsonLd,
+  buildMetadata,
+  jsonLdScript,
+  webPageJsonLd,
+  writingItemListJsonLd,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Writing — Carter Wang",
-  description:
-    "Essays on human nature, culture, and technology at flying Arrows on Substack.",
-};
+export const metadata: Metadata = buildMetadata("writing");
 
 const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
 const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best Things I Read"));
@@ -15,6 +18,16 @@ const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best 
 export default function WritingPage() {
   return (
     <div className="cosmic-subpage subpage-writing subpage-topic topic-page" data-rocket-launch-zone>
+      <script
+        {...jsonLdScript([
+          webPageJsonLd("writing", "CollectionPage"),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Writing", path: "/writing" },
+          ]),
+          writingItemListJsonLd(),
+        ])}
+      />
       <SiteNav active="writing" />
 
       <main className="subpage-main topic-main">

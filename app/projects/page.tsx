@@ -2,15 +2,29 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
 import { projects } from "@/content/portfolio";
+import {
+  breadcrumbJsonLd,
+  buildMetadata,
+  jsonLdScript,
+  projectsItemListJsonLd,
+  webPageJsonLd,
+} from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Projects — Carter Wang",
-  description: "Fun side projects by Carter Wang — building things on the internet.",
-};
+export const metadata: Metadata = buildMetadata("projects");
 
 export default function ProjectsPage() {
   return (
     <div className="cosmic-subpage subpage-projects subpage-topic topic-page" data-rocket-launch-zone>
+      <script
+        {...jsonLdScript([
+          webPageJsonLd("projects", "CollectionPage"),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Projects", path: "/projects" },
+          ]),
+          projectsItemListJsonLd(),
+        ])}
+      />
       <SiteNav active="projects" />
 
       <main className="subpage-main topic-main projects-main">

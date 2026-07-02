@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Work — Carter Wang",
-  description:
-    "Associate at 886 Studios in Taipei, working on ikigai Launchpad alongside the founders of Twitch and Guitar Hero.",
-};
+export const metadata: Metadata = buildMetadata("work");
 
 export default function WorkLayout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

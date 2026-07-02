@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { Playfair_Display, Space_Grotesk } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import ClientChrome from "@/components/ClientChrome";
+import {
+  buildMetadata,
+  jsonLdScript,
+  personJsonLd,
+  siteConfig,
+  websiteJsonLd,
+} from "@/lib/seo";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -17,20 +24,24 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Carter Wang",
-  description: "Carter Wang's world",
-  metadataBase: new URL("https://carterkowang.com"),
-  openGraph: {
-    title: "Carter Wang",
-    description: "Carter Wang's world",
-    url: "https://carterkowang.com",
-    siteName: "Carter Wang",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Carter Wang",
-    description: "Carter Wang's world",
+  ...buildMetadata("home"),
+  metadataBase: new URL(siteConfig.url),
+  applicationName: siteConfig.siteName,
+  authors: [{ name: siteConfig.name, url: siteConfig.url }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+  category: "personal portfolio",
+  referrer: "origin-when-cross-origin",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
   icons: {
     icon: [
@@ -53,6 +64,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       suppressHydrationWarning
     >
       <body className="min-h-screen font-sans antialiased">
+        <script {...jsonLdScript([personJsonLd(), websiteJsonLd()])} />
         <ClientChrome />
         {children}
         <Analytics />
