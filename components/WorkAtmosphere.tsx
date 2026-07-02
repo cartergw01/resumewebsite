@@ -63,11 +63,15 @@ function StarField() {
       alpha: number;
     }
 
+    // Star counts trimmed from [380,160,65,14] (619 total) — that many stars,
+    // most needing their own gradient fill every frame, made this canvas's
+    // first paint a multi-hundred-ms main-thread hitch right as the rocket's
+    // arrival burst was trying to render on the same frame after route entry.
     const layers: [number, number, number, number, number, number, number][] = [
-      [380, 0.15, 0.5, 0.02, 0.055, 0.35, 0.7],
-      [160, 0.4, 1.1, 0.065, 0.18, 0.6, 0.9],
-      [65, 0.9, 2.2, 0.18, 0.43, 0.8, 1.0],
-      [14, 2.0, 3.8, 0.08, 0.2, 0.95, 1.0],
+      [220, 0.15, 0.5, 0.02, 0.055, 0.35, 0.7],
+      [100, 0.4, 1.1, 0.065, 0.18, 0.6, 0.9],
+      [45, 0.9, 2.2, 0.18, 0.43, 0.8, 1.0],
+      [10, 2.0, 3.8, 0.08, 0.2, 0.95, 1.0],
     ];
 
     const stars: Star[] = [];
