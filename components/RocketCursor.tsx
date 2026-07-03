@@ -37,9 +37,11 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 280;   // ms — quick enough to feel like navigation, still readable
-const TOUCH_LAUNCH_DURATION = 245;  // ms — snappy on taps without masking the route change
-const WARP_IN_DURATION = 280;   // ms
+const LAUNCH_DURATION  = 250;   // ms — brisk enough to feel like navigation, still readable
+const TOUCH_LAUNCH_DURATION = 220;  // ms — snappy on taps without masking the route change
+const WARP_IN_DURATION = 240;   // ms
+const LAUNCH_TRAVEL_EXTRA = 180;
+const LAUNCH_SCALE_BOOST = 1.85;
 const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
 
 type WorldAsset = {
@@ -261,6 +263,8 @@ export function RocketCursor() {
     // because a scrollbar appearing after content loads shrinks the canvas
     // without firing a resize event. DPR scaling also keeps the flame sharp.
     let W = 0, H = 0;
+    let canvasPixelWidth = 0;
+    let canvasPixelHeight = 0;
     const sizeCanvas = () => {
       // Cap at 2× — the canvas is full-screen and cleared every frame, so 3×+
       // on hi-DPI screens quadruples fill cost for no visible gain on a flame.
@@ -268,8 +272,14 @@ export function RocketCursor() {
       const rect = canvas.getBoundingClientRect();
       W = rect.width || document.documentElement.clientWidth;
       H = rect.height || document.documentElement.clientHeight;
-      canvas.width = Math.round(W * dpr);
-      canvas.height = Math.round(H * dpr);
+      const nextWidth = Math.round(W * dpr);
+      const nextHeight = Math.round(H * dpr);
+      if (canvasPixelWidth === nextWidth && canvasPixelHeight === nextHeight) return;
+
+      canvasPixelWidth = nextWidth;
+      canvasPixelHeight = nextHeight;
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     sizeCanvas();
@@ -396,6 +406,8 @@ export function RocketCursor() {
           prevMouseY = mouseY;
           smoothVelX = 0;
           smoothVelY = 0;
+          pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
+          rocket.style.opacity = "1";
         } else {
           // Tap mode: no cursor to return to after the one-shot launch.
           rocket.style.opacity = "0";
@@ -592,13 +604,14 @@ export function RocketCursor() {
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        const eased = smoothStep(rawT);
+        const riseEase = easeOutCubic(rawT);
+        const scaleEase = smoothStep(rawT);
 
         cursorX    = launchFromX;
-        cursorY    = launchFromY - (launchFromY + 160) * eased;
+        cursorY    = launchFromY - (launchFromY + LAUNCH_TRAVEL_EXTRA) * riseEase;
         angle      = launchAngleStart;
         targetAngle = 0;
-        hoverScale = 1 + eased * 2.2;
+        hoverScale = 1 + scaleEase * LAUNCH_SCALE_BOOST;
         hoverRingAlpha = 0;
         speed = 0;
         jetpackOffsetY = 0;
@@ -739,7 +752,7 @@ export function RocketCursor() {
       // During normal movement, particles from prior frames drift left/right
       // of the current cursor and create a misleading off-center glow blob.
       // Particles are only emitted during launch where the effect is intentional.
-      const emitCount = isLaunching ? 5 : 0;
+      const emitCount = isLaunching ? 4 : 0;
       if (particles.length < PARTICLE_CAP && emitCount > 0) {
         for (let i = 0; i < emitCount; i++) {
           const driftSpd = 0.10 + Math.random() * 0.45;
@@ -857,7 +870,7 @@ export function RocketCursor() {
           // 32) — this burst lands on the same frame the destination page is
           // mounting (new canvases, images, layout), so the fewer gradient
           // fills this frame does, the less likely it is to stutter.
-          const warpBurstCount = 18;
+          const warpBurstCount = 14;
           for (let i = 0; i < warpBurstCount; i++) {
             const a = (i / warpBurstCount) * Math.PI * 2;
             const spd = 2.8 + Math.random() * 4.2;
@@ -951,6 +964,7 @@ export function RocketCursor() {
       {/* Trail + shockwave canvas — full-screen, non-interactive */}
       <canvas
         ref={canvasRef}
+        data-testid="rocket-effects-canvas"
         aria-hidden="true"
         style={{
           position: "fixed",
@@ -965,6 +979,7 @@ export function RocketCursor() {
       {/* Outer: position only — updated in mousemove for zero lag */}
       <div
         ref={posRef}
+        data-testid="rocket-cursor"
         style={{
           position: "fixed",
           top: 0,
@@ -978,6 +993,7 @@ export function RocketCursor() {
       {/* Inner: tilt / scale / jetpack — updated in rAF */}
       <div
         ref={rocketRef}
+        data-testid="rocket-ship"
         style={{
           willChange: "transform",
           transformOrigin: `${ROCKET_PIVOT_X}px ${ROCKET_PIVOT_Y}px`,
