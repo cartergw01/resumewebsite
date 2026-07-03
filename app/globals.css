@@ -2922,12 +2922,27 @@ select {
 }
 
 @media (max-width: 360px) {
+  .site-nav {
+    width: calc(100% - 0.75rem);
+  }
+
   .site-nav-primary {
-    gap: clamp(0.58rem, 4.5vw, 0.82rem);
+    gap: 0;
   }
 
   .site-nav-primary a {
-    font-size: clamp(0.68rem, 3.6vw, 0.78rem);
+    padding-inline: 4px;
+    font-size: clamp(0.68rem, 3.6vw, 0.74rem);
+  }
+
+  .site-nav-social a {
+    min-width: 24px;
+    padding-inline: 2px;
+  }
+
+  .site-nav-social a svg {
+    width: 13px;
+    height: 13px;
   }
 
   .hero-copy {

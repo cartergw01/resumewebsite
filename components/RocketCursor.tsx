@@ -169,7 +169,9 @@ function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY
   const asset = worldAssetCache.get(assetUrl);
   if (!asset) {
     loadWorldAsset(assetUrl);
-    return false;
+    // If the alpha mask is still loading, prefer a reliable first tap over a
+    // dead-feeling mobile hit target. Later taps use the precise pixel check.
+    return true;
   }
 
   const visualRect = visual.getBoundingClientRect();
@@ -416,7 +418,12 @@ export function RocketCursor() {
               if (!opened) window.location.assign(href);
             }
           } else {
-            routerRef.current.push(href);
+            routerRef.current.push(href, { scroll: false });
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+              });
+            });
           }
         }
 
