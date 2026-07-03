@@ -409,7 +409,12 @@ export function RocketCursor() {
 
         if (href) {
           if (isExternal) {
-            window.open(href, "_blank", "noopener,noreferrer");
+            if (!cursorEnabled) {
+              window.location.assign(href);
+            } else {
+              const opened = window.open(href, "_blank", "noopener,noreferrer");
+              if (!opened) window.location.assign(href);
+            }
           } else {
             routerRef.current.push(href);
           }
@@ -530,13 +535,14 @@ export function RocketCursor() {
       const externalHref = newTabHref ?? externalNavigationHref(link);
       if (!internalHref && !externalHref) return;
 
-      e.preventDefault();
-      e.stopPropagation();
-
       // Launch origin: pointer clicks/taps use the exact activation point; keyboard
       // link activation falls back to the link center so every route transition
       // still gets the launch instead of a hidden 0,0 animation.
       const { originX, originY } = launchOriginForClick(e, link);
+
+      e.preventDefault();
+      e.stopPropagation();
+
       startLaunch({
         href: internalHref ?? externalHref ?? undefined,
         isExternal: Boolean(externalHref),
