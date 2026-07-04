@@ -9,9 +9,8 @@ export const siteConfig = {
   language: "en",
   email: "cartergw01@gmail.com",
   description:
-    "Personal site of Carter Wang, a venture associate at 886 Studios in Taipei, featuring work in startups and investing, essays, and side projects.",
-  shortDescription:
-    "Carter Wang's personal site for venture work, writing, and side projects.",
+    "Carter Wang's personal website.",
+  shortDescription: "Carter Wang's personal website.",
   social: {
     x: "https://x.com/CarterKoWang",
     linkedin: "https://www.linkedin.com/in/cartergrantwang",
@@ -28,7 +27,7 @@ export const siteConfig = {
 export const routes = {
   home: {
     path: "/",
-    title: "Carter Wang | Venture, Writing, and Projects",
+    title: "Carter Wang",
     description: siteConfig.description,
     keywords: [
       "Carter Wang",
