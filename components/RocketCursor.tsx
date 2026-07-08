@@ -160,6 +160,18 @@ function newTabNavigationHref(link: HTMLAnchorElement) {
   return url.href;
 }
 
+function anchorFromEventTarget(e: MouseEvent) {
+  for (const target of e.composedPath()) {
+    if (target instanceof HTMLAnchorElement && target.matches("a[href]")) return target;
+    if (target instanceof Element) {
+      const link = target.closest("a[href]");
+      if (link instanceof HTMLAnchorElement) return link;
+    }
+  }
+
+  return null;
+}
+
 function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY: number) {
   const visual = link.parentElement?.querySelector<HTMLElement>(".world-visual");
   if (!visual) return false;
@@ -540,7 +552,7 @@ export function RocketCursor() {
       if (isLaunching) return;
       if (isModifiedNavigationClick(e)) return;
 
-      const link = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
+      const link = anchorFromEventTarget(e);
       if (!link) return;
 
       if (link.classList.contains("world-orb-link") && !isOpaqueWorldOrbClick(link, e.clientX, e.clientY)) {
