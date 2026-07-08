@@ -37,11 +37,15 @@ const STREAK_EVERY     = 2;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
-const LAUNCH_DURATION  = 250;   // ms — brisk enough to feel like navigation, still readable
-const TOUCH_LAUNCH_DURATION = 220;  // ms — snappy on taps without masking the route change
+const LAUNCH_DURATION  = 290;   // ms — a touch slower so external-link launches read clearly
+const TOUCH_LAUNCH_DURATION = 260;  // ms — still quick on taps, with enough time to see the burst
 const WARP_IN_DURATION = 240;   // ms
 const LAUNCH_TRAVEL_EXTRA = 180;
 const LAUNCH_SCALE_BOOST = 1.85;
+const LAUNCH_BOOST_LENGTH = 280;
+const LAUNCH_SHOCKWAVE_DELAY = 70;
+const LAUNCH_SHOCKWAVE_LIFE = 28;
+const LAUNCH_SHOCKWAVE_LIFE_LARGE = 38;
 const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
 
 type WorldAsset = {
@@ -119,6 +123,10 @@ function easeOutCubic(t: number) {
 
 function smoothStep(t: number) {
   return t * t * (3 - 2 * t);
+}
+
+function launchEase(t: number) {
+  return easeOutCubic(smoothStep(t));
 }
 
 function internalRouteHref(link: HTMLAnchorElement) {
@@ -402,10 +410,10 @@ export function RocketCursor() {
       const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y);
       const sx = launchFromX;
       const sy = launchExhaustY;
-      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: 22, r: 255, g: 150, b: 50 });
+      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 150, b: 50 });
       setTimeout(() => {
-        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: 30, r: 255, g: 90, b: 15 });
-      }, 55);
+        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 90, b: 15 });
+      }, LAUNCH_SHOCKWAVE_DELAY);
 
       setTimeout(() => {
         isLaunching = false;
@@ -616,7 +624,7 @@ export function RocketCursor() {
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        const riseEase = easeOutCubic(rawT);
+        const riseEase = launchEase(rawT);
         const scaleEase = smoothStep(rawT);
 
         cursorX    = launchFromX;
@@ -698,7 +706,7 @@ export function RocketCursor() {
       let launchBoost = 0;
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        launchBoost = easeOutCubic(rawT) * 300;
+        launchBoost = launchEase(rawT) * LAUNCH_BOOST_LENGTH;
       }
       const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
       const tipX = exhaustX + pDirX * plumeLen;
