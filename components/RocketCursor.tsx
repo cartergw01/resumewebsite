@@ -23,6 +23,7 @@ interface Shockwave {
   radius: number; maxRadius: number;
   life: number; maxLife: number;
   r: number; g: number; b: number;
+  smooth?: boolean;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -33,7 +34,9 @@ const VEL_SMOOTH       = 0.52;  // velocity smoothing (for tilt only, not positi
 const MAX_TILT_DEG     = 10;
 const PARTICLE_CAP     = 240;
 const STREAK_SPEED     = 18;  // only at very fast flicks, not normal scrolling
-const STREAK_EVERY     = 2;
+const FRAME_MS         = 1000 / 60;
+const MAX_FRAME_STEP   = 2.5;
+const STREAK_INTERVAL_MS = 1000 / 30;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
@@ -42,10 +45,10 @@ const TOUCH_LAUNCH_DURATION = 260;  // ms — still quick on taps, with enough t
 const WARP_IN_DURATION = 240;   // ms
 const LAUNCH_TRAVEL_EXTRA = 180;
 const LAUNCH_SCALE_BOOST = 1.85;
-const LAUNCH_BOOST_LENGTH = 280;
-const LAUNCH_SHOCKWAVE_DELAY = 70;
-const LAUNCH_SHOCKWAVE_LIFE = 28;
-const LAUNCH_SHOCKWAVE_LIFE_LARGE = 38;
+const LAUNCH_BOOST_LENGTH = 268;
+const LAUNCH_SHOCKWAVE_DELAY = 82;
+const LAUNCH_SHOCKWAVE_LIFE = 32;
+const LAUNCH_SHOCKWAVE_LIFE_LARGE = 44;
 const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
 
 type WorldAsset = {
@@ -121,12 +124,17 @@ function easeOutCubic(t: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-function smoothStep(t: number) {
-  return t * t * (3 - 2 * t);
+function smootherStep(t: number) {
+  const x = Math.max(0, Math.min(t, 1));
+  return x * x * x * (x * (x * 6 - 15) + 10);
 }
 
 function launchEase(t: number) {
-  return easeOutCubic(smoothStep(t));
+  return easeOutCubic(smootherStep(t));
+}
+
+function frameLerpFactor(baseFactor: number, frameStep: number) {
+  return 1 - Math.pow(1 - baseFactor, frameStep);
 }
 
 function internalRouteHref(link: HTMLAnchorElement) {
@@ -256,18 +264,21 @@ export function RocketCursor() {
     // Declared early so syncCursorCapability (called below) can avoid hiding the
     // rocket mid-launch in tap mode.
     let isLaunching = false;
+    let wakeAnimationLoop = () => {};
 
     // cursorEnabled drives the pointer-following rocket. In tap mode it stays
     // false (no persistent rocket); the one-shot launch still works via clicks.
     let cursorEnabled: boolean = cursorQuery.matches;
 
     const syncCursorCapability = () => {
+      const wasCursorEnabled = cursorEnabled;
       cursorEnabled = cursorQuery.matches;
       document.body.classList.toggle("rocket-cursor-active", cursorEnabled);
       if (!cursorEnabled && !isLaunching) {
         rocket.style.opacity = "0";
         pos.style.transform = "translate(-200px,-200px)";
       }
+      if (cursorEnabled && !wasCursorEnabled) wakeAnimationLoop();
     };
 
     syncCursorCapability();
@@ -326,7 +337,9 @@ export function RocketCursor() {
     let hoverScale = 1;
     let hoverRingAlpha = 0;
     let animId: number;
-    let frameCount = 0;
+    let lastFrameMs = 0;
+    let lastStreakAt = 0;
+    let launchParticleBudget = 0;
 
     // Exhaust position — updated every frame, read by click handler
     let exhaustX = -200, exhaustY = -200;
@@ -337,6 +350,7 @@ export function RocketCursor() {
     let launchStartMs = 0;
     let launchFromX = 0, launchFromY = 0;
     let launchAngleStart = 0;
+    let launchScaleStart = 1;
     let launchDuration = LAUNCH_DURATION;  // per-launch: shorter on touch
 
     // rAF loop run state. Cursor mode runs the loop continuously; tap mode wakes
@@ -357,6 +371,15 @@ export function RocketCursor() {
     const particles: Particle[]  = [];
     const streaks:   Streak[]    = [];
     const shockwaves: Shockwave[] = [];
+    const timeoutIds = new Set<number>();
+
+    const schedule = (callback: () => void, delay: number) => {
+      const timeoutId = window.setTimeout(() => {
+        timeoutIds.delete(timeoutId);
+        callback();
+      }, delay);
+      timeoutIds.add(timeoutId);
+    };
 
     const revealRocketNow = () => {
       cancelAnimationFrame(restoreOpacityTransitionId);
@@ -391,15 +414,17 @@ export function RocketCursor() {
       cursorY      = originY;
       launchFromX  = originX;
       launchFromY  = originY;
-      launchAngleStart = 0;
-      angle            = 0;
-      hoverScale       = 1;
+      launchAngleStart = cursorEnabled ? angle : 0;
+      launchScaleStart = cursorEnabled ? Math.max(1, Math.min(hoverScale, 1.28)) : 1;
+      launchParticleBudget = 0;
+      angle            = launchAngleStart;
+      hoverScale       = launchScaleStart;
 
       // Place + reveal the rocket at the origin before rAF takes over. Snapping
       // here (not next frame) keeps the SVG rocket, canvas flame, and shockwave
       // aligned from frame zero.
       pos.style.transform = `translate(${originX}px,${originY}px)`;
-      rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
+      rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(${launchAngleStart}deg) scale(${launchScaleStart})`;
       revealRocketNow();
 
       // Tap mode: the loop is asleep — wake it so the launch animates.
@@ -410,12 +435,12 @@ export function RocketCursor() {
       const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y);
       const sx = launchFromX;
       const sy = launchExhaustY;
-      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 150, b: 50 });
-      setTimeout(() => {
-        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 90, b: 15 });
+      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 150, b: 50, smooth: true });
+      schedule(() => {
+        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 90, b: 15, smooth: true });
       }, LAUNCH_SHOCKWAVE_DELAY);
 
-      setTimeout(() => {
+      schedule(() => {
         isLaunching = false;
 
         if (cursorEnabled) {
@@ -474,6 +499,8 @@ export function RocketCursor() {
       if (!cursorEnabled) return;
       mouseX = e.clientX;
       mouseY = e.clientY;
+      const target = e.target instanceof Element ? e.target : null;
+      isHovering = Boolean(target?.closest("a, button, [role='button'], [data-cursor-hover]"));
       if (!isLaunching) {
         // Update position immediately — no rAF lag for the cursor itself
         pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
@@ -616,8 +643,11 @@ export function RocketCursor() {
 
     // ── Animation loop ────────────────────────────────────────────────────────
     const draw = () => {
-      frameCount++;
       const now = performance.now();
+      const frameStep = lastFrameMs === 0
+        ? 1
+        : Math.min(Math.max((now - lastFrameMs) / FRAME_MS, 0), MAX_FRAME_STEP);
+      lastFrameMs = now;
 
       ctx.clearRect(0, 0, W, H);
 
@@ -625,21 +655,23 @@ export function RocketCursor() {
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
         const riseEase = launchEase(rawT);
-        const scaleEase = smoothStep(rawT);
+        const scaleEase = smootherStep(rawT);
+        const straightenEase = smootherStep(rawT * 1.25);
 
         cursorX    = launchFromX;
         cursorY    = launchFromY - (launchFromY + LAUNCH_TRAVEL_EXTRA) * riseEase;
-        angle      = launchAngleStart;
+        angle      = launchAngleStart * (1 - straightenEase);
         targetAngle = 0;
-        hoverScale = 1 + scaleEase * LAUNCH_SCALE_BOOST;
+        hoverScale = launchScaleStart + ((1 + LAUNCH_SCALE_BOOST) - launchScaleStart) * scaleEase;
         hoverRingAlpha = 0;
         speed = 0;
         jetpackOffsetY = 0;
         jetpackVelY    = 0;
       } else if (cursorEnabled) {
         // Cursor follows mouse instantly — no position lag
-        const rawVelX = mouseX - prevMouseX;
-        const rawVelY = mouseY - prevMouseY;
+        const normalizedStep = Math.max(frameStep, 0.01);
+        const rawVelX = (mouseX - prevMouseX) / normalizedStep;
+        const rawVelY = (mouseY - prevMouseY) / normalizedStep;
         prevMouseX = mouseX;
         prevMouseY = mouseY;
         cursorX = mouseX;
@@ -648,18 +680,19 @@ export function RocketCursor() {
         // Jetpack: burn phase → powered ascent, then graceful glide back (no bounce)
         if (now < jetpackFiringUntil) {
           // Sustained thrust — accelerate upward, cap at terminal velocity
-          jetpackVelY = Math.max(jetpackVelY - 1.2, -4.2);
-          jetpackOffsetY += jetpackVelY;
+          jetpackVelY = Math.max(jetpackVelY - 1.2 * frameStep, -4.2);
+          jetpackOffsetY += jetpackVelY * frameStep;
         } else {
           // Engines off — exponential decay straight back, no spring oscillation
-          jetpackOffsetY *= 0.88;
+          jetpackOffsetY *= Math.pow(0.88, frameStep);
           jetpackVelY = 0;
           if (Math.abs(jetpackOffsetY) < 0.12) jetpackOffsetY = 0;
         }
 
         // Smooth velocity separately — only used for tilt, not position
-        smoothVelX += (rawVelX - smoothVelX) * VEL_SMOOTH;
-        smoothVelY += (rawVelY - smoothVelY) * VEL_SMOOTH;
+        const velocityBlend = frameLerpFactor(VEL_SMOOTH, frameStep);
+        smoothVelX += (rawVelX - smoothVelX) * velocityBlend;
+        smoothVelY += (rawVelY - smoothVelY) * velocityBlend;
         speed = Math.sqrt(smoothVelX * smoothVelX + smoothVelY * smoothVelY);
 
         if (speed > 0.25) {
@@ -667,17 +700,11 @@ export function RocketCursor() {
           const tiltBlend = Math.min(speed / 8, 1);
           targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
         } else {
-          targetAngle *= 0.80;
+          targetAngle *= Math.pow(0.80, frameStep);
         }
-        angle      += (targetAngle - angle) * LERP_ANGLE;
-        hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * LERP_SCALE;
-        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * 0.18;
-
-        // Hover check every 4 frames (~66ms at 60fps) — imperceptible, avoids layout thrash.
-        if (frameCount % 4 === 0) {
-          const el = document.elementFromPoint(mouseX, mouseY) as HTMLElement | null;
-          isHovering = !!el?.closest("a, button, [role='button'], [data-cursor-hover]");
-        }
+        angle += (targetAngle - angle) * frameLerpFactor(LERP_ANGLE, frameStep);
+        hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * frameLerpFactor(LERP_SCALE, frameStep);
+        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * frameLerpFactor(0.18, frameStep);
       }
 
       // ── Rocket element ────────────────────────────────────────────────────
@@ -704,20 +731,21 @@ export function RocketCursor() {
       const perpY = 0;
 
       let launchBoost = 0;
+      const launchT = isLaunching ? Math.min((now - launchStartMs) / launchDuration, 1) : 0;
+      const launchRamp = smootherStep(launchT);
       if (isLaunching) {
-        const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
-        launchBoost = launchEase(rawT) * LAUNCH_BOOST_LENGTH;
+        launchBoost = launchEase(launchT) * LAUNCH_BOOST_LENGTH;
       }
       const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
       const tipX = exhaustX + pDirX * plumeLen;
       const tipY = exhaustY + pDirY * plumeLen;
 
-      const flicker  = 0.88 + 0.12 * Math.sin(frameCount * 0.23);
-      const flutter  = 0.90 + 0.10 * Math.sin(frameCount * 0.15 + 1.7);
+      const flicker  = 0.88 + 0.12 * Math.sin(now * 0.0138);
+      const flutter  = 0.90 + 0.10 * Math.sin(now * 0.009 + 1.7);
       const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 260 : 0;
       const jetpackBoost  = Math.min(jetpackBurnT * 1.4, 1);
       const plumeStr = isLaunching
-        ? Math.min(0.45 + Math.min((now - launchStartMs) / launchDuration, 1) * 0.55, 1.0)
+        ? Math.min(0.42 + launchRamp * 0.58, 1.0)
         : 0.45 + Math.min(speed / 8, 1) * 0.55 + jetpackBoost * 0.45;
 
       const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
@@ -748,8 +776,7 @@ export function RocketCursor() {
         drawCone(1.5, 255, 235, 130, 0.95);
       }
       if (isLaunching) {
-        const boost = Math.min((now - launchStartMs) / launchDuration, 1);
-        const b2 = boost * boost;
+        const b2 = launchRamp * launchRamp;
         drawCone(16 * b2, 255,  75, 10, 0.22 * b2, 1);
         drawCone( 9 * b2, 255, 165, 45, 0.38 * b2, 1);
       }
@@ -772,8 +799,12 @@ export function RocketCursor() {
       // During normal movement, particles from prior frames drift left/right
       // of the current cursor and create a misleading off-center glow blob.
       // Particles are only emitted during launch where the effect is intentional.
-      const emitCount = isLaunching ? 4 : 0;
-      if (particles.length < PARTICLE_CAP && emitCount > 0) {
+      const emitRate = isLaunching ? 3 + smootherStep(launchT * 1.2) * 2 : 0;
+      launchParticleBudget = isLaunching ? launchParticleBudget + emitRate * frameStep : 0;
+      const requestedParticles = Math.floor(launchParticleBudget);
+      launchParticleBudget -= requestedParticles;
+      const emitCount = Math.min(requestedParticles, PARTICLE_CAP - particles.length);
+      if (emitCount > 0) {
         for (let i = 0; i < emitCount; i++) {
           const driftSpd = 0.10 + Math.random() * 0.45;
           particles.push({
@@ -793,9 +824,9 @@ export function RocketCursor() {
 
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life++;
+        p.x += p.vx * frameStep;
+        p.y += p.vy * frameStep;
+        p.life += frameStep;
         if (p.life >= p.maxLife) { particles.splice(i, 1); continue; }
 
         const t  = p.life / p.maxLife;
@@ -820,8 +851,9 @@ export function RocketCursor() {
       }
 
       // ── Warp streaks (high-speed motion blur) ─────────────────────────────
-      if (!isLaunching && speed > STREAK_SPEED && frameCount % STREAK_EVERY === 0) {
-        const count = Math.min(Math.floor(speed / STREAK_EVERY), 3);
+      if (!isLaunching && speed > STREAK_SPEED && now - lastStreakAt >= STREAK_INTERVAL_MS) {
+        lastStreakAt = now;
+        const count = 3;
         for (let s = 0; s < count; s++) {
           const scatter = (Math.random() - 0.5) * 5;
           streaks.push({
@@ -838,7 +870,7 @@ export function RocketCursor() {
 
       for (let i = streaks.length - 1; i >= 0; i--) {
         const s = streaks[i];
-        s.life++;
+        s.life += frameStep;
         if (s.life >= s.maxLife) { streaks.splice(i, 1); continue; }
 
         const t  = 1 - s.life / s.maxLife;
@@ -862,12 +894,13 @@ export function RocketCursor() {
       // ── Shockwaves ────────────────────────────────────────────────────────
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
-        sw.life++;
+        sw.life += frameStep;
         if (sw.life >= sw.maxLife) { shockwaves.splice(i, 1); continue; }
 
         const t = sw.life / sw.maxLife;
-        sw.radius = sw.maxRadius * (1 - (1 - t) * (1 - t)); // ease-out expansion
-        const alpha = (1 - t) * (1 - t) * 0.72;
+        const expansion = sw.smooth ? smootherStep(t) : 1 - (1 - t) * (1 - t);
+        sw.radius = sw.maxRadius * expansion;
+        const alpha = (1 - t) * (1 - t) * (sw.smooth ? 0.66 : 0.72);
 
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
@@ -945,9 +978,11 @@ export function RocketCursor() {
     const ensureRunning = () => {
       if (!running && !document.hidden) {
         running = true;
+        lastFrameMs = 0;
         animId = requestAnimationFrame(draw);
       }
     };
+    wakeAnimationLoop = ensureRunning;
 
     // Cursor mode runs immediately; tap mode waits for the first launch.
     if (cursorEnabled) ensureRunning();
@@ -965,6 +1000,8 @@ export function RocketCursor() {
     return () => {
       cancelAnimationFrame(animId);
       cancelAnimationFrame(restoreOpacityTransitionId);
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      timeoutIds.clear();
       canvasResizeObserver.disconnect();
       document.body.classList.remove("rocket-cursor-active");
       window.removeEventListener("resize",          onResize);

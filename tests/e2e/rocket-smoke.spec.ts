@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
 
+type RocketTestWindow = Window & {
+  __rocketOpened?: string[];
+  __rocketProbeMax?: number;
+};
+
 function consoleGuard() {
   const errors: string[] = [];
 
@@ -30,7 +35,7 @@ async function expectNoHorizontalOverflow(page: Page) {
 
 async function startRocketOpacityProbe(page: Page, durationMs = 260) {
   await page.evaluate((duration) => {
-    const probeWindow = window as Window & { __rocketProbeMax?: number };
+    const probeWindow = window as RocketTestWindow;
     probeWindow.__rocketProbeMax = 0;
     const until = performance.now() + duration;
 
@@ -50,7 +55,7 @@ async function startRocketOpacityProbe(page: Page, durationMs = 260) {
 
 async function expectRocketBecameVisible(page: Page) {
   const maxOpacity = await page.evaluate(() => {
-    const probeWindow = window as Window & { __rocketProbeMax?: number };
+    const probeWindow = window as RocketTestWindow;
     return probeWindow.__rocketProbeMax ?? 0;
   });
 
@@ -143,6 +148,85 @@ test("mobile world orb first tap launches to its route", async ({ page }, testIn
   await expectRocketBecameVisible(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expectNoHorizontalOverflow(page);
+  guard.expectClean();
+});
+
+test("every project row launches before opening its destination", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Desktop project rows are covered by the desktop project.");
+
+  const guard = consoleGuard();
+  guard.attach(page);
+
+  await page.addInitScript(() => {
+    const rocketWindow = window as RocketTestWindow;
+    rocketWindow.__rocketOpened = [];
+    window.open = ((url?: string | URL) => {
+      if (url) rocketWindow.__rocketOpened?.push(String(url));
+      return window;
+    }) as typeof window.open;
+  });
+
+  await page.goto("/projects");
+  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
+
+  const projectRows = page.locator(".project-row");
+  const projectCount = await projectRows.count();
+  expect(projectCount).toBeGreaterThan(0);
+
+  for (let index = 0; index < projectCount; index++) {
+    const row = projectRows.nth(index);
+    await row.scrollIntoViewIfNeeded();
+    const href = await row.getAttribute("href");
+    const box = await row.boundingBox();
+    expect(href).toBeTruthy();
+    expect(box).not.toBeNull();
+    const expectedHref = new URL(href!, page.url()).href;
+
+    const horizontalFraction = 0.08 + (index / Math.max(projectCount - 1, 1)) * 0.84;
+    const clickX = box!.x + box!.width * horizontalFraction;
+    const clickY = box!.y + box!.height * 0.5;
+
+    await page.mouse.move(clickX, clickY);
+    await startRocketOpacityProbe(page, 200);
+    await page.mouse.click(clickX, clickY);
+    await page.waitForTimeout(90);
+    await expectRocketBecameVisible(page);
+
+    await expect.poll(() => page.evaluate(() => {
+      const rocketWindow = window as RocketTestWindow;
+      return rocketWindow.__rocketOpened?.at(-1) ?? null;
+    })).toBe(expectedHref);
+    await expect(page).toHaveURL("/projects");
+  }
+
+  await expectNoHorizontalOverflow(page);
+  guard.expectClean();
+});
+
+test("cursor wakes when the viewport crosses into desktop mode", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Desktop capability switching is covered by the desktop project.");
+
+  const guard = consoleGuard();
+  guard.attach(page);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/projects");
+  await expect(page.locator("body")).not.toHaveClass(/rocket-cursor-active/);
+
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
+
+  const firstProject = page.locator(".project-row").nth(0);
+  const box = await firstProject.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+  await expect.poll(() => page.getByTestId("rocket-ship").evaluate((rocket) => {
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(rocket).transform);
+    return Math.hypot(matrix.a, matrix.b);
+  })).toBeGreaterThan(1.15);
+
   guard.expectClean();
 });
 
