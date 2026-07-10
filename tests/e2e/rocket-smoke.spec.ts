@@ -4,7 +4,15 @@ type RocketTestWindow = Window & {
   __rocketOpened?: string[];
   __rocketProbeMax?: number;
   __rocketProbeMaxScale?: number;
+  __rocketReturnMaxScale?: number;
+  __rocketReturnMinOpacity?: number;
+  __rocketReturnSamples?: number;
 };
+
+const outboundPages = [
+  { label: "Writing", route: "/writing", listingSelector: ".archive-row" },
+  { label: "Projects", route: "/projects", listingSelector: ".project-row" },
+] as const;
 
 function consoleGuard() {
   const errors: string[] = [];
@@ -34,7 +42,7 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow.hasOverflow, JSON.stringify(overflow)).toBe(false);
 }
 
-async function startRocketOpacityProbe(page: Page, durationMs = 260) {
+async function startRocketLaunchProbe(page: Page, durationMs = 260) {
   await page.evaluate((duration) => {
     const probeWindow = window as RocketTestWindow;
     probeWindow.__rocketProbeMax = 0;
@@ -69,11 +77,70 @@ async function expectRocketBecameVisible(page: Page) {
   expect(maxOpacity).toBeGreaterThan(0.5);
 }
 
-async function expectRocketReachedDramaticScale(page: Page) {
+async function expectRocketReachedBalancedScale(page: Page) {
   await expect.poll(() => page.evaluate(() => {
     const probeWindow = window as RocketTestWindow;
     return probeWindow.__rocketProbeMaxScale ?? 0;
-  })).toBeGreaterThan(3.25);
+  })).toBeGreaterThan(3.05);
+
+  const maxScale = await page.evaluate(() => {
+    const probeWindow = window as RocketTestWindow;
+    return probeWindow.__rocketProbeMaxScale ?? 0;
+  });
+  expect(maxScale).toBeLessThanOrEqual(3.3);
+}
+
+async function startRocketReturnProbe(page: Page, origin: { x: number; y: number }, durationMs = 520) {
+  await page.evaluate(({ duration, point }) => {
+    const probeWindow = window as RocketTestWindow;
+    probeWindow.__rocketReturnMaxScale = 0;
+    probeWindow.__rocketReturnMinOpacity = 1;
+    probeWindow.__rocketReturnSamples = 0;
+    const startedAt = performance.now();
+
+    const tick = () => {
+      const elapsed = performance.now() - startedAt;
+      const rocket = document.querySelector<HTMLElement>("[data-testid='rocket-ship']");
+      const position = document.querySelector<HTMLElement>("[data-testid='rocket-cursor']");
+
+      if (elapsed >= 280 && rocket && position) {
+        const positionMatrix = new DOMMatrixReadOnly(getComputedStyle(position).transform);
+        const returnedToPointer = Math.abs(positionMatrix.m41 - point.x) < 2
+          && Math.abs(positionMatrix.m42 - point.y) < 2;
+
+        if (returnedToPointer) {
+          const rocketStyle = getComputedStyle(rocket);
+          const rocketMatrix = new DOMMatrixReadOnly(rocketStyle.transform);
+          const scale = Math.hypot(rocketMatrix.a, rocketMatrix.b);
+          const opacity = Number.parseFloat(rocketStyle.opacity) || 0;
+          probeWindow.__rocketReturnMaxScale = Math.max(probeWindow.__rocketReturnMaxScale ?? 0, scale);
+          probeWindow.__rocketReturnMinOpacity = Math.min(probeWindow.__rocketReturnMinOpacity ?? 1, opacity);
+          probeWindow.__rocketReturnSamples = (probeWindow.__rocketReturnSamples ?? 0) + 1;
+        }
+      }
+
+      if (elapsed < duration) requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+  }, { duration: durationMs, point: origin });
+}
+
+async function expectRocketReturnIsFluid(page: Page) {
+  await page.waitForTimeout(230);
+  const metrics = await page.evaluate(() => {
+    const probeWindow = window as RocketTestWindow;
+    return {
+      maxScale: probeWindow.__rocketReturnMaxScale ?? 0,
+      minOpacity: probeWindow.__rocketReturnMinOpacity ?? 1,
+      samples: probeWindow.__rocketReturnSamples ?? 0,
+    };
+  });
+
+  expect(metrics.samples).toBeGreaterThan(2);
+  expect(metrics.maxScale).toBeLessThanOrEqual(1.35);
+  expect(metrics.minOpacity).toBeLessThanOrEqual(0.5);
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
 }
 
 test("desktop rocket launches during internal nav and lands cleanly", async ({ page }, testInfo) => {
@@ -102,16 +169,19 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   const box = await workLink.boundingBox();
   expect(box).not.toBeNull();
 
-  await startRocketOpacityProbe(page);
-  await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  const clickPoint = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+  await startRocketLaunchProbe(page);
+  await startRocketReturnProbe(page, clickPoint);
+  await page.mouse.click(clickPoint.x, clickPoint.y);
   await page.waitForTimeout(70);
 
   await expect(page).toHaveURL("/");
   await expectRocketBecameVisible(page);
-  await expectRocketReachedDramaticScale(page);
+  await expectRocketReachedBalancedScale(page);
 
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
+  await expectRocketReturnIsFluid(page);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
@@ -132,12 +202,12 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   const box = await workLink.boundingBox();
   expect(box).not.toBeNull();
 
-  await startRocketOpacityProbe(page);
+  await startRocketLaunchProbe(page);
   await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.waitForTimeout(90);
 
   await expectRocketBecameVisible(page);
-  await expectRocketReachedDramaticScale(page);
+  await expectRocketReachedBalancedScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   await expectNoHorizontalOverflow(page);
@@ -157,69 +227,84 @@ test("mobile world orb first tap launches to its route", async ({ page }, testIn
   const box = await orb.boundingBox();
   expect(box).not.toBeNull();
 
-  await startRocketOpacityProbe(page);
+  await startRocketLaunchProbe(page);
   await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
   await page.waitForTimeout(90);
 
   await expectRocketBecameVisible(page);
-  await expectRocketReachedDramaticScale(page);
+  await expectRocketReachedBalancedScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
 });
 
-test("every project row launches before opening its destination", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "Desktop project rows are covered by the desktop project.");
+for (const outboundPage of outboundPages) {
+  test(`every outbound HTTP link on ${outboundPage.label} launches before opening`, async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop", "Outbound link coverage runs once in the desktop project.");
 
-  const guard = consoleGuard();
-  guard.attach(page);
+    const guard = consoleGuard();
+    guard.attach(page);
 
-  await page.addInitScript(() => {
-    const rocketWindow = window as RocketTestWindow;
-    rocketWindow.__rocketOpened = [];
-    window.open = ((url?: string | URL) => {
-      if (url) rocketWindow.__rocketOpened?.push(String(url));
-      return window;
-    }) as typeof window.open;
-  });
-
-  await page.goto("/projects");
-  await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
-
-  const projectRows = page.locator(".project-row");
-  const projectCount = await projectRows.count();
-  expect(projectCount).toBeGreaterThan(0);
-
-  for (let index = 0; index < projectCount; index++) {
-    const row = projectRows.nth(index);
-    await row.scrollIntoViewIfNeeded();
-    const href = await row.getAttribute("href");
-    const box = await row.boundingBox();
-    expect(href).toBeTruthy();
-    expect(box).not.toBeNull();
-    const expectedHref = new URL(href!, page.url()).href;
-
-    const horizontalFraction = 0.08 + (index / Math.max(projectCount - 1, 1)) * 0.84;
-    const clickX = box!.x + box!.width * horizontalFraction;
-    const clickY = box!.y + box!.height * 0.5;
-
-    await page.mouse.move(clickX, clickY);
-    await startRocketOpacityProbe(page, 200);
-    await page.mouse.click(clickX, clickY);
-    await page.waitForTimeout(90);
-    await expectRocketBecameVisible(page);
-    await expectRocketReachedDramaticScale(page);
-
-    await expect.poll(() => page.evaluate(() => {
+    await page.addInitScript(() => {
       const rocketWindow = window as RocketTestWindow;
-      return rocketWindow.__rocketOpened?.at(-1) ?? null;
-    })).toBe(expectedHref);
-    await expect(page).toHaveURL("/projects");
-  }
+      rocketWindow.__rocketOpened = [];
+      window.open = ((url?: string | URL) => {
+        if (url) rocketWindow.__rocketOpened?.push(String(url));
+        return window;
+      }) as typeof window.open;
+    });
 
-  await expectNoHorizontalOverflow(page);
-  guard.expectClean();
-});
+    await page.goto(outboundPage.route);
+    await expect(page.getByRole("heading", { name: outboundPage.label })).toBeVisible();
+
+    const listingRows = page.locator(outboundPage.listingSelector);
+    const listingCount = await listingRows.count();
+    expect(listingCount).toBeGreaterThan(0);
+
+    const outboundLinks = page.locator("a[href^='http://'], a[href^='https://']");
+    const outboundCount = await outboundLinks.count();
+    expect(outboundCount).toBeGreaterThanOrEqual(listingCount);
+
+    let listingIndex = 0;
+    for (let index = 0; index < outboundCount; index++) {
+      const link = outboundLinks.nth(index);
+      await link.scrollIntoViewIfNeeded();
+      const href = await link.getAttribute("href");
+      const className = await link.getAttribute("class");
+      const box = await link.boundingBox();
+      expect(href).toBeTruthy();
+      expect(box).not.toBeNull();
+      const expectedHref = new URL(href!, page.url()).href;
+      const isListingRow = className?.split(/\s+/).includes(outboundPage.listingSelector.slice(1)) ?? false;
+      const horizontalFraction = isListingRow
+        ? 0.08 + (listingIndex++ / Math.max(listingCount - 1, 1)) * 0.84
+        : 0.5;
+      const clickX = box!.x + box!.width * horizontalFraction;
+      const clickY = box!.y + box!.height * 0.5;
+
+      await page.mouse.move(clickX, clickY);
+      await startRocketLaunchProbe(page, 230);
+      await page.mouse.click(clickX, clickY);
+      await page.waitForTimeout(90);
+      await expectRocketBecameVisible(page);
+      await expectRocketReachedBalancedScale(page);
+
+      await expect.poll(() => page.evaluate(() => {
+        const rocketWindow = window as RocketTestWindow;
+        return rocketWindow.__rocketOpened?.length ?? 0;
+      })).toBe(index + 1);
+      await expect.poll(() => page.evaluate(() => {
+        const rocketWindow = window as RocketTestWindow;
+        return rocketWindow.__rocketOpened?.at(-1) ?? null;
+      })).toBe(expectedHref);
+      await expect(page).toHaveURL(outboundPage.route);
+    }
+
+    expect(listingIndex).toBe(listingCount);
+    await expectNoHorizontalOverflow(page);
+    guard.expectClean();
+  });
+}
 
 test("cursor wakes when the viewport crosses into desktop mode", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop capability switching is covered by the desktop project.");
