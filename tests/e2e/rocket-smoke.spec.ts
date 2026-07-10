@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 type RocketTestWindow = Window & {
   __rocketOpened?: string[];
   __rocketProbeMax?: number;
+  __rocketProbeMaxScale?: number;
 };
 
 function consoleGuard() {
@@ -37,12 +38,18 @@ async function startRocketOpacityProbe(page: Page, durationMs = 260) {
   await page.evaluate((duration) => {
     const probeWindow = window as RocketTestWindow;
     probeWindow.__rocketProbeMax = 0;
+    probeWindow.__rocketProbeMaxScale = 0;
     const until = performance.now() + duration;
 
     const tick = () => {
       const rocket = document.querySelector<HTMLElement>("[data-testid='rocket-ship']");
       const opacity = rocket ? Number.parseFloat(getComputedStyle(rocket).opacity) || 0 : 0;
       probeWindow.__rocketProbeMax = Math.max(probeWindow.__rocketProbeMax ?? 0, opacity);
+      if (rocket) {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(rocket).transform);
+        const scale = Math.hypot(matrix.a, matrix.b);
+        probeWindow.__rocketProbeMaxScale = Math.max(probeWindow.__rocketProbeMaxScale ?? 0, scale);
+      }
 
       if (performance.now() < until) {
         requestAnimationFrame(tick);
@@ -60,6 +67,13 @@ async function expectRocketBecameVisible(page: Page) {
   });
 
   expect(maxOpacity).toBeGreaterThan(0.5);
+}
+
+async function expectRocketReachedDramaticScale(page: Page) {
+  await expect.poll(() => page.evaluate(() => {
+    const probeWindow = window as RocketTestWindow;
+    return probeWindow.__rocketProbeMaxScale ?? 0;
+  })).toBeGreaterThan(3.25);
 }
 
 test("desktop rocket launches during internal nav and lands cleanly", async ({ page }, testInfo) => {
@@ -94,6 +108,7 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
 
   await expect(page).toHaveURL("/");
   await expectRocketBecameVisible(page);
+  await expectRocketReachedDramaticScale(page);
 
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
@@ -122,6 +137,7 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await page.waitForTimeout(90);
 
   await expectRocketBecameVisible(page);
+  await expectRocketReachedDramaticScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   await expectNoHorizontalOverflow(page);
@@ -146,6 +162,7 @@ test("mobile world orb first tap launches to its route", async ({ page }, testIn
   await page.waitForTimeout(90);
 
   await expectRocketBecameVisible(page);
+  await expectRocketReachedDramaticScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
@@ -191,6 +208,7 @@ test("every project row launches before opening its destination", async ({ page 
     await page.mouse.click(clickX, clickY);
     await page.waitForTimeout(90);
     await expectRocketBecameVisible(page);
+    await expectRocketReachedDramaticScale(page);
 
     await expect.poll(() => page.evaluate(() => {
       const rocketWindow = window as RocketTestWindow;

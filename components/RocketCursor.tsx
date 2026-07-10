@@ -24,6 +24,7 @@ interface Shockwave {
   life: number; maxLife: number;
   r: number; g: number; b: number;
   smooth?: boolean;
+  intensity?: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ const LERP_ANGLE       = 0.78;  // fast tilt response
 const LERP_SCALE       = 0.68;  // fast hover scale
 const VEL_SMOOTH       = 0.52;  // velocity smoothing (for tilt only, not position)
 const MAX_TILT_DEG     = 10;
-const PARTICLE_CAP     = 240;
+const PARTICLE_CAP     = 260;
 const STREAK_SPEED     = 18;  // only at very fast flicks, not normal scrolling
 const FRAME_MS         = 1000 / 60;
 const MAX_FRAME_STEP   = 2.5;
@@ -44,11 +45,14 @@ const LAUNCH_DURATION  = 290;   // ms — a touch slower so external-link launch
 const TOUCH_LAUNCH_DURATION = 260;  // ms — still quick on taps, with enough time to see the burst
 const WARP_IN_DURATION = 240;   // ms
 const LAUNCH_TRAVEL_EXTRA = 180;
-const LAUNCH_SCALE_BOOST = 1.85;
-const LAUNCH_BOOST_LENGTH = 268;
-const LAUNCH_SHOCKWAVE_DELAY = 82;
-const LAUNCH_SHOCKWAVE_LIFE = 32;
-const LAUNCH_SHOCKWAVE_LIFE_LARGE = 44;
+const LAUNCH_SCALE_BOOST = 2.75;
+const LAUNCH_BOOST_LENGTH = 380;
+const LAUNCH_SHOCKWAVE_DELAY = 64;
+const LAUNCH_SHOCKWAVE_WIDE_DELAY = 128;
+const LAUNCH_SHOCKWAVE_LIFE = 40;
+const LAUNCH_SHOCKWAVE_LIFE_LARGE = 56;
+const LAUNCH_SHOCKWAVE_LIFE_WIDE = 72;
+const LAUNCH_IGNITION_PARTICLES = 30;
 const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
 
 type WorldAsset = {
@@ -435,10 +439,32 @@ export function RocketCursor() {
       const launchExhaustY = launchFromY + (ROCKET_EXHAUST_Y - ROCKET_PIVOT_Y);
       const sx = launchFromX;
       const sy = launchExhaustY;
-      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 100, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 150, b: 50, smooth: true });
+
+      const ignitionCount = Math.min(LAUNCH_IGNITION_PARTICLES, PARTICLE_CAP - particles.length);
+      for (let i = 0; i < ignitionCount; i++) {
+        const spread = (Math.random() - 0.5) * 1.9;
+        const ignitionSpeed = 2.4 + Math.random() * 4.2;
+        particles.push({
+          x: sx + (Math.random() - 0.5) * 8,
+          y: sy + (Math.random() - 0.5) * 5,
+          vx: Math.sin(spread) * ignitionSpeed,
+          vy: Math.cos(spread) * ignitionSpeed + 0.8,
+          size: 1.1 + Math.random() * 3.6,
+          life: 0,
+          maxLife: 34 + Math.random() * 28,
+          r: 255,
+          g: 90 + Math.floor(Math.random() * 105),
+          b: 5 + Math.floor(Math.random() * 28),
+        });
+      }
+
+      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 150, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 175, b: 65, smooth: true, intensity: 1.4 });
       schedule(() => {
-        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 165, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 90, b: 15, smooth: true });
+        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 255, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 105, b: 18, smooth: true, intensity: 1.3 });
       }, LAUNCH_SHOCKWAVE_DELAY);
+      schedule(() => {
+        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 380, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_WIDE, r: 255, g: 70, b: 8, smooth: true, intensity: 1.12 });
+      }, LAUNCH_SHOCKWAVE_WIDE_DELAY);
 
       schedule(() => {
         isLaunching = false;
@@ -655,7 +681,7 @@ export function RocketCursor() {
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
         const riseEase = launchEase(rawT);
-        const scaleEase = smootherStep(rawT);
+        const scaleEase = launchEase(Math.min(rawT * 1.08, 1));
         const straightenEase = smootherStep(rawT * 1.25);
 
         cursorX    = launchFromX;
@@ -732,9 +758,9 @@ export function RocketCursor() {
 
       let launchBoost = 0;
       const launchT = isLaunching ? Math.min((now - launchStartMs) / launchDuration, 1) : 0;
-      const launchRamp = smootherStep(launchT);
+      const launchRamp = launchEase(Math.min(launchT * 1.12, 1));
       if (isLaunching) {
-        launchBoost = launchEase(launchT) * LAUNCH_BOOST_LENGTH;
+        launchBoost = launchRamp * LAUNCH_BOOST_LENGTH;
       }
       const plumeLen = 14 + Math.min(speed * 3.8, 52) + launchBoost;
       const tipX = exhaustX + pDirX * plumeLen;
@@ -745,7 +771,7 @@ export function RocketCursor() {
       const jetpackBurnT  = now < jetpackFiringUntil ? 1 - (jetpackFiringUntil - now) / 260 : 0;
       const jetpackBoost  = Math.min(jetpackBurnT * 1.4, 1);
       const plumeStr = isLaunching
-        ? Math.min(0.42 + launchRamp * 0.58, 1.0)
+        ? 0.56 + launchRamp * 0.64
         : 0.45 + Math.min(speed / 8, 1) * 0.55 + jetpackBoost * 0.45;
 
       const drawCone = (hw: number, r: number, g: number, b: number, baseOp: number, flic = flicker) => {
@@ -770,51 +796,57 @@ export function RocketCursor() {
       if (canvasFlameActive) {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
+        const launchWidth = 0.72 + launchRamp * 0.72;
         // Launch boost is canvas-based because the rocket leaves the viewport.
-        drawCone(6.5, 255,  55,  8,  0.18, flutter);
-        drawCone(3.2, 255, 145, 20,  0.55);
-        drawCone(1.5, 255, 235, 130, 0.95);
+        drawCone(9.5 * launchWidth, 255,  45,   5, 0.24, flutter);
+        drawCone(4.8 * launchWidth, 255, 135,  15, 0.68);
+        drawCone(2.2 * launchWidth, 255, 240, 150, 1.0);
       }
       if (isLaunching) {
         const b2 = launchRamp * launchRamp;
-        drawCone(16 * b2, 255,  75, 10, 0.22 * b2, 1);
-        drawCone( 9 * b2, 255, 165, 45, 0.38 * b2, 1);
+        drawCone(28 * b2, 255,  65,  8, 0.30 * b2, 1);
+        drawCone(15 * b2, 255, 160, 35, 0.50 * b2, 1);
       }
       if (canvasFlameActive) {
         ctx.restore();
 
         // Nozzle bloom for launch only; normal movement uses the SVG flame so it
         // cannot visually lag behind the rocket.
-        const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, 7);
-        bellGlow.addColorStop(0,    `rgba(255, 245, 200, ${0.80 * plumeStr * flicker})`);
-        bellGlow.addColorStop(0.45, `rgba(255, 160,  50, ${0.35 * plumeStr * flicker})`);
+        const flareRadius = 11 + launchRamp * 10;
+        const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, flareRadius);
+        bellGlow.addColorStop(0,    `rgba(255, 250, 220, ${0.92 * plumeStr * flicker})`);
+        bellGlow.addColorStop(0.28, `rgba(255, 175,  55, ${0.52 * plumeStr * flicker})`);
+        bellGlow.addColorStop(0.58, `rgba(255,  80,  10, ${0.20 * launchRamp})`);
         bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
         ctx.beginPath();
-        ctx.arc(exhaustX, exhaustY, 7, 0, Math.PI * 2);
+        ctx.arc(exhaustX, exhaustY, flareRadius, 0, Math.PI * 2);
         ctx.fillStyle = bellGlow;
         ctx.fill();
+        ctx.restore();
       }
 
       // ── Exhaust particles (launch only) ───────────────────────────────────
       // During normal movement, particles from prior frames drift left/right
       // of the current cursor and create a misleading off-center glow blob.
       // Particles are only emitted during launch where the effect is intentional.
-      const emitRate = isLaunching ? 3 + smootherStep(launchT * 1.2) * 2 : 0;
+      const emitRate = isLaunching ? 4.5 + launchRamp * 5.5 : 0;
       launchParticleBudget = isLaunching ? launchParticleBudget + emitRate * frameStep : 0;
       const requestedParticles = Math.floor(launchParticleBudget);
       launchParticleBudget -= requestedParticles;
       const emitCount = Math.min(requestedParticles, PARTICLE_CAP - particles.length);
       if (emitCount > 0) {
         for (let i = 0; i < emitCount; i++) {
-          const driftSpd = 0.10 + Math.random() * 0.45;
+          const driftSpd = 0.25 + Math.random() * 1.05;
           particles.push({
-            x:       tipX + (Math.random() - 0.5) * 4,
-            y:       tipY + (Math.random() - 0.5) * 4,
-            vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.12,
-            vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.12,
-            size:    0.38 + Math.random() * 2.5,
+            x:       tipX + (Math.random() - 0.5) * 9,
+            y:       tipY + (Math.random() - 0.5) * 7,
+            vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.30,
+            vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.30,
+            size:    0.75 + Math.random() * 4.0,
             life:    0,
-            maxLife: 28 + Math.random() * 22,
+            maxLife: 36 + Math.random() * 30,
             r:       255,
             g:       110 + Math.floor(Math.random() * 70),
             b:        10 + Math.floor(Math.random() * 30),
@@ -898,16 +930,17 @@ export function RocketCursor() {
         if (sw.life >= sw.maxLife) { shockwaves.splice(i, 1); continue; }
 
         const t = sw.life / sw.maxLife;
-        const expansion = sw.smooth ? smootherStep(t) : 1 - (1 - t) * (1 - t);
+        const expansion = sw.smooth ? launchEase(t) : 1 - (1 - t) * (1 - t);
         sw.radius = sw.maxRadius * expansion;
-        const alpha = (1 - t) * (1 - t) * (sw.smooth ? 0.66 : 0.72);
+        const intensity = sw.intensity ?? 1;
+        const alpha = Math.min(0.95, (1 - t) * (1 - t) * (sw.smooth ? 0.72 * intensity : 0.72));
 
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
         ctx.beginPath();
         ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(${sw.r}, ${sw.g}, ${sw.b}, ${alpha})`;
-        ctx.lineWidth = 2.5 * (1 - t) + 0.5;
+        ctx.lineWidth = (2.5 * (1 - t) + 0.5) * (sw.smooth ? intensity * 1.25 : 1);
         ctx.stroke();
         ctx.restore();
       }
