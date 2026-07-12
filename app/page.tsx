@@ -19,8 +19,19 @@ export default function Page() {
       <link
         rel="preload"
         as="image"
-        href="/cosmic-hero-v6-sharp.webp"
+        href="/cosmic-hero-desktop.webp"
+        imageSrcSet="/cosmic-hero-desktop.webp 1x, /cosmic-hero-desktop-2x.webp 2x"
         type="image/webp"
+        media="(min-width: 761px)"
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        href="/cosmic-hero-mobile.webp"
+        imageSrcSet="/cosmic-hero-mobile.webp 1x, /cosmic-hero-mobile-2x.webp 2x"
+        type="image/webp"
+        media="(max-width: 760px)"
         fetchPriority="high"
       />
       <UniverseWorld />

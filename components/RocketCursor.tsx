@@ -63,12 +63,6 @@ type WorldAsset = {
   width: number;
 };
 
-const WORLD_ASSET_URLS = [
-  "/world-work-cutout-v1.webp",
-  "/world-writing-cutout-v1.webp",
-  "/world-projects-cutout-v2.webp",
-];
-
 const worldAssetCache = new Map<string, WorldAsset>();
 const worldAssetLoads = new Map<string, Promise<void>>();
 
@@ -263,8 +257,6 @@ export function RocketCursor() {
     if (!canvas || !pos || !rocket) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
-    WORLD_ASSET_URLS.forEach(loadWorldAsset);
 
     // Declared early so syncCursorCapability (called below) can avoid hiding the
     // rocket mid-launch in tap mode.

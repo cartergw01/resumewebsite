@@ -574,7 +574,10 @@ select {
   background:
     radial-gradient(ellipse at 50% 50%, rgba(1, 2, 8, 0) 0 42%, rgba(1, 2, 8, 0.48) 74%, rgba(1, 2, 8, 0.84) 100%),
     linear-gradient(180deg, rgba(1, 2, 8, 0.08) 0%, rgba(1, 2, 8, 0.2) 58%, rgba(1, 2, 8, 0.56) 100%),
-    url("/cosmic-hero-v6-sharp.webp");
+    image-set(
+      url("/cosmic-hero-desktop.webp") 1x,
+      url("/cosmic-hero-desktop-2x.webp") 2x
+    );
   background-position: 45% top;
   background-repeat: no-repeat;
   background-size: max(122vw, 118rem) auto;
@@ -3198,7 +3201,10 @@ select {
   .cosmic-home::before {
     background:
       linear-gradient(180deg, rgba(1, 2, 8, 0.12) 0%, rgba(1, 2, 8, 0.06) 40%, rgba(1, 2, 8, 0.28) 100%),
-      url("/cosmic-hero-v6-sharp.webp");
+      image-set(
+        url("/cosmic-hero-mobile.webp") 1x,
+        url("/cosmic-hero-mobile-2x.webp") 2x
+      );
     background-position: 40% center;
     background-size: cover;
     background-repeat: no-repeat;

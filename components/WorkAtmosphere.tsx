@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
+const STAR_FRAME_INTERVAL = 1000 / 30;
+const SIXTY_FPS_INTERVAL = 1000 / 60;
+
 function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -120,9 +123,18 @@ function StarField() {
       { x: W * 0.62, y: H * 0.45, r: 260, cr: 220, cg: 90, cb: 20, a: 0.12, vx: -0.018, vy: 0.03 },
     ];
 
+    let lastDrawAt = 0;
+
     const draw = (t: number) => {
+      animId = requestAnimationFrame(draw);
+
+      const elapsed = lastDrawAt === 0 ? STAR_FRAME_INTERVAL : t - lastDrawAt;
+      if (elapsed < STAR_FRAME_INTERVAL) return;
+
+      const frameStep = Math.min(elapsed / SIXTY_FPS_INTERVAL, 3);
+      lastDrawAt = t - (elapsed % STAR_FRAME_INTERVAL);
       const targetWarp = getScrollDepth();
-      smoothWarp += (targetWarp - smoothWarp) * 0.032;
+      smoothWarp += (targetWarp - smoothWarp) * (1 - Math.pow(1 - 0.032, frameStep));
       const warp = smoothWarp;
       const cx = W / 2;
       const cy = H / 2;
@@ -130,8 +142,8 @@ function StarField() {
       ctx.clearRect(0, 0, W, H);
 
       for (const n of nebulae) {
-        n.x += n.vx;
-        n.y += n.vy;
+        n.x += n.vx * frameStep;
+        n.y += n.vy * frameStep;
         if (n.x < -n.r) n.x = W + n.r;
         if (n.x > W + n.r) n.x = -n.r;
         if (n.y < -n.r) n.y = H + n.r;
@@ -147,7 +159,7 @@ function StarField() {
       }
 
       for (const s of stars) {
-        s.alpha = Math.min(1, s.alpha + 0.018);
+        s.alpha = Math.min(1, s.alpha + 0.018 * frameStep);
 
         const dx = s.x - cx;
         const dy = s.y - cy;
@@ -158,9 +170,9 @@ function StarField() {
         const lateralDrift = s.driftSpeed * (1 - warp * 0.92);
         const radialPush = warp * warp * (0.5 + warp * 1.0) * s.driftSpeed * 7;
 
-        s.x -= lateralDrift;
-        s.x += nx * radialPush;
-        s.y += ny * radialPush * 0.72;
+        s.x -= lateralDrift * frameStep;
+        s.x += nx * radialPush * frameStep;
+        s.y += ny * radialPush * 0.72 * frameStep;
 
         const margin = 24;
         if (s.x < -margin || s.x > W + margin || s.y < -margin || s.y > H + margin) {
@@ -210,7 +222,6 @@ function StarField() {
         }
       }
 
-      animId = requestAnimationFrame(draw);
     };
 
     animId = requestAnimationFrame(draw);
@@ -219,6 +230,7 @@ function StarField() {
       if (document.hidden) {
         cancelAnimationFrame(animId);
       } else {
+        lastDrawAt = 0;
         animId = requestAnimationFrame(draw);
       }
     };
@@ -248,11 +260,25 @@ function MouseGlow() {
 
     const el = ref.current;
     if (!el) return;
+    let frame = 0;
+    let pointerX = window.innerWidth / 2;
+    let pointerY = window.innerHeight / 2;
+
+    const paint = () => {
+      frame = 0;
+      el.style.background = `radial-gradient(650px circle at ${pointerX}px ${pointerY}px, rgba(88, 130, 255, 0.06), transparent 65%)`;
+    };
+
     const move = (e: MouseEvent) => {
-      el.style.background = `radial-gradient(650px circle at ${e.clientX}px ${e.clientY}px, rgba(88, 130, 255, 0.06), transparent 65%)`;
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      if (!frame) frame = requestAnimationFrame(paint);
     };
     window.addEventListener("mousemove", move, { passive: true });
-    return () => window.removeEventListener("mousemove", move);
+    return () => {
+      window.removeEventListener("mousemove", move);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return <div ref={ref} aria-hidden="true" className="pointer-events-none fixed inset-0" style={{ zIndex: 0 }} />;
