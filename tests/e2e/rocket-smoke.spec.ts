@@ -42,6 +42,24 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow.hasOverflow, JSON.stringify(overflow)).toBe(false);
 }
 
+async function expectRocketEffectsCleared(page: Page) {
+  await page.waitForTimeout(70);
+  const maxAlpha = await page.getByTestId("rocket-effects-canvas").evaluate((canvas: HTMLCanvasElement) => {
+    const context = canvas.getContext("2d");
+    if (!context) return 0;
+
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let alpha = 0;
+    for (let index = 3; index < pixels.length; index += 4) {
+      alpha = Math.max(alpha, pixels[index]);
+      if (alpha === 255) break;
+    }
+    return alpha;
+  });
+
+  expect(maxAlpha).toBe(0);
+}
+
 async function startRocketLaunchProbe(page: Page, durationMs = 260) {
   await page.evaluate((duration) => {
     const probeWindow = window as RocketTestWindow;
@@ -210,6 +228,8 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await expectRocketReachedBalancedScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
+  await expectRocketEffectsCleared(page);
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
 });
@@ -234,6 +254,8 @@ test("mobile world orb first tap launches to its route", async ({ page }, testIn
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
+  await expectRocketEffectsCleared(page);
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
 });

@@ -42,7 +42,7 @@ const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
 const LAUNCH_DURATION  = 290;   // ms — a touch slower so external-link launches read clearly
-const TOUCH_LAUNCH_DURATION = 260;  // ms — still quick on taps, with enough time to see the burst
+const TOUCH_LAUNCH_DURATION = 220;  // ms — fast enough to feel like a tap transition, long enough to read the launch
 const WARP_IN_DURATION = 240;   // ms
 const WARP_IN_SCALE_START = 0.84;
 const LAUNCH_TRAVEL_EXTRA = 180;
@@ -403,6 +403,7 @@ export function RocketCursor() {
       if (isLaunching) return false;
 
       launchDuration = cursorEnabled ? LAUNCH_DURATION : TOUCH_LAUNCH_DURATION;
+      const showArrivalEffect = showArrival && cursorEnabled;
 
       isLaunching = true;
       isHovering  = false;
@@ -433,7 +434,8 @@ export function RocketCursor() {
       const sx = launchFromX;
       const sy = launchExhaustY;
 
-      const ignitionCount = Math.min(LAUNCH_IGNITION_PARTICLES, PARTICLE_CAP - particles.length);
+      const ignitionParticleLimit = cursorEnabled ? LAUNCH_IGNITION_PARTICLES : 14;
+      const ignitionCount = Math.min(ignitionParticleLimit, PARTICLE_CAP - particles.length);
       for (let i = 0; i < ignitionCount; i++) {
         const spread = (Math.random() - 0.5) * 1.5;
         const ignitionSpeed = 2.2 + Math.random() * 3.4;
@@ -451,15 +453,30 @@ export function RocketCursor() {
         });
       }
 
-      // A strong pad ring followed by two progressively softer echoes keeps the
-      // launch origin clear without letting the effect cover the whole page.
-      shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 130, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE, r: 255, g: 175, b: 65, smooth: true, intensity: 1.22 });
-      schedule(() => {
-        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 215, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 110, b: 22, smooth: true, intensity: 1.08 });
-      }, LAUNCH_SHOCKWAVE_DELAY);
-      schedule(() => {
-        shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 300, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_WIDE, r: 255, g: 80, b: 12, smooth: true, intensity: 0.78 });
-      }, LAUNCH_SHOCKWAVE_WIDE_DELAY);
+      // Phones get one compact ignition pulse. The desktop echoes look rich
+      // behind a persistent cursor, but on a short tap transition they overlap
+      // the destination and read as duplicate rings.
+      shockwaves.push({
+        x: sx,
+        y: sy,
+        radius: 0,
+        maxRadius: cursorEnabled ? 130 : 96,
+        life: 0,
+        maxLife: cursorEnabled ? LAUNCH_SHOCKWAVE_LIFE : 24,
+        r: 255,
+        g: 175,
+        b: 65,
+        smooth: true,
+        intensity: cursorEnabled ? 1.22 : 1.05,
+      });
+      if (cursorEnabled) {
+        schedule(() => {
+          shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 215, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 110, b: 22, smooth: true, intensity: 1.08 });
+        }, LAUNCH_SHOCKWAVE_DELAY);
+        schedule(() => {
+          shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 300, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_WIDE, r: 255, g: 80, b: 12, smooth: true, intensity: 0.78 });
+        }, LAUNCH_SHOCKWAVE_WIDE_DELAY);
+      }
 
       schedule(() => {
         isLaunching = false;
@@ -481,16 +498,24 @@ export function RocketCursor() {
           jetpackVelY = 0;
           pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
           rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
-          rocket.style.transition = showArrival ? "none" : ROCKET_OPACITY_TRANSITION;
-          rocket.style.opacity = showArrival ? "0" : "1";
+          rocket.style.transition = showArrivalEffect ? "none" : ROCKET_OPACITY_TRANSITION;
+          rocket.style.opacity = showArrivalEffect ? "0" : "1";
         } else {
           // Tap mode: no cursor to return to after the one-shot launch.
           rocket.style.opacity = "0";
+          pos.style.transform = "translate(-200px,-200px)";
           cursorX = W / 2;
           cursorY = H * 0.32;
+
+          // Route changes should land on a clean frame. Remove launch residue
+          // immediately instead of letting it overlap the destination page.
+          particles.length = 0;
+          shockwaves.length = 0;
+          streaks.length = 0;
+          ctx.clearRect(0, 0, W, H);
         }
 
-        if (showArrival) {
+        if (showArrivalEffect) {
           isWarpingIn   = true;
           warpStartMs   = performance.now();
           warpBurstDone = false;
@@ -514,9 +539,8 @@ export function RocketCursor() {
           }
         }
 
-        // Tap mode: make sure the loop is still awake to finish any particles
-        // and, on route transitions, the arrival burst.
-        if (!cursorEnabled) ensureRunning();
+        // Tap mode has no post-effect: the destination begins on a clean frame.
+        // Decorative non-navigation launches can still finish before this reset.
       }, launchDuration);
 
       return true;
