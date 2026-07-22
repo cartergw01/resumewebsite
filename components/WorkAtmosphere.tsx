@@ -17,28 +17,52 @@ function StarField() {
     if (!ctx) return;
 
     let animId: number;
-    let W = window.innerWidth;
-    let H = window.innerHeight;
+    let resizeFrame = 0;
+    let W = 0;
+    let H = 0;
+    let canvasPixelWidth = 0;
+    let canvasPixelHeight = 0;
+    let renderDpr = 1;
+    const finePointerQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
 
     const sizeCanvas = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = window.innerWidth;
-      H = window.innerHeight;
-      canvas.width = Math.round(W * dpr);
-      canvas.height = Math.round(H * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const rect = canvas.getBoundingClientRect();
+      W = rect.width || document.documentElement.clientWidth;
+      H = rect.height || document.documentElement.clientHeight;
+      renderDpr = Math.min(window.devicePixelRatio || 1, finePointerQuery.matches ? 2 : 1.5);
+      const nextWidth = Math.round(W * renderDpr);
+      const nextHeight = Math.round(H * renderDpr);
+      if (canvasPixelWidth === nextWidth && canvasPixelHeight === nextHeight) return;
+
+      canvasPixelWidth = nextWidth;
+      canvasPixelHeight = nextHeight;
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      ctx.setTransform(renderDpr, 0, 0, renderDpr, 0, 0);
     };
 
     sizeCanvas();
-    window.addEventListener("resize", sizeCanvas);
+    const scheduleCanvasResize = () => {
+      if (resizeFrame) return;
+      resizeFrame = requestAnimationFrame(() => {
+        resizeFrame = 0;
+        sizeCanvas();
+        updateScrollRange();
+      });
+    };
+    const canvasResizeObserver = new ResizeObserver(scheduleCanvasResize);
+    canvasResizeObserver.observe(canvas);
+    window.addEventListener("resize", scheduleCanvasResize, { passive: true });
 
     let smoothWarp = 0;
 
     const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-    const getScrollDepth = () => {
-      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      return clamp(window.scrollY / maxScroll, 0, 1);
+    let maxScroll = Math.max(1, document.documentElement.scrollHeight - H);
+    const updateScrollRange = () => {
+      maxScroll = Math.max(1, document.documentElement.scrollHeight - H);
     };
+    const getScrollDepth = () => clamp(window.scrollY / maxScroll, 0, 1);
+    requestAnimationFrame(updateScrollRange);
 
     const palette: [number, number, number][] = [
       [155, 176, 255],
@@ -51,6 +75,37 @@ function StarField() {
       [255, 160, 100],
     ];
 
+    const glowSprites = new Map<string, HTMLCanvasElement>();
+    const createStarGlow = (radius: number, r: number, g: number, b: number) => {
+      const snappedRadius = Math.max(1, Math.round(radius * 2) / 2);
+      const key = `${snappedRadius}:${r}:${g}:${b}:${renderDpr}`;
+      const cached = glowSprites.get(key);
+      if (cached) return { canvas: cached, radius: snappedRadius };
+
+      const sprite = document.createElement("canvas");
+      const diameter = snappedRadius * 2;
+      sprite.width = Math.max(1, Math.ceil(diameter * renderDpr));
+      sprite.height = Math.max(1, Math.ceil(diameter * renderDpr));
+      const spriteCtx = sprite.getContext("2d");
+      if (!spriteCtx) return { canvas: null, radius: snappedRadius };
+
+      spriteCtx.setTransform(renderDpr, 0, 0, renderDpr, 0, 0);
+      const glow = spriteCtx.createRadialGradient(
+        snappedRadius,
+        snappedRadius,
+        0,
+        snappedRadius,
+        snappedRadius,
+        snappedRadius,
+      );
+      glow.addColorStop(0, `rgba(${r},${g},${b},0.4)`);
+      glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      spriteCtx.fillStyle = glow;
+      spriteCtx.fillRect(0, 0, diameter, diameter);
+      glowSprites.set(key, sprite);
+      return { canvas: sprite, radius: snappedRadius };
+    };
+
     interface Star {
       x: number;
       y: number;
@@ -62,8 +117,11 @@ function StarField() {
       cr: number;
       cg: number;
       cb: number;
+      color: string;
       prominent: boolean;
       alpha: number;
+      glow: HTMLCanvasElement | null;
+      glowRadius: number;
     }
 
     // Star counts trimmed from [380,160,65,14] (619 total) — that many stars,
@@ -82,10 +140,14 @@ function StarField() {
       const isProminent = minSz >= 2.0;
       for (let i = 0; i < count; i++) {
         const [cr, cg, cb] = palette[Math.floor(Math.random() * palette.length)];
+        const size = minSz + Math.random() * (maxSz - minSz);
+        const glow = size > 0.8
+          ? createStarGlow(size * (isProminent ? 6 : 4), cr, cg, cb)
+          : { canvas: null, radius: 0 };
         stars.push({
           x: Math.random() * W,
           y: Math.random() * H,
-          size: minSz + Math.random() * (maxSz - minSz),
+          size,
           driftSpeed: minSpd + Math.random() * (maxSpd - minSpd),
           baseOpacity: minOp + Math.random() * (maxOp - minOp),
           phase: Math.random() * Math.PI * 2,
@@ -93,8 +155,11 @@ function StarField() {
           cr,
           cg,
           cb,
+          color: `rgb(${cr} ${cg} ${cb})`,
           prominent: isProminent,
           alpha: 1,
+          glow: glow.canvas,
+          glowRadius: glow.radius,
         });
       }
     }
@@ -140,6 +205,7 @@ function StarField() {
       const cy = H / 2;
 
       ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = 1;
 
       for (const n of nebulae) {
         n.x += n.vx * frameStep;
@@ -185,19 +251,23 @@ function StarField() {
           : 0.85;
         const op = s.baseOpacity * twinkle * s.alpha;
 
-        if (s.size > 0.8) {
-          const glowR = s.size * (s.prominent ? 6 : 4);
-          const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, glowR);
-          g.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},${op * 0.4})`);
-          g.addColorStop(1, `rgba(${s.cr},${s.cg},${s.cb},0)`);
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, glowR, 0, Math.PI * 2);
-          ctx.fillStyle = g;
-          ctx.fill();
+        if (s.glow) {
+          ctx.globalAlpha = op;
+          ctx.drawImage(
+            s.glow,
+            s.x - s.glowRadius,
+            s.y - s.glowRadius,
+            s.glowRadius * 2,
+            s.glowRadius * 2,
+          );
         }
 
         if (warp > 0.05) {
-          if (dist < 8) continue;
+          if (dist < 8) {
+            ctx.globalAlpha = 1;
+            continue;
+          }
+          ctx.globalAlpha = 1;
           const nearFade = Math.min(dist / 32, 1);
           const distFactor = Math.min(dist / 180, 1) * nearFade;
           const streakLen = warp * warp * 80 * (s.size + 0.5) * distFactor;
@@ -215,12 +285,15 @@ function StarField() {
 
         const dotR = s.size * Math.max(0, 1 - warp * 0.9);
         if (dotR > 0.05) {
+          ctx.globalAlpha = op;
           ctx.beginPath();
           ctx.arc(s.x, s.y, dotR, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(${s.cr},${s.cg},${s.cb},${op})`;
+          ctx.fillStyle = s.color;
           ctx.fill();
         }
       }
+
+      ctx.globalAlpha = 1;
 
     };
 
@@ -238,7 +311,9 @@ function StarField() {
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener("resize", sizeCanvas);
+      cancelAnimationFrame(resizeFrame);
+      canvasResizeObserver.disconnect();
+      window.removeEventListener("resize", scheduleCanvasResize);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
@@ -246,6 +321,7 @@ function StarField() {
   return (
     <canvas
       ref={canvasRef}
+      data-testid="work-starfield"
       aria-hidden="true"
       style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}
     />
@@ -256,7 +332,10 @@ function MouseGlow() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      !window.matchMedia("(any-hover: hover) and (any-pointer: fine)").matches
+    ) return;
 
     const el = ref.current;
     if (!el) return;

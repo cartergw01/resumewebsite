@@ -294,9 +294,11 @@ export function RocketCursor() {
     let canvasPixelWidth = 0;
     let canvasPixelHeight = 0;
     const sizeCanvas = () => {
-      // Cap at 2× — the canvas is full-screen and cleared every frame, so 3×+
-      // on hi-DPI screens quadruples fill cost for no visible gain on a flame.
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      // Cap at 2× on pointer devices and 1.5× on touch devices. The SVG rocket
+      // stays resolution-independent; the soft, full-screen canvas effects do
+      // not benefit enough from 3× mobile fill-rate to justify the extra work.
+      const dprCap = cursorQuery.matches ? 2 : 1.5;
+      const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
       const rect = canvas.getBoundingClientRect();
       W = rect.width || document.documentElement.clientWidth;
       H = rect.height || document.documentElement.clientHeight;
@@ -331,6 +333,7 @@ export function RocketCursor() {
     let angle = 0;
     let targetAngle = 0;
     let isHovering = false;
+    let pointerInside = false;
     let hoverScale = 1;
     let hoverRingAlpha = 0;
     let animId: number;
@@ -349,9 +352,14 @@ export function RocketCursor() {
     let launchAngleStart = 0;
     let launchScaleStart = 1;
     let launchDuration = LAUNCH_DURATION;  // per-launch: shorter on touch
+    let launchProgress = 0;
+    let launchPeakPainted = false;
+    let launchPeakFrameId = 0;
+    let finishLaunchFrameId = 0;
 
-    // rAF loop run state. Cursor mode runs the loop continuously; tap mode wakes
-    // it on a launch and sleeps when idle to save battery on phones.
+    // Both modes wake the rAF loop only while motion or effects are active. A
+    // settled desktop cursor can remain painted without clearing the full-screen
+    // canvas 60 times per second.
     let running = false;
     let restoreOpacityTransitionId = 0;
 
@@ -402,6 +410,16 @@ export function RocketCursor() {
     }) => {
       if (isLaunching) return false;
 
+      // A new activation owns the transition layer. External links can leave
+      // the current page in place, so discard any fading residue from the prior
+      // launch before starting another instead of compounding draw work.
+      isWarpingIn = false;
+      warpBurstDone = false;
+      particles.length = 0;
+      shockwaves.length = 0;
+      streaks.length = 0;
+      ctx.clearRect(0, 0, W, H);
+
       launchDuration = cursorEnabled ? LAUNCH_DURATION : TOUCH_LAUNCH_DURATION;
       const showArrivalEffect = showArrival && cursorEnabled;
 
@@ -415,6 +433,10 @@ export function RocketCursor() {
       launchAngleStart = cursorEnabled ? angle : 0;
       launchScaleStart = cursorEnabled ? Math.max(1, Math.min(hoverScale, 1.28)) : 1;
       launchParticleBudget = 0;
+      cancelAnimationFrame(launchPeakFrameId);
+      launchPeakFrameId = 0;
+      launchProgress = 0;
+      launchPeakPainted = false;
       angle            = launchAngleStart;
       hoverScale       = launchScaleStart;
 
@@ -425,8 +447,9 @@ export function RocketCursor() {
       rocket.style.transform = `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(${launchAngleStart}deg) scale(${launchScaleStart})`;
       revealRocketNow();
 
-      // Tap mode: the loop is asleep — wake it so the launch animates.
-      if (!cursorEnabled) ensureRunning();
+      // The pointer loop may be asleep after settling; always wake it before a
+      // launch so the first ignition frame is never missed.
+      ensureRunning();
 
       // Shockwave burst at the screen-vertical engine point. Launch is a
       // straight upward takeoff, so its flame/effects should never drift left.
@@ -478,7 +501,7 @@ export function RocketCursor() {
         }, LAUNCH_SHOCKWAVE_WIDE_DELAY);
       }
 
-      schedule(() => {
+      const finishLaunch = () => {
         isLaunching = false;
 
         if (cursorEnabled) {
@@ -541,6 +564,28 @@ export function RocketCursor() {
 
         // Tap mode has no post-effect: the destination begins on a clean frame.
         // Decorative non-navigation launches can still finish before this reset.
+      };
+
+      schedule(() => {
+        if (launchPeakPainted || document.hidden) {
+          finishLaunch();
+          return;
+        }
+
+        // If the main thread was blocked during the short transition, resume
+        // from the last frame that actually ran instead of jumping the rocket
+        // straight offscreen. Navigation waits only until the peak is painted.
+        launchStartMs = performance.now() - launchProgress * launchDuration;
+        const finishAfterPeakPaint = () => {
+          if (!isLaunching) return;
+          if (launchPeakPainted) {
+            finishLaunch();
+            return;
+          }
+          finishLaunchFrameId = requestAnimationFrame(finishAfterPeakPaint);
+        };
+        ensureRunning();
+        finishLaunchFrameId = requestAnimationFrame(finishAfterPeakPaint);
       }, launchDuration);
 
       return true;
@@ -551,8 +596,20 @@ export function RocketCursor() {
     // elementFromPoint never blocks the mousemove event.
     const onMouseMove = (e: MouseEvent) => {
       if (!cursorEnabled) return;
+      const wasOutside = !pointerInside;
+      pointerInside = true;
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (wasOutside) {
+        // Re-entering the viewport should not derive tilt from the old offscreen
+        // sentinel. Start from the actual point for a snappy, stable first frame.
+        cursorX = mouseX;
+        cursorY = mouseY;
+        prevMouseX = mouseX;
+        prevMouseY = mouseY;
+        smoothVelX = 0;
+        smoothVelY = 0;
+      }
       const target = e.target instanceof Element ? e.target : null;
       isHovering = Boolean(target?.closest("a, button, [role='button'], [data-cursor-hover]"));
       if (!isLaunching) {
@@ -560,11 +617,30 @@ export function RocketCursor() {
         pos.style.transform = `translate(${mouseX}px,${mouseY}px)`;
         rocket.style.opacity = "1";
       }
+      ensureRunning();
     };
 
     const onMouseLeave = () => {
       if (!cursorEnabled) return;
-      if (!isLaunching) rocket.style.opacity = "0";
+      pointerInside = false;
+      isHovering = false;
+      if (!isLaunching) {
+        rocket.style.opacity = "0";
+        smoothVelX = 0;
+        smoothVelY = 0;
+        speed = 0;
+        angle = 0;
+        targetAngle = 0;
+        hoverScale = 1;
+        hoverRingAlpha = 0;
+        jetpackOffsetY = 0;
+        jetpackVelY = 0;
+        rocket.style.transform =
+          `translate(${-ROCKET_PIVOT_X}px,${-ROCKET_PIVOT_Y}px) rotate(0deg) scale(1)`;
+        if (!particles.length && !shockwaves.length && !streaks.length && !isWarpingIn) {
+          ctx.clearRect(0, 0, W, H);
+        }
+      }
     };
 
     const onPointerDown = (e: PointerEvent) => {
@@ -598,9 +674,9 @@ export function RocketCursor() {
     // Pointer-follow + jetpack only matter when cursorEnabled is true, but the
     // media query can change when an iPad gains/loses a trackpad or a viewport
     // crosses the breakpoint. Keep listeners installed; the handlers are gated.
-    document.addEventListener("mousemove",  onMouseMove);
-    document.addEventListener("mouseleave", onMouseLeave);
-    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("mousemove", onMouseMove, { passive: true });
+    document.addEventListener("mouseleave", onMouseLeave, { passive: true });
+    document.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
     const onJetpackFire = (e: MouseEvent) => {
@@ -632,6 +708,7 @@ export function RocketCursor() {
           b:       10  + Math.floor(Math.random() * 20),
         });
       }
+      ensureRunning();
     };
 
     document.addEventListener("mousedown", onJetpackFire);
@@ -711,6 +788,16 @@ export function RocketCursor() {
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
         const rawT = Math.min((now - launchStartMs) / launchDuration, 1);
+        launchProgress = rawT;
+        if (rawT >= 0.72 && !launchPeakPainted && !launchPeakFrameId) {
+          // A following rAF confirms the peak style survived through a paint
+          // opportunity; setting the flag in this same callback can let a ready
+          // timeout reset the rocket before the browser actually presents it.
+          launchPeakFrameId = requestAnimationFrame(() => {
+            launchPeakFrameId = 0;
+            launchPeakPainted = true;
+          });
+        }
         const riseEase = launchEase(rawT);
         const scaleEase = launchEase(Math.min(rawT * 1.05, 1));
         const straightenEase = smootherStep(rawT * 1.25);
@@ -1037,15 +1124,28 @@ export function RocketCursor() {
         ctx.fill();
       }
 
-      // Cursor mode animates continuously (the rocket follows the pointer).
-      // Tap mode only needs frames while something is on screen, then sleeps so
-      // a phone isn't clearing a full-screen canvas 60×/sec for nothing.
-      if (cursorEnabled) {
-        animId = requestAnimationFrame(draw);
-      } else if (isLaunching || isWarpingIn || particles.length || shockwaves.length || streaks.length) {
+      const targetScale = isHovering ? 1.28 : 1;
+      const targetRingAlpha = isHovering ? 1 : 0;
+      const cursorStillSettling = cursorEnabled && pointerInside && (
+        now < jetpackFiringUntil ||
+        Math.abs(jetpackOffsetY) > 0.05 ||
+        Math.abs(smoothVelX) > 0.03 ||
+        Math.abs(smoothVelY) > 0.03 ||
+        Math.abs(angle) > 0.02 ||
+        Math.abs(targetAngle) > 0.02 ||
+        Math.abs(hoverScale - targetScale) > 0.002 ||
+        Math.abs(hoverRingAlpha - targetRingAlpha) > 0.01
+      );
+      const hasActiveEffects = Boolean(
+        isLaunching || isWarpingIn || particles.length || shockwaves.length || streaks.length
+      );
+
+      if (hasActiveEffects || cursorStillSettling) {
         animId = requestAnimationFrame(draw);
       } else {
+        if (cursorEnabled && !pointerInside) ctx.clearRect(0, 0, W, H);
         running = false;
+        canvas.dataset.animationState = "idle";
       }
     };
 
@@ -1053,20 +1153,22 @@ export function RocketCursor() {
     const ensureRunning = () => {
       if (!running && !document.hidden) {
         running = true;
+        canvas.dataset.animationState = "running";
         lastFrameMs = 0;
         animId = requestAnimationFrame(draw);
       }
     };
     wakeAnimationLoop = ensureRunning;
 
-    // Cursor mode runs immediately; tap mode waits for the first launch.
-    if (cursorEnabled) ensureRunning();
-
     const onVisibility = () => {
       if (document.hidden) {
         cancelAnimationFrame(animId);
         running = false;
-      } else if (cursorEnabled || isLaunching || isWarpingIn || particles.length || shockwaves.length) {
+        canvas.dataset.animationState = "idle";
+      } else if (
+        (cursorEnabled && pointerInside) ||
+        isLaunching || isWarpingIn || particles.length || shockwaves.length || streaks.length
+      ) {
         ensureRunning();
       }
     };
@@ -1075,6 +1177,8 @@ export function RocketCursor() {
     return () => {
       cancelAnimationFrame(animId);
       cancelAnimationFrame(restoreOpacityTransitionId);
+      cancelAnimationFrame(launchPeakFrameId);
+      cancelAnimationFrame(finishLaunchFrameId);
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
       timeoutIds.clear();
       canvasResizeObserver.disconnect();
@@ -1097,6 +1201,7 @@ export function RocketCursor() {
       <canvas
         ref={canvasRef}
         data-testid="rocket-effects-canvas"
+        data-animation-state="idle"
         aria-hidden="true"
         style={{
           position: "fixed",

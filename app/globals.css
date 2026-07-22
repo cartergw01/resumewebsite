@@ -85,8 +85,6 @@ body {
 .portfolio-card {
   border: 1px solid var(--glass-border);
   background: var(--work-panel-surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.36),
@@ -96,8 +94,6 @@ body {
 .portfolio-card-profile {
   border: 1px solid var(--glass-border);
   background: var(--work-panel-surface);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.36),
@@ -107,8 +103,6 @@ body {
 .portfolio-card-strong {
   border: 1px solid var(--glass-border);
   background: var(--work-panel-surface);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.38),
@@ -118,8 +112,6 @@ body {
 .portfolio-card-archive {
   border: 1px solid var(--glass-border);
   background: var(--work-panel-surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.36),
@@ -131,8 +123,6 @@ body {
   background:
     linear-gradient(160deg, rgba(255, 200, 140, 0.08), transparent 58%),
     var(--work-panel-surface);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.32),
@@ -168,8 +158,6 @@ body {
   background:
     linear-gradient(135deg, rgba(255, 139, 75, 0.1), transparent 56%),
     var(--work-panel-surface);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
   contain: layout style;
   box-shadow:
     0 8px 32px rgba(0, 8, 24, 0.32),
@@ -246,13 +234,11 @@ body {
   from {
     opacity: 0;
     transform: translateY(1.25rem);
-    filter: blur(5px);
   }
 
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
@@ -1426,7 +1412,7 @@ select {
 /* ambient fire glow behind the card */
 .fa-glow {
   position: absolute;
-  inset: 20% -10% 0;
+  inset: 20% 0 0;
   background:
     radial-gradient(ellipse at 30% 80%, rgba(255, 100, 20, 0.13), transparent 55%),
     radial-gradient(ellipse at 70% 60%, rgba(220, 60, 10, 0.09), transparent 50%);

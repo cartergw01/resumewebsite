@@ -42,6 +42,24 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(overflow.hasOverflow, JSON.stringify(overflow)).toBe(false);
 }
 
+async function expectCanvasBackedToRenderedSize(page: Page, testId: string) {
+  const dimensions = await page.getByTestId(testId).evaluate((canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    const usesFinePointer = window.matchMedia("(any-hover: hover) and (any-pointer: fine)").matches;
+    const dprCap = usesFinePointer ? 2 : 1.5;
+    const dpr = Math.min(window.devicePixelRatio || 1, dprCap);
+    return {
+      actualWidth: canvas.width,
+      actualHeight: canvas.height,
+      expectedWidth: Math.round(rect.width * dpr),
+      expectedHeight: Math.round(rect.height * dpr),
+    };
+  });
+
+  expect(dimensions.actualWidth, JSON.stringify(dimensions)).toBe(dimensions.expectedWidth);
+  expect(dimensions.actualHeight, JSON.stringify(dimensions)).toBe(dimensions.expectedHeight);
+}
+
 async function expectRocketEffectsCleared(page: Page) {
   await page.waitForTimeout(70);
   const maxAlpha = await page.getByTestId("rocket-effects-canvas").evaluate((canvas: HTMLCanvasElement) => {
@@ -77,7 +95,10 @@ async function startRocketLaunchProbe(page: Page, durationMs = 260) {
         probeWindow.__rocketProbeMaxScale = Math.max(probeWindow.__rocketProbeMaxScale ?? 0, scale);
       }
 
-      if (performance.now() < until) {
+      const effectsCanvas = document.querySelector<HTMLCanvasElement>("[data-testid='rocket-effects-canvas']");
+      const launchStillRendering = effectsCanvas?.dataset.animationState === "running"
+        && (probeWindow.__rocketProbeMaxScale ?? 0) < 3.05;
+      if (performance.now() < until || launchStillRendering) {
         requestAnimationFrame(tick);
       }
     };
@@ -108,7 +129,7 @@ async function expectRocketReachedBalancedScale(page: Page) {
   expect(maxScale).toBeLessThanOrEqual(3.3);
 }
 
-async function startRocketReturnProbe(page: Page, origin: { x: number; y: number }, durationMs = 520) {
+async function startRocketReturnProbe(page: Page, origin: { x: number; y: number }, durationMs = 1_200) {
   await page.evaluate(({ duration, point }) => {
     const probeWindow = window as RocketTestWindow;
     probeWindow.__rocketReturnMaxScale = 0;
@@ -145,7 +166,11 @@ async function startRocketReturnProbe(page: Page, origin: { x: number; y: number
 }
 
 async function expectRocketReturnIsFluid(page: Page) {
-  await page.waitForTimeout(230);
+  await expect.poll(() => page.evaluate(() => {
+    const probeWindow = window as RocketTestWindow;
+    return probeWindow.__rocketReturnSamples ?? 0;
+  })).toBeGreaterThan(2);
+
   const metrics = await page.evaluate(() => {
     const probeWindow = window as RocketTestWindow;
     return {
@@ -155,7 +180,6 @@ async function expectRocketReturnIsFluid(page: Page) {
     };
   });
 
-  expect(metrics.samples).toBeGreaterThan(2);
   expect(metrics.maxScale).toBeLessThanOrEqual(1.35);
   expect(metrics.minOpacity).toBeLessThanOrEqual(0.5);
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
@@ -174,14 +198,8 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
   await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
 
-  const canvasBox = await page.getByTestId("rocket-effects-canvas").evaluate((canvas: HTMLCanvasElement) => {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      backingWidth: canvas.width,
-      cssWidth: Math.round(rect.width * Math.min(window.devicePixelRatio || 1, 2)),
-    };
-  });
-  expect(canvasBox.backingWidth).toBe(canvasBox.cssWidth);
+  await expectCanvasBackedToRenderedSize(page, "rocket-effects-canvas");
+  await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle");
 
   const workLink = page.getByLabel("Primary navigation").getByRole("link", { name: "Work" });
   const box = await workLink.boundingBox();
@@ -200,6 +218,8 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   await expectRocketReturnIsFluid(page);
+  await expectCanvasBackedToRenderedSize(page, "work-starfield");
+  await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle", { timeout: 5_000 });
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
@@ -229,6 +249,8 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   await expectRocketEffectsCleared(page);
+  await expectCanvasBackedToRenderedSize(page, "rocket-effects-canvas");
+  await expectCanvasBackedToRenderedSize(page, "work-starfield");
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expectNoHorizontalOverflow(page);
   guard.expectClean();
@@ -305,7 +327,10 @@ for (const outboundPage of outboundPages) {
       const clickY = box!.y + box!.height * 0.5;
 
       await page.mouse.move(clickX, clickY);
-      await startRocketLaunchProbe(page, 230);
+      // Keep sampling through the 290 ms desktop launch. Under parallel CI
+      // load, a short 230 ms probe can stop between animation frames and miss
+      // the final eased scale even though the transition completes correctly.
+      await startRocketLaunchProbe(page, 300);
       await page.mouse.click(clickX, clickY);
       await page.waitForTimeout(90);
       await expectRocketBecameVisible(page);
@@ -355,7 +380,7 @@ test("cursor wakes when the viewport crosses into desktop mode", async ({ page }
   guard.expectClean();
 });
 
-test("projects page does not overflow on small phone or tablet widths", async ({ page }, testInfo) => {
+test("content pages do not overflow on small phone or tablet widths", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Viewport matrix only needs one browser project.");
 
   const guard = consoleGuard();
@@ -368,6 +393,10 @@ test("projects page does not overflow on small phone or tablet widths", async ({
     await page.setViewportSize(viewport);
     await page.goto("/projects");
     await expect(page.getByRole("heading", { name: "Projects" })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+
+    await page.goto("/writing");
+    await expect(page.getByRole("heading", { name: "Writing" })).toBeVisible();
     await expectNoHorizontalOverflow(page);
   }
 
