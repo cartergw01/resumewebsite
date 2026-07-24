@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 
 const STAR_FRAME_INTERVAL = 1000 / 30;
 const SIXTY_FPS_INTERVAL = 1000 / 60;
+const MOUSE_GLOW_RADIUS = 650;
+const MOUSE_GLOW_DIAMETER = MOUSE_GLOW_RADIUS * 2;
 
 function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -345,8 +347,11 @@ function MouseGlow() {
 
     const paint = () => {
       frame = 0;
-      el.style.background = `radial-gradient(650px circle at ${pointerX}px ${pointerY}px, rgba(88, 130, 255, 0.06), transparent 65%)`;
+      el.style.transform = `translate3d(${pointerX - MOUSE_GLOW_RADIUS}px, ${pointerY - MOUSE_GLOW_RADIUS}px, 0)`;
     };
+
+    paint();
+    el.style.opacity = "1";
 
     const move = (e: MouseEvent) => {
       pointerX = e.clientX;
@@ -360,7 +365,23 @@ function MouseGlow() {
     };
   }, []);
 
-  return <div ref={ref} aria-hidden="true" className="pointer-events-none fixed inset-0" style={{ zIndex: 0 }} />;
+  return (
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden" style={{ zIndex: 0 }}>
+      <div
+        ref={ref}
+        className="absolute left-0 top-0"
+        style={{
+          width: MOUSE_GLOW_DIAMETER,
+          height: MOUSE_GLOW_DIAMETER,
+          background: `radial-gradient(${MOUSE_GLOW_RADIUS}px circle at center, rgba(88, 130, 255, 0.06), transparent 65%)`,
+          contain: "strict",
+          opacity: 0,
+          transform: `translate3d(calc(50vw - ${MOUSE_GLOW_RADIUS}px), calc(50vh - ${MOUSE_GLOW_RADIUS}px), 0)`,
+          willChange: "transform",
+        }}
+      />
+    </div>
+  );
 }
 
 export default function WorkAtmosphere() {

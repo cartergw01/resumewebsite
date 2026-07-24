@@ -1,12 +1,16 @@
-import { defineConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 30_000,
+  timeout: 45_000,
   expect: {
     timeout: 5_000,
   },
-  fullyParallel: true,
+  // These tests intentionally drive multiple full-screen Retina canvases.
+  // Serial execution measures one real site session and avoids turning the
+  // shared local web server into an unrelated multi-tab GPU stress test.
+  fullyParallel: false,
+  workers: 1,
   reporter: "list",
   use: {
     baseURL: "http://127.0.0.1:3100",
@@ -25,6 +29,7 @@ export default defineConfig({
       name: "desktop",
       use: {
         browserName: "chromium",
+        deviceScaleFactor: 2,
         viewport: { width: 1280, height: 720 },
       },
     },
@@ -32,9 +37,17 @@ export default defineConfig({
       name: "mobile",
       use: {
         browserName: "chromium",
+        deviceScaleFactor: 3,
         hasTouch: true,
         isMobile: true,
         viewport: { width: 390, height: 844 },
+      },
+    },
+    {
+      name: "mobile-webkit",
+      use: {
+        ...devices["iPhone 13"],
+        browserName: "webkit",
       },
     },
   ],
