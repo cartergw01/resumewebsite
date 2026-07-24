@@ -267,16 +267,22 @@ export const projects = [
     description: "I built and designed my firm's website.",
   },
   {
-    title: "Carter's Taipei Guide",
-    href: "https://taipei-guide-etaa.vercel.app/",
-    image: "/project-shots/taipei-guide.webp",
-    description: "A Taipei city guide built for my friends that visit Taipei! It covers where to eat, drink, and places to explore including my recommendations, tourist hot spots, and other popular spots.",
+    title: "Taipei Run",
+    href: "https://taipei-run.vercel.app/",
+    image: "/project-shots/taipei-run.jpg",
+    description: "An endless runner game inspired by Temple Run and Subway Surfers, reimagined in Taipei. Ride a moped through the city, dodge traffic, and collect boba.",
   },
   {
     title: "Stocker",
     href: "https://stocker-app-one.vercel.app/",
     image: "/project-shots/stocker.webp",
     description: "My personal long-term investing research tool that pulls financials, earnings, latest news, and filings for stocks in my portfolio into a single clean dashboard.",
+  },
+  {
+    title: "Carter's Taipei Guide",
+    href: "https://taipei-guide-etaa.vercel.app/",
+    image: "/project-shots/taipei-guide.webp",
+    description: "A Taipei city guide built for my friends that visit Taipei! It covers where to eat, drink, and places to explore including my recommendations, tourist hot spots, and other popular spots.",
   },
   {
     title: "Poker Odds Calculator",
