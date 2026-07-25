@@ -256,7 +256,7 @@ export const essays = [
 export const projects = [
   {
     title: "TaipeiFlix",
-    href: "https://taipei-flix.onrender.com/",
+    href: "https://taipeiflix.com/",
     image: "/project-shots/taipei-flix.webp",
     description: "A web app that aggregates movie showtimes across theaters in Taipei, with critic scores and movie info, for those who want to go to the movies in Taipei.",
   },
@@ -268,7 +268,7 @@ export const projects = [
   },
   {
     title: "Taipei Run",
-    href: "https://taipei-run.vercel.app/",
+    href: "https://taipeirun.com/",
     image: "/project-shots/taipei-run.jpg",
     description: "An endless runner game inspired by Temple Run and Subway Surfers, reimagined in Taipei. Ride a moped through the city, dodge traffic, and collect boba.",
   },
