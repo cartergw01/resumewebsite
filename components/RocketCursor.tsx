@@ -43,6 +43,7 @@ const STREAK_INTERVAL_MS = 1000 / 30;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
+const ROCKET_ENGINE_HALF_WIDTH = 3.8;
 const LAUNCH_DURATION  = 500;
 const TOUCH_LAUNCH_DURATION = 440;
 const LAUNCH_IGNITION_FRACTION = 0.30;
@@ -1046,35 +1047,33 @@ export function RocketCursor() {
       if (canvasFlameActive) {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
-        const launchWidth = 0.70 + launchRamp * 0.56;
+        // The plume starts inside the 7.6 px engine bell and grows only to its
+        // rendered width. The previous boost cones reached 44 px wide while the
+        // unscaled rocket was 18 px, making the exhaust look detached from the
+        // vehicle instead of driven by its boosters.
+        const engineHalfWidth = ROCKET_ENGINE_HALF_WIDTH * renderedScale;
+        const plumeHalfWidth = engineHalfWidth * (0.82 + launchRamp * 0.18);
         // Launch boost is canvas-based because the rocket leaves the viewport.
-        drawCone(8.5 * launchWidth, 255,  45,   5, 0.21, flutter);
-        drawCone(4.2 * launchWidth, 255, 135,  15, 0.61);
-        drawCone(2.0 * launchWidth, 255, 240, 150, 0.95);
-      }
-      if (isLaunching) {
-        const b2 = launchRamp * launchRamp;
-        drawCone(22 * b2, 255,  65,  8, 0.24 * b2, 1);
-        drawCone(12 * b2, 255, 160, 35, 0.42 * b2, 1);
-      }
-      if (canvasFlameActive) {
-        ctx.restore();
+        drawCone(plumeHalfWidth,        255,  45,   5, 0.21, flutter);
+        drawCone(plumeHalfWidth * 0.50, 255, 135,  15, 0.61);
+        drawCone(plumeHalfWidth * 0.24, 255, 240, 150, 0.95);
 
-        // Nozzle bloom for launch only; normal movement uses the SVG flame so it
-        // cannot visually lag behind the rocket.
-        const flareRadius = 9 + launchRamp * 8;
+        const b2 = launchRamp * launchRamp;
+        drawCone(plumeHalfWidth * b2,        255,  65,  8, 0.24 * b2, 1);
+        drawCone(plumeHalfWidth * 0.55 * b2, 255, 160, 35, 0.42 * b2, 1);
+
+        const flareRadius = plumeHalfWidth * (1.15 + launchRamp * 0.18);
         const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, flareRadius);
         bellGlow.addColorStop(0,    `rgba(255, 250, 220, ${0.86 * plumeStr * flicker})`);
         bellGlow.addColorStop(0.28, `rgba(255, 175,  55, ${0.46 * plumeStr * flicker})`);
         bellGlow.addColorStop(0.58, `rgba(255,  80,  10, ${0.16 * launchRamp})`);
         bellGlow.addColorStop(1,     "rgba(255,  80,  10, 0)");
-        ctx.save();
-        ctx.globalCompositeOperation = "lighter";
         ctx.beginPath();
         ctx.arc(exhaustX, exhaustY, flareRadius, 0, Math.PI * 2);
         ctx.fillStyle = bellGlow;
         ctx.fill();
         effectsCanvasHasPixels = true;
+
         ctx.restore();
       }
 
