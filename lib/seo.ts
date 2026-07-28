@@ -16,12 +16,6 @@ export const siteConfig = {
     linkedin: "https://www.linkedin.com/in/cartergrantwang",
     substack: "https://carterko.substack.com/",
   },
-  ogImage: {
-    url: "/og-preview.png",
-    width: 1200,
-    height: 630,
-    alt: "Carter Wang personal website preview",
-  },
 } as const;
 
 export const routes = {
@@ -94,10 +88,6 @@ export function absoluteUrl(path = "/") {
 
 export function buildMetadata(routeKey: RouteKey): Metadata {
   const route = routes[routeKey];
-  const image = {
-    ...siteConfig.ogImage,
-    url: absoluteUrl(siteConfig.ogImage.url),
-  };
 
   return {
     title: route.title,
@@ -111,15 +101,13 @@ export function buildMetadata(routeKey: RouteKey): Metadata {
       description: route.description,
       url: route.path,
       siteName: siteConfig.siteName,
-      images: [image],
       locale: siteConfig.locale,
       type: "website",
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title: route.title,
       description: route.description,
-      images: [image.url],
       creator: "@CarterKoWang",
     },
   };
@@ -194,12 +182,6 @@ export function webPageJsonLd(routeKey: RouteKey, type: "WebPage" | "ProfilePage
     inLanguage: siteConfig.language,
     isPartOf: { "@id": `${siteConfig.url}/#website` },
     about: { "@id": `${siteConfig.url}/#person` },
-    primaryImageOfPage: {
-      "@type": "ImageObject",
-      url: absoluteUrl(siteConfig.ogImage.url),
-      width: siteConfig.ogImage.width,
-      height: siteConfig.ogImage.height,
-    },
   };
 }
 
