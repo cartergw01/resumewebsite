@@ -11,8 +11,6 @@ function StarField() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -26,6 +24,11 @@ function StarField() {
     let canvasPixelHeight = 0;
     let renderDpr = 1;
     const finePointerQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
+    const shouldAnimate = (
+      finePointerQuery.matches &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+    let redrawStaticFrame = () => {};
 
     const sizeCanvas = () => {
       const rect = canvas.getBoundingClientRect();
@@ -50,6 +53,7 @@ function StarField() {
         resizeFrame = 0;
         sizeCanvas();
         updateScrollRange();
+        if (!shouldAnimate) redrawStaticFrame();
       });
     };
     const canvasResizeObserver = new ResizeObserver(scheduleCanvasResize);
@@ -193,15 +197,17 @@ function StarField() {
     let lastDrawAt = 0;
 
     const draw = (t: number) => {
-      animId = requestAnimationFrame(draw);
+      if (shouldAnimate) animId = requestAnimationFrame(draw);
 
       const elapsed = lastDrawAt === 0 ? STAR_FRAME_INTERVAL : t - lastDrawAt;
-      if (elapsed < STAR_FRAME_INTERVAL) return;
+      if (shouldAnimate && elapsed < STAR_FRAME_INTERVAL) return;
 
-      const frameStep = Math.min(elapsed / SIXTY_FPS_INTERVAL, 3);
+      const frameStep = shouldAnimate ? Math.min(elapsed / SIXTY_FPS_INTERVAL, 3) : 0;
       lastDrawAt = t - (elapsed % STAR_FRAME_INTERVAL);
-      const targetWarp = getScrollDepth();
-      smoothWarp += (targetWarp - smoothWarp) * (1 - Math.pow(1 - 0.032, frameStep));
+      const targetWarp = shouldAnimate ? getScrollDepth() : 0;
+      smoothWarp = shouldAnimate
+        ? smoothWarp + (targetWarp - smoothWarp) * (1 - Math.pow(1 - 0.032, frameStep))
+        : 0;
       const warp = smoothWarp;
       const cx = W / 2;
       const cy = H / 2;
@@ -299,9 +305,17 @@ function StarField() {
 
     };
 
-    animId = requestAnimationFrame(draw);
+    redrawStaticFrame = () => draw(0);
+
+    if (shouldAnimate) {
+      animId = requestAnimationFrame(draw);
+    } else {
+      redrawStaticFrame();
+    }
 
     const onVisibility = () => {
+      if (!shouldAnimate) return;
+
       if (document.hidden) {
         cancelAnimationFrame(animId);
       } else {
@@ -325,7 +339,15 @@ function StarField() {
       ref={canvasRef}
       data-testid="work-starfield"
       aria-hidden="true"
-      style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100lvh",
+        zIndex: 0,
+        pointerEvents: "none",
+      }}
     />
   );
 }

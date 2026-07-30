@@ -3470,7 +3470,32 @@ html[data-theme="dark"] a {
 
 /* ── Touch / mobile: remove GPU-layer hints that cause iOS scroll zoom ── */
 @media (any-pointer: coarse) {
+  /* Mobile browser chrome changes the visual viewport height while scrolling.
+     Give fixed atmosphere layers a stable large-viewport box so cover-sized
+     artwork does not rescale or appear to jump as the address bar collapses. */
+  .cosmic-home::before,
+  .cosmic-home::after,
+  .cosmic-home main::before,
+  .cosmic-home main::after,
+  .cosmic-subpage::before,
+  .cosmic-subpage::after {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100lvh;
+  }
+
   .cosmic-sky {
+    top: -14vmax;
+    right: -14vmax;
+    left: -14vmax;
+    height: calc(100vh + 28vmax);
+    top: -14lvmax;
+    right: -14lvmax;
+    left: -14lvmax;
+    height: calc(100lvh + 28lvmax);
     will-change: auto;
   }
 
