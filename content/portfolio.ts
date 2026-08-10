@@ -290,6 +290,12 @@ export const projects = [
     image: "/project-shots/poker-odds.webp",
     description: "A Texas Hold'em poker odds calculator that tracks hand strength, position, pot equity, and decision math in real time as you play through a hand.",
   },
+  {
+    title: "ikigai Timer",
+    href: "https://886studios.com/timer",
+    image: "/project-shots/ikigai-timer.jpg",
+    description: "A beautiful & sleek countdown timer for events that I host for ikigai Launchpad",
+  },
 ];
 
 export const workshopQueue = [
