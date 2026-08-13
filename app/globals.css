@@ -2252,10 +2252,15 @@ select {
 
 .subpage-projects .project-row {
   border-bottom-color: rgba(92, 154, 255, 0.16);
+  column-gap: clamp(1rem, 3vw, 2.2rem);
 }
 
 .subpage-projects .project-row-copy {
-  max-width: 36rem;
+  max-width: none;
+}
+
+.subpage-projects .project-row-copy > span {
+  text-wrap: wrap;
 }
 
 .subpage-projects .project-row:focus-visible em {
