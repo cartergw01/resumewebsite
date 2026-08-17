@@ -296,6 +296,12 @@ export const projects = [
     image: "/project-shots/ikigai-timer.jpg",
     description: "A beautiful & sleek countdown timer for events that I host for ikigai Launchpad",
   },
+  {
+    title: "Night night, Ko",
+    href: "https://nightnightko.vercel.app/",
+    image: "/project-shots/night-night-ko.jpg",
+    description: "My custom sleep dashboard to track my sleep and all the stats surrounding that.",
+  },
 ];
 
 export const workshopQueue = [
