@@ -16,7 +16,7 @@ function StarField() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
+    let animId = 0;
     let resizeFrame = 0;
     let W = 0;
     let H = 0;
@@ -24,9 +24,10 @@ function StarField() {
     let canvasPixelHeight = 0;
     let renderDpr = 1;
     const finePointerQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
-    const shouldAnimate = (
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let shouldAnimate = (
       finePointerQuery.matches &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      !reducedMotionQuery.matches
     );
     let redrawStaticFrame = () => {};
 
@@ -68,7 +69,6 @@ function StarField() {
       maxScroll = Math.max(1, document.documentElement.scrollHeight - H);
     };
     const getScrollDepth = () => clamp(window.scrollY / maxScroll, 0, 1);
-    requestAnimationFrame(updateScrollRange);
 
     const palette: [number, number, number][] = [
       [155, 176, 255],
@@ -80,6 +80,21 @@ function StarField() {
       [255, 190, 130],
       [255, 160, 100],
     ];
+    const streakSprites = palette.map(([r, g, b]) => {
+      const sprite = document.createElement("canvas");
+      sprite.width = 128;
+      sprite.height = 4;
+      const spriteCtx = sprite.getContext("2d");
+      if (spriteCtx) {
+        const gradient = spriteCtx.createLinearGradient(0, 0, 128, 0);
+        gradient.addColorStop(0, `rgba(${r},${g},${b},0)`);
+        gradient.addColorStop(0.55, `rgba(${r},${g},${b},0.3)`);
+        gradient.addColorStop(1, `rgba(${r},${g},${b},1)`);
+        spriteCtx.fillStyle = gradient;
+        spriteCtx.fillRect(0, 0, 128, 4);
+      }
+      return sprite;
+    });
 
     const glowSprites = new Map<string, HTMLCanvasElement>();
     const createStarGlow = (radius: number, r: number, g: number, b: number) => {
@@ -120,14 +135,12 @@ function StarField() {
       baseOpacity: number;
       phase: number;
       twinkleSpeed: number;
-      cr: number;
-      cg: number;
-      cb: number;
       color: string;
       prominent: boolean;
       alpha: number;
       glow: HTMLCanvasElement | null;
       glowRadius: number;
+      streak: HTMLCanvasElement;
     }
 
     // Star counts trimmed from [380,160,65,14] (619 total) — that many stars,
@@ -145,7 +158,8 @@ function StarField() {
     for (const [count, minSz, maxSz, minSpd, maxSpd, minOp, maxOp] of layers) {
       const isProminent = minSz >= 2.0;
       for (let i = 0; i < count; i++) {
-        const [cr, cg, cb] = palette[Math.floor(Math.random() * palette.length)];
+        const colorIndex = Math.floor(Math.random() * palette.length);
+        const [cr, cg, cb] = palette[colorIndex];
         const size = minSz + Math.random() * (maxSz - minSz);
         const glow = size > 0.8
           ? createStarGlow(size * (isProminent ? 6 : 4), cr, cg, cb)
@@ -158,14 +172,12 @@ function StarField() {
           baseOpacity: minOp + Math.random() * (maxOp - minOp),
           phase: Math.random() * Math.PI * 2,
           twinkleSpeed: 0.0003 + Math.random() * 0.0015,
-          cr,
-          cg,
-          cb,
           color: `rgb(${cr} ${cg} ${cb})`,
           prominent: isProminent,
           alpha: 1,
           glow: glow.canvas,
           glowRadius: glow.radius,
+          streak: streakSprites[colorIndex],
         });
       }
     }
@@ -192,7 +204,24 @@ function StarField() {
       { x: W * 0.88, y: H * 0.38, r: 320, cr: 25, cg: 110, cb: 230, a: 0.2, vx: -0.038, vy: 0.018 },
       { x: W * 0.38, y: H * 0.82, r: 280, cr: 140, cg: 10, cb: 210, a: 0.16, vx: 0.022, vy: -0.012 },
       { x: W * 0.62, y: H * 0.45, r: 260, cr: 220, cg: 90, cb: 20, a: 0.12, vx: -0.018, vy: 0.03 },
-    ];
+    ].map((nebula) => {
+      // These large, soft clouds keep the same colors as they drift. Rasterize
+      // each once at a modest resolution instead of filling six viewport-sized
+      // radial gradients every frame alongside the interactive cursor.
+      const sprite = document.createElement("canvas");
+      sprite.width = sprite.height = 256;
+      const spriteCtx = sprite.getContext("2d");
+      if (spriteCtx) {
+        const { cr, cg, cb, a } = nebula;
+        const glow = spriteCtx.createRadialGradient(128, 128, 0, 128, 128, 128);
+        glow.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`);
+        glow.addColorStop(0.5, `rgba(${cr},${cg},${cb},${a * 0.4})`);
+        glow.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+        spriteCtx.fillStyle = glow;
+        spriteCtx.fillRect(0, 0, 256, 256);
+      }
+      return { ...nebula, sprite };
+    });
 
     let lastDrawAt = 0;
 
@@ -222,14 +251,7 @@ function StarField() {
         if (n.x > W + n.r) n.x = -n.r;
         if (n.y < -n.r) n.y = H + n.r;
         if (n.y > H + n.r) n.y = -n.r;
-        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
-        g.addColorStop(0, `rgba(${n.cr},${n.cg},${n.cb},${n.a})`);
-        g.addColorStop(0.5, `rgba(${n.cr},${n.cg},${n.cb},${n.a * 0.4})`);
-        g.addColorStop(1, `rgba(${n.cr},${n.cg},${n.cb},0)`);
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = g;
-        ctx.fill();
+        ctx.drawImage(n.sprite, n.x - n.r, n.y - n.r, n.r * 2, n.r * 2);
       }
 
       for (const s of stars) {
@@ -275,20 +297,19 @@ function StarField() {
             ctx.globalAlpha = 1;
             continue;
           }
-          ctx.globalAlpha = 1;
           const nearFade = Math.min(dist / 32, 1);
           const distFactor = Math.min(dist / 180, 1) * nearFade;
           const streakLen = warp * warp * 80 * (s.size + 0.5) * distFactor;
-          const sg = ctx.createLinearGradient(s.x - nx * streakLen, s.y - ny * streakLen, s.x, s.y);
-          sg.addColorStop(0, `rgba(${s.cr},${s.cg},${s.cb},0)`);
-          sg.addColorStop(0.55, `rgba(${s.cr},${s.cg},${s.cb},${op * 0.3})`);
-          sg.addColorStop(1, `rgba(${s.cr},${s.cg},${s.cb},${op})`);
-          ctx.beginPath();
-          ctx.moveTo(s.x - nx * streakLen, s.y - ny * streakLen);
-          ctx.lineTo(s.x, s.y);
-          ctx.strokeStyle = sg;
-          ctx.lineWidth = s.size * (0.6 + warp * 0.8);
-          ctx.stroke();
+          const streakWidth = s.size * (0.6 + warp * 0.8);
+          // Rotate a cached color strip along the star's travel direction.
+          // Scrolling can expose all 375 trails at once; no new gradients are
+          // needed as their length and opacity change.
+          ctx.save();
+          ctx.globalAlpha = op;
+          ctx.translate(s.x, s.y);
+          ctx.rotate(Math.atan2(ny, nx));
+          ctx.drawImage(s.streak, -streakLen, -streakWidth / 2, streakLen, streakWidth);
+          ctx.restore();
         }
 
         const dotR = s.size * Math.max(0, 1 - warp * 0.9);
@@ -307,30 +328,28 @@ function StarField() {
 
     redrawStaticFrame = () => draw(0);
 
-    if (shouldAnimate) {
-      animId = requestAnimationFrame(draw);
-    } else {
-      redrawStaticFrame();
-    }
-
-    const onVisibility = () => {
-      if (!shouldAnimate) return;
-
-      if (document.hidden) {
-        cancelAnimationFrame(animId);
-      } else {
-        lastDrawAt = 0;
-        animId = requestAnimationFrame(draw);
-      }
+    const syncAnimation = () => {
+      cancelAnimationFrame(animId);
+      shouldAnimate = finePointerQuery.matches && !reducedMotionQuery.matches;
+      lastDrawAt = 0;
+      canvas.dataset.animationState = shouldAnimate && !document.hidden ? "running" : "idle";
+      if (document.hidden) return;
+      if (shouldAnimate) animId = requestAnimationFrame(draw);
+      else redrawStaticFrame();
     };
-    document.addEventListener("visibilitychange", onVisibility);
+    syncAnimation();
+    document.addEventListener("visibilitychange", syncAnimation);
+    finePointerQuery.addEventListener("change", syncAnimation);
+    reducedMotionQuery.addEventListener("change", syncAnimation);
 
     return () => {
       cancelAnimationFrame(animId);
       cancelAnimationFrame(resizeFrame);
       canvasResizeObserver.disconnect();
       window.removeEventListener("resize", scheduleCanvasResize);
-      document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("visibilitychange", syncAnimation);
+      finePointerQuery.removeEventListener("change", syncAnimation);
+      reducedMotionQuery.removeEventListener("change", syncAnimation);
     };
   }, []);
 
@@ -338,6 +357,7 @@ function StarField() {
     <canvas
       ref={canvasRef}
       data-testid="work-starfield"
+      data-animation-state="idle"
       aria-hidden="true"
       style={{
         position: "fixed",
@@ -356,13 +376,10 @@ function MouseGlow() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      !window.matchMedia("(any-hover: hover) and (any-pointer: fine)").matches
-    ) return;
-
     const el = ref.current;
     if (!el) return;
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const finePointerQuery = window.matchMedia("(any-hover: hover) and (any-pointer: fine)");
     let frame = 0;
     let pointerX = window.innerWidth / 2;
     let pointerY = window.innerHeight / 2;
@@ -372,18 +389,31 @@ function MouseGlow() {
       el.style.transform = `translate3d(${pointerX - MOUSE_GLOW_RADIUS}px, ${pointerY - MOUSE_GLOW_RADIUS}px, 0)`;
     };
 
-    paint();
-    el.style.opacity = "1";
-
     const move = (e: MouseEvent) => {
       pointerX = e.clientX;
       pointerY = e.clientY;
       if (!frame) frame = requestAnimationFrame(paint);
     };
-    window.addEventListener("mousemove", move, { passive: true });
+    const syncPointerGlow = () => {
+      window.removeEventListener("mousemove", move);
+      cancelAnimationFrame(frame);
+      frame = 0;
+      const enabled = !reducedMotionQuery.matches && finePointerQuery.matches && !document.hidden;
+      el.style.opacity = enabled ? "1" : "0";
+      if (!enabled) return;
+      paint();
+      window.addEventListener("mousemove", move, { passive: true });
+    };
+    syncPointerGlow();
+    reducedMotionQuery.addEventListener("change", syncPointerGlow);
+    finePointerQuery.addEventListener("change", syncPointerGlow);
+    document.addEventListener("visibilitychange", syncPointerGlow);
     return () => {
       window.removeEventListener("mousemove", move);
       if (frame) cancelAnimationFrame(frame);
+      reducedMotionQuery.removeEventListener("change", syncPointerGlow);
+      finePointerQuery.removeEventListener("change", syncPointerGlow);
+      document.removeEventListener("visibilitychange", syncPointerGlow);
     };
   }, []);
 

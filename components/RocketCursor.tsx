@@ -11,6 +11,7 @@ interface Particle {
   size: number;
   life: number; maxLife: number;
   r: number; g: number; b: number;
+  sprite?: HTMLCanvasElement;
 }
 interface Streak {
   x: number; y: number;
@@ -40,6 +41,7 @@ const STREAK_SPEED     = 18;  // only at very fast flicks, not normal scrolling
 const FRAME_MS         = 1000 / 60;
 const MAX_FRAME_STEP   = 2.5;
 const STREAK_INTERVAL_MS = 1000 / 30;
+const MAX_STREAK_LENGTH = 180;
 const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
@@ -340,7 +342,7 @@ export function RocketCursor() {
     let W = 0, H = 0;
     let canvasPixelWidth = 0;
     let canvasPixelHeight = 0;
-    let effectsCanvasHasPixels = false;
+    let effectsBounds: { left: number; top: number; right: number; bottom: number } | null = null;
     const sizeCanvas = () => {
       // Cap at 2× on pointer devices and 1.5× on touch devices. The SVG rocket
       // stays resolution-independent; the soft, full-screen canvas effects do
@@ -359,7 +361,7 @@ export function RocketCursor() {
       canvas.width = nextWidth;
       canvas.height = nextHeight;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      effectsCanvasHasPixels = false;
+      effectsBounds = null;
     };
     sizeCanvas();
 
@@ -388,7 +390,7 @@ export function RocketCursor() {
     let isHovering = false;
     let pointerInside = false;
     let hoverScale = 1;
-    let hoverRingAlpha = 0;
+    let lastHoverTarget: EventTarget | null = null;
     let animId: number;
     let lastFrameMs = 0;
     let lastStreakAt = 0;
@@ -426,6 +428,34 @@ export function RocketCursor() {
     const streaks:   Streak[]    = [];
     const shockwaves: Shockwave[] = [];
     const timeoutIds = new Set<number>();
+    const particleSprites = new Map<string, HTMLCanvasElement>();
+
+    // Reuse a small palette of soft sprites instead of constructing a gradient
+    // for every particle on every frame. Each particle resolves its sprite once.
+    const particleSprite = (p: Particle) => {
+      if (p.sprite) return p.sprite;
+      const r = Math.min(255, Math.round(p.r / 16) * 16);
+      const g = Math.min(255, Math.round(p.g / 16) * 16);
+      const b = Math.min(255, Math.round(p.b / 16) * 16);
+      const key = `${r}:${g}:${b}`;
+      let sprite = particleSprites.get(key);
+      if (!sprite) {
+        sprite = document.createElement("canvas");
+        sprite.width = sprite.height = 64;
+        const spriteCtx = sprite.getContext("2d");
+        if (!spriteCtx) return null;
+        const glow = spriteCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        glow.addColorStop(0, `rgba(${Math.min(r + 10, 255)},${Math.min(g + 60, 255)},${Math.min(b + 20, 255)},1)`);
+        glow.addColorStop(0.14, `rgba(${r},${g},${b},0.78)`);
+        glow.addColorStop(0.38, `rgba(${r},${g},${b},0.20)`);
+        glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
+        spriteCtx.fillStyle = glow;
+        spriteCtx.fillRect(0, 0, 64, 64);
+        particleSprites.set(key, sprite);
+      }
+      p.sprite = sprite;
+      return sprite;
+    };
 
     const schedule = (callback: () => void, delay: number) => {
       const timeoutId = window.setTimeout(() => {
@@ -435,10 +465,27 @@ export function RocketCursor() {
       timeoutIds.add(timeoutId);
     };
 
+    // Clear only the area painted last frame. Small cursor effects should not
+    // invalidate a full Retina viewport. Pad for antialiased stroke edges.
+    const markEffectsBounds = (left: number, top: number, right: number, bottom: number) => {
+      left = Math.max(0, Math.floor(left - 2));
+      top = Math.max(0, Math.floor(top - 2));
+      right = Math.min(W, Math.ceil(right + 2));
+      bottom = Math.min(H, Math.ceil(bottom + 2));
+      if (right <= left || bottom <= top) return;
+      effectsBounds = {
+        left: Math.min(effectsBounds?.left ?? left, left),
+        top: Math.min(effectsBounds?.top ?? top, top),
+        right: Math.max(effectsBounds?.right ?? right, right),
+        bottom: Math.max(effectsBounds?.bottom ?? bottom, bottom),
+      };
+    };
+
     const clearEffectsCanvas = () => {
-      if (!effectsCanvasHasPixels) return;
-      ctx.clearRect(0, 0, W, H);
-      effectsCanvasHasPixels = false;
+      if (!effectsBounds) return;
+      const { left, top, right, bottom } = effectsBounds;
+      ctx.clearRect(left, top, right - left, bottom - top);
+      effectsBounds = null;
     };
 
     const revealRocketNow = () => {
@@ -475,14 +522,15 @@ export function RocketCursor() {
       particles.length = 0;
       shockwaves.length = 0;
       streaks.length = 0;
-      ctx.clearRect(0, 0, W, H);
-      effectsCanvasHasPixels = false;
+      clearEffectsCanvas();
 
       launchDuration = cursorEnabled ? LAUNCH_DURATION : TOUCH_LAUNCH_DURATION;
       const showArrivalEffect = showArrival && cursorEnabled;
 
       setTransitionPhase("launching");
       isHovering  = false;
+      pos.dataset.hovering = "false";
+      lastHoverTarget = null;
       launchStartMs    = performance.now();
       cursorX      = originX;
       cursorY      = originY;
@@ -582,7 +630,6 @@ export function RocketCursor() {
           angle = 0;
           targetAngle = 0;
           hoverScale = 1;
-          hoverRingAlpha = 0;
           jetpackOffsetY = 0;
           jetpackVelY = 0;
           pos.style.transform = `translate3d(${mouseX}px,${mouseY}px,0)`;
@@ -601,8 +648,7 @@ export function RocketCursor() {
           particles.length = 0;
           shockwaves.length = 0;
           streaks.length = 0;
-          ctx.clearRect(0, 0, W, H);
-          effectsCanvasHasPixels = false;
+          clearEffectsCanvas();
         }
 
         if (href) {
@@ -669,9 +715,13 @@ export function RocketCursor() {
     const onPointerPosition = (e: PointerEvent) => {
       if (!cursorEnabled) return;
       if (e.isPrimary === false) return;
+      if (e.pointerType === "touch") return;
       const coalesced = e.getCoalescedEvents?.() ?? [];
       const latest = coalesced.at(-1) ?? e;
-      const wasOutside = !pointerInside;
+      const wasOutside = !pointerInside || (transitionPhase === "idle" && rocket.style.opacity === "0");
+      // pointerrawupdate and pointermove commonly carry the same hardware
+      // sample. Keep the immediate position update, but do not write it twice.
+      if (!wasOutside && mouseX === latest.clientX && mouseY === latest.clientY) return;
       pointerInside = true;
       mouseX = latest.clientX;
       mouseY = latest.clientY;
@@ -694,11 +744,14 @@ export function RocketCursor() {
 
     const onPointerMove = (e: PointerEvent) => {
       onPointerPosition(e);
-      if (!cursorEnabled) return;
+      if (!cursorEnabled || e.isPrimary === false || e.pointerType === "touch") return;
+      if (lastHoverTarget === e.target) return;
+      lastHoverTarget = e.target;
       const target = e.target instanceof Element ? e.target : null;
       const nextHovering = Boolean(target?.closest("a, button, [role='button'], [data-cursor-hover]"));
       if (nextHovering !== isHovering) {
         isHovering = nextHovering;
+        pos.dataset.hovering = String(nextHovering);
         ensureRunning();
       }
     };
@@ -707,6 +760,8 @@ export function RocketCursor() {
       if (!cursorEnabled) return;
       pointerInside = false;
       isHovering = false;
+      pos.dataset.hovering = "false";
+      lastHoverTarget = null;
       if (transitionPhase !== "launching") {
         rocket.style.opacity = "0";
         smoothVelX = 0;
@@ -715,7 +770,6 @@ export function RocketCursor() {
         angle = 0;
         targetAngle = 0;
         hoverScale = 1;
-        hoverRingAlpha = 0;
         jetpackOffsetY = 0;
         jetpackVelY = 0;
         rocket.style.transform =
@@ -890,10 +944,7 @@ export function RocketCursor() {
       // Normal pointer motion is DOM/compositor-only. Clear the high-DPI canvas
       // only after a frame that actually painted an effect; waking tilt/scale
       // must not erase millions of blank pixels on every pointer sample.
-      if (effectsCanvasHasPixels) {
-        ctx.clearRect(0, 0, W, H);
-        effectsCanvasHasPixels = false;
-      }
+      clearEffectsCanvas();
 
       // ── Position + angle update ───────────────────────────────────────────
       if (isLaunching) {
@@ -915,7 +966,6 @@ export function RocketCursor() {
         targetAngle = 0;
         hoverScale = launchScaleStart * (1 - ignitionCompression)
           + ((1 + LAUNCH_SCALE_BOOST) - launchScaleStart) * scaleEase;
-        hoverRingAlpha = 0;
         speed = 0;
         jetpackOffsetY = 0;
         jetpackVelY    = 0;
@@ -966,7 +1016,6 @@ export function RocketCursor() {
         }
         angle += (targetAngle - angle) * frameLerpFactor(LERP_ANGLE, frameStep);
         hoverScale += ((isHovering ? 1.28 : 1) - hoverScale) * frameLerpFactor(LERP_SCALE, frameStep);
-        hoverRingAlpha += ((isHovering ? 1 : 0) - hoverRingAlpha) * frameLerpFactor(0.18, frameStep);
       }
 
       // ── Rocket element ────────────────────────────────────────────────────
@@ -1040,7 +1089,7 @@ export function RocketCursor() {
         ctx.closePath();
         ctx.fillStyle = grad;
         ctx.fill();
-        effectsCanvasHasPixels = true;
+        markEffectsBounds(Math.min(lx, rx, tipX), Math.min(ly, ry, tipY), Math.max(lx, rx, tipX), Math.max(ly, ry, tipY));
       };
 
       const canvasFlameActive = isLaunching;
@@ -1072,7 +1121,7 @@ export function RocketCursor() {
         ctx.arc(exhaustX, exhaustY, flareRadius, 0, Math.PI * 2);
         ctx.fillStyle = bellGlow;
         ctx.fill();
-        effectsCanvasHasPixels = true;
+        markEffectsBounds(exhaustX - flareRadius, exhaustY - flareRadius, exhaustX + flareRadius, exhaustY + flareRadius);
 
         ctx.restore();
       }
@@ -1115,22 +1164,14 @@ export function RocketCursor() {
         const op = Math.sin(t * Math.PI) * 0.52 * Math.min(p.size / 0.9, 1);
         if (op < 0.015) continue;
 
-        // Single gradient covering both the bright core and the soft falloff —
-        // was two separate fills (glow + inner dot); merging halves the
-        // per-particle fill-rate cost, which is what made the trail stutter
-        // when dozens of particles were alive at once (e.g. the arrival burst).
         const glowR = p.size * 3;
-        const cr = Math.min(p.r + 10, 255), cg = Math.min(p.g + 60, 255), cb = Math.min(p.b + 20, 255);
-        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-        grd.addColorStop(0,    `rgba(${cr},${cg},${cb},${op})`);
-        grd.addColorStop(0.14, `rgba(${p.r},${p.g},${p.b},${op * 0.78})`);
-        grd.addColorStop(0.38, `rgba(${p.r},${p.g},${p.b},${op * 0.20})`);
-        grd.addColorStop(1,    `rgba(${p.r},${p.g},${p.b},0)`);
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
-        ctx.fillStyle = grd;
-        ctx.fill();
-        effectsCanvasHasPixels = true;
+        if (p.x + glowR < 0 || p.x - glowR > W || p.y + glowR < 0 || p.y - glowR > H) continue;
+        const sprite = particleSprite(p);
+        if (!sprite) continue;
+        ctx.globalAlpha = op;
+        ctx.drawImage(sprite, p.x - glowR, p.y - glowR, glowR * 2, glowR * 2);
+        ctx.globalAlpha = 1;
+        markEffectsBounds(p.x - glowR, p.y - glowR, p.x + glowR, p.y + glowR);
       }
 
       // ── Warp streaks (high-speed motion blur) ─────────────────────────────
@@ -1144,7 +1185,9 @@ export function RocketCursor() {
             y:   cursorY + scatter,
             dx:  -(smoothVelX / speed),
             dy:  -(smoothVelY / speed),
-            len: speed * 2.5 + 10 + Math.random() * 12,
+            // Large jumps (such as reconnecting a trackpad) must not create
+            // viewport-sized trails that undo the bounded canvas redraws.
+            len: Math.min(MAX_STREAK_LENGTH, speed * 2.5 + 10 + Math.random() * 12),
             life: 0,
             maxLife: 8 + Math.random() * 6,
           });
@@ -1172,7 +1215,7 @@ export function RocketCursor() {
         ctx.lineWidth = 0.55 + t * 0.65;
         ctx.lineCap = "round";
         ctx.stroke();
-        effectsCanvasHasPixels = true;
+        markEffectsBounds(Math.min(s.x, ex) - 1, Math.min(s.y, ey) - 1, Math.max(s.x, ex) + 1, Math.max(s.y, ey) + 1);
       }
 
       // ── Shockwaves ────────────────────────────────────────────────────────
@@ -1194,7 +1237,8 @@ export function RocketCursor() {
         ctx.strokeStyle = `rgba(${sw.r}, ${sw.g}, ${sw.b}, ${alpha})`;
         ctx.lineWidth = (2.5 * (1 - t) + 0.5) * (sw.smooth ? intensity * 1.1 : 1);
         ctx.stroke();
-        effectsCanvasHasPixels = true;
+        const boundsRadius = sw.radius + ctx.lineWidth / 2;
+        markEffectsBounds(sw.x - boundsRadius, sw.y - boundsRadius, sw.x + boundsRadius, sw.y + boundsRadius);
         ctx.restore();
       }
 
@@ -1235,25 +1279,7 @@ export function RocketCursor() {
         }
       }
 
-      // ── Hover ring ────────────────────────────────────────────────────────
-      if (hoverRingAlpha > 0.015) {
-        const ring = ctx.createRadialGradient(cursorX, cursorY, 14, cursorX, cursorY, 22);
-        ring.addColorStop(0, `rgba(180, 210, 255, ${hoverRingAlpha * 0.28})`);
-        ring.addColorStop(1,  "rgba(180, 210, 255, 0)");
-        ctx.beginPath();
-        ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(200, 220, 255, ${hoverRingAlpha * 0.22})`;
-        ctx.lineWidth = 0.7;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cursorX, cursorY, 18, 0, Math.PI * 2);
-        ctx.fillStyle = ring;
-        ctx.fill();
-        effectsCanvasHasPixels = true;
-      }
-
       const targetScale = isHovering ? 1.28 : 1;
-      const targetRingAlpha = isHovering ? 1 : 0;
       const cursorStillSettling = cursorEnabled && pointerInside && (
         now < jetpackFiringUntil ||
         Math.abs(jetpackOffsetY) > 0.05 ||
@@ -1261,8 +1287,7 @@ export function RocketCursor() {
         Math.abs(smoothVelY) > 0.03 ||
         Math.abs(angle) > 0.02 ||
         Math.abs(targetAngle) > 0.02 ||
-        Math.abs(hoverScale - targetScale) > 0.002 ||
-        Math.abs(hoverRingAlpha - targetRingAlpha) > 0.01
+        Math.abs(hoverScale - targetScale) > 0.002
       );
       const hasActiveEffects = Boolean(
         isLaunching || isWarpingIn || particles.length || shockwaves.length || streaks.length
@@ -1414,7 +1439,9 @@ export function RocketCursor() {
       {/* Outer: position only — updated in pointer events for zero lag */}
       <div
         ref={posRef}
+        className="rocket-cursor"
         data-testid="rocket-cursor"
+        data-hovering="false"
         data-transition-phase="idle"
         style={{
           position: "fixed",
@@ -1427,6 +1454,7 @@ export function RocketCursor() {
           transform: "translate3d(-200px,-200px,0)",
         }}
       >
+      <div className="rocket-hover-ring" aria-hidden="true" />
       {/* Inner: tilt / scale / jetpack — updated in rAF */}
       <div
         ref={rocketRef}
@@ -1462,16 +1490,12 @@ export function RocketCursor() {
               d="M6.2 28.3 C5.9 30.7 7.25 32.65 9 33.75 C10.75 32.65 12.1 30.7 11.8 28.3 C10.35 29.05 7.65 29.05 6.2 28.3 Z"
               fill="#ff6f12"
               fillOpacity="0.9"
-            >
-              <animate attributeName="fill-opacity" values="0.72;0.95;0.78" dur="0.28s" repeatCount="indefinite" />
-            </path>
+            />
             <path
               d="M7.45 28.7 C7.35 30.45 8.2 31.9 9 32.72 C9.8 31.9 10.65 30.45 10.55 28.7 C9.65 29.2 8.35 29.2 7.45 28.7 Z"
               fill="#ffd06a"
               fillOpacity="0.92"
-            >
-              <animate attributeName="fill-opacity" values="0.78;1;0.84" dur="0.18s" repeatCount="indefinite" />
-            </path>
+            />
           </g>
 
           {/* ── Engine bell ── trapezoid below body */}

@@ -376,6 +376,25 @@ body {
   cursor: text !important;
 }
 
+/* The hover glow travels on the cursor's small composited layer, so moving
+   across links does not repaint the full-screen effects canvas. */
+.rocket-hover-ring {
+  position: absolute;
+  left: -18px;
+  top: -18px;
+  width: 36px;
+  height: 36px;
+  border: 0.7px solid rgba(200, 220, 255, 0.22);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(180, 210, 255, 0.28) 14px, rgba(180, 210, 255, 0) 22px);
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+
+.rocket-cursor-active .rocket-cursor[data-hovering="true"][data-transition-phase="idle"] .rocket-hover-ring {
+  opacity: 1;
+}
+
 body {
   color: var(--cw-paper);
   background: var(--cw-deep);
