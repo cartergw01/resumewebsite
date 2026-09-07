@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Afacad, Barlow_Condensed } from "next/font/google";
+import { Afacad, Barlow_Condensed, Teko } from "next/font/google";
 import HomeCollections from "./HomeCollections";
 import nocturne from "@/public/taipei-nocturne-v2.png";
 import styles from "./UniverseWorld.module.css";
@@ -18,6 +18,13 @@ const nameType = Barlow_Condensed({
   display: "swap",
   variable: "--font-name",
 });
+
+const wordmarkType = Teko({
+  subsets: ["latin"],
+  weight: "700",
+  display: "swap",
+  variable: "--font-wordmark",
+});
 const routes = [
   { title: "Work", href: "/work" },
   { title: "Writing", href: "/writing" },
@@ -26,7 +33,7 @@ const routes = [
 
 export default function UniverseWorld() {
   return (
-    <div className={`${styles.home} ${homeType.variable} ${nameType.variable}`}>
+    <div className={`${styles.home} ${homeType.variable} ${nameType.variable} ${wordmarkType.variable}`}>
       <main>
         <section className={styles.welcome} aria-labelledby="home-title">
           <div className={styles.painting}>
@@ -41,7 +48,7 @@ export default function UniverseWorld() {
           </div>
 
           <div className={styles.introduction}>
-            <h1 id="home-title">Carter Wang</h1>
+            <h1 id="home-title"><span>Carter</span>{" "}<span>Wang</span></h1>
             <div className={styles.biography}>
               <p>
                 I’m based in Taipei, working at{" "}
