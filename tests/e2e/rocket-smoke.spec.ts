@@ -494,14 +494,14 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
   guard.expectClean();
 });
 
-test("mobile rooftop destination first tap launches to its route", async ({ page }, testInfo) => {
+test("mobile home destination first tap launches to its route", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile destination taps are covered by mobile projects.");
 
   const guard = consoleGuard();
   guard.attach(page);
 
   await page.goto("/");
-  const destination = page.getByRole("navigation", { name: "Explore work, writing, and projects" })
+  const destination = page.getByRole("navigation", { name: "Primary navigation" })
     .getByRole("link", { name: "Work", exact: true });
   await destination.scrollIntoViewIfNeeded();
   await expect(destination).toBeVisible();
