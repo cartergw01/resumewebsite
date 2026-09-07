@@ -1,19 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Afacad } from "next/font/google";
-import { essays, projects } from "@/content/portfolio";
+import { Afacad, Barlow_Condensed } from "next/font/google";
+import HomeCollections from "./HomeCollections";
 import nocturne from "@/public/taipei-nocturne-v2.png";
 import styles from "./UniverseWorld.module.css";
 
 const homeType = Afacad({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500"],
   display: "swap",
   variable: "--font-home",
 });
 
-const essay = essays.find((item) => item.title === "Work as Play")!;
-const project = projects.find((item) => item.title === "TaipeiFlix")!;
+const nameType = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: "700",
+  display: "swap",
+  variable: "--font-name",
+});
 const routes = [
   { title: "Work", href: "/work" },
   { title: "Writing", href: "/writing" },
@@ -22,7 +26,7 @@ const routes = [
 
 export default function UniverseWorld() {
   return (
-    <div className={`${styles.home} ${homeType.variable}`}>
+    <div className={`${styles.home} ${homeType.variable} ${nameType.variable}`}>
       <main>
         <section className={styles.welcome} aria-labelledby="home-title">
           <div className={styles.painting}>
@@ -54,34 +58,7 @@ export default function UniverseWorld() {
           </div>
         </section>
 
-        <section className={styles.selected} aria-label="Selected writing and projects">
-          <article className={styles.essay}>
-            <a href={essay.href} target="_blank" rel="noopener noreferrer" className={styles.essayLink}>
-              <p className={styles.publication}>flying Arrows</p>
-              <h2>{essay.title}</h2>
-              <p className={styles.essayDescription}>{essay.subtitle}</p>
-              <span className={styles.readEssay}>Read the essay</span>
-            </a>
-          </article>
-
-          <article className={styles.project}>
-            <a href={project.href} target="_blank" rel="noopener noreferrer" className={styles.projectLink}>
-              <div className={styles.projectImage}>
-                <Image
-                  src={project.image}
-                  alt="TaipeiFlix shows films playing in Taipei, with posters, ratings, and showtimes."
-                  fill
-                  quality={86}
-                  sizes="(max-width: 760px) calc(100vw - 48px), 600px"
-                />
-              </div>
-              <div className={styles.projectCaption}>
-                <h2>{project.title}</h2>
-                <p>Movie showtimes across Taipei.</p>
-              </div>
-            </a>
-          </article>
-        </section>
+        <HomeCollections />
       </main>
 
       <footer className={styles.footer}>

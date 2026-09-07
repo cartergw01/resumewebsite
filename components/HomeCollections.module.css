@@ -1,0 +1,210 @@
+.collections {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 4.5rem var(--gutter) 7rem;
+}
+
+.collectionHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.collectionHeading h2 {
+  margin: 0;
+  font-size: clamp(2.25rem, 3vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+
+.collectionHeading p {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 1.125rem;
+  text-wrap: pretty;
+}
+
+.collectionHeading .archiveLink {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: oklch(78% 0.018 226 / 0.5);
+  text-underline-offset: 0.25em;
+  font-size: 1.125rem;
+}
+
+.archiveLink:hover { color: var(--accent); }
+
+/* Each published title has a binding. Native overflow keeps the shelf usable
+   with touch, a trackpad, or keyboard focus without a carousel runtime. */
+.shelfScroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: oklch(56% 0.025 70) transparent;
+  scroll-snap-type: x proximity;
+  border-bottom: 8px solid oklch(35% 0.04 66);
+  box-shadow: 0 4px 0 oklch(16% 0.014 65);
+  padding-top: 1rem;
+}
+
+.shelfScroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 8px;
+}
+
+.books {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.75rem 1rem 0.4rem;
+  list-style: none;
+}
+
+.books li { flex: 0 0 auto; }
+
+.book {
+  position: relative;
+  display: block;
+  width: 4.5rem;
+  height: var(--book-height);
+  scroll-snap-align: start;
+  scroll-margin-inline: 1rem;
+}
+
+.bookCover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem 0.75rem;
+  overflow: hidden;
+  border-radius: 3px 2px 1px 1px;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 0.06), transparent 12%, transparent 80%, rgb(var(--binding-edge)) 100%),
+    color-mix(in srgb, rgb(var(--binding)) 72%, #090e16);
+  box-shadow: inset 1px 0 rgb(255 255 255 / 0.15), inset -2px 0 rgb(0 0 0 / 0.22);
+  color: var(--ink);
+  transform-origin: bottom center;
+  transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.bookCover::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  right: 4px;
+  height: 1px;
+  background: rgb(255 255 255 / 0.2);
+}
+
+.bookTitle {
+  width: 100%;
+  align-content: center;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.shelfHint { display: none; }
+
+.museum { margin-top: 7rem; }
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 2rem;
+  row-gap: 3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.exhibit { display: block; }
+.exhibit figure { margin: 0; }
+
+/* A consistent frame and mat give every project the same standing. */
+.frame {
+  padding: 5px;
+  background: oklch(38% 0.025 67);
+  box-shadow: inset 0 0 0 1px oklch(56% 0.027 68), 0 5px 6px rgb(0 0 0 / 0.28);
+  transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.mount {
+  padding: clamp(0.5rem, 1vw, 1rem);
+  background: oklch(87% 0.018 82);
+}
+
+.artwork {
+  position: relative;
+  aspect-ratio: 1.5;
+  overflow: hidden;
+  background: oklch(16% 0.012 240);
+}
+
+.artwork img { object-fit: cover; object-position: top; }
+
+.exhibit figcaption { padding: 1rem 0.2rem 0; }
+.exhibit h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.exhibit:focus-visible .frame { transform: translateY(-3px); }
+.book:focus-visible .bookCover { transform: translateY(-6px); }
+
+@media (hover: hover) and (pointer: fine) {
+  .book:hover .bookCover { transform: translateY(-6px); }
+  .exhibit:hover .frame { transform: translateY(-3px); }
+}
+
+@media (max-width: 1000px) {
+  .gallery { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem 1.5rem; }
+  .book { width: 4.25rem; }
+  .shelfHint {
+    display: block;
+    margin: 1rem 0 0;
+    color: var(--muted);
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .collections { padding: 2.5rem var(--gutter) 4rem; }
+  .collectionHeading { align-items: flex-start; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .collectionHeading h2 { font-size: 2.25rem; }
+  .collectionHeading p { margin-top: 0.5rem; font-size: 1.125rem; }
+  .book { width: 4rem; }
+  .books { padding-inline: 0.5rem; }
+  .bookCover { padding-inline: 0.6rem; }
+  .museum { margin-top: 4.5rem; }
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 1rem; }
+  .frame { padding: 4px; }
+  .mount { padding: 0.5rem; }
+  .exhibit figcaption { padding-top: 0.75rem; }
+  .exhibit h3 { font-size: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bookCover, .frame { transition: none; transform: none !important; }
+  .shelfScroll { scroll-snap-type: none; }
+}
