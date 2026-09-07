@@ -1,112 +1,83 @@
+import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { essays, projects } from "@/content/portfolio";
+import rooftop from "@/public/taipei-rooftop-v1.png";
 import SiteNav from "./SiteNav";
-import ScrollTransport from "./ScrollTransport";
+import styles from "./UniverseWorld.module.css";
 
-type World = {
-  id: "work" | "writing" | "projects";
-  title: string;
-  copy: ReactNode;
-  href: string;
-};
+const featuredEssay = essays.find((essay) => essay.title === "Work as Play") ?? essays[0];
+const featuredProject = projects[0];
 
-const worlds: World[] = [
-  {
-    id: "work",
-    title: "Work",
-    copy: <p>associate at <a href="https://886studios.com" target="_blank" rel="noopener noreferrer">886 Studios</a>, working on <a href="https://withikigai.com" target="_blank" rel="noopener noreferrer">ikigai Launchpad</a> in Taipei.</p>,
-    href: "/work",
-  },
-  {
-    id: "writing",
-    title: "Writing",
-    copy: (
-      <p>
-        essays on human nature, culture, and technology at{" "}
-        <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">
-          <em>flying Arrows</em>
-        </a>
-        .
-      </p>
-    ),
-    href: "/writing",
-  },
-  {
-    id: "projects",
-    title: "Projects",
-    copy: <p>fun projects i made.</p>,
-    href: "/projects",
-  },
-];
-
-function Hero() {
-  return (
-    <section className="cosmic-hero" aria-labelledby="hero-title">
-      <div className="hero-copy">
-        <h1 id="hero-title">Carter Wang</h1>
-        <p>working in Taipei at 886 Studios alongside the founders of Twitch and Guitar Hero, backing early-stage startups. writing and building things for fun on the side.</p>
-      </div>
-      <div className="hero-visual" aria-hidden="true" />
-      <a href="#constellation" className="scroll-cue" aria-label="Scroll down to the constellation map">
-        <span>Scroll down</span>
-        <span aria-hidden="true">↓</span>
-      </a>
-    </section>
-  );
-}
-
-function ConstellationNode({ world }: { world: World }) {
-  const headingId = `${world.id}-heading`;
-
-  return (
-    <article id={world.id} className={`world-card world-${world.id}`}>
-      {/* Desktop: whole-card click target. Hidden on mobile (globals.css) so only
-          the asset and title are tappable — small screens don't need a big hitarea. */}
-      <Link href={world.href} className="world-card-hitarea" aria-labelledby={headingId} />
-      <span className="world-orb" aria-hidden="true">
-        <span className="world-visual" aria-hidden="true" />
-        {/* Mobile tap target over the island art (aria-hidden — title link carries the name) */}
-        <Link href={world.href} className="world-orb-link" tabIndex={-1} aria-hidden="true" />
-      </span>
-      <div className="world-intro">
-        <h2 id={headingId}>
-          <Link href={world.href} className="world-title-link">{world.title}</Link>
-        </h2>
-        <div className="world-copy">{world.copy}</div>
-      </div>
-    </article>
-  );
-}
-
-function ConstellationMap() {
-  return (
-    <section id="constellation" className="constellation-map" aria-labelledby="constellation-title">
-      <div className="constellation-heading">
-        <span>Worlds</span>
-        <h2 id="constellation-title">Choose a world.</h2>
-      </div>
-      <div className="world-gallery" aria-label="Explore Carter's work, writing, and projects">
-        {worlds.map((world) => (
-          <ConstellationNode key={world.id} world={world} />
-        ))}
-      </div>
-    </section>
-  );
-}
+const destinations = [
+  { id: "work", title: "Work", context: "Startups & venture", preview: "886 Studios · Taipei", href: "/work" },
+  { id: "writing", title: "Writing", context: "flying Arrows", preview: featuredEssay.title, href: "/writing" },
+  { id: "projects", title: "Projects", context: "fun projects i made.", preview: featuredProject.title, href: "/projects" },
+] as const;
 
 export default function UniverseWorld() {
   return (
-    <div className="cosmic-home">
-      <ScrollTransport />
-      <div className="cosmic-sky" aria-hidden="true">
-        <div className="star-depth star-depth-far" />
-        <div className="star-depth star-depth-mid" />
-        <div className="star-depth star-depth-near" />
-      </div>
+    <div className={styles.home}>
       <SiteNav />
-      <main>
-        <Hero />
-        <ConstellationMap />
+      <main className={styles.main}>
+        <header className={styles.intro}>
+          <p className={styles.location}>
+            <span className={styles.locationMark} aria-hidden="true" />
+            Based in Taipei
+          </p>
+          <h1>Carter Wang</h1>
+          <div className={styles.bio}>
+            <p>
+              working in Taipei at <a href="https://886studios.com" target="_blank" rel="noopener noreferrer">886 Studios</a> alongside the founders of Twitch and Guitar Hero, backing early-stage startups.
+            </p>
+            <p>writing and building things for fun on the side.</p>
+          </div>
+          <a href="#constellation" className={styles.explore}>
+            Explore the rooftop <span aria-hidden="true">↓</span>
+          </a>
+        </header>
+
+        <section className={styles.scene} aria-label="Explore Carter's rooftop">
+          <div className={styles.art}>
+            <Image
+              src={rooftop}
+              alt="A lamp-lit writing desk and basketball court share a rooftop above Earth, overlooking the Taipei skyline."
+              fill
+              priority
+              quality={86}
+              sizes="(max-width: 900px) 120vw, (max-aspect-ratio: 1/1) 120vw, (max-aspect-ratio: 16/9) 178vh, 100vw"
+              className={styles.image}
+            />
+            <div className={`${styles.glow} ${styles.writingGlow}`} aria-hidden="true" />
+            <div className={`${styles.glow} ${styles.projectsGlow}`} aria-hidden="true" />
+            <div className={`${styles.glow} ${styles.workGlow}`} aria-hidden="true" />
+          </div>
+
+          <nav id="constellation" className={styles.destinations} aria-label="Explore work, writing, and projects">
+            {destinations.map((destination, index) => (
+              <Link
+                key={destination.id}
+                href={destination.href}
+                className={`${styles.destination} ${styles[destination.id]}`}
+                data-rooftop-destination={destination.id}
+                aria-labelledby={`${destination.id}-title`}
+                aria-describedby={`${destination.id}-preview`}
+              >
+                <span className={styles.index} aria-hidden="true">0{index + 1}</span>
+                <span className={styles.destinationBody}>
+                  <span className={styles.context}>{destination.context}</span>
+                  <span className={styles.titleRow}>
+                    <span id={`${destination.id}-title`} className={styles.title}>{destination.title}</span>
+                    <span className={styles.arrow} aria-hidden="true">↗</span>
+                  </span>
+                  <span id={`${destination.id}-preview`} className={styles.preview}>
+                    {destination.preview}<span aria-hidden="true"> →</span>
+                  </span>
+                </span>
+                <span className={styles.pin} aria-hidden="true" />
+              </Link>
+            ))}
+          </nav>
+        </section>
       </main>
     </div>
   );

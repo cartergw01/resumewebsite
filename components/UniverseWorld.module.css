@@ -1,0 +1,278 @@
+.home {
+  --rooftop-height: max(800px, 100svh);
+  --rooftop-width: max(100vw, calc(var(--rooftop-height) * 1.777));
+  --rooftop-gutter: clamp(32px, 7vw, 120px);
+  position: relative;
+  isolation: isolate;
+  min-height: var(--rooftop-height);
+  overflow: clip;
+  color: #fff0da;
+  background: #03070e;
+}
+
+.home :global(.site-nav) {
+  position: absolute;
+  top: 26px;
+  left: var(--rooftop-gutter);
+  display: flex;
+  justify-content: space-between;
+  width: calc(100% - var(--rooftop-gutter) * 2);
+  transform: none;
+}
+
+.home :global(.site-nav)::before { display: none; }
+.home :global(.site-nav-primary) { gap: 18px; padding: 0; }
+.home :global(.site-nav-primary) a {
+  height: 44px;
+  padding: 0;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.035em;
+  background: none;
+}
+.home :global(.site-nav-social) a { min-width: 40px; height: 44px; }
+
+.main { position: relative; min-height: var(--rooftop-height); }
+.intro {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  padding: clamp(126px, 16svh, 200px) var(--rooftop-gutter) 0;
+  pointer-events: none;
+}
+.location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  color: #b4b9c1;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.locationMark {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #d4b384;
+  border-radius: 50%;
+}
+.locationMark::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: #d4b384;
+}
+.intro h1 {
+  margin: 0;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(88px, 8.5vw, 156px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.055em;
+  word-spacing: 0.075em;
+}
+.bio {
+  max-width: 435px;
+  margin-top: 26px;
+  color: #b6bec9;
+  font-size: 14px;
+  line-height: 1.85;
+  pointer-events: auto;
+}
+.bio p { margin: 0; }
+.bio p + p { margin-top: 12px; }
+.bio a {
+  color: #e6dccd;
+  text-decoration: underline;
+  text-decoration-color: #706855;
+  text-underline-offset: 4px;
+  transition: color 160ms ease;
+}
+.bio a:hover { color: #ffe5b7; }
+.explore { display: none; }
+
+/* Image and links share coordinates even when the panorama extends beyond a
+   tall viewport. Lighting needs no pointer listeners or animation loop. */
+.scene {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--rooftop-width);
+  height: var(--rooftop-height);
+  transform: translateX(-50%);
+}
+.art { position: absolute; inset: 0; }
+.art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 80%, #03070e66);
+}
+.image { object-fit: cover; }
+.glow {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms ease-out;
+}
+.writingGlow {
+  left: 6%; top: 54%; width: 27%; height: 40%;
+  background: radial-gradient(ellipse closest-side at 43% 40%, #ffb54355, #eda65918 55%, transparent);
+}
+.projectsGlow {
+  left: 44%; top: 49%; width: 38%; height: 25%;
+  background: radial-gradient(ellipse, #ffd7a644, #ffb37215 45%, transparent 70%);
+}
+.workGlow {
+  left: 73%; top: 25%; width: 27%; height: 38%;
+  background: radial-gradient(ellipse, #ffce8038, #e5b2690f 45%, transparent 70%);
+}
+.scene:has(.writing:focus-visible) .writingGlow,
+.scene:has(.projects:focus-visible) .projectsGlow,
+.scene:has(.work:focus-visible) .workGlow { opacity: 1; }
+.destinations { scroll-margin-top: 30px; }
+.destination {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 235px;
+  padding: 12px 10px;
+  color: #fff0da;
+  text-decoration: none;
+  text-shadow: 0 2px 16px #02050c;
+  -webkit-tap-highlight-color: transparent;
+}
+.destination:focus-visible {
+  outline: 1px solid #e8ca9a;
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+.work { top: 24%; left: 71%; }
+.writing { top: 54%; left: 23%; }
+.projects { top: 41%; left: 49%; }
+.index { padding-top: 5px; color: #d4b98f; font-size: 9px; letter-spacing: 0.08em; }
+.destinationBody { display: block; flex: 1; min-width: 0; }
+.context {
+  display: block;
+  margin-bottom: 5px;
+  color: #c2bfb9;
+  font-size: 10px;
+  letter-spacing: 0.055em;
+}
+.titleRow { display: flex; align-items: center; gap: 16px; }
+.title {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+.writing .title { font-size: 48px; }
+.work .title { font-size: 35px; }
+.arrow {
+  margin-top: 6px;
+  color: #d9bd92;
+  font-size: 22px;
+  transition: transform 180ms ease, color 180ms ease;
+}
+.preview {
+  display: block;
+  width: max-content;
+  max-width: 250px;
+  margin-top: 11px;
+  color: #ffe2b5;
+  font-size: 11px;
+  line-height: 1.6;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+.pin {
+  position: absolute;
+  left: 2px;
+  top: 63px;
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(#c3a67822, #e4bd7d99);
+  pointer-events: none;
+}
+.pin::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: -2px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f1cb8e;
+  box-shadow: 0 0 8px #ffc76a66;
+}
+.work .pin { left: auto; right: 0; height: 70px; transform: rotate(-25deg); transform-origin: top; }
+.destination:focus-visible .preview { opacity: 1; transform: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .scene:has(.writing:hover) .writingGlow,
+  .scene:has(.projects:hover) .projectsGlow,
+  .scene:has(.work:hover) .workGlow { opacity: 1; }
+  .destination:hover .preview { opacity: 1; transform: none; }
+  .destination:hover .arrow,
+  .destination:focus-visible .arrow { color: #fff0da; transform: translate(2px, -2px); }
+}
+
+@media (max-width: 900px), (max-aspect-ratio: 1/1) {
+  .home { --rooftop-gutter: clamp(24px, 6vw, 54px); min-height: 100svh; }
+  .home :global(.site-nav) { top: 16px; }
+  .home :global(.site-nav-primary) { gap: 12px; }
+  .home :global(.site-nav-primary) a { min-width: 44px; font-size: 12px; }
+  .home :global(.site-nav-social) { padding: 0; }
+  .home :global(.site-nav-social) a { min-width: 32px; width: 32px; padding: 0; }
+  .main { min-height: 0; }
+  .intro { width: 100%; padding-top: 108px; }
+  .location { margin-bottom: 18px; font-size: 9px; }
+  .intro h1 { max-width: 600px; font-size: clamp(65px, 11.5vw, 100px); }
+  .bio { max-width: 430px; margin-top: 24px; font-size: 13px; line-height: 1.85; }
+  .explore {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: fit-content;
+    min-height: 44px;
+    margin-top: 18px;
+    color: #e0c59c;
+    font-size: 10px;
+    letter-spacing: 0.025em;
+    text-decoration: none;
+    pointer-events: auto;
+  }
+  .explore span { font-size: 16px; }
+  .scene { position: relative; left: auto; width: 100%; height: auto; margin-top: -48px; transform: none; }
+  .art { position: relative; width: 100%; aspect-ratio: 1.45; }
+  .art::after { background: linear-gradient(180deg, #03070e 0%, transparent 25%, transparent 77%, #03070e 100%); }
+  .image { object-position: 54% bottom; }
+  .glow { display: none; }
+  .destinations { position: relative; z-index: 2; margin: -3px var(--rooftop-gutter) 0; padding-bottom: 36px; }
+  .destination { position: relative; top: auto; left: auto; width: 100%; min-height: 130px; gap: 18px; padding: 24px 0; border-top: 1px solid #c7c5bd29; }
+  .index { padding-top: 3px; }
+  .context { font-size: 10px; }
+  .titleRow { justify-content: space-between; }
+  .destination .title { font-size: 34px; }
+  .arrow { margin-top: 0; }
+  .preview { margin-top: 7px; max-width: 100%; color: #b5b5b4; font-size: 11px; opacity: 1; transform: none; }
+  .preview > span, .pin { display: none; }
+}
+
+@media (max-width: 370px) {
+  .intro h1 { max-width: 260px; font-size: 63px; }
+  .home :global(.site-nav) { flex-wrap: wrap; }
+  .home :global(.site-nav-social) { position: absolute; top: 42px; right: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home *, .home *::before, .home *::after { transition: none !important; animation: none !important; }
+}
