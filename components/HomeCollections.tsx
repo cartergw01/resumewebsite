@@ -1,10 +1,28 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 import { essays, projects } from "@/content/portfolio";
 import styles from "./HomeCollections.module.css";
 
-const bindingHeights = [15.25, 14.5, 16, 15, 15.75, 14.75];
+// Deliberate line breaks give each jacket a composition; annual lists are a series.
+const jackets: Record<string, { design: string; lines: string[] }> = {
+  "The Cost of Keeping Up": { design: "keeping", lines: ["The Cost", "of Keeping", "Up"] },
+  "Slop and Spiral": { design: "spiral", lines: ["Slop", "and", "Spiral"] },
+  "The Best Things I Read in 2025": { design: "annualOchre", lines: ["The Best Things", "I Read in", "2025"] },
+  "We All Have Superpowers": { design: "powers", lines: ["We All", "Have", "Superpowers"] },
+  "The Mirage of Identity": { design: "mirage", lines: ["The Mirage", "of Identity"] },
+  "The Best Things I Read in 2024": { design: "annualRed", lines: ["The Best Things", "I Read in", "2024"] },
+  "From Crash to Curiosity": { design: "curiosity", lines: ["From Crash", "to Curiosity"] },
+  "Work as Play": { design: "play", lines: ["Work", "as", "Play"] },
+  "Fuck It, We Ball!": { design: "ball", lines: ["Fuck It,", "We Ball!"] },
+  "The Best Things I Read in 2023": { design: "annualBlue", lines: ["The Best Things", "I Read in", "2023"] },
+  "An Ode to Ignorance": { design: "ignorance", lines: ["An Ode", "to", "Ignorance"] },
+};
+
+const spiralLine = Array.from({ length: 181 }, (_, index) => {
+  const angle = index * Math.PI / 24;
+  const radius = 2 + angle * 6;
+  return `${index ? "L" : "M"}${(100 + Math.cos(angle) * radius).toFixed(2)},${(100 + Math.sin(angle) * radius).toFixed(2)}`;
+}).join(" ");
 
 export default function HomeCollections() {
   return (
@@ -20,26 +38,31 @@ export default function HomeCollections() {
 
         <div className={styles.shelfScroll} role="region" aria-label="Essay bookshelf" tabIndex={0}>
           <ul className={styles.books}>
-            {essays.map((essay, index) => (
-              <li key={essay.href}>
+            {essays.map((essay) => {
+              const jacket = jackets[essay.title];
+              return <li key={essay.href}>
                 <a
                   href={essay.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Read ${essay.title}`}
                   className={styles.book}
-                  style={{
-                    "--binding": essay.spine.top,
-                    "--binding-edge": essay.spine.bottom,
-                    "--book-height": `${bindingHeights[index % bindingHeights.length]}rem`,
-                  } as CSSProperties}
                 >
-                  <span className={styles.bookCover}>
-                    <span className={styles.bookTitle}>{essay.title}</span>
-                  </span>
+                  <div className={`${styles.bookCover} ${jacket ? styles[jacket.design] : ""}`}>
+                    <div className={styles.coverDesign} aria-hidden="true">
+                      {jacket?.design === "spiral" && (
+                        <svg viewBox="0 0 200 200" fill="none"><path d={spiralLine} stroke="currentColor" strokeWidth="0.7" /></svg>
+                      )}
+                    </div>
+                    <h3 className={styles.bookTitle}>
+                      {(jacket?.lines ?? [essay.title]).map((line, index) => <span key={index}>{line}{" "}</span>)}
+                    </h3>
+                    <span className={styles.bookAuthor}>Carter Wang</span>
+                  </div>
                 </a>
-              </li>
-            ))}
+                <p className={styles.bookDescription}>{essay.subtitle}</p>
+              </li>;
+            })}
           </ul>
         </div>
         <p className={styles.shelfHint}>Swipe along the shelf to browse.</p>
@@ -65,18 +88,14 @@ export default function HomeCollections() {
                 className={styles.exhibit}
               >
                 <figure>
-                  <div className={styles.frame}>
-                    <div className={styles.mount}>
-                      <div className={styles.artwork}>
-                        <Image
-                          src={project.image}
-                          alt=""
-                          fill
-                          quality={86}
-                          sizes="(max-width: 600px) calc((100vw - 88px) / 2), (max-width: 1000px) 28vw, 250px"
-                        />
-                      </div>
-                    </div>
+                  <div className={styles.artwork}>
+                    <Image
+                      src={project.image}
+                      alt=""
+                      fill
+                      quality={86}
+                      sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 1000px) 44vw, 520px"
+                    />
                   </div>
                   <figcaption><h3 id={`exhibit-${index}-title`}>{project.title}</h3></figcaption>
                 </figure>

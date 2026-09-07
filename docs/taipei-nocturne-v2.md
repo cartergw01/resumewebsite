@@ -4,7 +4,9 @@ User direction: remove numbered markers, arrows, oversized decorative serif type
 
 Afacad carries the homepage prose and navigation. Carter’s name uses Barlow Condensed at weight 700 for a sharper, heavier silhouette. Plain route links sit with the introduction.
 
-Below the illustration, every published essay appears as a book on a shelf and every project appears in an equally sized museum frame. Both collections read directly from `content/portfolio.ts` and link to their full archives; no title is singled out as a favorite. The bookshelf uses native horizontal scrolling on small screens, and the project gallery changes from four columns to three on tablets and two on phones. Titles remain visible without hover, and reduced-motion preferences disable the small hover lifts. The shared cursor remains unchanged.
+Below the illustration, every essay has a face-out jacket with individually set title breaks and its existing description underneath. The annual reading lists share a cover composition as a series. The binding is a fine fold and page edge; the old narrow spines and wooden shelf are gone. Native horizontal scrolling supports touch, a trackpad, and keyboard focus.
+
+Projects appear as larger, unframed screenshots with simple captions: two columns on desktop and one on phones. Both collections read directly from `content/portfolio.ts` and link to their full archives; no title is singled out as a favorite. Titles remain visible without hover, and reduced-motion preferences disable the small hover movements. The shared cursor remains unchanged.
 
 Artwork: `public/taipei-nocturne-v2.png`, generated with the built-in image tool. The original first-pass artwork remains in version history and is not loaded by this page.
 

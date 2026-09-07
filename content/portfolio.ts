@@ -1,3 +1,12 @@
+import taipeiFlixImage from "@/public/project-shots/taipei-flix.webp";
+import studiosImage from "@/public/project-shots/886studios.webp";
+import taipeiRunImage from "@/public/project-shots/taipei-run.jpg";
+import stockerImage from "@/public/project-shots/stocker.webp";
+import taipeiGuideImage from "@/public/project-shots/taipei-guide.webp";
+import pokerImage from "@/public/project-shots/poker-odds.webp";
+import timerImage from "@/public/project-shots/ikigai-timer.jpg";
+import sleepImage from "@/public/project-shots/night-night-ko.jpg";
+
 export const workRoles = [
   {
     company: "886 Studios",
@@ -257,49 +266,49 @@ export const projects = [
   {
     title: "TaipeiFlix",
     href: "https://taipeiflix.com/",
-    image: "/project-shots/taipei-flix.webp",
+    image: taipeiFlixImage.src,
     description: "A web app that aggregates movie showtimes across theaters in Taipei, with critic scores and movie info, for those who want to go to the movies in Taipei.",
   },
   {
     title: "886 Studios (website)",
     href: "https://886studios.com",
-    image: "/project-shots/886studios.webp",
+    image: studiosImage.src,
     description: "I built and designed my firm's website.",
   },
   {
     title: "Taipei Run",
     href: "https://taipeirun.com/",
-    image: "/project-shots/taipei-run.jpg",
+    image: taipeiRunImage.src,
     description: "An endless runner game inspired by Temple Run and Subway Surfers, reimagined in Taipei. Ride a moped through the city, dodge traffic, and collect boba.",
   },
   {
     title: "Stocker",
     href: "https://stocker-app-one.vercel.app/",
-    image: "/project-shots/stocker.webp",
+    image: stockerImage.src,
     description: "My personal long-term investing research tool that pulls financials, earnings, latest news, and filings for stocks in my portfolio into a single clean dashboard.",
   },
   {
     title: "Carter's Taipei Guide",
     href: "https://taipei-guide-etaa.vercel.app/",
-    image: "/project-shots/taipei-guide.webp",
+    image: taipeiGuideImage.src,
     description: "A Taipei city guide built for my friends that visit Taipei! It covers where to eat, drink, and places to explore including my recommendations, tourist hot spots, and other popular spots.",
   },
   {
     title: "Poker Odds Calculator",
     href: "https://poker-odds-app-pink.vercel.app/",
-    image: "/project-shots/poker-odds.webp",
+    image: pokerImage.src,
     description: "A Texas Hold'em poker odds calculator that tracks hand strength, position, pot equity, and decision math in real time as you play through a hand.",
   },
   {
     title: "ikigai Timer",
     href: "https://886studios.com/timer",
-    image: "/project-shots/ikigai-timer.jpg",
+    image: timerImage.src,
     description: "A beautiful & sleek countdown timer for events that I host for ikigai Launchpad",
   },
   {
     title: "Night night, Ko",
     href: "https://nightnightko.vercel.app/",
-    image: "/project-shots/night-night-ko.jpg",
+    image: sleepImage.src,
     description: "My custom sleep dashboard to track my sleep and all the stats surrounding that.",
   },
 ];
