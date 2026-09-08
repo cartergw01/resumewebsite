@@ -3,27 +3,6 @@ import Link from "next/link";
 import { essays, projects } from "@/content/portfolio";
 import styles from "./HomeCollections.module.css";
 
-// Deliberate line breaks give each jacket a composition; annual lists are a series.
-const jackets: Record<string, { design: string; lines: string[] }> = {
-  "The Cost of Keeping Up": { design: "keeping", lines: ["The Cost", "of Keeping", "Up"] },
-  "Slop and Spiral": { design: "spiral", lines: ["Slop", "and", "Spiral"] },
-  "The Best Things I Read in 2025": { design: "annualOchre", lines: ["The Best Things", "I Read in", "2025"] },
-  "We All Have Superpowers": { design: "powers", lines: ["We All", "Have", "Superpowers"] },
-  "The Mirage of Identity": { design: "mirage", lines: ["The Mirage", "of Identity"] },
-  "The Best Things I Read in 2024": { design: "annualRed", lines: ["The Best Things", "I Read in", "2024"] },
-  "From Crash to Curiosity": { design: "curiosity", lines: ["From Crash", "to Curiosity"] },
-  "Work as Play": { design: "play", lines: ["Work", "as", "Play"] },
-  "Fuck It, We Ball!": { design: "ball", lines: ["Fuck It,", "We Ball!"] },
-  "The Best Things I Read in 2023": { design: "annualBlue", lines: ["The Best Things", "I Read in", "2023"] },
-  "An Ode to Ignorance": { design: "ignorance", lines: ["An Ode", "to", "Ignorance"] },
-};
-
-const spiralLine = Array.from({ length: 181 }, (_, index) => {
-  const angle = index * Math.PI / 24;
-  const radius = 2 + angle * 6;
-  return `${index ? "L" : "M"}${(100 + Math.cos(angle) * radius).toFixed(2)},${(100 + Math.sin(angle) * radius).toFixed(2)}`;
-}).join(" ");
-
 export default function HomeCollections() {
   return (
     <div className={styles.collections}>
@@ -38,9 +17,8 @@ export default function HomeCollections() {
 
         <div className={styles.shelfScroll} role="region" aria-label="Essay bookshelf" tabIndex={0}>
           <ul className={styles.books}>
-            {essays.map((essay) => {
-              const jacket = jackets[essay.title];
-              return <li key={essay.href}>
+            {essays.map((essay) => (
+              <li key={essay.href}>
                 <a
                   href={essay.href}
                   target="_blank"
@@ -48,21 +26,21 @@ export default function HomeCollections() {
                   aria-label={`Read ${essay.title}`}
                   className={styles.book}
                 >
-                  <div className={`${styles.bookCover} ${jacket ? styles[jacket.design] : ""}`}>
-                    <div className={styles.coverDesign} aria-hidden="true">
-                      {jacket?.design === "spiral" && (
-                        <svg viewBox="0 0 200 200" fill="none"><path d={spiralLine} stroke="currentColor" strokeWidth="0.7" /></svg>
-                      )}
+                  <figure>
+                    <div className={styles.bookCover}>
+                      <Image
+                        src={essay.image}
+                        alt=""
+                        quality={86}
+                        sizes="(max-width: 600px) min(264px, calc(100vw - 72px)), 320px"
+                      />
                     </div>
-                    <h3 className={styles.bookTitle}>
-                      {(jacket?.lines ?? [essay.title]).map((line, index) => <span key={index}>{line}{" "}</span>)}
-                    </h3>
-                    <span className={styles.bookAuthor}>Carter Wang</span>
-                  </div>
+                    <figcaption><h3 className={styles.bookTitle}>{essay.title}</h3></figcaption>
+                  </figure>
                 </a>
                 <p className={styles.bookDescription}>{essay.subtitle}</p>
-              </li>;
-            })}
+              </li>
+            ))}
           </ul>
         </div>
         <p className={styles.shelfHint}>Swipe along the shelf to browse.</p>

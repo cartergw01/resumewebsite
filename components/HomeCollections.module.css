@@ -37,7 +37,7 @@
 }
 .archiveLink:hover { color: var(--accent); }
 
-/* Readable, face-out jackets with native shelf scrolling. */
+/* Native scrolling keeps the complete essay collection easy to browse. */
 .shelfScroll {
   overflow-x: auto;
   overscroll-behavior-x: contain;
@@ -58,89 +58,28 @@
   padding: 0.25rem 0.5rem;
   list-style: none;
 }
-.books li { flex: 0 0 11.75rem; }
-.book { display: block; width: 11.75rem; scroll-snap-align: start; scroll-margin-inline: 0.5rem; }
+/* Original cover proportions, with titles outside the artwork. */
+.books li { flex: 0 0 20rem; width: 20rem; }
+.book { display: block; scroll-snap-align: start; scroll-margin-inline: 0.5rem; }
+.book figure { margin: 0; }
 .bookCover {
-  --cover: oklch(81% 0.023 220);
-  --letter: oklch(27% 0.022 240);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 17.25rem;
-  padding: 1.35rem 1.15rem 1rem 1.4rem;
-  isolation: isolate;
   overflow: hidden;
-  border-radius: 1px 3px 3px 1px;
-  color: var(--letter);
-  background: var(--cover);
-  /* A fine fold and page edge, at book scale. */
-  box-shadow: inset 5px 0 0 rgb(0 0 0 / 0.055), inset 6px 0 0 rgb(255 255 255 / 0.14),
-    2px 1px 0 oklch(70% 0.015 80), 3px 2px 0 oklch(32% 0.02 240), 4px 4px 5px rgb(0 0 0 / 0.2);
-  transform-origin: 12% 90%;
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.bookTitle { position: relative; margin: 0; font-weight: 500; font-size: 1.9rem; line-height: 1.02; letter-spacing: -0.02em; }
-.bookTitle span { display: block; }
-.bookAuthor { position: relative; margin-top: auto; font-size: 0.9375rem; line-height: 1.2; }
+.bookCover img { display: block; width: 100%; height: auto; }
+.bookTitle {
+  margin: 1rem 0 0;
+  font-weight: 500;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
 .bookDescription {
-  max-width: 11.75rem;
-  margin: 1.1rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--muted);
   font-size: 1.0625rem;
   line-height: 1.4;
 }
-.coverDesign { position: absolute; pointer-events: none; z-index: -1; }
-
-.keeping { --cover: oklch(84% 0.024 153); --letter: oklch(30% 0.035 162); }
-.keeping .bookTitle { margin-top: 1rem; font-size: 1.85rem; }
-.keeping .bookTitle span:nth-child(2) { margin-top: 0.7rem; }
-.keeping .bookTitle span:last-child {
-  font-family: var(--font-name), sans-serif;
-  text-transform: uppercase;
-  font-size: 6rem;
-  font-weight: 700;
-  text-align: right;
-  line-height: 0.95;
-}
-.spiral { --cover: oklch(49% 0.14 30); --letter: oklch(95% 0.019 80); }
-.spiral .bookTitle { font-size: 2.7rem; }
-.spiral .bookTitle span:nth-child(2) { font-size: 1.35rem; padding-block: 0.4rem; }
-.spiral .coverDesign {
-  width: 14rem; height: 14rem; right: -5rem; bottom: -5.5rem; opacity: 0.55;
-}
-.spiral .coverDesign svg { width: 100%; height: 100%; }
-.annualOchre { --cover: oklch(79% 0.068 82); --letter: oklch(28% 0.028 55); }
-.annualRed { --cover: oklch(43% 0.087 24); --letter: oklch(95% 0.018 80); }
-.annualBlue { --cover: oklch(78% 0.035 226); --letter: oklch(28% 0.03 238); }
-.annualOchre .bookTitle, .annualRed .bookTitle, .annualBlue .bookTitle { font-size: 1.35rem; line-height: 1.25; }
-.annualOchre .bookTitle span:last-child,
-.annualRed .bookTitle span:last-child,
-.annualBlue .bookTitle span:last-child {
-  margin-top: 2.1rem; font-family: var(--font-name), sans-serif; font-weight: 700;
-  font-size: 4.8rem; line-height: 1; letter-spacing: -0.01em;
-}
-.powers { --cover: oklch(37% 0.055 235); --letter: oklch(94% 0.035 79); }
-.powers .bookTitle { font-family: var(--font-name), sans-serif; font-weight: 700; font-size: 2.8rem; }
-.powers .bookTitle span:nth-child(2) { margin-top: 0.4rem; }
-.powers .bookTitle span:last-child { margin-top: 0.8rem; font-size: 1.65rem; }
-.mirage { --cover: oklch(79% 0.025 236); --letter: oklch(28% 0.04 241); }
-.mirage .bookTitle { margin-top: 5rem; font-size: 1.65rem; line-height: 1.2; }
-.curiosity { --cover: oklch(34% 0.04 170); --letter: oklch(93% 0.021 90); }
-.curiosity .bookTitle { margin-top: 0.8rem; font-size: 1.75rem; line-height: 1.15; }
-.curiosity .bookTitle span:last-child { margin-top: 2rem; }
-.play { --cover: oklch(84% 0.042 110); --letter: oklch(32% 0.035 177); }
-.play .bookTitle { text-align: center; font-size: 3rem; padding-top: 0.2rem; }
-.play .bookTitle span:nth-child(2) { font-size: 1.5rem; line-height: 1.8; }
-.play .bookTitle span:last-child { width: max-content; margin-inline: auto; transform: rotate(-7deg); }
-.play .bookAuthor { text-align: center; }
-.ball { --cover: oklch(67% 0.116 48); --letter: oklch(24% 0.031 37); }
-.ball .bookTitle { margin-top: 1rem; font-family: var(--font-name), sans-serif; font-weight: 700; font-size: 2.7rem; line-height: 1.1; }
-.ball .bookTitle span:last-child { margin-top: 0.4rem; }
-.ball .coverDesign { width: 6rem; height: 6rem; border: 1px solid currentColor; border-radius: 50%; bottom: -1.5rem; right: -1rem; opacity: 0.45; }
-.ignorance { --cover: oklch(87% 0.009 100); --letter: oklch(30% 0.028 226); }
-.ignorance .bookTitle { padding-top: 0.75rem; font-size: 1.9rem; }
-.ignorance .bookTitle span:nth-child(2) { margin-block: 0.4rem; font-size: 1.2rem; }
-.ignorance .bookTitle span:last-child { margin-top: 2.4rem; }
 
 .shelfHint { display: none; margin: 0.75rem 0 0; color: var(--muted); font-size: 1rem; }
 .museum { margin-top: 7rem; }
@@ -152,9 +91,9 @@
 .exhibit figcaption { padding-top: 1rem; }
 .exhibit h3 { margin: 0; font-size: 1.25rem; font-weight: 400; line-height: 1.35; }
 
-.book:focus-visible .bookCover { transform: translateY(-6px) rotate(-1deg); }
+.book:focus-visible .bookCover { transform: translateY(-4px); }
 @media (hover: hover) and (pointer: fine) {
-  .book:hover .bookCover { transform: translateY(-6px) rotate(-1deg); }
+  .book:hover .bookCover { transform: translateY(-4px); }
   .exhibit:hover .artwork img { transform: scale(1.015); }
 }
 @media (max-width: 1000px) {
@@ -168,6 +107,7 @@
   .collectionHeading h2 { font-size: 2.25rem; }
   .collectionHeading p { margin-top: 0.5rem; }
   .books { gap: 1.5rem; }
+  .books li { flex-basis: min(16.5rem, calc(100vw - var(--gutter) - var(--gutter) - 1.5rem)); width: min(16.5rem, calc(100vw - var(--gutter) - var(--gutter) - 1.5rem)); }
   .museum { margin-top: 4.5rem; }
   .gallery { grid-template-columns: 1fr; gap: 2.5rem; }
   .exhibit figcaption { padding-top: 0.75rem; }

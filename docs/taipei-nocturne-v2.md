@@ -2,9 +2,9 @@
 
 User direction: remove numbered markers, arrows, oversized decorative serif type, and ornamental interface details. Make the homepage personal, considered, and artistic.
 
-Afacad carries the homepage prose and navigation. Carter’s name uses Teko at weight 700, with a much larger scale and squared letterforms. On phones the name is deliberately stacked across two lines. Barlow Condensed remains confined to the essay jacket designs. Plain route links sit with the introduction.
+Afacad carries the homepage prose and navigation. Carter’s name uses Teko at weight 700, with a much larger scale and squared letterforms. On phones the name is deliberately stacked across two lines. Plain route links sit with the introduction.
 
-Below the illustration, every essay has a face-out jacket with individually set title breaks and its existing description underneath. The annual reading lists share a cover composition as a series. The binding is a fine fold and page edge; the old narrow spines and wooden shelf are gone. Native horizontal scrolling supports touch, a trackpad, and keyboard focus.
+Below the illustration, every essay uses its actual Substack cover, kept at its original proportions with the title and existing description underneath. Covers are stored locally as WebP assets and loaded through Next Image. The custom typographic jackets and their Barlow font are removed. Native horizontal scrolling supports touch, a trackpad, and keyboard focus. Source mappings are recorded in `docs/substack-covers.md`.
 
 Projects appear as larger, unframed screenshots with simple captions: two columns on desktop and one on phones. Both collections read directly from `content/portfolio.ts` and link to their full archives; no title is singled out as a favorite. Titles remain visible without hover, and reduced-motion preferences disable the small hover movements. The shared cursor remains unchanged.
 

@@ -1,3 +1,14 @@
+import keepingUpCover from "@/public/essay-covers/the-cost-of-keeping-up.webp";
+import slopSpiralCover from "@/public/essay-covers/slop-and-spiral.webp";
+import reading2025Cover from "@/public/essay-covers/the-best-things-i-read-in-2025.webp";
+import superpowersCover from "@/public/essay-covers/we-all-have-superpowers.webp";
+import mirageCover from "@/public/essay-covers/the-mirage-of-identity.webp";
+import reading2024Cover from "@/public/essay-covers/the-best-things-i-read-in-2024.webp";
+import curiosityCover from "@/public/essay-covers/from-crash-to-curiosity.webp";
+import workPlayCover from "@/public/essay-covers/work-as-play.webp";
+import weBallCover from "@/public/essay-covers/fuck-it-we-ball.webp";
+import reading2023Cover from "@/public/essay-covers/the-best-things-i-read-in-2023.webp";
+import ignoranceCover from "@/public/essay-covers/an-ode-to-ignorance.webp";
 import taipeiFlixImage from "@/public/project-shots/taipei-flix.webp";
 import studiosImage from "@/public/project-shots/886studios.webp";
 import taipeiRunImage from "@/public/project-shots/taipei-run.jpg";
@@ -142,6 +153,7 @@ export const essays = [
     title: "The Cost of Keeping Up",
     subtitle: "Monitor the situation or die. Just kidding, it's really not that important...but...maybe it is?",
     href: "https://carterko.substack.com/p/the-cost-of-keeping-up",
+    image: keepingUpCover,
     date: "May 5, 2026",
     spine: {
       top: "34 49 104",
@@ -154,6 +166,7 @@ export const essays = [
     subtitle:
       "Why do we keep scrolling? Maybe it's because the moment we stop, we're alone with ourselves.",
     href: "https://carterko.substack.com/p/slop-and-spiral",
+    image: slopSpiralCover,
     date: "Jan 20, 2026",
     spine: {
       top: "4 12 10",
@@ -165,6 +178,7 @@ export const essays = [
     title: "The Best Things I Read in 2025",
     subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2025.",
     href: "https://carterko.substack.com/p/the-best-things-i-read-in-2025",
+    image: reading2025Cover,
     date: "Jan 11, 2026",
     spine: {
       top: "124 72 17",
@@ -176,6 +190,7 @@ export const essays = [
     title: "We All Have Superpowers",
     subtitle: "We invent technology to extend ourselves.",
     href: "https://carterko.substack.com/p/we-all-have-superpowers",
+    image: superpowersCover,
     date: "Oct 17, 2025",
     spine: {
       top: "14 52 84",
@@ -187,6 +202,7 @@ export const essays = [
     title: "The Mirage of Identity",
     subtitle: "Our social world in the 21st century.",
     href: "https://carterko.substack.com/p/the-mirage-of-identity",
+    image: mirageCover,
     date: "May 12, 2025",
     spine: {
       top: "80 129 158",
@@ -198,6 +214,7 @@ export const essays = [
     title: "The Best Things I Read in 2024",
     subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2024.",
     href: "https://carterko.substack.com/p/the-best-things-i-read-in-2024",
+    image: reading2024Cover,
     date: "Jan 6, 2025",
     spine: {
       top: "135 17 8",
@@ -209,6 +226,7 @@ export const essays = [
     title: "From Crash to Curiosity",
     subtitle: "My investing adventure, thus far.",
     href: "https://carterko.substack.com/p/from-crash-to-curiosity",
+    image: curiosityCover,
     date: "Nov 3, 2024",
     spine: {
       top: "83 57 44",
@@ -220,6 +238,7 @@ export const essays = [
     title: "Work as Play",
     subtitle: "A reflection on the cusp of my career.",
     href: "https://carterko.substack.com/p/work-as-play",
+    image: workPlayCover,
     date: "Sep 28, 2024",
     spine: {
       top: "57 73 97",
@@ -231,6 +250,7 @@ export const essays = [
     title: "Fuck It, We Ball!",
     subtitle: "The call to life is a call to adventure.",
     href: "https://carterko.substack.com/p/fuck-it-we-ball",
+    image: weBallCover,
     date: "Jul 20, 2024",
     spine: {
       top: "99 128 29",
@@ -242,6 +262,7 @@ export const essays = [
     title: "The Best Things I Read in 2023",
     subtitle: "A round-up of the best books, blogs, articles, and essays I read in 2023.",
     href: "https://carterko.substack.com/p/the-best-things-i-read-in-2023",
+    image: reading2023Cover,
     date: "Jan 3, 2024",
     spine: {
       top: "94 65 42",
@@ -253,6 +274,7 @@ export const essays = [
     title: "An Ode to Ignorance",
     subtitle: "The power of \"I don't know\" and venturing out into the unknown.",
     href: "https://carterko.substack.com/p/an-ode-to-ignorance",
+    image: ignoranceCover,
     date: "May 26, 2023",
     spine: {
       top: "37 48 67",

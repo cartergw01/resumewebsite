@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Afacad, Barlow_Condensed, Teko } from "next/font/google";
+import { Afacad, Teko } from "next/font/google";
 import HomeCollections from "./HomeCollections";
 import nocturne from "@/public/taipei-nocturne-v2.png";
 import styles from "./UniverseWorld.module.css";
@@ -10,13 +10,6 @@ const homeType = Afacad({
   weight: ["400", "500"],
   display: "swap",
   variable: "--font-home",
-});
-
-const nameType = Barlow_Condensed({
-  subsets: ["latin"],
-  weight: "700",
-  display: "swap",
-  variable: "--font-name",
 });
 
 const wordmarkType = Teko({
@@ -33,7 +26,7 @@ const routes = [
 
 export default function UniverseWorld() {
   return (
-    <div className={`${styles.home} ${homeType.variable} ${nameType.variable} ${wordmarkType.variable}`}>
+    <div className={`${styles.home} ${homeType.variable} ${wordmarkType.variable}`}>
       <main>
         <section className={styles.welcome} aria-labelledby="home-title">
           <div className={styles.painting}>
