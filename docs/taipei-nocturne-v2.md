@@ -10,6 +10,12 @@ Projects appear as larger, unframed screenshots with simple captions: two column
 
 Artwork: `public/taipei-nocturne-v2.png`, generated with the built-in image tool. The original first-pass artwork remains in version history and is not loaded by this page.
 
+## Separate public preview
+
+The Taipei design lives at `/new`, using `components/RooftopHome.tsx`. The original cosmic homepage remains at `/`, with its component and image preload hints restored from production commit `e54eda7`. The preview has its own canonical URL and is marked `noindex`; it is not included in the sitemap. Work, Writing, and Projects continue to use their existing routes.
+
+The interactive lamp, basketball shootaround, on-site essay reader, and project demos discussed as the next direction remain proposals. They are not included in this deployment.
+
 ## Artwork prompt
 
 Use case: stylized-concept.

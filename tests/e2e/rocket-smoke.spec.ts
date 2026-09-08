@@ -494,20 +494,26 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
   guard.expectClean();
 });
 
-test("mobile home destination first tap launches to its route", async ({ page }, testInfo) => {
-  test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile destination taps are covered by mobile projects.");
+test("mobile world orb first tap launches to its route", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile orb hit target is covered by mobile projects.");
 
   const guard = consoleGuard();
   guard.attach(page);
 
-  await page.goto("/");
-  const destination = page.getByRole("navigation", { name: "Primary navigation" })
-    .getByRole("link", { name: "Work", exact: true });
-  await destination.scrollIntoViewIfNeeded();
-  await expect(destination).toBeVisible();
+  await page.goto("/#constellation");
+  await expect(page.locator(".world-card.world-work .world-orb-link")).toBeVisible();
+
+  const orb = page.locator(".world-card.world-work .world-orb-link");
+  // The document uses smooth anchor scrolling. Wait for the fragment trip to
+  // settle before capturing touch coordinates so the target cannot slide out
+  // from under a real touchscreen tap between `boundingBox` and `tap`.
+  await expect.poll(() => page.evaluate(() => window.scrollY), {
+    timeout: 3_000,
+    intervals: [100, 100, 150, 200],
+  }).toBeGreaterThan(200);
 
   await startRocketLaunchProbe(page);
-  await destination.tap();
+  await orb.tap();
   await page.waitForTimeout(140);
 
   await expectRocketBecameVisible(page);
