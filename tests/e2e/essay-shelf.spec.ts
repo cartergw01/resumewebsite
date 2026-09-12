@@ -9,11 +9,32 @@ async function openShelf(page: Page) {
   return shelf;
 }
 
-async function angles(shelf: Locator) {
+async function scales(shelf: Locator) {
   return shelf.locator("[data-essay-motion]").evaluateAll((covers) => covers.map((cover) => {
     const matrix = new DOMMatrixReadOnly(getComputedStyle(cover).transform);
-    return Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+    return Math.hypot(matrix.a, matrix.b);
   }));
+}
+
+async function sampleScroll(shelf: Locator, distance: number) {
+  return shelf.evaluate((element, left) => new Promise<{ scale: number; angle: number; lift: number; overshoot: number }>((resolve) => {
+    const covers = element.querySelectorAll("[data-essay-motion]");
+    const peak = { scale: 1, angle: 0, lift: 0, overshoot: 0 };
+    const started = performance.now();
+    function sample(now: number) {
+      for (const cover of covers) {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(cover).transform);
+        peak.scale = Math.max(peak.scale, Math.hypot(matrix.a, matrix.b));
+        peak.angle = Math.max(peak.angle, Math.abs(Math.atan2(matrix.b, matrix.a) * 180 / Math.PI));
+        peak.lift = Math.min(peak.lift, matrix.f);
+        peak.overshoot = Math.max(peak.overshoot, matrix.f);
+      }
+      if (now - started < 1200) requestAnimationFrame(sample);
+      else resolve(peak);
+    }
+    element.scrollBy({ left, behavior: "smooth" });
+    requestAnimationFrame(sample);
+  }), distance);
 }
 
 async function isAtRest(shelf: Locator) {
@@ -23,7 +44,7 @@ async function isAtRest(shelf: Locator) {
   }));
 }
 
-test("essay art follows sideways scroll and settles without moving the text", async ({ page }) => {
+test("essay art pulls forward with a small wiggle and settles without moving the text", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const shelf = await openShelf(page);
@@ -31,14 +52,16 @@ test("essay art follows sideways scroll and settles without moving the text", as
   const top = await title.evaluate((element) => element.getBoundingClientRect().top);
   const width = await shelf.evaluate((element) => element.scrollWidth);
 
-  await shelf.evaluate((element) => element.scrollBy({ left: 450, behavior: "smooth" }));
-  await expect.poll(async () => Math.min(...await angles(shelf))).toBeLessThan(-0.3);
-  expect(await title.evaluate((element) => element.getBoundingClientRect().top)).toBeCloseTo(top, 0);
-  await expect.poll(() => isAtRest(shelf)).toBe(true);
-
-  await shelf.evaluate((element) => element.scrollBy({ left: -260, behavior: "smooth" }));
-  await expect.poll(async () => Math.max(...await angles(shelf))).toBeGreaterThan(0.3);
-  await expect.poll(() => isAtRest(shelf)).toBe(true);
+  for (const distance of [450, -260]) {
+    const peak = await sampleScroll(shelf, distance);
+    expect(peak.scale).toBeGreaterThan(1.01);
+    expect(peak.lift).toBeLessThan(-4);
+    expect(peak.angle).toBeGreaterThan(0.05);
+    expect(peak.angle).toBeLessThan(1);
+    expect(peak.overshoot).toBe(0);
+    expect(await title.evaluate((element) => element.getBoundingClientRect().top)).toBeCloseTo(top, 0);
+    await expect.poll(() => isAtRest(shelf)).toBe(true);
+  }
 
   // Catch an idle loop that keeps touching DOM styles after the spring settles.
   const idleMutations = await shelf.evaluate((element) => new Promise<number>((resolve) => {
@@ -58,7 +81,7 @@ test("essay art follows sideways scroll and settles without moving the text", as
 test("shelf motion respects preference changes, offscreen state, and keyboard browsing", async ({ page, browserName }) => {
   const shelf = await openShelf(page);
   await shelf.evaluate((element) => element.scrollBy({ left: 400, behavior: "smooth" }));
-  await expect.poll(async () => Math.min(...await angles(shelf))).toBeLessThan(-0.3);
+  await expect.poll(async () => Math.max(...await scales(shelf))).toBeGreaterThan(1.01);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect.poll(() => isAtRest(shelf)).toBe(true);
 
@@ -74,7 +97,7 @@ test("shelf motion respects preference changes, offscreen state, and keyboard br
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await shelf.evaluate((element) => element.scrollBy({ left: -500, behavior: "smooth" }));
-  await expect.poll(async () => Math.max(...await angles(shelf))).toBeGreaterThan(0.3);
+  await expect.poll(async () => Math.max(...await scales(shelf))).toBeGreaterThan(1.01);
   await page.locator("#home-title").scrollIntoViewIfNeeded();
   await expect.poll(() => isAtRest(shelf)).toBe(true);
 });

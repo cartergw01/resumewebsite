@@ -13,10 +13,9 @@ export default function EssayShelf({ children }: { children: ReactNode }) {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const covers = Array.from(shelf.querySelectorAll<HTMLElement>("[data-essay-motion]"), (element, index) => ({
       element,
-      angle: 0,
-      velocity: 0,
-      stiffness: 230 + (index % 3) * 35,
-      weight: [1, 0.88, 1.08][index % 3],
+      pull: 0,
+      response: [14, 12, 13][index % 3],
+      weight: [1, 0.94, 0.98][index % 3],
     }));
     const visible = new Set<(typeof covers)[number]>();
     const items = new Map(covers.map((cover) => [cover.element.closest("li"), cover]));
@@ -24,11 +23,12 @@ export default function EssayShelf({ children }: { children: ReactNode }) {
     let previousFrame = 0;
     let previousScroll = shelf.scrollLeft;
     let lastScrollTime = 0;
-    let lean = 0;
+    let strength = 0;
+    let gestureStarted = 0;
+    let gestureDirection = 1;
 
     function clearCover(cover: (typeof covers)[number]) {
-      cover.angle = 0;
-      cover.velocity = 0;
+      cover.pull = 0;
       cover.element.style.removeProperty("transform");
       cover.element.style.removeProperty("will-change");
     }
@@ -36,26 +36,32 @@ export default function EssayShelf({ children }: { children: ReactNode }) {
     function rest() {
       cancelAnimationFrame(frame);
       frame = 0;
-      lean = 0;
+      strength = 0;
       previousScroll = shelf!.scrollLeft;
       covers.forEach(clearCover);
     }
 
     function animate(now: number) {
-      const dt = Math.min((now - previousFrame) / 1000, 0.032);
+      // A frame timestamp can precede the scroll event that requested it.
+      const dt = Math.max(0, Math.min((now - previousFrame) / 1000, 0.032));
       previousFrame = now;
-      const target = now - lastScrollTime < 70 ? lean : 0;
+      const target = now - lastScrollTime < 120 ? strength : 0;
+      // One small wiggle per gesture, never a repeated shake on every scroll event.
+      const phase = Math.max(0, Math.min((now - gestureStarted) / 760, 1));
+      const wiggle = gestureDirection * Math.sin(phase * Math.PI * 2) * Math.sin(phase * Math.PI) * 0.8;
       let moving = false;
 
       // Only transform visible artwork. Text and link hit areas never move.
       for (const cover of visible) {
-        const acceleration = (target * cover.weight - cover.angle) * cover.stiffness - cover.velocity * 25;
-        cover.velocity += acceleration * dt;
-        cover.angle += cover.velocity * dt;
-        if (Math.abs(cover.angle) > 0.015 || Math.abs(cover.velocity) > 0.05 || target !== 0) {
-          const lift = -Math.min(Math.abs(cover.angle) * 1.6, 9);
+        // Ease the pull directly so returning to the shelf cannot bounce or overshoot.
+        const ease = 1 - Math.exp(-(target ? cover.response : 12) * dt);
+        cover.pull += (target * cover.weight - cover.pull) * ease;
+        if (cover.pull > 0.001 || target !== 0) {
+          const lift = -16 * cover.pull;
+          const scale = 1 + 0.04 * cover.pull;
+          const angle = wiggle * cover.pull;
           cover.element.style.willChange = "transform";
-          cover.element.style.transform = `translate3d(0, ${lift.toFixed(2)}px, 0) rotate(${cover.angle.toFixed(3)}deg)`;
+          cover.element.style.transform = `translate3d(0, ${lift.toFixed(2)}px, 0) rotate(${angle.toFixed(3)}deg) scale(${scale.toFixed(4)})`;
           moving = true;
         } else {
           clearCover(cover);
@@ -71,10 +77,14 @@ export default function EssayShelf({ children }: { children: ReactNode }) {
       const delta = shelf!.scrollLeft - previousScroll;
       const elapsed = Math.max(16, Math.min(now - lastScrollTime, 50));
       previousScroll = shelf!.scrollLeft;
-      lastScrollTime = now;
       if (preference.matches || document.hidden || !visible.size || Math.abs(delta) < 0.1) return;
 
-      lean = Math.max(-5.5, Math.min(5.5, -delta / elapsed * 1.8));
+      if (!frame || now - lastScrollTime > 220) {
+        gestureStarted = now;
+        gestureDirection = -Math.sign(delta);
+      }
+      lastScrollTime = now;
+      strength = 0.6 + Math.min(Math.abs(delta) / elapsed * 0.18, 0.4);
       if (!frame) {
         previousFrame = now;
         frame = requestAnimationFrame(animate);
