@@ -44,7 +44,10 @@
   scrollbar-width: thin;
   scrollbar-color: oklch(44% 0.02 226) transparent;
   scroll-snap-type: x proximity;
-  padding-block: 0.75rem 1.5rem;
+  scroll-padding-inline: 2rem;
+  /* Give the moving prints room while keeping their original alignment. */
+  margin: -1.25rem -1.5rem 0;
+  padding-block: 2rem 1.5rem;
 }
 .shelfScroll:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
 .shelfScroll::-webkit-scrollbar { height: 4px; }
@@ -55,13 +58,14 @@
   width: max-content;
   min-width: 100%;
   margin: 0;
-  padding: 0.25rem 0.5rem;
+  padding: 0.25rem 2rem;
   list-style: none;
 }
 /* Original cover proportions, with titles outside the artwork. */
 .books li { flex: 0 0 20rem; width: 20rem; }
-.book { display: block; scroll-snap-align: start; scroll-margin-inline: 0.5rem; }
+.book { display: block; scroll-snap-align: start; }
 .book figure { margin: 0; }
+.bookMotion { transform-origin: 50% 85%; }
 .bookCover {
   overflow: hidden;
   transition: transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
@@ -114,6 +118,6 @@
   .exhibit h3 { font-size: 1.125rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bookCover, .artwork img { transition: none; transform: none !important; }
+  .bookMotion, .bookCover, .artwork img { transition: none; transform: none !important; }
   .shelfScroll { scroll-snap-type: none; }
 }

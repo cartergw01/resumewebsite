@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { essays, projects } from "@/content/portfolio";
+import EssayShelf from "./EssayShelf";
 import styles from "./HomeCollections.module.css";
 
 export default function HomeCollections() {
@@ -15,7 +16,7 @@ export default function HomeCollections() {
           <Link href="/writing" className={styles.archiveLink}>Browse all essays</Link>
         </header>
 
-        <div className={styles.shelfScroll} role="region" aria-label="Essay bookshelf" tabIndex={0}>
+        <EssayShelf>
           <ul className={styles.books}>
             {essays.map((essay) => (
               <li key={essay.href}>
@@ -27,13 +28,15 @@ export default function HomeCollections() {
                   className={styles.book}
                 >
                   <figure>
-                    <div className={styles.bookCover}>
-                      <Image
-                        src={essay.image}
-                        alt=""
-                        quality={86}
-                        sizes="(max-width: 600px) min(264px, calc(100vw - 72px)), 320px"
-                      />
+                    <div className={styles.bookMotion} data-essay-motion>
+                      <div className={styles.bookCover}>
+                        <Image
+                          src={essay.image}
+                          alt=""
+                          quality={86}
+                          sizes="(max-width: 600px) min(264px, calc(100vw - 72px)), 320px"
+                        />
+                      </div>
                     </div>
                     <figcaption><h3 className={styles.bookTitle}>{essay.title}</h3></figcaption>
                   </figure>
@@ -42,7 +45,7 @@ export default function HomeCollections() {
               </li>
             ))}
           </ul>
-        </div>
+        </EssayShelf>
         <p className={styles.shelfHint}>Swipe along the shelf to browse.</p>
       </section>
 

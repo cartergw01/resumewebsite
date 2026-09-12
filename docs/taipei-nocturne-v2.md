@@ -6,6 +6,8 @@ Afacad carries the homepage prose and navigation. Carter’s name uses Teko at w
 
 Below the illustration, every essay uses its actual Substack cover, kept at its original proportions with the title and existing description underneath. Covers are stored locally as WebP assets and loaded through Next Image. The custom typographic jackets and their Barlow font are removed. Native horizontal scrolling supports touch, a trackpad, and keyboard focus. Source mappings are recorded in `docs/substack-covers.md`.
 
+The essay artwork leans and lifts with horizontal scroll momentum, then settles with slightly different spring responses. Titles and link hit areas stay fixed. Only visible covers animate, the animation loop stops at rest or offscreen, and reduced-motion preferences disable the effect. Scrolling and touch gestures remain native.
+
 Projects appear as larger, unframed screenshots with simple captions: two columns on desktop and one on phones. Both collections read directly from `content/portfolio.ts` and link to their full archives; no title is singled out as a favorite. Titles remain visible without hover, and reduced-motion preferences disable the small hover movements. The shared cursor remains unchanged.
 
 Artwork: `public/taipei-nocturne-v2.png`, generated with the built-in image tool. The original first-pass artwork remains in version history and is not loaded by this page.
