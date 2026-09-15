@@ -103,8 +103,8 @@ test("each island zooms into its own page and owns navigation until arrival", as
     await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", id);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
     await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
-    await expect.poll(() => island.locator("img").evaluate((image) => {
-      const matrix = new DOMMatrixReadOnly(getComputedStyle(image).transform);
+    await expect.poll(() => island.locator("[data-island-visual]").evaluate((visual) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
       return Math.hypot(matrix.a, matrix.b);
     })).toBeGreaterThan(1.2);
     // Repeated island activation cannot restart the entry transition.

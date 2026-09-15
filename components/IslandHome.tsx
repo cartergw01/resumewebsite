@@ -2,6 +2,7 @@ import Image from "next/image";
 import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
 import IslandLink from "./IslandLink";
+import WritingIsland from "./WritingIsland";
 import styles from "./IslandHome.module.css";
 
 const worlds = [
@@ -46,7 +47,7 @@ export default function IslandHome() {
               )}
             </div>
             <div className={styles.art} data-scene-art>
-              <IslandLink href={`/${world.id}`} title={world.title} prompt={world.prompt}>
+              {world.id === "writing" ? <WritingIsland /> : <IslandLink href={`/${world.id}`} title={world.title} prompt={world.prompt}>
                 <Image
                   src={world.image}
                   alt=""
@@ -58,8 +59,9 @@ export default function IslandHome() {
                   unoptimized
                   draggable={false}
                   className={styles.island}
+                  data-island-visual
                 />
-              </IslandLink>
+              </IslandLink>}
             </div>
           </section>
         ))}

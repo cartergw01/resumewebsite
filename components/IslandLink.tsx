@@ -18,23 +18,23 @@ export default function IslandLink({ href, title, prompt, children }: { href: st
 
     const link = event.currentTarget;
     const stage = link.closest<HTMLElement>("[data-island-stage]");
-    const image = link.querySelector("img");
-    if (!stage || !image) return;
+    const visual = link.querySelector<HTMLElement>("[data-island-visual]");
+    if (!stage || !visual) return;
     event.preventDefault();
     if (stage.dataset.entering) return;
 
     router.prefetch(href);
-    const rect = image.getBoundingClientRect();
+    const rect = visual.getBoundingClientRect();
     const x = window.innerWidth / 2 - (rect.left + rect.width / 2);
     const y = window.innerHeight / 2 - (rect.top + rect.height / 2);
     const scale = Math.max(3.6, window.innerWidth / rect.width * 1.4, window.innerHeight / rect.height * 1.4);
-    const initialTransform = getComputedStyle(image).transform;
+    const initialTransform = getComputedStyle(visual).transform;
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
-    // The image, galaxy, and copy move independently so the island feels like
+    // The island, galaxy, and copy move independently so the island feels like
     // a place the camera approaches, while the surrounding interface recedes.
-    const zoom = image.animate([
+    const zoom = visual.animate([
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})` },
     ], { duration: 900, easing: "cubic-bezier(0.5, 0, 0.75, 0.4)", fill: "forwards" });
