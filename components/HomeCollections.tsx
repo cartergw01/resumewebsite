@@ -33,6 +33,8 @@ export default function HomeCollections() {
                         <Image
                           src={essay.image}
                           alt=""
+                          fill
+                          style={{ objectPosition: essay.imagePosition }}
                           quality={86}
                           sizes="(max-width: 600px) min(264px, calc(100vw - 72px)), 320px"
                         />
@@ -74,6 +76,7 @@ export default function HomeCollections() {
                       src={project.image}
                       alt=""
                       fill
+                      style={{ objectPosition: project.imagePosition }}
                       quality={86}
                       sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 1000px) 44vw, 520px"
                     />
