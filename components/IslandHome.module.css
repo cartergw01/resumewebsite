@@ -13,30 +13,40 @@
   overflow: clip;
   isolation: isolate;
 }
-.galaxy, .stars, .vignette { position: absolute; inset: 0; pointer-events: none; }
+.galaxySpace, .galaxy, .stars, .vignette { position: absolute; inset: 0; pointer-events: none; }
 .galaxy {
-  inset: -12%;
-  background: image-set(url("/cosmic-hero-desktop.webp") 1x, url("/cosmic-hero-desktop-2x.webp") 2x) 48% 36% / cover no-repeat;
-  opacity: 0.65;
-  transform: translate3d(calc(var(--camera-progress) * -8%), calc(var(--camera-progress) * 3%), 0) scale(calc(1.06 + var(--camera-progress) * 0.1));
+  inset: -4%;
+  transform: translate3d(calc(var(--camera-progress) * -3%), calc(var(--camera-progress) * 1.5%), 0) scale(calc(1.02 + var(--camera-progress) * 0.035));
   will-change: transform;
 }
-.stars {
-  inset: -4%;
-  background-image:
-    radial-gradient(circle at 20% 30%, #fff9 0 0.6px, transparent 1.2px),
-    radial-gradient(circle at 70% 60%, #bcd5ffb3 0 0.8px, transparent 1.5px);
-  background-size: 179px 197px, 313px 269px;
-  opacity: 0.5;
-  transform: translate3d(calc(var(--camera-progress) * -12%), calc(var(--camera-progress) * -4%), 0);
+.galaxyImage { position: absolute; inset: 0; display: block; animation: galaxy-drift 36s ease-in-out infinite alternate; }
+.galaxyImage img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 32%; user-select: none; }
+@keyframes galaxy-drift {
+  from { transform: translate3d(0.5%, -0.4%, 0) scale(1.025) rotate(0.15deg); }
+  to { transform: translate3d(-1.2%, 0.7%, 0) scale(1.045) rotate(-0.2deg); }
 }
+.stars {
+  inset: -5%;
+  transform: translate3d(calc(var(--camera-progress) * -8%), calc(var(--camera-progress) * -3%), 0);
+}
+.ambientStar { position: absolute; border-radius: 50%; color: #e2eeff; background: currentColor; box-shadow: 0 0 5px #c4ddff80; opacity: 0.45; animation: star-breathe var(--glimmer-duration) ease-in-out var(--glimmer-delay) infinite; }
+.ambientStar:nth-child(9)::before, .ambientStar:nth-child(9)::after { content: ""; position: absolute; left: -3px; top: 0.5px; width: 8px; height: 1px; background: linear-gradient(90deg, transparent, #e2eeffb3, transparent); }
+.ambientStar:nth-child(9)::after { transform: rotate(90deg); }
+@keyframes star-breathe { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.85; } }
+.galaxySpace[data-ambient-paused="true"] .galaxyImage,
+.galaxySpace[data-ambient-paused="true"] .ambientStar,
+.stage[data-entering] .galaxyImage,
+.stage[data-entering] .ambientStar { animation-play-state: paused; }
+.galaxyToggle { position: absolute; z-index: 6; top: 1.25rem; left: calc(var(--page-x) - 12px); display: grid; place-items: center; width: 44px; height: 44px; padding: 12px; border: 0; border-radius: 50%; color: #eddbbf8c; background: transparent; cursor: pointer; }
+.galaxyToggle svg { width: 20px; height: 20px; }
+.galaxyToggle:hover, .galaxyToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
+.galaxyToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
 .flightStars { position: absolute; inset: -15% -25%; overflow: hidden; pointer-events: none; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--flight-shift) * 1%), 0, 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
 .flightStars svg { width: 100%; height: 100%; }
 .vignette {
   background:
-    linear-gradient(90deg, #03061180, transparent 75%),
-    linear-gradient(0deg, #030611 0%, transparent 24%, transparent 80%, #03061166),
-    radial-gradient(ellipse at 64% 47%, transparent 25%, #03061177 100%);
+    linear-gradient(90deg, #03061159, transparent 58%),
+    linear-gradient(0deg, #030611 0%, transparent 20%, transparent 90%, #03061133);
 }
 .scene {
   position: absolute;
@@ -114,11 +124,11 @@
   line-height: 1.5;
   white-space: nowrap;
   opacity: var(--cue-opacity, 1);
-  text-shadow: 0 2px 12px #030611;
+  text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
   transform: rotate(-5deg);
   transition: color 200ms ease;
 }
-.islandCue svg { position: absolute; bottom: 0.15rem; left: calc(100% + 0.25rem); width: 5.5rem; height: 4.4rem; }
+.islandCue svg { position: absolute; bottom: 0.15rem; left: calc(100% + 0.25rem); width: 5.5rem; height: 4.4rem; filter: drop-shadow(0 1px 2px #030611); }
 .writing .islandCue { top: 20%; right: 19%; bottom: auto; left: auto; transform: rotate(6deg); }
 .writing .islandCue svg { top: 1.3rem; right: 45%; bottom: auto; left: auto; transform: rotate(180deg); }
 .projects .islandCue { right: 14%; left: auto; transform: rotate(4deg); }
@@ -157,6 +167,7 @@
 .stage[data-entering] .copy,
 .stage[data-entering] .islandCue,
 .stage[data-entering] .motionToggle,
+.stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy,
 .stage[data-entering] .stars { animation: entry-space 900ms ease-in forwards; }
@@ -261,6 +272,13 @@
 @keyframes comet-spark { 0% { opacity: 0; transform: translateX(4px); } 25% { opacity: 0.8; } 100% { opacity: 0; transform: translateX(-7px); } }
 .chapters button[aria-current], .controls button:hover { color: var(--cw-paper); }
 
+@media (max-aspect-ratio: 1/1) {
+  .vignette {
+    background:
+      linear-gradient(180deg, #03061140, #030611b8 14%, #030611cc 29%, #03061133 40%, transparent 48%),
+      linear-gradient(0deg, #030611 0%, transparent 20%);
+  }
+}
 @media (max-width: 1000px) and (min-width: 761px) {
   .copy { max-width: 24rem; }
   .description { max-width: 30ch; }
@@ -268,7 +286,8 @@
 }
 @media (max-width: 760px) {
   .scene { display: block; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7rem; }
-  .galaxy { background-image: image-set(url("/cosmic-hero-mobile.webp") 1x, url("/cosmic-hero-mobile-2x.webp") 2x); background-position: center 40%; opacity: 0.55; }
+  .galaxyImage img { object-position: 58% 32%; }
+  .galaxyToggle { top: 0.35rem; left: 0.75rem; }
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.875rem; line-height: 1.65; }
@@ -315,6 +334,8 @@
 @media (prefers-reduced-motion: reduce) {
   .flightStars { display: none; }
   .galaxy, .stars { transform: none; will-change: auto; }
+  .galaxyImage, .ambientStar { animation: none; }
+  .galaxyToggle { display: none; }
   .scene, .copy, .art { will-change: auto; }
   .island, .islandCue { transition: none; }
   .islandLink:hover .island, .islandLink:focus-visible .island { transform: none; }

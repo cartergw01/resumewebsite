@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type ReactNode } from "react";
+import GalaxyBackground from "./GalaxyBackground";
 import styles from "./IslandHome.module.css";
 
 type World = { id: string; title: string };
@@ -178,8 +179,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
   return (
     <main ref={trackRef} className={styles.track} data-scene="work" aria-label="Three islands: work, writing, and projects">
       <div className={styles.stage} data-island-stage>
-        <div className={styles.galaxy} aria-hidden="true" />
-        <div className={styles.stars} aria-hidden="true" />
+        <GalaxyBackground />
         <div className={styles.vignette} aria-hidden="true" />
         <div className={styles.flightStars} data-flight-stars aria-hidden="true">
           <svg viewBox="0 0 1200 800" preserveAspectRatio="none" fill="none">
