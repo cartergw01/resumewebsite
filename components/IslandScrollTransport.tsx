@@ -6,7 +6,7 @@ import styles from "./IslandHome.module.css";
 type World = { id: string; title: string };
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 const ease = (value: number) => value * value * (3 - 2 * value);
-// Each shot holds before its dissolve; the final shot has room to settle.
+// Each island holds before the camera crosses to the next one.
 const FINAL_HOLD = 0.5;
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
@@ -35,36 +35,55 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let starStops: number[] = [];
     let previousStarX: number | null = null;
     let starRestTimer = 0;
+    let cameraProgress: number | null = null;
+    let previousFrame = 0;
 
-    const render = () => {
+    const render = (now: number) => {
       frame = 0;
       if (stage.dataset.entering) return;
       const progress = clamp((window.scrollY - start) / travel);
-      const position = progress * duration;
+      // Soften wheel steps without delaying the scroll-position indicator.
+      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 65);
+      cameraProgress = cameraProgress === null || motion.matches
+        ? progress
+        : cameraProgress + (progress - cameraProgress) * smoothing;
+      if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
+      previousFrame = now;
+      const position = cameraProgress * duration;
       const from = Math.min(scenes.length - 1, Math.floor(position));
-      const mix = ease(clamp((position - from - 0.42) / 0.38));
+      const crossing = from < scenes.length - 1 ? clamp((position - from - 0.34) / 0.54) : 0;
+      const mix = ease(crossing);
       const current = Math.min(scenes.length - 1, from + (mix >= 0.5 ? 1 : 0));
+      const arc = from % 2 === 0 ? 1 : -1;
 
       scenes.forEach((scene, index) => {
-        const opacity = motion.matches
-          ? Number(index === current)
-          : index === from ? 1 - (from === scenes.length - 1 ? 0 : mix) : index === from + 1 ? mix : 0;
-        const offset = Math.max(-1, Math.min(1, position - index));
-        scene.style.opacity = opacity.toFixed(4);
-        scene.style.visibility = opacity > 0 ? "visible" : "hidden";
-        art[index].style.transform = motion.matches
-          ? "none"
-          : `translate3d(${-offset * 3}%, ${offset * -1.5}%, 0) scale(${1 + offset * 0.055})`;
-        copy[index].style.transform = motion.matches ? "none" : `translate3d(0, ${-offset * 18}px, 0)`;
-        // Let the outgoing words clear before the next title arrives.
-        const copyOpacity = motion.matches || from === scenes.length - 1
-          ? 1
-          : index === from ? 1 - ease(clamp((position - from - 0.32) / 0.22))
-          : ease(clamp((position - from - 0.6) / 0.25));
+        const outgoing = index === from;
+        const visible = motion.matches ? index === current
+          : outgoing ? mix < 1 : index === from + 1 && mix > 0;
+        scene.style.opacity = visible ? "1" : "0";
+        scene.style.visibility = visible ? "visible" : "hidden";
+        // Islands stay solid: the departing world passes close to the camera,
+        // while the next approaches from a smaller, more distant position.
+        const distance = outgoing ? mix : 1 - mix;
+        const x = outgoing ? -180 * Math.pow(distance, 1.1) : 92 * distance;
+        const y = (outgoing ? 24 : -16) * arc * distance;
+        const scale = outgoing ? 1 + distance * 0.65 : 1 - distance * 0.48;
+        const bank = (outgoing ? -12 : 9) * arc * distance;
+        art[index].style.transform = motion.matches ? "none"
+          : `translate3d(${x}%, ${y}%, 0) rotate(${bank}deg) scale(${scale})`;
+        const copyOpacity = motion.matches ? 1 : outgoing
+          ? 1 - ease(clamp(crossing / 0.38))
+          : ease(clamp((crossing - 0.62) / 0.38));
+        copy[index].style.transform = motion.matches ? "none"
+          : `translate3d(${(outgoing ? -38 : 38) * (1 - copyOpacity)}px, 0, 0)`;
         copy[index].style.opacity = copyOpacity.toFixed(4);
+        art[index].style.setProperty("--cue-opacity", copyOpacity.toFixed(4));
       });
-      stage.style.setProperty("--camera-progress", progress.toFixed(4));
-      // Follow the full scroll distance, including the holds between dissolves.
+      stage.style.setProperty("--camera-progress", cameraProgress.toFixed(4));
+      stage.style.setProperty("--flight", motion.matches ? "0" : Math.pow(Math.sin(crossing * Math.PI), 2).toFixed(4));
+      stage.style.setProperty("--flight-shift", (mix * -18).toFixed(4));
+      stage.style.setProperty("--flight-bank", `${arc * 8}deg`);
+      // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
       const starX = starStops[0] + (starStops[starStops.length - 1] - starStops[0]) * progress;
       comet.style.setProperty("--comet-x", `${starX.toFixed(2)}px`);
@@ -94,6 +113,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the Work island" : `Scroll to the ${worlds[current + 1].title} island`);
         next.dataset.last = String(current === scenes.length - 1);
       }
+      if (cameraProgress !== progress) schedule();
     };
 
     const schedule = () => {
@@ -161,6 +181,23 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <div className={styles.galaxy} aria-hidden="true" />
         <div className={styles.stars} aria-hidden="true" />
         <div className={styles.vignette} aria-hidden="true" />
+        <div className={styles.flightStars} data-flight-stars aria-hidden="true">
+          <svg viewBox="0 0 1200 800" preserveAspectRatio="none" fill="none">
+            <defs>
+              <linearGradient id="island-flight-trail" x1="0" x2="1" y1="0" y2="0">
+                <stop stopColor="#b8d2ff" stopOpacity="0" />
+                <stop offset="0.82" stopColor="#cce0ff" stopOpacity="0.6" />
+                <stop offset="1" stopColor="#fff1d7" />
+              </linearGradient>
+            </defs>
+            <g stroke="url(#island-flight-trail)" strokeWidth="1.2" strokeLinecap="round">
+              <path d="M40 108h170M360 166h90M840 70h240M1050 238h110M120 298h140M630 260h210M350 425h160M920 466h250M30 572h230M570 624h110M790 730h270M310 752h90" />
+            </g>
+            <g stroke="#d6e4ff" strokeWidth="1" opacity="0.35">
+              <path d="M260 56h42M630 120h28M80 216h34M510 326h60M990 346h32M200 468h44M740 534h55M1090 648h30M430 680h45" />
+            </g>
+          </svg>
+        </div>
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label="Scroll to the Writing island">

@@ -126,7 +126,28 @@ test("reduced motion enters an island without zooming", async ({ page }) => {
   await expect(page.locator("main h1")).toHaveText("Projects");
 });
 
-test("reduced motion replaces dissolves with still cuts and updates live", async ({ page }) => {
+test("islands travel through the scene as solid objects and scrolling reverses the flight", async ({ page }) => {
+  await page.goto("/2.0");
+  const work = page.locator("#work [data-scene-art]");
+  await expect(work).toBeVisible();
+  const start = await work.boundingBox();
+  await scrollScreens(page, 0.74);
+  await expectScene(page, "writing");
+  await expect(page.locator("#work")).toHaveCSS("opacity", "1");
+  await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
+  await expect.poll(async () => {
+    const rect = await work.boundingBox();
+    return rect!.x + rect!.width / 2;
+  }).toBeLessThan(start!.x + start!.width / 2 - page.viewportSize()!.width * 0.4);
+  await expect.poll(() => page.locator("[data-flight-stars]").evaluate((stars) => Number(getComputedStyle(stars).opacity))).toBeGreaterThan(0.4);
+
+  await scrollScreens(page, 0);
+  await expectScene(page, "work");
+  await expect.poll(async () => (await work.boundingBox())!.x).toBeCloseTo(start!.x, 0);
+  await expect(page.locator("[data-flight-stars]")).toHaveCSS("opacity", "0");
+});
+
+test("reduced motion replaces camera travel with still cuts and updates live", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0");
   await scrollScreens(page, 0.74);
@@ -134,11 +155,14 @@ test("reduced motion replaces dissolves with still cuts and updates live", async
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
   await expect(page.locator("#writing [data-scene-art]")).toHaveCSS("transform", "none");
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect.poll(() => page.locator("#writing").evaluate((scene) => Number(getComputedStyle(scene).opacity))).toBeLessThan(0.9);
-  await expect.poll(() => page.locator("#work").evaluate((scene) => Number(getComputedStyle(scene).opacity))).toBeGreaterThan(0.1);
+  await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
+  await expect(page.locator("#work")).toHaveCSS("opacity", "1");
+  await expect(page.locator("#writing [data-scene-art]")).not.toHaveCSS("transform", "none");
+  await expect(page.locator("[data-flight-stars]")).toBeVisible();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
   await expect(page.locator("#work")).toHaveCSS("opacity", "0");
+  await expect(page.locator("[data-flight-stars]")).toBeHidden();
 });
 
 test("resize preserves the current island and compact viewports stay usable", async ({ page }, testInfo) => {

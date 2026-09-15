@@ -2,6 +2,9 @@
 .track { position: relative; height: 400svh; }
 .stage {
   --camera-progress: 0;
+  --flight: 0;
+  --flight-shift: 0;
+  --flight-bank: 8deg;
   position: sticky;
   top: 0;
   width: 100%;
@@ -12,10 +15,10 @@
 }
 .galaxy, .stars, .vignette { position: absolute; inset: 0; pointer-events: none; }
 .galaxy {
-  inset: -4%;
+  inset: -12%;
   background: image-set(url("/cosmic-hero-desktop.webp") 1x, url("/cosmic-hero-desktop-2x.webp") 2x) 48% 36% / cover no-repeat;
   opacity: 0.65;
-  transform: translate3d(calc(var(--camera-progress) * -2%), 0, 0) scale(calc(1.03 + var(--camera-progress) * 0.08));
+  transform: translate3d(calc(var(--camera-progress) * -8%), calc(var(--camera-progress) * 3%), 0) scale(calc(1.06 + var(--camera-progress) * 0.1));
   will-change: transform;
 }
 .stars {
@@ -25,8 +28,10 @@
     radial-gradient(circle at 70% 60%, #bcd5ffb3 0 0.8px, transparent 1.5px);
   background-size: 179px 197px, 313px 269px;
   opacity: 0.5;
-  transform: translate3d(calc(var(--camera-progress) * -3%), calc(var(--camera-progress) * -2%), 0);
+  transform: translate3d(calc(var(--camera-progress) * -12%), calc(var(--camera-progress) * -4%), 0);
 }
+.flightStars { position: absolute; inset: -15% -25%; overflow: hidden; pointer-events: none; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--flight-shift) * 1%), 0, 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
+.flightStars svg { width: 100%; height: 100%; }
 .vignette {
   background:
     linear-gradient(90deg, #03061180, transparent 75%),
@@ -108,6 +113,7 @@
   font-style: italic;
   line-height: 1.5;
   white-space: nowrap;
+  opacity: var(--cue-opacity, 1);
   text-shadow: 0 2px 12px #030611;
   transform: rotate(-5deg);
   transition: color 200ms ease;
@@ -143,6 +149,7 @@
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy,
 .stage[data-entering] .stars { animation: entry-space 900ms ease-in forwards; }
+.stage[data-entering] .flightStars { opacity: 0; }
 .stage[data-entering] .island { transition: none; will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }
 @keyframes entry-space { to { opacity: 0; transform: scale(1.4); } }
@@ -295,6 +302,7 @@
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .flightStars { display: none; }
   .galaxy, .stars { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .islandCue { transition: none; }
