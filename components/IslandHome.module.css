@@ -1,0 +1,305 @@
+.home { color: var(--cw-paper); background: #030611; }
+.track { position: relative; height: 400svh; }
+.stage {
+  --camera-progress: 0;
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: clip;
+  isolation: isolate;
+}
+.galaxy, .stars, .vignette { position: absolute; inset: 0; pointer-events: none; }
+.galaxy {
+  inset: -4%;
+  background: image-set(url("/cosmic-hero-desktop.webp") 1x, url("/cosmic-hero-desktop-2x.webp") 2x) 48% 36% / cover no-repeat;
+  opacity: 0.65;
+  transform: translate3d(calc(var(--camera-progress) * -2%), 0, 0) scale(calc(1.03 + var(--camera-progress) * 0.08));
+  will-change: transform;
+}
+.stars {
+  inset: -4%;
+  background-image:
+    radial-gradient(circle at 20% 30%, #fff9 0 0.6px, transparent 1.2px),
+    radial-gradient(circle at 70% 60%, #bcd5ffb3 0 0.8px, transparent 1.5px);
+  background-size: 179px 197px, 313px 269px;
+  opacity: 0.5;
+  transform: translate3d(calc(var(--camera-progress) * -3%), calc(var(--camera-progress) * -2%), 0);
+}
+.vignette {
+  background:
+    linear-gradient(90deg, #03061180, transparent 75%),
+    linear-gradient(0deg, #030611 0%, transparent 24%, transparent 80%, #03061166),
+    radial-gradient(ellipse at 64% 47%, transparent 25%, #03061177 100%);
+}
+.scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  padding: 6rem var(--page-x) 8rem;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: opacity;
+}
+.scene:first-of-type { opacity: 1; visibility: visible; }
+.scene[data-active="true"] .description a,
+.scene[data-active="true"] .islandLink { pointer-events: auto; }
+.copy {
+  position: relative;
+  z-index: 2;
+  max-width: 33rem;
+  text-shadow: 0 2px 24px #030611;
+  will-change: transform;
+}
+.copy h1, .copy h2 {
+  margin: 0;
+  color: var(--cw-paper);
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 7.5vw, 7.5rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+.copy h1 { max-width: 6ch; }
+.description {
+  max-width: 35ch;
+  margin: 1.75rem 0 0;
+  color: #fff7eab8;
+  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+.description a { color: inherit; text-decoration-color: #fff7ea55; text-underline-offset: 0.2em; }
+.description a:hover { color: var(--cw-paper); }
+.art {
+  position: absolute;
+  top: 17%;
+  right: -3%;
+  bottom: 13%;
+  width: 70%;
+  display: grid;
+  place-items: center;
+  transform-origin: 58% 55%;
+  will-change: transform;
+}
+.art::before {
+  content: "";
+  position: absolute;
+  inset: 15% 8%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #a6bfff14, transparent 65%);
+  pointer-events: none;
+}
+.work .art::before { opacity: 0.8; }
+.writing .art::before { background: radial-gradient(ellipse, #f7b96b17, transparent 65%); }
+.projects .art::before { background: radial-gradient(ellipse, #f7b96b12, transparent 65%); }
+.islandLink { position: relative; display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.islandCue {
+  position: absolute;
+  bottom: 1.5%;
+  left: 12%;
+  color: #eddbbfc9;
+  font-family: var(--font-display);
+  font-size: clamp(0.875rem, 1.1vw, 1rem);
+  font-style: italic;
+  line-height: 1.5;
+  white-space: nowrap;
+  text-shadow: 0 2px 12px #030611;
+  transform: rotate(-5deg);
+  transition: color 200ms ease;
+}
+.islandCue svg { position: absolute; bottom: 0.15rem; left: calc(100% + 0.25rem); width: 5.5rem; height: 4.4rem; }
+.writing .islandCue { top: 20%; right: 19%; bottom: auto; left: auto; transform: rotate(6deg); }
+.writing .islandCue svg { top: 1.3rem; right: 45%; bottom: auto; left: auto; transform: rotate(180deg); }
+.projects .islandCue { right: 14%; left: auto; transform: rotate(4deg); }
+.projects .islandCue svg { right: calc(100% + 0.25rem); left: auto; transform: scaleX(-1); }
+.islandLink:hover .islandCue, .islandLink:focus-visible .islandCue { color: #fff1d7; }
+.island {
+  width: 100%;
+  height: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+  user-select: none;
+  filter: drop-shadow(0 32px 36px #0005);
+  transition: transform 450ms var(--cw-ease), filter 450ms ease;
+}
+.projects .island { width: 91%; }
+.islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
+.islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+@media (hover: hover) and (pointer: fine) {
+  .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+}
+.stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
+.stage[data-entering] { position: fixed; z-index: 60; }
+.stage[data-entering]::after { animation: entry-cover 900ms ease-in both; }
+.stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
+.stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
+.stage[data-entering] .copy,
+.stage[data-entering] .islandCue,
+.stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
+.stage[data-entering] .galaxy,
+.stage[data-entering] .stars { animation: entry-space 900ms ease-in forwards; }
+.stage[data-entering] .island { transition: none; will-change: transform; }
+@keyframes entry-copy { to { opacity: 0; } }
+@keyframes entry-space { to { opacity: 0; transform: scale(1.4); } }
+@keyframes entry-cover { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
+.controls {
+  position: absolute;
+  z-index: 5;
+  right: var(--page-x);
+  bottom: max(2.5rem, env(safe-area-inset-bottom));
+  left: var(--page-x);
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+.controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; }
+.controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; font-size: 0.75rem; }
+.scrollArrow { display: grid; place-items: center; width: 28px; height: 40px; border: 1px solid #fff7ea33; border-radius: 20px; font-size: 1rem; }
+.scrollHint[data-last="true"] .scrollArrow { transform: rotate(180deg); }
+.chapters { position: relative; display: flex; gap: 1.5rem; }
+.chapters button { position: relative; min-width: 6.5rem; min-height: 44px; text-align: center; }
+.chapterLabel { display: block; margin-bottom: 1.1rem; color: #e4e2de; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.015em; transition: color 250ms ease, text-shadow 250ms ease; }
+.chapterStar {
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #adc8e87a;
+  box-shadow: 0 0 7px #a8c9ff55;
+  transform: translate(-50%, 50%);
+}
+.shootingStar {
+  position: absolute;
+  left: var(--comet-x, 16.666%);
+  bottom: 0.35rem;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.cometTrail {
+  position: absolute;
+  right: 0;
+  top: -1px;
+  width: 4rem;
+  height: 2px;
+  opacity: 0.6;
+  transform-origin: right center;
+  transition: width 350ms ease-out, opacity 350ms ease-out;
+}
+.cometTrail::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, #7d9fff33 35%, #bddbff99 72%, #fff1ce);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  filter: drop-shadow(0 0 3px #aecfff);
+}
+.cometTrail::after {
+  content: "";
+  position: absolute;
+  inset: -3px 0;
+  background: linear-gradient(90deg, transparent 20%, #8eacff00, #bcdcff44);
+  filter: blur(3px);
+}
+.cometTrail > span {
+  position: absolute;
+  right: 25%;
+  top: -3px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ebf3ff;
+  box-shadow: 0 0 5px #8cbbff;
+  opacity: 0;
+}
+.cometTrail > span:nth-child(2) { right: 50%; top: 3px; --spark-delay: -200ms; }
+.cometTrail > span:nth-child(3) { right: 78%; top: -2px; --spark-delay: -400ms; }
+.cometHead {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  background: radial-gradient(circle, #fffdf3 0 1.5px, #ffe3adbb 2px, #a8caff44 4px, transparent 7px);
+  filter: drop-shadow(0 0 5px #c6deff99);
+  animation: comet-glimmer 3s ease-in-out infinite;
+}
+.cometHead::before,
+.cometHead::after { content: ""; position: absolute; inset: 6px 1px; background: linear-gradient(90deg, transparent, #fff9e9, transparent); }
+.cometHead::after { transform: rotate(90deg); }
+.shootingStar[data-moving="true"] .cometTrail { width: min(8rem, 25vw); opacity: 1; }
+.shootingStar[data-moving="true"] .cometTrail > span { animation: comet-spark 650ms ease-out var(--spark-delay, 0ms) infinite; }
+.shootingStar[data-direction="backward"] .cometTrail { transform: scaleX(-1); }
+.chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 14px #eacb8866; }
+@keyframes comet-glimmer { 0%, 100% { opacity: 0.8; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes comet-spark { 0% { opacity: 0; transform: translateX(4px); } 25% { opacity: 0.8; } 100% { opacity: 0; transform: translateX(-7px); } }
+.chapters button[aria-current], .controls button:hover { color: var(--cw-paper); }
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .copy { max-width: 24rem; }
+  .description { max-width: 30ch; }
+  .art { right: -7%; width: 71%; }
+}
+@media (max-width: 760px) {
+  .scene { display: block; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7rem; }
+  .galaxy { background-image: image-set(url("/cosmic-hero-mobile.webp") 1x, url("/cosmic-hero-mobile-2x.webp") 2x); background-position: center 40%; opacity: 0.55; }
+  .copy { max-width: 29rem; }
+  .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
+  .description { max-width: 37ch; margin-top: 1rem; font-size: 0.875rem; line-height: 1.65; }
+  .art { top: 43%; right: -5%; bottom: 17%; width: 110%; }
+  .island { max-height: 39dvh; }
+  .islandCue { bottom: 0; font-size: 0.8125rem; }
+  .islandCue svg { width: 4.25rem; height: 3.4rem; }
+  .controls { right: 1.5rem; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
+  .chapters { justify-content: space-between; gap: 1rem; }
+  .chapters button { flex: 1; min-width: 0; }
+  .chapterLabel { font-size: 0.8125rem; }
+  .controls .scrollHint { justify-content: center; min-height: 30px; font-size: 0.6875rem; }
+  .scrollArrow { width: auto; height: auto; border: 0; }
+}
+@media (max-height: 740px) and (max-width: 760px) {
+  .scene { padding-top: 4.5rem; }
+  .description { margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.55; }
+  .copy h1, .copy h2 { font-size: 2.75rem; }
+  .art { top: 47%; bottom: 17%; }
+  .controls { gap: 0.35rem; bottom: max(0.6rem, env(safe-area-inset-bottom)); }
+}
+@media (max-height: 600px) and (min-width: 761px) {
+  .scene { padding-top: 4.5rem; padding-bottom: 5rem; }
+  .copy h1, .copy h2 { max-width: none; font-size: 3.5rem; }
+  .description { margin-top: 1rem; font-size: 0.8125rem; line-height: 1.6; }
+  .controls { bottom: max(1rem, env(safe-area-inset-bottom)); }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .scene { display: block; padding: 3.5rem 1.5rem 4rem; }
+  .copy { max-width: 44%; }
+  .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
+  .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
+  .art { top: 15%; right: -3%; bottom: 16%; width: 59%; }
+  .island { max-height: 68dvh; }
+  .islandCue { bottom: -0.5rem; left: 10%; font-size: 0.75rem; }
+  .islandCue svg { width: 3.5rem; height: 2.8rem; }
+  .controls { right: 1.5rem; bottom: max(0.5rem, env(safe-area-inset-bottom)); left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
+  .chapters { width: 48%; gap: 0.75rem; }
+  .chapters button { flex: 1; min-width: 0; }
+  .chapterLabel { font-size: 0.75rem; }
+  .controls .scrollHint { min-height: 44px; font-size: 0.6875rem; }
+  .scrollArrow { width: auto; height: auto; border: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .galaxy, .stars { transform: none; will-change: auto; }
+  .scene, .copy, .art { will-change: auto; }
+  .island, .islandCue { transition: none; }
+  .islandLink:hover .island, .islandLink:focus-visible .island { transform: none; }
+  .cometHead { animation: none; }
+  .cometTrail { display: none; }
+  .chapterLabel { transition: none; }
+}

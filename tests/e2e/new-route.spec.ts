@@ -1,18 +1,26 @@
 import { expect, test } from "@playwright/test";
 
-test("the rooftop preview has its own route and leaves the published homepage intact", async ({ page }) => {
+test("the island and rooftop previews remain separate from the original homepage", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto("/");
   await expect(page.locator("#hero-title")).toHaveText("Carter Wang");
-  await expect(page.locator("#constellation")).toBeAttached();
+  await expect(page.locator(".cosmic-hero")).toHaveCount(1);
+  await expect(page.locator("[data-island-scene]")).toHaveCount(0);
   await expect(page.locator("#home-title")).toHaveCount(0);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com");
 
+  await page.goto("/2.0");
+  await expect(page.locator("#hero-title")).toHaveText("Carter Wang");
+  await expect(page.locator("[data-island-scene]")).toHaveCount(3);
+  await expect(page.locator(".cosmic-hero")).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com/2.0");
+
   await page.goto("/new");
   await expect(page.locator("#home-title")).toHaveText("Carter Wang");
-  await expect(page.locator("#constellation")).toHaveCount(0);
+  await expect(page.locator("[data-island-scene]")).toHaveCount(0);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com/new");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
 

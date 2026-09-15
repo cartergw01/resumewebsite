@@ -256,8 +256,8 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   const guard = consoleGuard();
   guard.attach(page);
 
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Carter Wang" })).toBeVisible();
+  await page.goto("/writing");
+  await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeVisible();
 
   await page.mouse.move(640, 360);
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
@@ -277,7 +277,7 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   await page.mouse.click(clickPoint.x, clickPoint.y);
   await page.waitForTimeout(300);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/writing");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
@@ -346,7 +346,7 @@ test("rapid repeat navigation cannot bypass or replace the active launch", async
 
   const guard = consoleGuard();
   guard.attach(page);
-  await page.goto("/");
+  await page.goto("/writing");
   await startTransitionProbe(page);
 
   const nav = page.getByLabel("Primary navigation");
@@ -363,7 +363,7 @@ test("rapid repeat navigation cannot bypass or replace the active launch", async
   );
   await page.waitForTimeout(260);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/writing");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expectReadableLaunch(page, { minMs: 480, maxMs: 900 });
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
@@ -383,7 +383,7 @@ test("a blocked main thread resumes the launch instead of stranding navigation",
 
   const guard = consoleGuard();
   guard.attach(page);
-  await page.goto("/");
+  await page.goto("/writing");
   await startTransitionProbe(page);
 
   const workLink = page.getByLabel("Primary navigation").getByRole("link", { name: "Work" });
@@ -446,8 +446,8 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   const guard = consoleGuard();
   guard.attach(page);
 
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Carter Wang" })).toBeVisible();
+  await page.goto("/writing");
+  await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeVisible();
   await expect(page.locator("body")).not.toHaveClass(/rocket-cursor-active/);
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
 
@@ -458,7 +458,7 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await workLink.tap();
   await page.waitForTimeout(260);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/writing");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
@@ -478,7 +478,7 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
 
   const guard = consoleGuard();
   guard.attach(page);
-  await page.goto("/");
+  await page.goto("/writing");
 
   const nav = page.getByLabel("Primary navigation");
   await nav.getByRole("link", { name: "Work" }).tap();
@@ -486,7 +486,7 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
   await nav.getByRole("link", { name: "Projects" }).tap();
   await page.waitForTimeout(220);
 
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/writing");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page).not.toHaveURL("/projects");
@@ -494,28 +494,21 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
   guard.expectClean();
 });
 
-test("mobile world orb first tap launches to its route", async ({ page }, testInfo) => {
+test("mobile island tap launches the rocket while entering its world", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile orb hit target is covered by mobile projects.");
 
   const guard = consoleGuard();
   guard.attach(page);
 
-  await page.goto("/#constellation");
-  await expect(page.locator(".world-card.world-work .world-orb-link")).toBeVisible();
-
-  const orb = page.locator(".world-card.world-work .world-orb-link");
-  // The document uses smooth anchor scrolling. Wait for the fragment trip to
-  // settle before capturing touch coordinates so the target cannot slide out
-  // from under a real touchscreen tap between `boundingBox` and `tap`.
-  await expect.poll(() => page.evaluate(() => window.scrollY), {
-    timeout: 3_000,
-    intervals: [100, 100, 150, 200],
-  }).toBeGreaterThan(200);
+  await page.goto("/2.0#constellation");
+  const orb = page.locator("#work [data-scene-art] a");
+  await expect(orb).toBeVisible();
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
 
   await startRocketLaunchProbe(page);
   await orb.tap();
-  await page.waitForTimeout(140);
-
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "work");
+  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
@@ -531,14 +524,14 @@ test("reduced motion skips launch and responds to preference changes after mount
   const guard = consoleGuard();
   guard.attach(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/2.0");
 
   await expect(page.locator("body")).not.toHaveClass(/rocket-cursor-active/);
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle");
 
-  await page.getByLabel("Primary navigation").getByRole("link", { name: "Work" }).click();
+  await page.getByRole("link", { name: "Enter Work island" }).click();
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
   await expectRocketEffectsCleared(page);

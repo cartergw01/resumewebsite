@@ -861,6 +861,13 @@ export function RocketCursor() {
 
     // ── Nav click → launch ────────────────────────────────────────────────────
     const onNavClick = (e: MouseEvent) => {
+      // An island camera move owns the next route until its page has mounted.
+      if (document.querySelector("[data-island-stage][data-entering]")) {
+        if (isModifiedNavigationClick(e)) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return;
+      }
       if (prefersReduced) return;
       if (isModifiedNavigationClick(e)) return;
 
@@ -878,6 +885,15 @@ export function RocketCursor() {
       if (transitionPhase !== "idle") {
         e.preventDefault();
         e.stopImmediatePropagation();
+        return;
+      }
+
+      // Launch the rocket alongside the island camera move. The island link
+      // owns navigation, so this launch supplies only the visual effect and
+      // lets the click continue to its handler without opening the route early.
+      if (link.hasAttribute("data-island-link") && internalHref) {
+        const { originX, originY } = launchOriginForClick(e, link);
+        startLaunch({ originX, originY });
         return;
       }
 

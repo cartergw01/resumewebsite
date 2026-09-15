@@ -2,6 +2,7 @@ import Link from "next/link";
 
 type SiteNavProps = {
   active?: "home" | "work" | "writing" | "projects";
+  hidePrimary?: boolean;
 };
 
 const primaryLinks = [
@@ -56,24 +57,24 @@ function externalLinkProps(href: string) {
     : {};
 }
 
-export default function SiteNav({ active = "home" }: SiteNavProps) {
+export default function SiteNav({ active = "home", hidePrimary = false }: SiteNavProps) {
   return (
     <header className="site-nav">
-      <nav aria-label="Primary navigation" className="site-nav-primary">
-        {active !== "home" && (
-          <Link href="/">Home</Link>
-        )}
-        {primaryLinks.map((link) => (
-          <Link
-            key={link.id}
-            href={link.href}
-            className={active === link.id ? "is-active" : undefined}
-            aria-current={active === link.id ? "page" : undefined}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
+      {!hidePrimary && (
+        <nav aria-label="Primary navigation" className="site-nav-primary">
+          {active !== "home" && <Link href="/">Home</Link>}
+          {primaryLinks.map((link) => (
+            <Link
+              key={link.id}
+              href={link.href}
+              className={active === link.id ? "is-active" : undefined}
+              aria-current={active === link.id ? "page" : undefined}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      )}
 
       <nav aria-label="Social links" className="site-nav-social">
         {socialLinks.map((link) => (
