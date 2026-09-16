@@ -8,7 +8,7 @@ import motionStyles from "./LivingIsland.module.css";
 
 const artwork = {
   work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v1.webp", width: 960, height: 540 },
-  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v3.webp", width: 1200, height: 800 },
+  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v4.webp", width: 1200, height: 800 },
 };
 
 export default function LivingIsland({ world }: { world: keyof typeof artwork }) {
@@ -42,7 +42,7 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
   }, []);
 
   return <>
-    <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt}>
+    <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
         <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 110vw, 68vw" priority={world === "work"} loading={world === "work" ? undefined : "eager"}
@@ -57,19 +57,20 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
             </g>
           </svg>
         ) : (
-          <svg className={motionStyles.details} viewBox="0 0 1536 1024" aria-hidden="true">
+          <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.screen} fill="#b4dcff">
-              <path d="m723 269 151 9-4 89-150-11z" />
-              <path d="m934 339 81 10-14 53-78-14z" />
+              <circle cx="677" cy="271" r="2.5" />
+              <circle cx="653" cy="268" r="1.5" />
             </g>
             <g className={motionStyles.lamp} fill="#ffd38b">
-              <ellipse cx="675" cy="290" rx="40" ry="18" />
-              <ellipse cx="657" cy="379" rx="74" ry="13" />
+              <ellipse cx="626" cy="215" rx="20" ry="7" transform="rotate(-12 626 215)" />
+              <ellipse cx="653" cy="294" rx="62" ry="12" />
             </g>
             <g className={motionStyles.bulbs} fill="#fff0c6">
-              <ellipse cx="580" cy="149" rx="3" ry="6" />
-              <ellipse cx="780" cy="144" rx="3" ry="6" />
-              <ellipse cx="1013" cy="178" rx="3" ry="6" />
+              <ellipse cx="421" cy="98" rx="3" ry="6" />
+              <ellipse cx="596" cy="95" rx="3" ry="6" />
+              <ellipse cx="794" cy="123" rx="3" ry="6" />
+              <ellipse cx="910" cy="160" rx="3" ry="6" />
             </g>
           </svg>
         )}

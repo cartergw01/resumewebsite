@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 
-export default function IslandLink({ href, title, prompt, children }: { href: string; title: string; prompt: string; children: ReactNode }) {
+export default function IslandLink({ href, title, prompt, children, workshop = false }: { href: string; title: string; prompt: string; children: ReactNode; workshop?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -68,14 +68,15 @@ export default function IslandLink({ href, title, prompt, children }: { href: st
       href={href}
       className={styles.islandLink}
       data-island-link
+      data-workshop={workshop || undefined}
       aria-label={`${prompt}. Enter ${title} island`}
       onClick={enter}
     >
       {children}
-      <span className={styles.islandCue}>
+      <span className={workshop ? styles.workshopCue : styles.islandCue}>
         <span>{prompt}</span>
-        <svg viewBox="0 0 100 80" fill="none" aria-hidden="true">
-          <path d="M4 69C39 77 85 49 81 9M70 18L81 9L88 23" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+        <svg viewBox={workshop ? "0 0 1200 800" : "0 0 100 80"} fill="none" aria-hidden="true">
+          <path d={workshop ? "M915 735C1190 700 1200 340 718 286M736 274L718 286L734 304" : "M4 69C39 77 85 49 81 9M70 18L81 9L88 23"} stroke="currentColor" strokeWidth="1.35" vectorEffect={workshop ? "non-scaling-stroke" : undefined} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>

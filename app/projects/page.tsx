@@ -39,7 +39,7 @@ export default function ProjectsPage() {
             <p>fun projects i made.</p>
           </div>
           <div className={worldStyles.art} aria-hidden="true">
-            <Image src="/world-projects-workshop-v3.webp" alt="" width={1200} height={800} priority sizes="(max-width: 760px) 100vw, 650px" unoptimized />
+            <Image src="/world-projects-workshop-v4.webp" alt="" width={1200} height={800} priority sizes="(max-width: 760px) 100vw, 650px" unoptimized />
           </div>
         </header>
 

@@ -122,8 +122,26 @@
 .islandCue svg { position: absolute; bottom: 0.15rem; left: calc(100% + 0.25rem); width: 5.5rem; height: 4.4rem; filter: drop-shadow(0 1px 2px #030611); }
 .writing .islandCue { top: 20%; right: 19%; bottom: auto; left: auto; transform: rotate(6deg); }
 .writing .islandCue svg { top: 1.3rem; right: 45%; bottom: auto; left: auto; transform: rotate(180deg); }
-.projects .islandCue { right: 14%; left: auto; transform: rotate(4deg); }
-.projects .islandCue svg { right: calc(100% + 0.25rem); left: auto; transform: scaleX(-1); }
+.islandLink[data-workshop] { container-type: size; }
+/* Match the contained 3:2 image so the arrow stays on the workbench. */
+.workshopCue {
+  position: absolute;
+  width: min(91cqw, 150cqh);
+  height: min(60.6667cqw, 100cqh);
+  color: #f4dfc2;
+  font-family: var(--font-display);
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.5;
+  opacity: var(--cue-opacity, 1);
+  pointer-events: none;
+  text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
+  transition: color 200ms ease, transform 450ms var(--cw-ease);
+}
+.workshopCue > span { position: absolute; right: 19%; bottom: 0; white-space: nowrap; transform: rotate(4deg); }
+.workshopCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
+.islandLink:hover .workshopCue, .islandLink:focus-visible .workshopCue { color: #fff1d7; }
 .islandLink:hover .islandCue, .islandLink:focus-visible .islandCue { color: #fff1d7; }
 .island {
   width: 100%;
@@ -134,7 +152,7 @@
   filter: drop-shadow(0 32px 36px #0005);
   transition: transform 450ms var(--cw-ease), filter 450ms ease;
 }
-.projects .island { width: 91%; }
+.projects .island { width: 91%; max-height: 100%; }
 .writingMedia { position: relative; display: block; }
 .writingPoster, .writingVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .writingVideo { opacity: 0; }
@@ -142,8 +160,10 @@
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
 .islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+.islandLink:focus-visible .workshopCue { transform: translateY(-7px) scale(1.025); }
 @media (hover: hover) and (pointer: fine) {
   .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+  .islandLink:hover .workshopCue { transform: translateY(-7px) scale(1.025); }
 }
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
@@ -152,6 +172,7 @@
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
 .stage[data-entering] .islandCue,
+.stage[data-entering] .workshopCue,
 .stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy { animation: entry-space 900ms ease-in forwards; }
@@ -271,6 +292,7 @@
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 45dvh; min-height: 0; margin-inline: -3rem; }
   .island { max-height: 45dvh; }
   .islandCue { bottom: 0; font-size: 1rem; }
+  .workshopCue { font-size: 1rem; }
   .islandCue svg { width: 4.25rem; height: 3.4rem; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
@@ -302,6 +324,7 @@
   .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .island { max-height: 68dvh; }
   .islandCue { bottom: -0.5rem; left: 10%; font-size: 0.75rem; }
+  .workshopCue { font-size: 0.75rem; }
   .islandCue svg { width: 3.5rem; height: 2.8rem; }
   .stage > .galaxyToggle { left: 0.75rem; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
@@ -315,8 +338,9 @@
   .flightStars { display: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
-  .island, .islandCue { transition: none; }
-  .islandLink:hover .island, .islandLink:focus-visible .island { transform: none; }
+  .island, .islandCue, .workshopCue { transition: none; }
+  .islandLink:hover .island, .islandLink:focus-visible .island,
+  .islandLink:hover .workshopCue, .islandLink:focus-visible .workshopCue { transform: none; }
   .cometHead { animation: none; }
   .cometTrail { display: none; }
   .chapterLabel { transition: none; }

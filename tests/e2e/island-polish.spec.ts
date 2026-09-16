@@ -42,7 +42,7 @@ test("each subpage returns to its island and Projects shares the video and works
       await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
       const art = page.locator(".projects-hero img");
       await expect.poll(() => art.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-      await expect(art).toHaveAttribute("src", "/world-projects-workshop-v3.webp");
+      await expect(art).toHaveAttribute("src", "/world-projects-workshop-v4.webp");
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
     await back.click();
@@ -73,7 +73,7 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
         expect(art!.y - (copy!.y + copy!.height)).toBeGreaterThanOrEqual(0);
         expect(art!.y - (copy!.y + copy!.height)).toBeLessThan(24);
       }
-      const cue = scene.locator("[data-island-link] > span:last-child");
+      const cue = scene.locator("[data-island-link] > span:last-child > span");
       // Rotated annotations produce fractional IntersectionObserver rounding.
       await expect(cue).toBeInViewport({ ratio: 0.999 });
       const cueBounds = await cue.boundingBox();
