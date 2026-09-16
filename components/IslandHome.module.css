@@ -13,30 +13,17 @@
   overflow: clip;
   isolation: isolate;
 }
-.galaxySpace, .galaxy, .stars, .vignette { position: absolute; inset: 0; pointer-events: none; }
+.galaxySpace, .galaxy, .vignette { position: absolute; inset: 0; pointer-events: none; }
 .galaxy {
   inset: -4%;
   transform: translate3d(calc(var(--camera-progress) * -3%), calc(var(--camera-progress) * 1.5%), 0) scale(calc(1.02 + var(--camera-progress) * 0.035));
   will-change: transform;
 }
-.galaxyImage { position: absolute; inset: 0; display: block; animation: galaxy-drift 36s ease-in-out infinite alternate; }
-.galaxyImage img { width: 100%; height: 100%; object-fit: cover; object-position: center; user-select: none; }
-@keyframes galaxy-drift {
-  from { transform: translate3d(0.5%, -0.4%, 0) scale(1.025) rotate(0.15deg); }
-  to { transform: translate3d(-1.2%, 0.7%, 0) scale(1.045) rotate(-0.2deg); }
-}
-.stars {
-  inset: -5%;
-  transform: translate3d(calc(var(--camera-progress) * -8%), calc(var(--camera-progress) * -3%), 0);
-}
-.ambientStar { position: absolute; border-radius: 50%; color: #e2eeff; background: currentColor; box-shadow: 0 0 5px #c4ddff80; opacity: 0.45; animation: star-breathe var(--glimmer-duration) ease-in-out var(--glimmer-delay) infinite; }
-.ambientStar:nth-child(9)::before, .ambientStar:nth-child(9)::after { content: ""; position: absolute; left: -3px; top: 0.5px; width: 8px; height: 1px; background: linear-gradient(90deg, transparent, #e2eeffb3, transparent); }
-.ambientStar:nth-child(9)::after { transform: rotate(90deg); }
-@keyframes star-breathe { 0%, 100% { opacity: 0.25; } 50% { opacity: 0.85; } }
-.galaxySpace[data-ambient-paused="true"] .galaxyImage,
-.galaxySpace[data-ambient-paused="true"] .ambientStar,
-.stage[data-entering] .galaxyImage,
-.stage[data-entering] .ambientStar { animation-play-state: paused; }
+.starfieldMedia, .starfieldPoster, .starfieldVideo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.starfieldPoster img, .starfieldVideo { width: 100%; height: 100%; object-fit: cover; object-position: center; user-select: none; }
+.starfieldVideo { opacity: 0; }
+.starfieldMedia[data-video-ready="true"] .starfieldVideo { opacity: 1; }
+.starfieldMedia[data-video-ready="true"] .starfieldPoster { opacity: 0; }
 .galaxyToggle { position: absolute; z-index: 6; top: 1.25rem; left: calc(var(--page-x) - 12px); display: grid; place-items: center; width: 44px; height: 44px; padding: 12px; border: 0; border-radius: 50%; color: #eddbbf8c; background: transparent; cursor: pointer; }
 .galaxyToggle svg { width: 20px; height: 20px; }
 .galaxyToggle:hover, .galaxyToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
@@ -169,8 +156,7 @@
 .stage[data-entering] .motionToggle,
 .stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy,
-.stage[data-entering] .stars { animation: entry-space 900ms ease-in forwards; }
+.stage[data-entering] .galaxy { animation: entry-space 900ms ease-in forwards; }
 .stage[data-entering] .flightStars { opacity: 0; }
 .stage[data-entering] .island { transition: none; will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }
@@ -325,9 +311,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .flightStars { display: none; }
-  .galaxy, .stars { transform: none; will-change: auto; }
-  .galaxyImage, .ambientStar { animation: none; }
-  .galaxyToggle { display: none; }
+  .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .islandCue { transition: none; }
   .islandLink:hover .island, .islandLink:focus-visible .island { transform: none; }

@@ -1,50 +1,100 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./IslandHome.module.css";
 
-// Sparse foreground stars move independently from the distant starfield.
-const stars = [
-  [7, 17, 1, 11], [16, 70, 1, 14], [24, 9, 1.5, 9], [32, 34, 1, 13],
-  [43, 15, 1, 12], [52, 77, 1.5, 15], [61, 8, 1, 10], [69, 48, 1, 16],
-  [77, 17, 2, 13], [88, 37, 1, 11], [94, 68, 1.5, 14], [36, 88, 1, 12],
-  [12, 43, 1, 16], [57, 41, 1, 14], [82, 83, 1, 10], [92, 10, 1, 15],
-];
-
 export default function GalaxyBackground() {
-  const [paused, setPaused] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const intentRef = useRef<"auto" | "play" | "pause">("auto");
+  const syncRef = useRef<() => void>(() => {});
+  const [ready, setReady] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    const sync = () => setHidden(document.hidden);
+    const video = videoRef.current;
+    const stage = video?.closest<HTMLElement>("[data-island-stage]");
+    if (!video || !stage) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const portrait = window.matchMedia("(max-aspect-ratio: 1/1)");
+    const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    let disposed = false;
+    let attempting = false;
+    let generation = 0;
+    const prefersStill = () => intentRef.current === "auto" && (motion.matches || Boolean(connection?.saveData));
+    const shouldPlay = () => intentRef.current !== "pause" && !prefersStill() && !document.hidden && !stage.dataset.entering;
+    const sync = () => {
+      if (!shouldPlay()) {
+        video.pause();
+        if (prefersStill()) setReady(false);
+        return;
+      }
+      const source = `/starfield-loop-${portrait.matches ? "mobile" : "desktop"}-v1.mp4`;
+      if (video.getAttribute("src") !== source) {
+        setReady(false);
+        generation++;
+        attempting = false;
+        video.src = source;
+        video.load();
+      }
+      if (attempting || !video.paused) return;
+      attempting = true;
+      const attempt = ++generation;
+      video.muted = true;
+      void video.play().then(() => {
+        if (disposed || !shouldPlay()) video.pause();
+      }).catch(() => {
+        // Keep the poster and Play control if browser autoplay is blocked.
+      }).finally(() => { if (attempt === generation) attempting = false; });
+    };
+    syncRef.current = sync;
+    const observer = new MutationObserver(sync);
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
+    motion.addEventListener("change", sync);
+    portrait.addEventListener("change", sync);
+    connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     sync();
-    return () => document.removeEventListener("visibilitychange", sync);
+    return () => {
+      disposed = true;
+      observer.disconnect();
+      motion.removeEventListener("change", sync);
+      portrait.removeEventListener("change", sync);
+      connection?.removeEventListener("change", sync);
+      document.removeEventListener("visibilitychange", sync);
+      syncRef.current = () => {};
+      video.pause();
+    };
   }, []);
 
   return (
     <>
-      <div className={styles.galaxySpace} data-galaxy-background data-ambient-paused={paused || hidden} aria-hidden="true">
+      <div className={styles.galaxySpace} data-galaxy-background data-ambient-paused={!playing} aria-hidden="true">
         <div className={styles.galaxy} data-galaxy-camera>
-          <picture className={styles.galaxyImage} data-galaxy-image>
-            <img src="/starfield-simple-v1.webp" alt="" decoding="async" fetchPriority="high" draggable={false} />
-          </picture>
-        </div>
-        <div className={styles.stars}>
-          {stars.map(([x, y, size, duration], index) => (
-            <span
-              key={index} className={styles.ambientStar} data-ambient-star
-              style={{ left: `${x}%`, top: `${y}%`, width: size, height: size, "--glimmer-duration": `${duration}s`, "--glimmer-delay": `${-index * 1.7}s` } as CSSProperties}
+          <div className={styles.starfieldMedia} data-background-visual data-video-ready={ready}>
+            <picture className={styles.starfieldPoster}>
+              <source media="(max-aspect-ratio: 1/1)" srcSet="/starfield-loop-mobile-poster-v1.webp" />
+              <img src="/starfield-loop-desktop-poster-v1.webp" alt="" decoding="async" fetchPriority="high" draggable={false} />
+            </picture>
+            <video
+              ref={videoRef} className={styles.starfieldVideo} data-background-video
+              autoPlay muted loop playsInline preload="none" disablePictureInPicture tabIndex={-1}
+              onPlaying={() => { setReady(true); setPlaying(true); }}
+              onPause={() => setPlaying(false)}
+              onError={() => { setReady(false); setPlaying(false); }}
             />
-          ))}
+          </div>
         </div>
       </div>
       <button
-        type="button" className={styles.galaxyToggle} aria-label={`${paused ? "Play" : "Pause"} background animation`}
-        title={`${paused ? "Play" : "Pause"} background animation`} onClick={() => setPaused(!paused)}
+        type="button" className={styles.galaxyToggle} aria-label={`${playing ? "Pause" : "Play"} background video`}
+        title={`${playing ? "Pause" : "Play"} background video`}
+        onClick={() => {
+          intentRef.current = playing ? "pause" : "play";
+          syncRef.current();
+        }}
       >
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          {paused ? <path d="m7 4 9 6-9 6V4Z" fill="currentColor" /> : <path d="M7 5v10M13 5v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />}
+          {playing ? <path d="M7 5v10M13 5v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /> : <path d="m7 4 9 6-9 6V4Z" fill="currentColor" />}
         </svg>
       </button>
     </>
