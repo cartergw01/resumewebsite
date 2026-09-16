@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import IslandLink from "./IslandLink";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
@@ -13,8 +13,6 @@ const artwork = {
 
 export default function LivingIsland({ world }: { world: keyof typeof artwork }) {
   const visualRef = useRef<HTMLSpanElement>(null);
-  const [paused, setPaused] = useState(false);
-  const [available, setAvailable] = useState(false);
   const island = artwork[world];
 
   useEffect(() => {
@@ -26,12 +24,11 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const sync = () => {
       const allowed = !motion.matches && !connection?.saveData;
-      setAvailable(allowed);
-      visual.dataset.motionRunning = String(allowed && !paused && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
+      visual.dataset.motionRunning = String(allowed && stage.dataset.ambientPaused !== "true" && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-ambient-paused"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -42,7 +39,7 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
-  }, [paused]);
+  }, []);
 
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt}>
@@ -78,11 +75,5 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
         )}
       </span>
     </IslandLink>
-    {available && <button type="button" className={styles.motionToggle} onClick={() => setPaused(!paused)}
-      aria-label={`${paused ? "Play" : "Pause"} ${world} island animation`} title={`${paused ? "Play" : "Pause"} island animation`}>
-      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-        {paused ? <path d="m7 4 9 6-9 6V4Z" fill="currentColor" /> : <path d="M7 5v10M13 5v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />}
-      </svg>
-    </button>}
   </>;
 }

@@ -8,7 +8,6 @@ import styles from "./IslandHome.module.css";
 export default function WritingIsland() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [still, setStill] = useState(true);
 
   useEffect(() => {
@@ -20,7 +19,7 @@ export default function WritingIsland() {
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     let disposed = false;
     let attempting = false;
-    const shouldPlay = () => !motion.matches && !connection?.saveData && !paused
+    const shouldPlay = () => !motion.matches && !connection?.saveData && stage.dataset.ambientPaused !== "true"
       && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
     const sync = () => {
       setStill(motion.matches || Boolean(connection?.saveData));
@@ -38,7 +37,7 @@ export default function WritingIsland() {
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-ambient-paused"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -51,7 +50,7 @@ export default function WritingIsland() {
       document.removeEventListener("visibilitychange", sync);
       video.pause();
     };
-  }, [paused]);
+  }, []);
 
   return (
     <>
@@ -72,17 +71,6 @@ export default function WritingIsland() {
           </video>
         </span>
       </IslandLink>
-      {ready && !still && (
-        <button
-          type="button" className={styles.motionToggle} onClick={() => setPaused(!paused)}
-          aria-label={`${paused ? "Play" : "Pause"} writing island animation`}
-          title={`${paused ? "Play" : "Pause"} animation`}
-        >
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            {paused ? <path d="m7 4 9 6-9 6V4Z" fill="currentColor" /> : <path d="M7 5v10M13 5v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />}
-          </svg>
-        </button>
-      )}
     </>
   );
 }

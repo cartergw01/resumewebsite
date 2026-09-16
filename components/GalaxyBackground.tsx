@@ -23,6 +23,7 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
     const prefersStill = () => intentRef.current === "auto" && (motion.matches || Boolean(connection?.saveData));
     const shouldPlay = () => intentRef.current !== "pause" && !prefersStill() && !document.hidden && !stage.dataset.entering;
     const sync = () => {
+      stage.dataset.ambientPaused = String(intentRef.current === "pause");
       if (!shouldPlay()) {
         video.pause();
         if (prefersStill()) setReady(false);

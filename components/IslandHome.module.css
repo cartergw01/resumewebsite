@@ -139,11 +139,6 @@
 .writingVideo { opacity: 0; }
 .writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
-.motionToggle { position: absolute; right: 15%; bottom: 4%; display: grid; place-items: center; width: 44px; height: 44px; padding: 12px; border: 0; border-radius: 50%; color: #eddbbfa6; background: transparent; cursor: pointer; opacity: var(--cue-opacity, 1); }
-.motionToggle svg { width: 20px; height: 20px; }
-.motionToggle:hover, .motionToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
-.motionToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
-.scene[data-active="true"] .motionToggle { pointer-events: auto; }
 .islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 @media (hover: hover) and (pointer: fine) {
@@ -156,7 +151,6 @@
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
 .stage[data-entering] .islandCue,
-.stage[data-entering] .motionToggle,
 .stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy { animation: entry-space 900ms ease-in forwards; }
