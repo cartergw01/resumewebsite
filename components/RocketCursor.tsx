@@ -689,11 +689,15 @@ export function RocketCursor() {
             }
 
             routerRef.current.push(href, { scroll: false });
-            requestAnimationFrame(() => {
+            // Hash destinations own their scroll position (including the
+            // island return links). A delayed reset would overwrite arrival.
+            if (!new URL(href, window.location.href).hash) {
               requestAnimationFrame(() => {
-                window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                requestAnimationFrame(() => {
+                  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+                });
               });
-            });
+            }
           }
         } else {
           setTransitionPhase("idle");
@@ -1337,7 +1341,7 @@ export function RocketCursor() {
       ) return;
 
       pendingArrivalPath = null;
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      if (!window.location.hash) window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 
       if (prefersReduced || !cursorEnabled) {
         setTransitionPhase("idle");

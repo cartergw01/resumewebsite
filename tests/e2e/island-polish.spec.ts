@@ -47,6 +47,10 @@ test("each subpage returns to its island and Projects shares the video and works
     await back.click();
     await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
+    await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
+    // Check after the rocket's arrival too; its delayed reset used to erase
+    // the correct island position on a fast production route transition.
+    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(world === "work" ? 0 : world === "writing" ? 0.5 : 1, 3);
     await expect(page.locator(`#${world} [data-island-link]`)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
