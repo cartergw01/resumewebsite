@@ -5,6 +5,7 @@
   --flight: 0;
   --flight-shift: 0;
   --flight-bank: 8deg;
+  --controls-bottom: max(2.5rem, env(safe-area-inset-bottom));
   position: sticky;
   top: 0;
   width: 100%;
@@ -28,6 +29,7 @@
 .galaxyToggle svg { width: 20px; height: 20px; }
 .galaxyToggle:hover, .galaxyToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
 .galaxyToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
+.stage > .galaxyToggle { top: auto; bottom: var(--controls-bottom); }
 .flightStars { position: absolute; inset: -15% -25%; overflow: hidden; pointer-events: none; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--flight-shift) * 1%), 0, 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
 .flightStars svg { width: 100%; height: 100%; }
 .vignette {
@@ -167,7 +169,7 @@
   position: absolute;
   z-index: 5;
   right: var(--page-x);
-  bottom: max(2.5rem, env(safe-area-inset-bottom));
+  bottom: var(--controls-bottom);
   left: var(--page-x);
   display: flex;
   align-items: end;
@@ -175,7 +177,7 @@
   gap: 2rem;
 }
 .controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; }
-.controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; font-size: 0.75rem; }
+.controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; margin-left: 3.25rem; font-size: 0.75rem; }
 .scrollArrow { display: grid; place-items: center; width: 28px; height: 40px; border: 1px solid #fff7ea33; border-radius: 20px; font-size: 1rem; }
 .scrollHint[data-last="true"] .scrollArrow { transform: rotate(180deg); }
 .chapters { position: relative; display: flex; gap: 1.5rem; }
@@ -265,6 +267,7 @@
   .art { right: -7%; width: 71%; }
 }
 @media (max-width: 760px) {
+  .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 8.5rem; }
   .galaxyToggle { top: 0.35rem; left: 0.75rem; }
   .copy { max-width: 29rem; }
@@ -274,27 +277,29 @@
   .island { max-height: 45dvh; }
   .islandCue { bottom: 0; font-size: 1rem; }
   .islandCue svg { width: 4.25rem; height: 3.4rem; }
-  .controls { right: 1.5rem; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
+  .controls { right: 1.5rem; left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
-  .controls .scrollHint { justify-content: center; min-height: 30px; font-size: 0.6875rem; }
+  .controls .scrollHint { justify-content: center; margin-inline: 44px; font-size: 0.6875rem; }
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (max-height: 740px) and (max-width: 760px) {
+  .stage { --controls-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
   .copy h1, .copy h2 { font-size: 2.75rem; }
   .art { max-height: 42dvh; }
-  .controls { gap: 0.35rem; bottom: max(0.6rem, env(safe-area-inset-bottom)); }
+  .controls { gap: 0.35rem; }
 }
 @media (max-height: 600px) and (min-width: 761px) {
+  .stage { --controls-bottom: max(1rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; padding-bottom: 5rem; }
   .copy h1, .copy h2 { max-width: none; font-size: 3.5rem; }
   .description { margin-top: 1rem; font-size: 0.8125rem; line-height: 1.6; }
-  .controls { bottom: max(1rem, env(safe-area-inset-bottom)); }
 }
 @media (max-height: 500px) and (orientation: landscape) {
+  .stage { --controls-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
   .scene { display: block; padding: 3.5rem 1.5rem 4rem; }
   .copy { max-width: 44%; }
   .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
@@ -303,11 +308,12 @@
   .island { max-height: 68dvh; }
   .islandCue { bottom: -0.5rem; left: 10%; font-size: 0.75rem; }
   .islandCue svg { width: 3.5rem; height: 2.8rem; }
-  .controls { right: 1.5rem; bottom: max(0.5rem, env(safe-area-inset-bottom)); left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
+  .stage > .galaxyToggle { left: 0.75rem; }
+  .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 48%; gap: 0.75rem; }
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.75rem; }
-  .controls .scrollHint { min-height: 44px; font-size: 0.6875rem; }
+  .controls .scrollHint { margin-left: 3.25rem; margin-right: 0; font-size: 0.6875rem; }
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
