@@ -1,4 +1,5 @@
 .home { color: var(--cw-paper); background: #030611; }
+.home :global(.site-nav-social svg) { width: 18px; height: 18px; }
 .track { position: relative; height: 400svh; }
 .stage {
   --camera-progress: 0;
