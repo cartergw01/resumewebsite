@@ -70,9 +70,9 @@
 .description {
   max-width: 35ch;
   margin: 1.75rem 0 0;
-  color: #fff7eab8;
-  font-size: clamp(0.9375rem, 1.1vw, 1.0625rem);
-  line-height: 1.75;
+  color: #fff7ead9;
+  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  line-height: 1.7;
   text-wrap: pretty;
 }
 .description a { color: inherit; text-decoration-color: #fff7ea55; text-underline-offset: 0.2em; }
@@ -104,9 +104,10 @@
   position: absolute;
   bottom: 1.5%;
   left: 12%;
-  color: #eddbbfc9;
+  color: #f4dfc2;
   font-family: var(--font-display);
-  font-size: clamp(0.875rem, 1.1vw, 1rem);
+  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  font-weight: 500;
   font-style: italic;
   line-height: 1.5;
   white-space: nowrap;
@@ -264,14 +265,14 @@
   .art { right: -7%; width: 71%; }
 }
 @media (max-width: 760px) {
-  .scene { display: block; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7rem; }
+  .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 8.5rem; }
   .galaxyToggle { top: 0.35rem; left: 0.75rem; }
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
-  .description { max-width: 37ch; margin-top: 1rem; font-size: 0.875rem; line-height: 1.65; }
-  .art { top: 43%; right: -5%; bottom: 17%; width: 110%; }
-  .island { max-height: 39dvh; }
-  .islandCue { bottom: 0; font-size: 0.8125rem; }
+  .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 45dvh; min-height: 0; margin-inline: -3rem; }
+  .island { max-height: 45dvh; }
+  .islandCue { bottom: 0; font-size: 1rem; }
   .islandCue svg { width: 4.25rem; height: 3.4rem; }
   .controls { right: 1.5rem; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
@@ -282,9 +283,9 @@
 }
 @media (max-height: 740px) and (max-width: 760px) {
   .scene { padding-top: 4.5rem; }
-  .description { margin-top: 0.75rem; font-size: 0.8125rem; line-height: 1.55; }
+  .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
   .copy h1, .copy h2 { font-size: 2.75rem; }
-  .art { top: 47%; bottom: 17%; }
+  .art { max-height: 42dvh; }
   .controls { gap: 0.35rem; bottom: max(0.6rem, env(safe-area-inset-bottom)); }
 }
 @media (max-height: 600px) and (min-width: 761px) {
@@ -298,7 +299,7 @@
   .copy { max-width: 44%; }
   .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
-  .art { top: 15%; right: -3%; bottom: 16%; width: 59%; }
+  .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .island { max-height: 68dvh; }
   .islandCue { bottom: -0.5rem; left: 10%; font-size: 0.75rem; }
   .islandCue svg { width: 3.5rem; height: 2.8rem; }
@@ -318,4 +319,11 @@
   .cometHead { animation: none; }
   .cometTrail { display: none; }
   .chapterLabel { transition: none; }
+}
+
+.pageGalaxy { position: fixed; z-index: 0; opacity: 0.65; }
+.pageGalaxy .galaxy { transform: none; }
+.pageGalaxyToggle { position: fixed; }
+@media (max-width: 760px) {
+  .pageGalaxyToggle { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); left: auto; right: 1rem; background: #030611cc; }
 }

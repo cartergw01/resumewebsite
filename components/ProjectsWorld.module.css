@@ -1,0 +1,19 @@
+.page.page { background: #030611; --topic-accent: 217 183 134; --topic-warm: 244 210 163; }
+.page.page::before, .page.page::after { content: none; }
+.main { width: min(1160px, calc(100% - 3rem)); }
+.hero.hero { display: grid; grid-template-columns: 0.8fr 1.2fr; align-items: center; max-width: none; min-height: 360px; margin-bottom: 2rem; gap: 2rem; }
+.heading { display: grid; justify-items: start; gap: 1rem; }
+.heading h1 { margin: 0; }
+.heading p { color: #fff7ead9; font-size: 1.0625rem; }
+.art { position: relative; aspect-ratio: 1.5; width: 100%; pointer-events: none; }
+.art img { width: 100%; height: 100%; object-fit: contain; }
+.page :global(.project-list) { border-top-color: #eddbbf30; }
+.page :global(.project-row) { border-bottom-color: #eddbbf24; }
+.page :global(.project-shot) { border-color: #eddbbf29; background: #030611; }
+.page :global(.project-row-copy > span) { color: #fff7ead1; }
+@media (max-width: 760px) {
+  .hero.hero { grid-template-columns: 1fr; min-height: 0; gap: 0.25rem; margin-bottom: 1.5rem; }
+  .heading { gap: 0.75rem; }
+  .art { width: min(100%, 480px); justify-self: center; margin-top: 0.5rem; }
+  .page :global(.project-row-copy > span) { font-size: 0.9375rem; line-height: 1.6; }
+}

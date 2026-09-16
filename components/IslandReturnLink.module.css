@@ -1,0 +1,6 @@
+.link { display: inline-flex; align-items: center; gap: 0.6rem; width: fit-content; min-height: 44px; color: #e9d5b7; font-size: 0.875rem; font-weight: 500; text-decoration: none; }
+.link span { font-size: 1.3rem; transition: transform 180ms ease; }
+.link:hover { color: #fff7ea; }
+.link:hover span { transform: translateX(-3px); }
+.link:focus-visible { outline: 1px solid #e9d5b7; outline-offset: 4px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { .link span { transition: none; } }

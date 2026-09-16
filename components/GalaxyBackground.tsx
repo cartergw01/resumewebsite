@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./IslandHome.module.css";
 
-export default function GalaxyBackground() {
+export default function GalaxyBackground({ page = false }: { page?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const intentRef = useRef<"auto" | "play" | "pause">("auto");
   const syncRef = useRef<() => void>(() => {});
@@ -12,7 +12,7 @@ export default function GalaxyBackground() {
 
   useEffect(() => {
     const video = videoRef.current;
-    const stage = video?.closest<HTMLElement>("[data-island-stage]");
+    const stage = video?.closest<HTMLElement>("[data-island-stage], [data-island-page]");
     if (!video || !stage) return;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const portrait = window.matchMedia("(max-aspect-ratio: 1/1)");
@@ -68,7 +68,7 @@ export default function GalaxyBackground() {
 
   return (
     <>
-      <div className={styles.galaxySpace} data-galaxy-background data-ambient-paused={!playing} aria-hidden="true">
+      <div className={`${styles.galaxySpace} ${page ? styles.pageGalaxy : ""}`} data-galaxy-background data-ambient-paused={!playing} aria-hidden="true">
         <div className={styles.galaxy} data-galaxy-camera>
           <div className={styles.starfieldMedia} data-background-visual data-video-ready={ready}>
             <picture className={styles.starfieldPoster}>
@@ -86,7 +86,7 @@ export default function GalaxyBackground() {
         </div>
       </div>
       <button
-        type="button" className={styles.galaxyToggle} aria-label={`${playing ? "Pause" : "Play"} background video`}
+        type="button" className={`${styles.galaxyToggle} ${page ? styles.pageGalaxyToggle : ""}`} aria-label={`${playing ? "Pause" : "Play"} background video`}
         title={`${playing ? "Pause" : "Play"} background video`}
         onClick={() => {
           intentRef.current = playing ? "pause" : "play";

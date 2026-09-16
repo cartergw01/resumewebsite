@@ -9,6 +9,7 @@ import {
   workPageSkills,
 } from "@/content/portfolio";
 import WorkAtmosphere from "@/components/WorkAtmosphere";
+import IslandReturnLink from "@/components/IslandReturnLink";
 
 type EssayPreview = {
   href: string;
@@ -93,6 +94,7 @@ export default function PortfolioHome() {
           <ScrollReveal delay={0.05} className="h-full">
             <CardShell className="portfolio-card-strong rounded-[30px] border-none shadow-none">
               <div className="flex h-full flex-col justify-start gap-2 p-4 sm:p-5">
+                <IslandReturnLink island="work" />
                 <AnimatedName />
                 <div className="grid gap-2 text-sm leading-[1.7] text-[var(--muted)]">
                   {workPageBio.map((paragraph) => (

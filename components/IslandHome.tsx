@@ -1,14 +1,13 @@
-import Image from "next/image";
 import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
-import IslandLink from "./IslandLink";
+import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
 import styles from "./IslandHome.module.css";
 
 const worlds = [
-  { id: "work", title: "Work", prompt: "learn about my work", image: "/world-work-cutout-v1.webp", width: 960, height: 540 },
-  { id: "writing", title: "Writing", prompt: "read my writing", image: "/world-writing-cutout-v1.webp", width: 960, height: 529 },
-  { id: "projects", title: "Projects", prompt: "see what I’ve built", image: "/world-projects-cutout-v2.webp", width: 960, height: 616 },
+  { id: "work", title: "Work" },
+  { id: "writing", title: "Writing" },
+  { id: "projects", title: "Projects" },
 ] as const;
 
 export default function IslandHome() {
@@ -47,21 +46,7 @@ export default function IslandHome() {
               )}
             </div>
             <div className={styles.art} data-scene-art>
-              {world.id === "writing" ? <WritingIsland /> : <IslandLink href={`/${world.id}`} title={world.title} prompt={world.prompt}>
-                <Image
-                  src={world.image}
-                  alt=""
-                  width={world.width}
-                  height={world.height}
-                  sizes="(max-width: 760px) 100vw, 68vw"
-                  priority={index === 0}
-                  loading={index === 0 ? undefined : "eager"}
-                  unoptimized
-                  draggable={false}
-                  className={styles.island}
-                  data-island-visual
-                />
-              </IslandLink>}
+              {world.id === "writing" ? <WritingIsland /> : <LivingIsland world={world.id} />}
             </div>
           </section>
         ))}

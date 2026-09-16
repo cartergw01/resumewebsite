@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
+import GalaxyBackground from "@/components/GalaxyBackground";
+import IslandReturnLink from "@/components/IslandReturnLink";
+import worldStyles from "@/components/ProjectsWorld.module.css";
 import { projects } from "@/content/portfolio";
 import {
   breadcrumbJsonLd,
@@ -14,7 +17,7 @@ export const metadata: Metadata = buildMetadata("projects");
 
 export default function ProjectsPage() {
   return (
-    <div className="cosmic-subpage subpage-projects subpage-topic topic-page" data-rocket-launch-zone>
+    <div className={`cosmic-subpage subpage-projects subpage-topic topic-page ${worldStyles.page}`} data-rocket-launch-zone data-island-page>
       <script
         {...jsonLdScript([
           webPageJsonLd("projects", "CollectionPage"),
@@ -26,10 +29,18 @@ export default function ProjectsPage() {
         ])}
       />
       <SiteNav active="projects" />
+      <GalaxyBackground page />
 
-      <main className="subpage-main topic-main projects-main">
-        <header className="subpage-hero topic-hero projects-hero">
-          <h1>Projects</h1>
+      <main className={`subpage-main topic-main projects-main ${worldStyles.main}`}>
+        <header className={`subpage-hero topic-hero projects-hero ${worldStyles.hero}`}>
+          <div className={worldStyles.heading}>
+            <IslandReturnLink island="projects" />
+            <h1>Projects</h1>
+            <p>fun projects i made.</p>
+          </div>
+          <div className={worldStyles.art} aria-hidden="true">
+            <Image src="/world-projects-workshop-v3.webp" alt="" width={1200} height={800} priority sizes="(max-width: 760px) 100vw, 650px" unoptimized />
+          </div>
         </header>
 
         <section className="topic-layout projects-layout" aria-label="Projects world">

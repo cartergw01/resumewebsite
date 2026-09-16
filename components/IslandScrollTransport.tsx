@@ -136,6 +136,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
     const jump = (index: number, instant = false) => {
       const progress = index / Math.max(1, scenes.length - 1);
+      // Safari can retain a pending smooth scroll when a quick second tap
+      // targets the current position. Cancel that flight before starting one.
+      window.scrollTo({ top: window.scrollY, behavior: "instant" });
       window.scrollTo({
         top: start + progress * travel,
         behavior: instant || motion.matches ? "instant" : "smooth",

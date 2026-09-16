@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
+import IslandReturnLink from "@/components/IslandReturnLink";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 import {
@@ -32,6 +33,7 @@ export default function WritingPage() {
 
       <main className="subpage-main topic-main">
         <header className="subpage-hero topic-hero writing-hero">
+          <IslandReturnLink island="writing" />
           <h1>Writing</h1>
         </header>
 
