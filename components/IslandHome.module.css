@@ -20,7 +20,7 @@
   will-change: transform;
 }
 .galaxyImage { position: absolute; inset: 0; display: block; animation: galaxy-drift 36s ease-in-out infinite alternate; }
-.galaxyImage img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 32%; user-select: none; }
+.galaxyImage img { width: 100%; height: 100%; object-fit: cover; object-position: center; user-select: none; }
 @keyframes galaxy-drift {
   from { transform: translate3d(0.5%, -0.4%, 0) scale(1.025) rotate(0.15deg); }
   to { transform: translate3d(-1.2%, 0.7%, 0) scale(1.045) rotate(-0.2deg); }
@@ -272,13 +272,6 @@
 @keyframes comet-spark { 0% { opacity: 0; transform: translateX(4px); } 25% { opacity: 0.8; } 100% { opacity: 0; transform: translateX(-7px); } }
 .chapters button[aria-current], .controls button:hover { color: var(--cw-paper); }
 
-@media (max-aspect-ratio: 1/1) {
-  .vignette {
-    background:
-      linear-gradient(180deg, #03061140, #030611b8 14%, #030611cc 29%, #03061133 40%, transparent 48%),
-      linear-gradient(0deg, #030611 0%, transparent 20%);
-  }
-}
 @media (max-width: 1000px) and (min-width: 761px) {
   .copy { max-width: 24rem; }
   .description { max-width: 30ch; }
@@ -286,7 +279,6 @@
 }
 @media (max-width: 760px) {
   .scene { display: block; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7rem; }
-  .galaxyImage img { object-position: 58% 32%; }
   .galaxyToggle { top: 0.35rem; left: 0.75rem; }
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
