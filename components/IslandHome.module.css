@@ -3,8 +3,9 @@
 .track { position: relative; height: 400svh; }
 .stage {
   --camera-progress: 0;
+  --camera-path: 0;
+  --camera-arc: 0;
   --flight: 0;
-  --flight-shift: 0;
   --flight-bank: 8deg;
   --controls-bottom: max(2.5rem, env(safe-area-inset-bottom));
   position: sticky;
@@ -17,8 +18,8 @@
 }
 .galaxySpace, .galaxy, .vignette { position: absolute; inset: 0; pointer-events: none; }
 .galaxy {
-  inset: -4%;
-  transform: translate3d(calc(var(--camera-progress) * -3%), calc(var(--camera-progress) * 1.5%), 0) scale(calc(1.02 + var(--camera-progress) * 0.035));
+  inset: -10%;
+  transform: translate3d(calc(var(--camera-path, 0) * -3.5%), calc(var(--camera-arc, 0) * -1.5%), 0) scale(calc(1.04 - var(--flight, 0) * 0.02));
   will-change: transform;
 }
 .starfieldMedia, .starfieldPoster, .starfieldVideo { position: absolute; inset: 0; width: 100%; height: 100%; }
@@ -31,8 +32,10 @@
 .galaxyToggle:hover, .galaxyToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
 .galaxyToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
 .stage > .galaxyToggle { top: auto; bottom: var(--controls-bottom); }
-.flightStars { position: absolute; inset: -15% -25%; overflow: hidden; pointer-events: none; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--flight-shift) * 1%), 0, 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
-.flightStars svg { width: 100%; height: 100%; }
+.middleStars, .flightStars { position: absolute; overflow: hidden; pointer-events: none; will-change: transform; }
+.middleStars { inset: -25% -55%; opacity: 0.5; transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
+.flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
+.depthTrail { transform: scaleX(calc(0.025 + var(--flight) * 0.975)); }
 .vignette {
   background:
     linear-gradient(90deg, #03061159, transparent 58%),
@@ -98,8 +101,9 @@
   border-radius: 50%;
   background: radial-gradient(ellipse, #a6bfff14, transparent 65%);
   pointer-events: none;
+  opacity: var(--island-lights, 1);
 }
-.work .art::before { opacity: 0.8; }
+.work .art::before { opacity: calc(var(--island-lights, 1) * 0.8); }
 .writing .art::before { background: radial-gradient(ellipse, #f7b96b17, transparent 65%); }
 .projects .art::before { background: radial-gradient(ellipse, #f7b96b12, transparent 65%); }
 .islandLink { position: relative; display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -149,8 +153,8 @@
   max-height: 70dvh;
   object-fit: contain;
   user-select: none;
-  filter: drop-shadow(0 32px 36px #0005);
-  transition: transform 450ms var(--cw-ease), filter 450ms ease;
+  filter: brightness(var(--island-light, 1)) drop-shadow(0 32px 36px #0005);
+  transition: transform 450ms var(--cw-ease);
 }
 .projects .island { width: 91%; max-height: 100%; }
 .writingMedia { position: relative; display: block; }
@@ -159,15 +163,15 @@
 .writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
 .islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
-.islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+.islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 .islandLink:focus-visible .workshopCue { transform: translateY(-7px) scale(1.025); }
 @media (hover: hover) and (pointer: fine) {
-  .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
+  .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
   .islandLink:hover .workshopCue { transform: translateY(-7px) scale(1.025); }
 }
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
-.stage[data-entering]::after { animation: entry-cover 900ms ease-in both; }
+.stage[data-entering]::after { animation: entry-cover 1000ms ease-in both; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
@@ -175,9 +179,9 @@
 .stage[data-entering] .workshopCue,
 .stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space 900ms ease-in forwards; }
-.stage[data-entering] .flightStars { opacity: 0; }
-.stage[data-entering] .island { transition: none; will-change: transform; }
+.stage[data-entering] .galaxy { animation: entry-space 1000ms ease-in forwards; }
+.stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0; }
+.stage[data-entering] .island { transition: none; filter: brightness(1) drop-shadow(0 32px 36px #0005); will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }
 @keyframes entry-space { to { opacity: 0; transform: scale(1.4); } }
 @keyframes entry-cover { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
@@ -335,7 +339,7 @@
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flightStars { display: none; }
+  .flightStars, .middleStars { display: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .islandCue, .workshopCue { transition: none; }

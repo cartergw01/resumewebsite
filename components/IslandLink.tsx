@@ -5,6 +5,44 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 
+const landmarks: Record<string, { x: number; y: number; name: string }> = {
+  Work: { x: 0.588, y: 0.278, name: "Taipei tower" },
+  Writing: { x: 0.52, y: 0.43, name: "open book" },
+  Projects: { x: 0.705, y: 0.345, name: "workshop laptop" },
+};
+
+function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string) {
+  const art = link.closest<HTMLElement>("[data-scene-art]")!;
+  const image = visual.querySelector("img")!;
+  const focus = landmarks[title] ?? { x: 0.5, y: 0.5, name: title };
+  const width = visual.offsetWidth;
+  const height = visual.offsetHeight;
+  const imageWidth = image.naturalWidth || Number(image.getAttribute("width"));
+  const imageHeight = image.naturalHeight || Number(image.getAttribute("height"));
+  const fit = Math.min(width / imageWidth, height / imageHeight);
+  const focusX = (width - imageWidth * fit) / 2 + imageWidth * fit * focus.x;
+  const focusY = (height - imageHeight * fit) / 2 + imageHeight * fit * focus.y;
+
+  // Map the viewport center into the island's local coordinates. Accounting
+  // for the parent's bank/scale also makes a mid-flight click land correctly.
+  const style = getComputedStyle(art);
+  const [originX, originY] = style.transformOrigin.split(" ").map(Number.parseFloat);
+  const matrix = new DOMMatrix().translate(originX, originY)
+    .multiply(new DOMMatrix(style.transform === "none" ? undefined : style.transform))
+    .translate(-originX, -originY);
+  const corners = [[0, 0], [art.offsetWidth, 0], [0, art.offsetHeight], [art.offsetWidth, art.offsetHeight]]
+    .map(([x, y]) => matrix.transformPoint(new DOMPoint(x, y)));
+  const bounds = art.getBoundingClientRect();
+  const left = bounds.left - Math.min(...corners.map((point) => point.x));
+  const top = bounds.top - Math.min(...corners.map((point) => point.y));
+  const center = matrix.inverse().transformPoint(new DOMPoint(innerWidth / 2 - left, innerHeight / 2 - top));
+  const x = center.x - link.offsetLeft - visual.offsetLeft - focusX;
+  const y = center.y - link.offsetTop - visual.offsetTop - focusY;
+  const parentScale = Math.hypot(matrix.a, matrix.b);
+  const scale = Math.max(4.8, innerWidth / (imageWidth * fit) * 1.7, innerHeight / (imageHeight * fit) * 1.7) / parentScale;
+  return { x, y, scale, origin: `${focusX}px ${focusY}px`, name: focus.name };
+}
+
 export default function IslandLink({ href, title, prompt, children, workshop = false }: { href: string; title: string; prompt: string; children: ReactNode; workshop?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -24,20 +62,20 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     if (stage.dataset.entering) return;
 
     router.prefetch(href);
-    const rect = visual.getBoundingClientRect();
-    const x = window.innerWidth / 2 - (rect.left + rect.width / 2);
-    const y = window.innerHeight / 2 - (rect.top + rect.height / 2);
-    const scale = Math.max(3.6, window.innerWidth / rect.width * 1.4, window.innerHeight / rect.height * 1.4);
-    const initialTransform = getComputedStyle(visual).transform;
+    const { x, y, scale, origin, name } = landmarkApproach(visual, link, title);
+    const initial = getComputedStyle(visual);
+    const initialTransform = initial.transform;
+    const initialOrigin = initial.transformOrigin;
+    visual.dataset.entryLandmark = name;
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
-    // The island, galaxy, and copy move independently so the island feels like
-    // a place the camera approaches, while the surrounding interface recedes.
+    // Find the landmark first, then accelerate toward it with the rocket.
     const zoom = visual.animate([
-      { transform: initialTransform === "none" ? "scale(1)" : initialTransform },
-      { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})` },
-    ], { duration: 900, easing: "cubic-bezier(0.5, 0, 0.75, 0.4)", fill: "forwards" });
+      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin, offset: 0, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
+      { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(1.32)`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
+      { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin, offset: 1 },
+    ], { duration: 1000, fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
@@ -48,6 +86,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       cancelAnimationFrame(arrivalFrame);
       clearTimeout(recoveryTimer);
       delete stage.dataset.entering;
+      delete visual.dataset.entryLandmark;
       stage.removeAttribute("aria-busy");
       cleanupRef.current = null;
       window.dispatchEvent(new Event("scroll"));
