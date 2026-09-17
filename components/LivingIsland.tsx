@@ -11,7 +11,7 @@ const artwork = {
   projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v4.webp", width: 1200, height: 800 },
 };
 
-export default function LivingIsland({ world }: { world: keyof typeof artwork }) {
+export default function LivingIsland({ world, preview }: { world: keyof typeof artwork; preview?: string }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
 
@@ -74,6 +74,16 @@ export default function LivingIsland({ world }: { world: keyof typeof artwork })
             </g>
           </svg>
         )}
+        {world === "projects" && preview ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">
+          <defs>
+            <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
+          </defs>
+          <ellipse className={motionStyles.screenSpill} cx="831" cy="316" rx="74" ry="23" fill="url(#workshop-screen-spill)" />
+          <g transform="matrix(0.121875 -0.028125 -0.06 0.19 831 270)">
+            <image className={motionStyles.screenPreview} data-workshop-screen href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
+            <rect className={motionStyles.screenRim} width="320" height="200" rx="3" fill="none" stroke="#ffe2ba" strokeWidth="5" />
+          </g>
+        </svg> : null}
       </span>
     </IslandLink>
   </>;

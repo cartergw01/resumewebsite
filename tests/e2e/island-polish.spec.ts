@@ -21,7 +21,7 @@ test("city and workshop details animate only while active and respect the shared
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(visual).toHaveAttribute("data-motion-running", "false");
-    await expect(visual.locator("svg")).toBeHidden();
+    await expect(visual.locator("svg").first()).toBeHidden();
     await page.emulateMedia({ reducedMotion: "no-preference" });
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     await page.getByRole("button", { name: "Show Writing island" }).click();
@@ -29,7 +29,7 @@ test("city and workshop details animate only while active and respect the shared
   }
 });
 
-test("each subpage returns to its island and Projects shares the video and workshop artwork", async ({ page }) => {
+test("each subpage returns to its island and Projects opens on the working screen", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
@@ -40,9 +40,9 @@ test("each subpage returns to its island and Projects shares the video and works
       await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
       const video = page.locator("[data-background-video]");
       await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
-      const art = page.locator(".projects-hero img");
+      const art = page.locator("[data-project-screen] img");
       await expect.poll(() => art.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-      await expect(art).toHaveAttribute("src", "/world-projects-workshop-v4.webp");
+      await expect(page.locator('img[src="/world-projects-workshop-v4.webp"]')).toHaveCount(0);
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
     await back.click();

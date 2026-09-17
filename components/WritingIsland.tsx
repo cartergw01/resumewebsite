@@ -69,6 +69,18 @@ export default function WritingIsland() {
             <source src="/writing-island-loop-v1.mov" type={'video/quicktime; codecs="hvc1"'} />
             <source src="/writing-island-loop-v1.webm" type={'video/webm; codecs="vp9"'} />
           </video>
+          <svg className={styles.bookResponse} viewBox="0 0 960 529" aria-hidden="true" data-book-response>
+            <defs>
+              <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">
+                <stop stopColor="#fff3c6" stopOpacity="0.05" /><stop offset="1" stopColor="#ffe6a1" stopOpacity="0.5" />
+              </linearGradient>
+            </defs>
+            <path className={styles.pageLight} d="M330 222Q380 196 449 196Q483 205 519 266Q458 272 397 290Z M461 196Q498 179 527 188Q567 206 621 243Q564 239 527 265Q504 218 461 196Z" fill="url(#book-page-light)" />
+            <g className={styles.pageEdges} fill="none" stroke="#ffe5a6" strokeWidth="1.25" strokeLinecap="round">
+              <path d="M331 226Q360 264 397 290Q460 272 515 268 M530 267Q574 246 629 251" />
+              <path d="M455 199Q494 219 521 264" opacity="0.6" />
+            </g>
+          </svg>
         </span>
       </IslandLink>
     </>

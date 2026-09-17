@@ -162,6 +162,14 @@
 .writingVideo { opacity: 0; }
 .writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
+.bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.pageLight, .pageEdges { opacity: 0; transition: opacity 350ms ease, transform 500ms var(--cw-ease); }
+.islandLink:focus-visible .pageLight, .stage[data-entering="writing"] .pageLight { opacity: 0.65; }
+.islandLink:focus-visible .pageEdges, .stage[data-entering="writing"] .pageEdges { opacity: 0.85; transform: translateY(-2px); }
+@media (hover: hover) and (pointer: fine) {
+  .islandLink:hover .pageLight { opacity: 0.65; }
+  .islandLink:hover .pageEdges { opacity: 0.85; transform: translateY(-2px); }
+}
 .islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 .islandLink:focus-visible .workshopCue { transform: translateY(-7px) scale(1.025); }
@@ -172,6 +180,7 @@
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
 .stage[data-entering]::after { animation: entry-cover 1000ms ease-in both; }
+.stage[data-entering="projects"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
@@ -343,6 +352,7 @@
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .islandCue, .workshopCue { transition: none; }
+  .pageLight, .pageEdges { transition: none; transform: none !important; }
   .islandLink:hover .island, .islandLink:focus-visible .island,
   .islandLink:hover .workshopCue, .islandLink:focus-visible .workshopCue { transform: none; }
   .cometHead { animation: none; }

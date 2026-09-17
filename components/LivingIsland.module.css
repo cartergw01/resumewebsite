@@ -1,4 +1,18 @@
 .artwork { position: relative; display: block; }
+.screenResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.screenPreview { opacity: 0.3; transition: opacity 280ms ease; }
+.screenSpill, .screenRim { opacity: 0; transition: opacity 360ms ease; }
+:global([data-island-link]:focus-visible) .screenPreview,
+:global([data-entering="projects"]) .screenPreview { opacity: 1; }
+:global([data-island-link]:focus-visible) .screenSpill,
+:global([data-entering="projects"]) .screenSpill,
+:global([data-island-link]:focus-visible) .screenRim,
+:global([data-entering="projects"]) .screenRim { opacity: 0.9; }
+@media (hover: hover) and (pointer: fine) {
+  :global([data-island-link]:hover) .screenPreview { opacity: 1; }
+  :global([data-island-link]:hover) .screenSpill,
+  :global([data-island-link]:hover) .screenRim { opacity: 0.9; }
+}
 .image, .details { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .details { opacity: var(--island-lights, 1); }
 .windows { animation: windows 7s ease-in-out infinite; }
@@ -11,3 +25,4 @@
 @keyframes screen { 0%, 100% { opacity: 0.015; } 50% { opacity: 0.14; } }
 @keyframes lamp { 0%, 100% { opacity: 0.03; } 50% { opacity: 0.18; } }
 @media (prefers-reduced-motion: reduce) { .details { display: none; } }
+@media (prefers-reduced-motion: reduce) { .screenPreview, .screenSpill, .screenRim { transition: none; } }

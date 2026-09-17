@@ -2,6 +2,7 @@ import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
+import { projects } from "@/content/portfolio";
 import styles from "./IslandHome.module.css";
 
 const worlds = [
@@ -46,7 +47,7 @@ export default function IslandHome() {
               )}
             </div>
             <div className={styles.art} data-scene-art>
-              {world.id === "writing" ? <WritingIsland /> : <LivingIsland world={world.id} />}
+              {world.id === "writing" ? <WritingIsland /> : <LivingIsland world={world.id} preview={world.id === "projects" ? projects[0]?.image : undefined} />}
             </div>
           </section>
         ))}

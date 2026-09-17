@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
+import { beginWorkshopEntry } from "@/lib/workshop-entry";
 
 const landmarks: Record<string, { x: number; y: number; name: string }> = {
   Work: { x: 0.588, y: 0.278, name: "Taipei tower" },
@@ -79,12 +80,23 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
+    let screenTimer = 0;
+    let handedOff = false;
+    let cancelScreen: (() => void) | null = null;
     let cancelled = false;
+    if (workshop) {
+      screenTimer = window.setTimeout(() => {
+        const screen = visual.querySelector<SVGImageElement>("[data-workshop-screen]");
+        if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
+      }, 280);
+    }
     const reset = () => {
       cancelled = true;
       zoom.cancel();
       cancelAnimationFrame(arrivalFrame);
       clearTimeout(recoveryTimer);
+      clearTimeout(screenTimer);
+      if (!handedOff) cancelScreen?.();
       delete stage.dataset.entering;
       delete visual.dataset.entryLandmark;
       stage.removeAttribute("aria-busy");
@@ -93,11 +105,11 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     };
     cleanupRef.current = reset;
     // Recover the homepage if a destination fails to mount, allowing a retry.
-    recoveryTimer = window.setTimeout(reset, 8_000);
+    recoveryTimer = window.setTimeout(() => { cancelScreen?.(); reset(); }, 8_000);
     void zoom.finished.then(() => {
       if (cancelled) return;
       arrivalFrame = requestAnimationFrame(() => {
-        if (!cancelled) router.push(href);
+        if (!cancelled) { handedOff = true; router.push(href); }
       });
     }).catch(() => { /* Unmounting cancels the animation. */ });
   };
@@ -115,7 +127,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       <span className={workshop ? styles.workshopCue : styles.islandCue}>
         <span>{prompt}</span>
         <svg viewBox={workshop ? "0 0 1200 800" : "0 0 100 80"} fill="none" aria-hidden="true">
-          <path d={workshop ? "M915 735C1190 700 1200 340 718 286M736 274L718 286L734 304" : "M4 69C39 77 85 49 81 9M70 18L81 9L88 23"} stroke="currentColor" strokeWidth="1.35" vectorEffect={workshop ? "non-scaling-stroke" : undefined} strokeLinecap="round" strokeLinejoin="round" />
+          <path d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : "M4 69C39 77 85 49 81 9M70 18L81 9L88 23"} stroke="currentColor" strokeWidth="1.35" vectorEffect={workshop ? "non-scaling-stroke" : undefined} strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>
