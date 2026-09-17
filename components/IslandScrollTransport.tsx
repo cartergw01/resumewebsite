@@ -11,6 +11,10 @@ const ease = (value: number) => value * value * (3 - 2 * value);
 const phase = (value: number, start: number, end: number) => ease(clamp((value - start) / (end - start)));
 // Each island holds before the camera crosses to the next one.
 const FINAL_HOLD = 0.5;
+const arrivalLights: Record<string, readonly (readonly [string, number, number])[]> = {
+  work: [["city-windows", 0.76, 0.86], ["city-tower", 0.86, 0.96]],
+  writing: [["reading-lamp", 0.77, 0.87], ["reading-paper", 0.87, 0.98]],
+};
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
   const trackRef = useRef<HTMLElement>(null);
@@ -65,6 +69,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const arrivalCopy = phase(crossing, 0.9, 0.98);
       const arrivalCue = phase(crossing, 0.95, 1);
       const flight = Math.pow(Math.sin(Math.PI * clamp((crossing - 0.18) / 0.6)), 2);
+      const travelling = String(!motion.matches && crossing > 0 && crossing < 1);
+      if (stage.dataset.travelling !== travelling) stage.dataset.travelling = travelling;
 
       scenes.forEach((scene, index) => {
         const outgoing = index === from;
@@ -90,6 +96,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         art[index].style.setProperty("--cue-opacity", (motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue).toFixed(4));
         art[index].style.setProperty("--island-light", (motion.matches ? 1 : outgoing ? 1 - 0.45 * retreat : 0.34 + 0.16 * approach + 0.5 * arrivalLight).toFixed(4));
         art[index].style.setProperty("--island-lights", (motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight).toFixed(4));
+        // Distinct, reversible welcomes: city blocks first, then the tower;
+        // the reading lamp precedes warm paper; the workshop screen wakes last.
+        for (const [name, first, last] of arrivalLights[worlds[index].id] ?? []) {
+          art[index].style.setProperty(`--${name}`, (motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last)).toFixed(4));
+        }
+        if (worlds[index].id === "projects") art[index].style.setProperty("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
       });
       stage.style.setProperty("--camera-progress", cameraProgress.toFixed(4));
       stage.style.setProperty("--camera-path", (from + passage).toFixed(4));
@@ -114,6 +126,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           buttons[current].focus({ preventScroll: true });
         }
         activeIndex = current;
+        stage.dataset.engaged = "false";
         track.dataset.scene = worlds[current].id;
         scenes.forEach((scene, index) => {
           scene.inert = index !== current;
@@ -163,6 +176,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const index = hash === "constellation" ? 0 : worlds.findIndex((world) => world.id === hash);
       if (index >= 0) jump(index, true);
     };
+    const engage = (event: Event) => {
+      const pointer = event as PointerEvent;
+      if (pointer.type.startsWith("pointer") && pointer.pointerType !== "mouse") return;
+      const target = event.type === "pointerout" || event.type === "focusout" ? (event as FocusEvent).relatedTarget : event.target;
+      const engaged = target instanceof Element && Boolean(target.closest('[data-island-scene][data-active="true"] [data-island-link]'));
+      if (stage.dataset.engaged !== String(engaged)) stage.dataset.engaged = String(engaged);
+    };
 
     measure();
     followHash();
@@ -176,6 +196,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("hashchange", followHash);
     motion.addEventListener("change", schedule);
     next.addEventListener("click", advance);
+    ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
 
     return () => {
       observer.disconnect();
@@ -185,6 +206,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("hashchange", followHash);
       motion.removeEventListener("change", schedule);
       next.removeEventListener("click", advance);
+      ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));
       window.cancelAnimationFrame(frame);
       window.clearTimeout(starRestTimer);
       jumpRef.current = () => {};
@@ -193,7 +215,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
 
   return (
     <main ref={trackRef} className={styles.track} data-scene="work" aria-label="Three islands: work, writing, and projects">
-      <div className={styles.stage} data-island-stage>
+      <div className={styles.stage} data-island-stage data-travelling="false" data-engaged="false">
         <GalaxyBackground />
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />

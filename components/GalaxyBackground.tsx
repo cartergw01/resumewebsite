@@ -24,6 +24,11 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
     const shouldPlay = () => intentRef.current !== "pause" && !prefersStill() && !document.hidden && !stage.dataset.entering;
     const sync = () => {
       stage.dataset.ambientPaused = String(intentRef.current === "pause");
+      // Keep the real video running while reading, with more energy in flight.
+      const rate = !page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1;
+      // Loading or switching the portrait source restores the default rate.
+      video.defaultPlaybackRate = rate;
+      video.playbackRate = rate;
       if (!shouldPlay()) {
         video.pause();
         if (prefersStill()) setReady(false);
@@ -49,7 +54,7 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
     };
     syncRef.current = sync;
     const observer = new MutationObserver(sync);
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
     motion.addEventListener("change", sync);
     portrait.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
@@ -65,7 +70,7 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
       syncRef.current = () => {};
       video.pause();
     };
-  }, []);
+  }, [page]);
 
   return (
     <>

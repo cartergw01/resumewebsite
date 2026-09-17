@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
-import { beginWorkshopEntry } from "@/lib/workshop-entry";
+import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
 
 const landmarks: Record<string, { x: number; y: number; name: string }> = {
   Work: { x: 0.588, y: 0.278, name: "Taipei tower" },
@@ -44,7 +44,7 @@ function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string)
   return { x, y, scale, origin: `${focusX}px ${focusY}px`, name: focus.name };
 }
 
-export default function IslandLink({ href, title, prompt, children, workshop = false }: { href: string; title: string; prompt: string; children: ReactNode; workshop?: boolean }) {
+export default function IslandLink({ href, title, prompt, children, workshop = false, book = false }: { href: string; title: string; prompt: string; children: ReactNode; workshop?: boolean; book?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -84,10 +84,12 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     let handedOff = false;
     let cancelScreen: (() => void) | null = null;
     let cancelled = false;
-    if (workshop) {
+    if (workshop || book) {
       screenTimer = window.setTimeout(() => {
         const screen = visual.querySelector<SVGImageElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
+        const page = visual.querySelector<SVGSVGElement>("[data-book-page]");
+        if (!cancelled && page) cancelScreen = beginBookEntry(page);
       }, 280);
     }
     const reset = () => {
@@ -120,14 +122,15 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       className={styles.islandLink}
       data-island-link
       data-workshop={workshop || undefined}
+      data-world={title.toLowerCase()}
       aria-label={`${prompt}. Enter ${title} island`}
       onClick={enter}
     >
       {children}
-      <span className={workshop ? styles.workshopCue : styles.islandCue}>
+      <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>{prompt}</span>
-        <svg viewBox={workshop ? "0 0 1200 800" : "0 0 100 80"} fill="none" aria-hidden="true">
-          <path d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : "M4 69C39 77 85 49 81 9M70 18L81 9L88 23"} stroke="currentColor" strokeWidth="1.35" vectorEffect={workshop ? "non-scaling-stroke" : undefined} strokeLinecap="round" strokeLinejoin="round" />
+        <svg viewBox={workshop ? "0 0 1200 800" : book ? "0 0 960 529" : "0 0 960 540"} fill="none" aria-hidden="true">
+          <path d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : book ? "M737 141C692 127 627 145 565 215M565 201L565 215L579 211" : "M294 469C470 499 752 346 575 155M576 171L575 155L591 160"} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>

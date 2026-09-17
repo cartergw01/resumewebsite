@@ -33,7 +33,7 @@
 .galaxyToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
 .stage > .galaxyToggle { top: auto; bottom: var(--controls-bottom); }
 .middleStars, .flightStars { position: absolute; overflow: hidden; pointer-events: none; will-change: transform; }
-.middleStars { inset: -25% -55%; opacity: 0.5; transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
+.middleStars { inset: -25% -55%; opacity: calc(0.24 + var(--flight) * 0.26); transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
 .flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
 .depthTrail { transform: scaleX(calc(0.025 + var(--flight) * 0.975)); }
 .vignette {
@@ -107,32 +107,11 @@
 .writing .art::before { background: radial-gradient(ellipse, #f7b96b17, transparent 65%); }
 .projects .art::before { background: radial-gradient(ellipse, #f7b96b12, transparent 65%); }
 .islandLink { position: relative; display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.islandCue {
+.islandLink { container-type: size; }
+/* Every annotation uses the same coordinates and contained bounds as its art. */
+.landmarkCue {
   position: absolute;
-  bottom: 1.5%;
-  left: 12%;
-  color: #f4dfc2;
-  font-family: var(--font-display);
-  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
-  font-weight: 500;
-  font-style: italic;
-  line-height: 1.5;
-  white-space: nowrap;
-  opacity: var(--cue-opacity, 1);
-  text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
-  transform: rotate(-5deg);
-  transition: color 200ms ease;
-}
-.islandCue svg { position: absolute; bottom: 0.15rem; left: calc(100% + 0.25rem); width: 5.5rem; height: 4.4rem; filter: drop-shadow(0 1px 2px #030611); }
-.writing .islandCue { top: 20%; right: 19%; bottom: auto; left: auto; transform: rotate(6deg); }
-.writing .islandCue svg { top: 1.3rem; right: 45%; bottom: auto; left: auto; transform: rotate(180deg); }
-.islandLink[data-workshop] { container-type: size; }
-/* Match the contained 3:2 image so the arrow stays on the workbench. */
-.workshopCue {
-  position: absolute;
-  width: min(91cqw, 150cqh);
-  height: min(60.6667cqw, 100cqh);
-  color: #f4dfc2;
+  color: #e9d4b6;
   font-family: var(--font-display);
   font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
   font-weight: 500;
@@ -141,12 +120,23 @@
   opacity: var(--cue-opacity, 1);
   pointer-events: none;
   text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
-  transition: color 200ms ease, transform 450ms var(--cw-ease);
+  transition: color 220ms ease, transform 450ms var(--cw-ease);
 }
-.workshopCue > span { position: absolute; right: 19%; bottom: 0; white-space: nowrap; transform: rotate(4deg); }
-.workshopCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
-.islandLink:hover .workshopCue, .islandLink:focus-visible .workshopCue { color: #fff1d7; }
-.islandLink:hover .islandCue, .islandLink:focus-visible .islandCue { color: #fff1d7; }
+.landmarkCue > span { position: absolute; white-space: nowrap; }
+.landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
+.landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
+.cityCue { width: min(100cqw, 177.7778cqh); height: min(56.25cqw, 100cqh); }
+.cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
+.bookCue { width: min(100cqw, 181.4745cqh); height: min(55.1042cqw, 100cqh); }
+.bookCue > span { right: 17%; top: 19%; transform: rotate(6deg); }
+.workshopCue { width: min(91cqw, 150cqh); height: min(60.6667cqw, 100cqh); }
+.workshopCue > span { right: 19%; bottom: 0; transform: rotate(4deg); }
+.islandLink:focus-visible .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
+.islandLink:focus-visible .landmarkCue path { opacity: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .islandLink:hover .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
+  .islandLink:hover .landmarkCue path { opacity: 1; }
+}
 .island {
   width: 100%;
   height: 100%;
@@ -162,7 +152,7 @@
 .writingVideo { opacity: 0; }
 .writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
-.bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.bookDetails, .bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .pageLight, .pageEdges { opacity: 0; transition: opacity 350ms ease, transform 500ms var(--cw-ease); }
 .islandLink:focus-visible .pageLight, .stage[data-entering="writing"] .pageLight { opacity: 0.65; }
 .islandLink:focus-visible .pageEdges, .stage[data-entering="writing"] .pageEdges { opacity: 0.85; transform: translateY(-2px); }
@@ -172,20 +162,17 @@
 }
 .islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
-.islandLink:focus-visible .workshopCue { transform: translateY(-7px) scale(1.025); }
 @media (hover: hover) and (pointer: fine) {
   .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
-  .islandLink:hover .workshopCue { transform: translateY(-7px) scale(1.025); }
 }
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
 .stage[data-entering]::after { animation: entry-cover 1000ms ease-in both; }
-.stage[data-entering="projects"]::after { animation: none; }
+.stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
-.stage[data-entering] .islandCue,
-.stage[data-entering] .workshopCue,
+.stage[data-entering] .landmarkCue,
 .stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy { animation: entry-space 1000ms ease-in forwards; }
@@ -235,9 +222,9 @@
   position: absolute;
   right: 0;
   top: -1px;
-  width: 4rem;
+  width: 2.5rem;
   height: 2px;
-  opacity: 0.6;
+  opacity: 0.35;
   transform-origin: right center;
   transition: width 350ms ease-out, opacity 350ms ease-out;
 }
@@ -278,10 +265,12 @@
   background: radial-gradient(circle, #fffdf3 0 1.5px, #ffe3adbb 2px, #a8caff44 4px, transparent 7px);
   filter: drop-shadow(0 0 5px #c6deff99);
   animation: comet-glimmer 3s ease-in-out infinite;
+  animation-play-state: paused;
 }
 .cometHead::before,
 .cometHead::after { content: ""; position: absolute; inset: 6px 1px; background: linear-gradient(90deg, transparent, #fff9e9, transparent); }
 .cometHead::after { transform: rotate(90deg); }
+.shootingStar[data-moving="true"] .cometHead { animation-play-state: running; }
 .shootingStar[data-moving="true"] .cometTrail { width: min(8rem, 25vw); opacity: 1; }
 .shootingStar[data-moving="true"] .cometTrail > span { animation: comet-spark 650ms ease-out var(--spark-delay, 0ms) infinite; }
 .shootingStar[data-direction="backward"] .cometTrail { transform: scaleX(-1); }
@@ -304,9 +293,8 @@
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 45dvh; min-height: 0; margin-inline: -3rem; }
   .island { max-height: 45dvh; }
-  .islandCue { bottom: 0; font-size: 1rem; }
-  .workshopCue { font-size: 1rem; }
-  .islandCue svg { width: 4.25rem; height: 3.4rem; }
+  .landmarkCue { font-size: 1rem; }
+  .bookCue > span { top: 12%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }
@@ -336,9 +324,7 @@
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
   .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .island { max-height: 68dvh; }
-  .islandCue { bottom: -0.5rem; left: 10%; font-size: 0.75rem; }
-  .workshopCue { font-size: 0.75rem; }
-  .islandCue svg { width: 3.5rem; height: 2.8rem; }
+  .landmarkCue { font-size: 0.75rem; }
   .stage > .galaxyToggle { left: 0.75rem; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 48%; gap: 0.75rem; }
@@ -351,10 +337,10 @@
   .flightStars, .middleStars { display: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
-  .island, .islandCue, .workshopCue { transition: none; }
+  .island, .landmarkCue { transition: none; }
   .pageLight, .pageEdges { transition: none; transform: none !important; }
   .islandLink:hover .island, .islandLink:focus-visible .island,
-  .islandLink:hover .workshopCue, .islandLink:focus-visible .workshopCue { transform: none; }
+  .islandLink:hover .landmarkCue, .islandLink:focus-visible .landmarkCue { transform: none; }
   .cometHead { animation: none; }
   .cometTrail { display: none; }
   .chapterLabel { transition: none; }
@@ -366,3 +352,14 @@
 @media (max-width: 760px) {
   .pageGalaxyToggle { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); left: auto; right: 1rem; background: #030611cc; }
 }
+
+/* The lamp welcomes the reader before the page warms. Idle remains quiet. */
+.readingLamp { opacity: calc(var(--reading-lamp, 1) * 0.4); transition: opacity 280ms ease; }
+.printedPage { opacity: calc(0.78 + var(--reading-paper, 1) * 0.22); }
+.pageLight { opacity: calc(var(--reading-paper, 1) * 0.15); }
+.islandLink:focus-visible .readingLamp, .stage[data-entering="writing"] .readingLamp { opacity: 0.9; }
+@media (hover: hover) and (pointer: fine) { .islandLink:hover .readingLamp { opacity: 0.9; } }
+.stage[data-engaged="false"][data-travelling="false"] .art::before { visibility: hidden; }
+/* The rocket itself stays available; only its idle exhaust becomes quieter. */
+:global(html):has(.stage[data-engaged="false"][data-travelling="false"]) :global([data-testid="rocket-effects-canvas"][data-transition-phase="idle"]) { opacity: 0.35; }
+@media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }

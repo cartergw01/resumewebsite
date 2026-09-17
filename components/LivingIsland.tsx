@@ -74,6 +74,19 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
             </g>
           </svg>
         )}
+        {world === "work" ? <svg className={motionStyles.cityDetails} viewBox="0 0 960 540" aria-hidden="true">
+          <g className={motionStyles.cityBlocks} fill="#ffda95">
+            <path d="M236 204h3v10h-3zm5 14h3v8h-3zm87-20h4v15h-4zm7 7h3v11h-3zm99-18h4v10h-4zm10 13h3v9h-3zm66-8h3v10h-3zm114 30h4v10h-4zm62 15h3v8h-3z" />
+          </g>
+          <g className={motionStyles.towerWelcome} fill="#dfecff">
+            <path d="M558 102h4v2h-4zm0 30h4v2h-4zm2 42h4v2h-4z" />
+          </g>
+          <g className={motionStyles.citySign} transform="translate(449 272) skewY(-7)">
+            <rect x="0" y="-18" width="96" height="34" rx="2" fill="#151716" stroke="#b58c56" strokeWidth="0.5" />
+            <text x="48" y="-5" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="8" letterSpacing="2" fill="#e7c998">TAIPEI</text>
+            <text x="48" y="8" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="10" fill="#ffdfaa">886 Studios</text>
+          </g>
+        </svg> : null}
         {world === "projects" && preview ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">
           <defs>
             <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
