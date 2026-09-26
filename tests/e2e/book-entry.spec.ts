@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("the printed essay page travels out of the book and docks in Writing", async ({ page }) => {
+test("the book opens the complete Writing archive without featuring an essay", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/2.0#writing");
@@ -16,10 +16,16 @@ test("the printed essay page travels out of the book and docks in Writing", asyn
   await expect(page).toHaveURL(/\/writing$/);
   await expect(carry).toHaveAttribute("data-book-transition", "arriving");
   await expect(carry).toHaveAttribute("data-same-page", "true");
-  expect(await page.locator("[data-essay-page] svg").innerHTML()).toBe(print);
   await expect(carry).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Read The Cost of Keeping Up on Substack" })).toBeFocused();
-  await expect(page.locator("[data-essay-page]")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeFocused();
+  await expect(page.getByRole("region", { name: "Featured essay" })).toHaveCount(0);
+  await expect(page.locator("[data-essay-page]")).toHaveCount(0);
+  await expect(page.locator(".archive-row")).toHaveCount(11);
+  const titleStyles = await page.locator(".archive-row strong").evaluateAll(nodes => nodes.map(node => {
+    const style = getComputedStyle(node);
+    return [style.fontSize, style.fontWeight, style.color].join("|");
+  }));
+  expect(new Set(titleStyles).size).toBe(1);
   await expect(page.locator('img[src="/world-writing-cutout-v1.webp"]')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("link", { name: "Back to islands" }).click();
@@ -27,18 +33,18 @@ test("the printed essay page travels out of the book and docks in Writing", asyn
   expect(errors).toEqual([]);
 });
 
-test("direct and reduced-motion Writing entry keep the essay and archive usable", async ({ page }) => {
+test("direct and reduced-motion Writing entry show every essay as a regular archive row", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0#writing");
   await page.locator("#writing [data-island-link]").click();
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(0);
-  await expect(page.locator("[data-essay-page]")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Read The Cost of Keeping Up on Substack" })).toHaveAttribute("href", "https://carterko.substack.com/p/the-cost-of-keeping-up");
+  await expect(page.locator("[data-essay-page]")).toHaveCount(0);
+  await expect(page.locator(".archive-row").first()).toHaveAttribute("href", "https://carterko.substack.com/p/the-cost-of-keeping-up");
   const count = await page.locator('main a[href*="substack.com/p/"]').count();
   expect(count).toBeGreaterThan(10);
   await page.reload();
-  await expect(page.locator("[data-essay-page]")).toBeVisible();
+  await expect(page.locator(".archive-row")).toHaveCount(count);
   await expect(page.locator('main a[href*="substack.com/p/"]')).toHaveCount(count);
   await expect(page.locator("html")).not.toHaveAttribute("data-book-transition");
 });

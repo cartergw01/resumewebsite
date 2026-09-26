@@ -13,7 +13,7 @@ type Entry = {
 };
 
 // This one visual belongs to the journey, so it survives the source route.
-// The destination takes it over once its real screen or essay is laid out.
+// Projects docks the screen; Writing reveals its entire archive equally.
 let entry: Entry | null = null;
 const plane = (x: number, y: number, width: number, height: number, sourceWidth: number, sourceHeight: number) =>
   `matrix(${width / sourceWidth},0,0,${height / sourceHeight},${x},${y})`;
@@ -104,15 +104,21 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
       if (entry !== current || !target.isConnected) return;
       const bounds = target.getBoundingClientRect();
       const from = getComputedStyle(current.screen).transform;
-      const dock = current.screen.animate([
+      const duration = kind === "book" ? 360 : 560;
+      // Open the archive as a whole, without promoting any particular essay.
+      if (kind === "book") document.documentElement.dataset[attribute] = "revealing";
+      const dock = current.screen.animate(kind === "book" ? [
+        { transform: from, opacity: 1 },
+        { transform: `${from} translateY(-18px)`, opacity: 0 },
+      ] : [
         { transform: from },
         { transform: plane(bounds.x, bounds.y, bounds.width, bounds.height, current.width, current.height) },
-      ], { duration: 560, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
-      current.animations.push(dock, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 560, easing: "ease-out", fill: "forwards" }));
+      ], { duration, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+      current.animations.push(dock, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: "ease-out", fill: "forwards" }));
       void dock.finished.then(() => {
         if (entry !== current) return;
         document.documentElement.dataset[attribute] = "revealing";
-        target.closest<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
+        (kind === "book" ? target : target.closest<HTMLAnchorElement>("a"))?.focus({ preventScroll: true });
         current.dispose();
       }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
     }));

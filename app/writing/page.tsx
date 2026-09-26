@@ -3,7 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import IslandReturnLink from "@/components/IslandReturnLink";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
-import EssayPage from "@/components/EssayPage";
+import WritingHeading from "@/components/WritingHeading";
 import styles from "@/components/WritingWorld.module.css";
 import {
   breadcrumbJsonLd,
@@ -17,7 +17,6 @@ export const metadata: Metadata = buildMetadata("writing");
 
 const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
 const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best Things I Read"));
-const [featured, ...archive] = essayEntries;
 
 export default function WritingPage() {
   return (
@@ -37,19 +36,11 @@ export default function WritingPage() {
       <main className="subpage-main topic-main">
         <header className={`subpage-hero topic-hero writing-hero ${styles.hero}`} data-book-reveal>
           <IslandReturnLink island="writing" />
-          <h1>Writing</h1>
+          <WritingHeading />
         </header>
 
-        <section className={styles.feature} aria-label="Featured essay">
-          <div className={styles.introduction} data-book-reveal>
-            <h2><em>flying Arrows</em></h2>
-            <p>essays on human nature, culture, and technology.</p>
-          </div>
-          <EssayPage essay={{ title: featured.title, subtitle: featured.subtitle, date: featured.date, href: featured.href }} />
-        </section>
-
         <section className="writing-archive" aria-label="Substack essay archive" data-book-reveal>
-          <ArchiveGroup title="Essays" entries={archive} />
+          <ArchiveGroup title="Essays" entries={essayEntries} />
           <ArchiveGroup
             title="Reading Lists"
             entries={readingLists}
