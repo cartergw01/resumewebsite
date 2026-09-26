@@ -294,7 +294,7 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   });
   expect(invalidArrival).toBeUndefined();
   await expectRocketReturnIsFluid(page);
-  await expectCanvasBackedToRenderedSize(page, "work-starfield");
+  await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
   await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle", { timeout: 5_000 });
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expectNoHorizontalOverflow(page);
@@ -421,7 +421,7 @@ test("desktop launch behavior is shared across every internal route", async ({ p
   for (const transition of [
     { from: "/work", link: "Writing", to: "/writing" },
     { from: "/writing", link: "Projects", to: "/projects" },
-    { from: "/projects", link: "Home", to: "/" },
+    { from: "/projects", link: "Home", to: "/2.0#projects" },
   ]) {
     await page.goto(transition.from);
     const link = page.getByLabel("Primary navigation").getByRole("link", { name: transition.link });
@@ -467,7 +467,7 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
   await expectRocketEffectsCleared(page);
   await expectCanvasBackedToRenderedSize(page, "rocket-effects-canvas");
-  await expectCanvasBackedToRenderedSize(page, "work-starfield");
+  await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expectNoHorizontalOverflow(page);
   guard.expectClean();

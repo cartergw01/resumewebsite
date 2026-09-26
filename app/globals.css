@@ -1295,6 +1295,13 @@ select {
   position: absolute;
 }
 
+/* Destination pages keep their routes available as the content scrolls. */
+.site-nav[data-destination-nav] { position: fixed; }
+.site-nav[data-destination-nav][data-scrolled="true"]::before {
+  height: calc(var(--nav-top) + 4rem);
+  background: linear-gradient(180deg, #030611fa 0%, #030611fa 65%, #030611e6 78%, #03061100 100%);
+}
+
 .cosmic-subpage {
   position: relative;
   min-height: 100svh;

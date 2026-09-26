@@ -130,7 +130,8 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>{prompt}</span>
         <svg viewBox={workshop ? "0 0 1200 800" : book ? "0 0 960 529" : "0 0 960 540"} fill="none" aria-hidden="true">
-          <path d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : book ? "M737 141C692 127 627 145 565 215M565 201L565 215L579 211" : "M294 469C470 499 752 346 575 155M576 171L575 155L591 160"} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+          <path className={styles.desktopCuePath} d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : book ? "M737 141C692 127 627 145 565 215M565 201L565 215L579 211" : "M294 469C470 499 752 346 575 155M576 171L575 155L591 160"} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+          <path className={styles.mobileCuePath} d={workshop ? "M715 715C1030 705 1030 365 850 284M869 276L850 284L865 301" : book ? "M724 94C660 92 620 147 565 215M565 201L565 215L579 211" : "M560 496C700 455 704 305 575 155M576 171L575 155L591 160"} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>

@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 
 type CanvasProbeWindow = Window & typeof globalThis & { __rocketClears: number };
-type StarfieldProbeWindow = Window & typeof globalThis & { __workGradients: number; __workFrames: number };
 
 test("hovering keeps the cursor attached without repainting the effects canvas", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Pointer rendering requires a fine pointer.");
@@ -62,7 +61,7 @@ test("effects near viewport edges leave no canvas residue", async ({ page }, tes
   await page.mouse.move(1260, 680);
   // A decorative launch near the edge exercises clipped particle, flame, and
   // shockwave bounds without leaving the route or opening an outbound link.
-  await page.locator(".legacy-work-root").dispatchEvent("click", { clientX: 1260, clientY: 680 });
+  await page.locator("[data-island-page]").dispatchEvent("click", { clientX: 1260, clientY: 680 });
   const canvas = page.getByTestId("rocket-effects-canvas");
   await expect(canvas).toHaveAttribute("data-transition-phase", "launching");
   await expect(canvas).toHaveAttribute("data-transition-phase", "idle");
@@ -77,65 +76,22 @@ test("effects near viewport edges leave no canvas residue", async ({ page }, tes
   expect(hasResidue).toBe(false);
 });
 
-test("Work background stops and resumes when reduced motion changes", async ({ page }, testInfo) => {
+test("Work background pauses for reduced motion and resumes without losing the rocket", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop background animation preference.");
   await page.goto("/work");
-  const canvas = page.getByTestId("work-starfield");
-  await expect(canvas).toHaveAttribute("data-animation-state", "running");
+  const video = page.locator("[data-background-video]");
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => !node.paused && node.currentTime > 0)).toBe(true);
   await page.mouse.move(300, 200);
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(canvas).toHaveAttribute("data-animation-state", "idle");
-  const staticFrame = await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL());
-  await page.waitForTimeout(150);
-  expect(await canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL())).toBe(staticFrame);
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
+  await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "false");
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await expect(canvas).toHaveAttribute("data-animation-state", "running");
-  await expect.poll(() => canvas.evaluate((element: HTMLCanvasElement) => element.toDataURL())).not.toBe(staticFrame);
-  // The first sample after re-enabling can equal the last known point. It must
-  // still reveal the cursor, even though duplicate motion is normally skipped.
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => !node.paused)).toBe(true);
+  await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
   await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointermove", {
     bubbles: true, isPrimary: true, pointerType: "mouse", pointerId: 1,
     clientX: 300, clientY: 200,
   })));
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
-});
-
-test("scrolling the Work starfield reuses gradients while continuing to animate", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop", "Animated desktop star trails.");
-  await page.addInitScript(() => {
-    const probe = window as StarfieldProbeWindow;
-    probe.__workGradients = 0;
-    probe.__workFrames = 0;
-    const prototype = CanvasRenderingContext2D.prototype;
-    const radial = prototype.createRadialGradient;
-    const linear = prototype.createLinearGradient;
-    const clear = prototype.clearRect;
-    prototype.createRadialGradient = function (...args) {
-      if (this.canvas.dataset.testid === "work-starfield") probe.__workGradients += 1;
-      return radial.apply(this, args);
-    };
-    prototype.createLinearGradient = function (...args) {
-      if (this.canvas.dataset.testid === "work-starfield") probe.__workGradients += 1;
-      return linear.apply(this, args);
-    };
-    prototype.clearRect = function (...args) {
-      if (this.canvas.dataset.testid === "work-starfield") probe.__workFrames += 1;
-      return clear.apply(this, args);
-    };
-  });
-  await page.goto("/work");
-  await expect(page.getByTestId("work-starfield")).toHaveAttribute("data-animation-state", "running");
-  await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
-  await expect.poll(() => page.evaluate(() => (
-    window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)
-  ))).toBeGreaterThan(0.5);
-  await page.waitForTimeout(300);
-  await page.evaluate(() => {
-    const probe = window as StarfieldProbeWindow;
-    probe.__workGradients = 0;
-    probe.__workFrames = 0;
-  });
-  await expect.poll(() => page.evaluate(() => (window as StarfieldProbeWindow).__workFrames)).toBeGreaterThan(5);
-  expect(await page.evaluate(() => (window as StarfieldProbeWindow).__workGradients)).toBe(0);
 });

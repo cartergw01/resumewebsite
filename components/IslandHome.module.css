@@ -125,6 +125,7 @@
 .landmarkCue > span { position: absolute; white-space: nowrap; }
 .landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
 .landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
+.mobileCuePath { display: none; }
 .cityCue { width: min(100cqw, 177.7778cqh); height: min(56.25cqw, 100cqh); }
 .cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
 .bookCue { width: min(100cqw, 181.4745cqh); height: min(55.1042cqw, 100cqh); }
@@ -291,10 +292,18 @@
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
-  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 45dvh; min-height: 0; margin-inline: -3rem; }
-  .island { max-height: 45dvh; }
+  /* Frame the landmarks closer on phones. Use real layout dimensions so the
+     lights, annotations, and click-to-enter geometry stay on the same plane. */
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 13rem); height: 100%; max-height: none; min-height: 0; margin-inline: -6.5rem; }
+  .work .art { width: calc(100% + 17rem); margin-inline: -8.5rem; }
+  .projects .art { width: calc(100% + 16rem); margin-inline: -8rem; }
+  .island { max-height: none; }
   .landmarkCue { font-size: 1rem; }
-  .bookCue > span { top: 12%; }
+  .cityCue > span { left: 26%; bottom: 3%; }
+  .bookCue > span { right: 24%; top: 8%; }
+  .workshopCue > span { left: 28%; right: auto; bottom: 4%; }
+  .desktopCuePath { display: none; }
+  .mobileCuePath { display: initial; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }
@@ -322,9 +331,14 @@
   .copy { max-width: 44%; }
   .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
-  .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
+  .art, .work .art, .projects .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .island { max-height: 68dvh; }
   .landmarkCue { font-size: 0.75rem; }
+  .cityCue > span { left: 8%; bottom: 11%; }
+  .bookCue > span { right: 17%; top: 19%; }
+  .workshopCue > span { left: auto; right: 19%; bottom: 0; }
+  .desktopCuePath { display: initial; }
+  .mobileCuePath { display: none; }
   .stage > .galaxyToggle { left: 0.75rem; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 48%; gap: 0.75rem; }

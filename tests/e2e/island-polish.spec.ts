@@ -85,3 +85,25 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
     }
   }
 });
+
+test("destination navigation stays readable on scroll and Home restores the matching island", async ({ page }) => {
+  for (const world of ["work", "writing", "projects"]) {
+    await page.goto(`/${world}`);
+    const nav = page.locator(".site-nav");
+    const home = page.getByRole("link", { name: "Home", exact: true });
+    await expect(home).toHaveAttribute("href", `/2.0#${world}`);
+    await expect(nav).toHaveAttribute("data-scrolled", "false");
+    await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
+    await expect(nav).toHaveAttribute("data-scrolled", "true");
+    await expect(nav).toBeInViewport({ ratio: 1 });
+    await expect(nav).toHaveCSS("position", "fixed");
+    const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
+    expect(backdrop).toContain("0.98");
+    await home.click();
+    await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
+    await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
+    await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
+    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(world === "work" ? 0 : world === "writing" ? 0.5 : 1, 3);
+    await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
+  }
+});

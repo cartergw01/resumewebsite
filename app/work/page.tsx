@@ -1,5 +1,7 @@
 import PortfolioHome from "@/components/PortfolioHome";
 import SiteNav from "@/components/SiteNav";
+import GalaxyBackground from "@/components/GalaxyBackground";
+import styles from "@/components/WorkProfile.module.css";
 import { breadcrumbJsonLd, jsonLdScript, webPageJsonLd } from "@/lib/seo";
 
 export default function WorkPage() {
@@ -14,8 +16,9 @@ export default function WorkPage() {
           ]),
         ])}
       />
-      <SiteNav active="work" />
-      <div className="legacy-work-root" data-rocket-launch-zone>
+      <div className={styles.page} data-rocket-launch-zone data-island-page>
+        <SiteNav active="work" />
+        <GalaxyBackground page />
         <PortfolioHome />
       </div>
     </>

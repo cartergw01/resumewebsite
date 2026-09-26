@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 type SiteNavProps = {
   active?: "home" | "work" | "writing" | "projects";
@@ -58,11 +61,26 @@ function externalLinkProps(href: string) {
 }
 
 export default function SiteNav({ active = "home", hidePrimary = false }: SiteNavProps) {
+  const [scrolled, setScrolled] = useState(false);
+  const destination = active !== "home";
+
+  useEffect(() => {
+    if (!destination) return;
+    let previous = false;
+    const sync = () => {
+      const next = window.scrollY > 16;
+      if (next !== previous) { previous = next; setScrolled(next); }
+    };
+    sync();
+    window.addEventListener("scroll", sync, { passive: true });
+    return () => window.removeEventListener("scroll", sync);
+  }, [destination]);
+
   return (
-    <header className="site-nav">
+    <header className="site-nav" data-destination-nav={destination || undefined} data-scrolled={scrolled}>
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
-          {active !== "home" && <Link href="/">Home</Link>}
+          {destination && <Link href={`/2.0#${active}`} scroll={false}>Home</Link>}
           {primaryLinks.map((link) => (
             <Link
               key={link.id}
