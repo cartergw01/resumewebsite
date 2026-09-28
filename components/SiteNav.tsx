@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type SiteNavProps = {
-  active?: "home" | "work" | "writing" | "projects";
+  active?: "home" | "work" | "writing" | "projects" | "resume";
   hidePrimary?: boolean;
 };
 

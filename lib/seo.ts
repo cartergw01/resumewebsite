@@ -50,6 +50,19 @@ export const routes = {
       "Korobra Capital",
     ],
   },
+  resume: {
+    path: "/resume",
+    title: "Resume | Carter Wang",
+    description:
+      "Carter Wang's resume, including experience at 886 Studios, Contrary Research, Slug Fund, and Korobra Capital, education, and skills.",
+    keywords: [
+      "Carter Wang resume",
+      "886 Studios",
+      "venture associate Taipei",
+      "Contrary Research",
+      "investment research",
+    ],
+  },
   writing: {
     path: "/writing",
     title: "Writing | Carter Wang",
