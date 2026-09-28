@@ -80,7 +80,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
     <header className="site-nav" data-destination-nav={destination || undefined} data-scrolled={scrolled}>
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
-          {destination && <Link href={`/2.0#${active}`} scroll={false}>Home</Link>}
+          {destination && <Link href={`/2.0#${active === "resume" ? "work" : active}`} scroll={false}>Home</Link>}
           {primaryLinks.map((link) => (
             <Link
               key={link.id}
