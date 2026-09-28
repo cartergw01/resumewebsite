@@ -6,47 +6,53 @@
 .page > button { top: auto; bottom: 1rem; left: 1rem; background: #070b10d9; }
 .main { position: relative; z-index: 1; width: min(1220px, calc(100% - 4rem)); margin: 0 auto; padding: var(--nav-clearance) 0 6rem; }
 .returnLink { margin: 0 0 1.25rem; }
-.desk { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); grid-template-areas: "current profile" "earlier earlier"; gap: 4.5rem clamp(2rem, 4vw, 3.5rem); align-items: start; }
-.current { grid-area: current; padding-top: 1rem; color: #fff3df; }
+.desk { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); gap: 4.5rem clamp(2rem, 4vw, 3.5rem); align-items: start; }
+.workHistory { display: grid; gap: 4.5rem; min-width: 0; }
+.current { padding-top: 1rem; color: #fff3df; }
 .eyebrow { margin: 0 0 1rem; color: #c4b69f; font-size: 0.8125rem; font-weight: 500; }
 .current h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.5rem, 4.8vw, 4rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.035em; }
 .current h1 a { color: inherit; text-decoration: underline; text-decoration-color: #efd2a260; text-decoration-thickness: 1px; text-underline-offset: 8px; }
 .current h1 a:hover { text-decoration-color: currentColor; }
-.roles { display: grid; gap: 0.5rem; margin: 1.25rem 0 2.5rem; color: #bfb4a2; font-size: 0.75rem; }
-.roles p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.75rem; margin: 0; line-height: 1.6; }
-.roles strong { color: #fff3df; font-size: 1rem; font-weight: 600; }
+.roles { display: grid; gap: 0.6rem; margin: 1.5rem 0 2.75rem; }
+.roles > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0.25rem 1rem; line-height: 1.6; }
+.roles dt { color: #fff3df; font-size: 1rem; font-weight: 600; }
+.roles dd { margin: 0; color: #bfb4a2; font-size: 0.8125rem; }
+.roles .previousRole dt { color: #d0c7ba; font-size: 0.875rem; font-weight: 400; }
 .contributions { display: grid; gap: 2rem; margin: 0; padding-left: 1.1rem; list-style: disc; }
 .contributions li { padding-left: 0.2rem; }
 .contributions li::marker { color: #d1b47f; font-size: 0.75em; }
-.contributions h2 { margin: 0 0 0.65rem; font-size: 1.0625rem; font-weight: 650; line-height: 1.5; }
+.contributions h2 { margin: 0 0 0.65rem; font-size: 1.125rem; font-weight: 650; line-height: 1.5; }
 .contributions p { margin: 0; color: #dcd5c9; font-size: 0.9375rem; line-height: 1.85; }
 .contributions strong { color: #fff3df; font-weight: 650; }
-.profile { grid-area: profile; padding-top: 1rem; text-shadow: 0 1px 12px #070b10; }
+.profile { padding-top: 1rem; text-shadow: 0 1px 12px #070b10; }
 .bioAndPhoto { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .bio h2 { margin: 0 0 0.75rem; color: #fff2dd; font-size: 1.0625rem; font-weight: 600; line-height: 1.4; }
 .bio p, .moreAbout p { margin: 0; color: #e5dccd; font-size: 0.875rem; line-height: 1.8; }
 .portrait { position: relative; width: min(220px, 100%); aspect-ratio: 4 / 5; overflow: hidden; }
 .portrait img { object-fit: cover; object-position: center 30%; }
 .moreAbout { margin-top: 1rem; }
-.moreAbout summary, .experience summary { display: flex; align-items: start; justify-content: space-between; gap: 1rem; min-height: 44px; padding: 0.75rem 0; list-style: none; cursor: pointer; }
-.moreAbout summary::-webkit-details-marker, .experience summary::-webkit-details-marker { display: none; }
-.moreAbout summary { align-items: center; color: #ead6b8; font-size: 0.8125rem; }
+.moreAbout summary, .roleDetails summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 44px; padding: 0.75rem 0; color: #ead6b8; font-size: 0.8125rem; list-style: none; cursor: pointer; }
+.moreAbout summary::-webkit-details-marker, .roleDetails summary::-webkit-details-marker { display: none; }
+.moreAbout + .moreAbout { margin-top: 0.25rem; }
 .moreAbout p { margin-top: 1rem; }
 .indicator { display: inline-block; color: #d8b982; font-size: 1.15rem; line-height: 1.4; transition: transform 180ms ease; }
-.moreAbout[open] > summary .indicator, .experience[open] > summary .indicator { transform: rotate(45deg); }
+.moreAbout[open] > summary .indicator, .roleDetails[open] > summary .indicator { transform: rotate(45deg); }
 .facts { display: grid; gap: 1.25rem; margin: 1.75rem 0 0; }
 .facts dt { margin-bottom: 0.35rem; color: #e5caa0; font-size: 0.75rem; }
 .facts dd { margin: 0; color: #e5dccd; font-size: 0.8125rem; line-height: 1.8; }
-.earlier { grid-area: earlier; width: min(820px, 100%); }
-.earlier > h2 { margin: 0 0 2rem; color: #f2e2c9; font-family: var(--font-display); font-size: 2rem; font-weight: 500; line-height: 1.2; }
-.experience + .experience { margin-top: 1.75rem; }
-.experienceHeading { display: grid; gap: 0.5rem; color: #d0c7ba; font-size: 0.875rem; line-height: 1.7; }
-.experienceHeading strong { color: #fff3df; font-size: 1.1875rem; font-weight: 600; }
-.date { color: #bfb4a2; font-size: 0.75rem; }
+.earlier { min-width: 0; }
+.earlier > h2 { margin: 0 0 2.25rem; color: #f2e2c9; font-family: var(--font-display); font-size: 2rem; font-weight: 500; line-height: 1.2; }
+.experiences { display: grid; gap: 2.75rem; }
+.experience { min-width: 0; }
+.experienceHeading { display: grid; gap: 0.35rem; color: #d0c7ba; font-size: 0.9375rem; line-height: 1.65; }
+.experienceHeading h3 { margin: 0 0 0.25rem; color: #fff3df; font-size: 1.25rem; font-weight: 600; }
+.experienceHeading p { margin: 0; }
+.date { color: #bfb4a2; font-size: 0.8125rem; }
+.roleDetails { margin-top: 0.75rem; }
 .details { display: grid; gap: 0.875rem; margin: 1rem 0 1.5rem; padding-left: 1.1rem; list-style: disc; color: #d0c7ba; font-size: 0.9375rem; line-height: 1.85; }
 .details li { padding-left: 0.2rem; }
 .details li::marker { color: #b69b70; font-size: 0.75em; }
-.research { margin: 1.5rem 0 2.5rem; }
+.research { margin: 1.25rem 0 0; }
 .research > p { margin: 0 0 0.25rem; color: #bfb4a2; font-size: 0.75rem; }
 .research > div { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; }
 .research a { display: inline-flex; align-items: center; min-height: 44px; color: #ead6b8; font-size: 0.875rem; text-decoration: underline; text-underline-offset: 4px; }
@@ -57,10 +63,11 @@
 @media (max-width: 760px) {
   .main { width: calc(100% - 2.5rem); padding-bottom: 4rem; }
   .returnLink { margin-bottom: 1rem; }
-  .desk { grid-template-columns: minmax(0, 1fr); grid-template-areas: "current" "profile" "earlier"; row-gap: 2.75rem; }
+  .desk { grid-template-columns: minmax(0, 1fr); row-gap: 3.5rem; }
+  .workHistory { gap: 3.5rem; }
   .current h1 { font-size: clamp(2.3rem, 10vw, 3.5rem); }
   .contributions { gap: 1.75rem; }
-  .contributions h2 { font-size: 1rem; }
+  .contributions h2 { font-size: 1.0625rem; }
   .contributions p { font-size: 0.9375rem; line-height: 1.8; }
   .roles { margin-bottom: 2rem; }
   .profile { padding: 0; }
@@ -69,5 +76,9 @@
   .earlier > h2 { margin-bottom: 1.25rem; font-size: 1.75rem; }
   .page > button { position: absolute; top: var(--nav-clearance); right: 1.25rem; bottom: auto; left: auto; background: transparent; }
   .atmosphere img { opacity: 0.45; object-position: 63% top; }
+}
+@media (max-width: 480px) {
+  .roles { gap: 0.875rem; }
+  .roles > div { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .indicator { transition: none; } }
