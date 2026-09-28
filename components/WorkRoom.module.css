@@ -22,11 +22,11 @@
 .contributions p { margin: 0; color: #dcd5c9; font-size: 0.9375rem; line-height: 1.85; }
 .contributions strong { color: #fff3df; font-weight: 650; }
 .profile { grid-area: profile; padding-top: 1rem; text-shadow: 0 1px 12px #070b10; }
-.bioAndPhoto { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.8fr); gap: 1.25rem; align-items: stretch; }
+.bioAndPhoto { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; align-items: start; }
 .bio h2 { margin: 0 0 0.75rem; color: #fff2dd; font-size: 1.0625rem; font-weight: 600; line-height: 1.4; }
 .bio p, .moreAbout p { margin: 0; color: #e5dccd; font-size: 0.875rem; line-height: 1.8; }
-.portrait { position: relative; min-height: 0; overflow: hidden; }
-.portrait img { object-fit: cover; object-position: center 25%; }
+.portrait { position: relative; width: min(220px, 100%); aspect-ratio: 4 / 5; overflow: hidden; }
+.portrait img { object-fit: cover; object-position: center 30%; }
 .moreAbout { margin-top: 1rem; }
 .moreAbout summary, .experience summary { display: flex; align-items: start; justify-content: space-between; gap: 1rem; min-height: 44px; padding: 0.75rem 0; list-style: none; cursor: pointer; }
 .moreAbout summary::-webkit-details-marker, .experience summary::-webkit-details-marker { display: none; }
@@ -53,7 +53,6 @@
 .main a:focus-visible, .main summary:focus-visible { outline: 2px solid #e6c794; outline-offset: 5px; }
 @media (max-width: 1000px) and (min-width: 761px) {
   .desk { grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr); column-gap: 1.5rem; }
-  .bioAndPhoto { gap: 0.875rem; }
 }
 @media (max-width: 760px) {
   .main { width: calc(100% - 2.5rem); padding-bottom: 4rem; }
@@ -65,7 +64,8 @@
   .contributions p { font-size: 0.9375rem; line-height: 1.8; }
   .roles { margin-bottom: 2rem; }
   .profile { padding: 0; }
-  .bioAndPhoto { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 1.25rem; }
+  .bioAndPhoto { grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 1.25rem; }
+  .portrait { width: min(130px, 100%); }
   .earlier > h2 { margin-bottom: 1.25rem; font-size: 1.75rem; }
   .page > button { position: absolute; top: var(--nav-clearance); right: 1.25rem; bottom: auto; left: auto; background: transparent; }
   .atmosphere img { opacity: 0.45; object-position: 63% top; }

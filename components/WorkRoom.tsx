@@ -48,12 +48,12 @@ export default function WorkRoom() {
 
           <aside className={styles.profile} aria-labelledby="work-profile-title">
             <div className={styles.bioAndPhoto}>
+              <div className={styles.portrait}>
+                <Image src="/headshot.jpg" alt="Carter Wang" fill sizes="(min-width: 761px) 220px, (min-width: 400px) 130px, 32vw" />
+              </div>
               <div className={styles.bio}>
                 <h2 id="work-profile-title">Carter Wang</h2>
                 <p>{workPageBio[0]}</p>
-              </div>
-              <div className={styles.portrait}>
-                <Image src="/headshot.jpg" alt="Carter Wang" fill sizes="(min-width: 761px) 160px, 30vw" />
               </div>
             </div>
             <details className={styles.moreAbout}>
