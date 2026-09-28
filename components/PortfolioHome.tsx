@@ -1,7 +1,6 @@
 import Image from "next/image";
 import {
   workPageBio,
-  workPageEssays,
   workPageExperience,
   workPageInterests,
   workPageProfileFacts,
@@ -74,29 +73,18 @@ export default function PortfolioHome() {
           </section>
         </div>
 
-        <section className={styles.essays} aria-labelledby="work-essays">
-          <h2 id="work-essays">Essays</h2>
-          {workPageEssays.map((essay) => (
-            <a key={essay.href} className={styles.essay} href={essay.href} target="_blank" rel="noopener noreferrer">
-              <span><strong>{essay.title}</strong><span>{essay.subtitle}</span></span>
-              <span className={styles.arrow} aria-hidden="true">↗</span>
-            </a>
-          ))}
-          <a className={styles.substack} href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer">Read more on Substack <span aria-hidden="true">↗</span></a>
-        </section>
+        <aside className={styles.profile} aria-label="Profile details">
+          <dl className={styles.facts}>
+            {workPageProfileFacts.map((fact) => (
+              <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
+            ))}
+          </dl>
+          <dl className={styles.interests}>
+            <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
+            <div><dt>Interests</dt><dd>{workPageInterests}</dd></div>
+          </dl>
+        </aside>
       </div>
-
-      <footer className={styles.profile}>
-        <dl className={styles.facts}>
-          {workPageProfileFacts.map((fact) => (
-            <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
-          ))}
-        </dl>
-        <dl className={styles.interests}>
-          <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
-          <div><dt>Interests</dt><dd>{workPageInterests}</dd></div>
-        </dl>
-      </footer>
     </main>
   );
 }
