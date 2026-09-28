@@ -80,8 +80,8 @@ export default function WorkRoom() {
                       </div>
                     ) : null}
                     <details className={styles.disclosure}>
-                      <summary aria-label={`Contributions at ${item.company}`}>
-                        Contributions<span className={styles.indicator} aria-hidden="true" />
+                      <summary aria-label={`What I did at ${item.company}`}>
+                        What I did<span className={styles.indicator} aria-hidden="true" />
                       </summary>
                       <ul className={styles.details}>{item.details.map((detail) => <li key={detail}>{detail}</li>)}</ul>
                     </details>

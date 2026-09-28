@@ -35,7 +35,9 @@
 .roles div + div dt { color: #d0c7ba; font-size: 0.875rem; font-weight: 400; }
 .roles dd { margin: 0; color: var(--quiet); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
 
-.contributions { display: grid; gap: 2.75rem; margin: 3.25rem 0 0; padding: 0; list-style: none; }
+.contributions { display: grid; gap: 2.75rem; margin: 3.25rem 0 0; padding-left: 1.25rem; list-style: disc; }
+.contributions li { padding-left: 0.35rem; }
+.contributions li::marker { color: var(--gold); font-size: 1.1em; }
 .contributions h2 { margin: 0 0 0.75rem; font-family: var(--font-display); font-size: clamp(1.5rem, 2.3vw, 2rem); font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; text-wrap: balance; }
 .contributions h2 em { color: var(--gold); font-style: normal; font-weight: 600; font-variant-numeric: tabular-nums; }
 .contributions p { max-width: 40rem; margin: 0; color: var(--body); font-size: 0.9375rem; line-height: 1.8; }
