@@ -37,12 +37,6 @@ export default function PortfolioHome() {
         </div>
       </header>
 
-      <dl className={styles.facts} aria-label="About Carter">
-        {workPageProfileFacts.map((fact) => (
-          <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
-        ))}
-      </dl>
-
       <section className={styles.current} aria-labelledby="current-work">
         <header className={styles.currentHeader}>
           <h2 id="current-work">
@@ -74,7 +68,7 @@ export default function PortfolioHome() {
       </section>
 
       <section className={styles.earlier} aria-labelledby="earlier-work">
-        <h2 id="earlier-work">Earlier Experience</h2>
+        <h2 id="earlier-work">Along the way</h2>
         {earlier.map((item) => (
           <details key={item.company} className={styles.experience} open={item.company === "Contrary Research"}>
             <summary>
@@ -102,10 +96,17 @@ export default function PortfolioHome() {
       </section>
 
       <aside className={styles.profile} aria-label="Profile details">
-        <dl className={styles.interests}>
-          <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
-          <div><dt>Interests</dt><dd>{workPageInterests}</dd></div>
-        </dl>
+        <h2>Outside of work</h2>
+        <p className={styles.interests}>{workPageInterests}.</p>
+        <details className={styles.profileDetails}>
+          <summary>Background &amp; skills<span className={styles.indicator} aria-hidden="true">+</span></summary>
+          <dl className={styles.facts}>
+            {workPageProfileFacts.map((fact) => (
+              <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
+            ))}
+            <div className={styles.skills}><dt>Skills</dt><dd>{workPageSkills}</dd></div>
+          </dl>
+        </details>
       </aside>
     </main>
   );
