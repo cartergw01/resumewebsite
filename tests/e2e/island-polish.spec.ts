@@ -93,15 +93,12 @@ test("destination navigation stays readable on scroll and Home restores the matc
     const home = page.getByRole("link", { name: "Home", exact: true });
     await expect(home).toHaveAttribute("href", `/2.0#${world}`);
     await expect(nav).toHaveAttribute("data-scrolled", "false");
-    // The Work room fits the viewport; its reading views scroll inside a dialog.
-    if (world !== "work") {
-      await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
-      await expect(nav).toHaveAttribute("data-scrolled", "true");
-      const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
-      expect(backdrop).toContain("0.98");
-    }
+    await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
+    await expect(nav).toHaveAttribute("data-scrolled", "true");
     await expect(nav).toBeInViewport({ ratio: 1 });
     await expect(nav).toHaveCSS("position", "fixed");
+    const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
+    expect(backdrop).toContain("0.98");
     await home.click();
     await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
