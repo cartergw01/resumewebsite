@@ -58,7 +58,7 @@ export default function WorkRoom() {
             </section>
 
             <section className={styles.earlier} aria-labelledby="earlier-work-title">
-              <h2 id="earlier-work-title">Research &amp; investing</h2>
+              <h2 id="earlier-work-title">Previously</h2>
               <ol className={styles.experiences}>
                 {earlier.map((item) => (
                   <li key={item.company} className={styles.experience}>
