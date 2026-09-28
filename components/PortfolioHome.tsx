@@ -55,7 +55,9 @@ export default function PortfolioHome() {
               {current.details.map((detail, index) => (
                 <li key={detail}>
                   <h3 className={styles.detailHeading}>{currentDetailHeadings[index]}</h3>
-                  {detail}
+                  {detail.split(/(\d+\+ (?:early-stage startups|startups|batch teams))/g).map((part, partIndex) => (
+                    partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+                  ))}
                 </li>
               ))}
             </ul>
