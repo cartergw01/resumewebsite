@@ -22,17 +22,15 @@
 .scene { position: relative; }
 .stage { position: relative; }
 .frame { position: relative; overflow: hidden; container-type: size; }
+/* --pan, --zoom, and --lift are written by WorkScene as you scroll. */
 .room {
-  --pan: 0.78;
-  --zoom: 1;
   position: absolute;
   top: 50%;
   left: 0;
   width: max(100cqw, calc(100cqh * 1.7768));
   height: max(100cqh, calc(100cqw / 1.7768));
-  transform: translate3d(calc(var(--pan) * (100cqw - 100%)), -50%, 0) scale(var(--zoom));
+  transform: translate3d(calc(var(--pan, 0.76) * (100cqw - 100%)), calc(-50% + var(--lift, 0%)), 0) scale(var(--zoom, 1));
   transform-origin: 72% 40%;
-  transition: transform 1.6s var(--cw-ease);
   will-change: transform;
 }
 .room img { object-fit: cover; }
@@ -45,8 +43,8 @@
 .returnLink { position: relative; z-index: 2; }
 
 .intro h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.75rem, 5vw, 4.25rem); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
-.intro h1 a { color: inherit; text-decoration: underline; text-decoration-color: #efd2a24d; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
-.intro h1 a:hover { text-decoration-color: currentColor; }
+.intro h1 a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
+.intro h1 a:hover { text-decoration-color: #efd2a299; }
 .roles { display: grid; gap: 0.35rem; margin: 1.25rem 0 0; }
 .roles > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.75rem; }
 .roles dt { color: var(--paper); font-size: 1rem; font-weight: 600; }
@@ -54,10 +52,10 @@
 .roles dd { margin: 0; color: var(--quiet); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
 
 .acts { margin: 0; padding: 0; list-style: none; }
-.actTab { display: none; }
-.actBody h2 { margin: 0 0 0.9rem; font-family: var(--font-display); font-size: clamp(1.75rem, 2.6vw, 2.35rem); font-weight: 500; line-height: 1.16; letter-spacing: -0.02em; text-wrap: balance; }
-.actBody h2 em { color: var(--gold); font-style: normal; font-weight: 600; }
-.actBody p { max-width: 36rem; margin: 0; color: var(--body); font-size: 0.9375rem; line-height: 1.8; }
+.actNav { display: none; }
+.act h2 { margin: 0 0 0.9rem; font-family: var(--font-display); font-size: clamp(1.75rem, 2.6vw, 2.35rem); font-weight: 500; line-height: 1.16; letter-spacing: -0.02em; text-wrap: balance; }
+.act h2 em { color: var(--gold); font-style: normal; font-weight: 600; }
+.act p { max-width: 36rem; margin: 0; color: var(--body); font-size: 0.9375rem; line-height: 1.8; }
 
 @media (min-width: 761px) and (min-height: 640px) {
   .scene { height: 290svh; }
@@ -70,9 +68,6 @@
     width: 64%;
     mask-image: linear-gradient(90deg, transparent, #000 26%);
   }
-  .scene[data-focus="desk"] .room { --pan: 0; --zoom: 1.03; }
-  .scene[data-focus="window"] .room { --pan: 0.74; --zoom: 1.09; }
-  .scene[data-focus="chair"] .room { --pan: 1; --zoom: 1.03; }
   .returnLink { position: absolute; top: var(--nav-clearance); left: var(--page-x); }
   .stageCopy {
     position: relative;
@@ -87,44 +82,36 @@
     padding: calc(var(--nav-clearance) + 3rem) 0 2.5rem;
     text-shadow: 0 1px 14px var(--ink);
   }
-  .acts { display: grid; }
-  .actTab {
-    display: grid;
-    gap: 0.55rem;
-    width: 100%;
+  .scene { height: 340svh; }
+  .actNav { display: flex; flex-wrap: wrap; gap: 0 1.5rem; margin: 0 0 -1rem; }
+  .actNav button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     min-height: 44px;
-    padding: 0.7rem 0 0;
+    padding: 0;
     border: 0;
     color: var(--quiet);
     font: inherit;
     font-size: 0.8125rem;
-    text-align: left;
     background: none;
     cursor: pointer;
     transition: color 240ms ease;
   }
-  .actTab:hover, .act[data-active="true"] .actTab { color: var(--paper); }
-  .actMeter { position: relative; display: block; height: 1px; background: #fff3df24; }
-  .actMeter::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: var(--gold);
-    transform: scaleX(0);
-    transform-origin: left;
+  .actNav button::before { width: 5px; height: 5px; border-radius: 50%; content: ""; background: currentColor; opacity: 0.35; transition: background-color 240ms ease, opacity 240ms ease; }
+  .actNav button:hover, .actNav button[aria-current] { color: var(--paper); }
+  .actNav button[aria-current]::before { background: var(--gold); opacity: 1; }
+  /* The three acts share one cell and pass through each other with scroll. */
+  .acts { display: grid; }
+  .act {
+    grid-area: 1 / 1;
+    opacity: var(--o, 0);
+    filter: blur(var(--b, 0));
+    transform: translate3d(0, var(--y, 0), 0);
+    pointer-events: none;
   }
-  .act[data-done="true"] .actMeter::after { background: var(--gold-dim); transform: scaleX(1); }
-  .act[data-active="true"] .actMeter::after { transform: scaleX(var(--act-progress, 0)); }
-  .actBody {
-    display: grid;
-    grid-template-rows: 0fr;
-    opacity: 0;
-    transition: grid-template-rows 700ms var(--cw-ease), opacity 360ms ease;
-  }
-  .actBody > div { min-height: 0; overflow: hidden; }
-  .act[data-active="true"] .actBody { grid-template-rows: 1fr; opacity: 1; transition-delay: 0ms, 160ms; }
-  .actBody h2 { padding-top: 1.4rem; }
-  .actBody p { padding-bottom: 1.25rem; }
+  .act:first-child { opacity: var(--o, 1); }
+  .act[data-active="true"] { pointer-events: auto; }
 }
 
 /* After the scene: earlier roles beside the profile */
@@ -192,5 +179,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .room, .actBody, .actTab, .indicator { transition: none; }
+  .actNav button, .actNav button::before, .indicator { transition: none; }
 }
