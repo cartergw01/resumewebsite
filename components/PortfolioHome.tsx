@@ -47,7 +47,7 @@ export default function PortfolioHome() {
         <header className={styles.currentHeader}>
           <h2 id="current-work">
             <a className={styles.companyLink} href="https://886studios.com/" target="_blank" rel="noopener noreferrer">
-              {current.company} <span aria-hidden="true">↗</span>
+              {current.company}
             </a>
           </h2>
           <div className={styles.roles}>
@@ -61,7 +61,7 @@ export default function PortfolioHome() {
         </header>
         <ul className={styles.focusList} role="list">
           {current.details.map((detail, index) => (
-            <li key={detail} className={styles.focusItem}>
+            <li key={detail}>
               <h3 className={styles.focusHeading}>{currentDetailHeadings[index]}</h3>
               <p className={styles.focusCopy}>
                 {detail.split(/(\d+\+ (?:early-stage startups|startups|batch teams))/g).map((part, partIndex) => (
@@ -92,7 +92,7 @@ export default function PortfolioHome() {
               {"links" in item && item.links ? (
                 <div className={styles.researchLinks}>
                   {item.links.map((article) => (
-                    <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label} <span aria-hidden="true">↗</span></a>
+                    <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label}</a>
                   ))}
                 </div>
               ) : null}

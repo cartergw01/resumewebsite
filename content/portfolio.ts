@@ -119,7 +119,7 @@ export const workPageExperience = [
   },
   {
     company: "Slug Fund Investment Group",
-    role: "Equity Research Analyst -> Vice President & Head of the Venture Analyst Team",
+    role: "Equity Research Analyst to Vice President & Head of the Venture Analyst Team",
     dates: "January 2021 - July 2023",
     details: [
       "Performed fundamental research on public companies and supported the development of investment theses.",
