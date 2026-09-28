@@ -39,6 +39,7 @@ export default function PortfolioHome() {
 
       <section className={styles.current} aria-labelledby="current-work">
         <header className={styles.currentHeader}>
+          <p className={styles.sectionLabel}>Now</p>
           <h2 id="current-work">
             <a className={styles.companyLink} href="https://886studios.com/" target="_blank" rel="noopener noreferrer">
               {current.company}
@@ -84,10 +85,13 @@ export default function PortfolioHome() {
                 {item.details.map((detail) => <li key={detail}>{detail}</li>)}
               </ul>
               {"links" in item && item.links ? (
-                <div className={styles.researchLinks}>
-                  {item.links.map((article) => (
-                    <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label}</a>
-                  ))}
+                <div className={styles.research}>
+                  <p className={styles.researchLabel}>Published research</p>
+                  <div className={styles.researchLinks}>
+                    {item.links.map((article) => (
+                      <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label}</a>
+                    ))}
+                  </div>
                 </div>
               ) : null}
             </div>
