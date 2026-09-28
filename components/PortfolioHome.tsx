@@ -32,76 +32,81 @@ export default function PortfolioHome() {
             src="/headshot.jpg"
             fill
             priority
-            sizes="(min-width: 900px) 380px, (min-width: 761px) 36vw, 100vw"
+            sizes="(min-width: 1200px) 440px, (min-width: 761px) 42vw, 100vw"
           />
         </div>
       </header>
 
-      <div className={styles.columns}>
-        <div>
-          <section className={styles.current} aria-labelledby="current-work">
-            <h2 id="current-work">
-              <a className={styles.companyLink} href="https://886studios.com/" target="_blank" rel="noopener noreferrer">
-                {current.company} <span aria-hidden="true">↗</span>
-              </a>
-            </h2>
+      <dl className={styles.facts} aria-label="About Carter">
+        {workPageProfileFacts.map((fact) => (
+          <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
+        ))}
+      </dl>
+
+      <section className={styles.current} aria-labelledby="current-work">
+        <header className={styles.currentHeader}>
+          <h2 id="current-work">
+            <a className={styles.companyLink} href="https://886studios.com/" target="_blank" rel="noopener noreferrer">
+              {current.company} <span aria-hidden="true">↗</span>
+            </a>
+          </h2>
+          <div className={styles.roles}>
             <div className={styles.role}>
               <strong>Associate</strong><span>{current.dates}</span>
             </div>
             <div className={styles.role}>
               <span>Venture Fellow</span><span>June 2024 - September 2024</span>
             </div>
-            <ul className={styles.details}>
-              {current.details.map((detail, index) => (
-                <li key={detail}>
-                  <h3 className={styles.detailHeading}>{currentDetailHeadings[index]}</h3>
-                  {detail.split(/(\d+\+ (?:early-stage startups|startups|batch teams))/g).map((part, partIndex) => (
-                    partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+          </div>
+        </header>
+        <ul className={styles.focusList} role="list">
+          {current.details.map((detail, index) => (
+            <li key={detail} className={styles.focusItem}>
+              <h3 className={styles.focusHeading}>{currentDetailHeadings[index]}</h3>
+              <p className={styles.focusCopy}>
+                {detail.split(/(\d+\+ (?:early-stage startups|startups|batch teams))/g).map((part, partIndex) => (
+                  partIndex % 2 === 1 ? <strong key={partIndex}>{part}</strong> : part
+                ))}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={styles.earlier} aria-labelledby="earlier-work">
+        <h2 id="earlier-work">Earlier Experience</h2>
+        {earlier.map((item) => (
+          <details key={item.company} className={styles.experience} open={item.company === "Contrary Research"}>
+            <summary>
+              <span className={styles.experienceHeading}>
+                <strong>{item.company}</strong>
+                <span>{item.role}</span>
+                <span className={styles.date}>{item.dates}</span>
+              </span>
+              <span className={styles.indicator} aria-hidden="true">+</span>
+            </summary>
+            <div className={styles.experienceBody}>
+              <ul className={styles.details}>
+                {item.details.map((detail) => <li key={detail}>{detail}</li>)}
+              </ul>
+              {"links" in item && item.links ? (
+                <div className={styles.researchLinks}>
+                  {item.links.map((article) => (
+                    <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label} <span aria-hidden="true">↗</span></a>
                   ))}
-                </li>
-              ))}
-            </ul>
-          </section>
+                </div>
+              ) : null}
+            </div>
+          </details>
+        ))}
+      </section>
 
-          <section className={styles.earlier} aria-labelledby="earlier-work">
-            <h2 id="earlier-work">Earlier Experience</h2>
-            {earlier.map((item) => (
-              <details key={item.company} className={styles.experience} open={item.company === "Contrary Research"}>
-                <summary>
-                  <span className={styles.experienceHeading}>
-                    <strong>{item.company}</strong>
-                    <span>{item.role}</span>
-                    <span className={styles.date}>{item.dates}</span>
-                  </span>
-                  <span className={styles.indicator} aria-hidden="true">+</span>
-                </summary>
-                <ul className={styles.details}>
-                  {item.details.map((detail) => <li key={detail}>{detail}</li>)}
-                </ul>
-                {"links" in item && item.links ? (
-                  <div className={styles.researchLinks}>
-                    {item.links.map((article) => (
-                      <a key={article.href} href={article.href} target="_blank" rel="noopener noreferrer">{article.label} <span aria-hidden="true">↗</span></a>
-                    ))}
-                  </div>
-                ) : null}
-              </details>
-            ))}
-          </section>
-        </div>
-
-        <aside className={styles.profile} aria-label="Profile details">
-          <dl className={styles.facts}>
-            {workPageProfileFacts.map((fact) => (
-              <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
-            ))}
-          </dl>
-          <dl className={styles.interests}>
-            <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
-            <div><dt>Interests</dt><dd>{workPageInterests}</dd></div>
-          </dl>
-        </aside>
-      </div>
+      <aside className={styles.profile} aria-label="Profile details">
+        <dl className={styles.interests}>
+          <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
+          <div><dt>Interests</dt><dd>{workPageInterests}</dd></div>
+        </dl>
+      </aside>
     </main>
   );
 }
