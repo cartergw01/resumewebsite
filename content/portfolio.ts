@@ -89,6 +89,25 @@ export const workPageBio = [
   "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, or writing.",
 ];
 
+// Short points shown under each 886 Studios headline on /work. The headlines
+// carry the numbers, so these avoid repeating them.
+export const workPageCurrentHighlights = [
+  [
+    "Lead deal sourcing for a new accelerator",
+    "Own the full application pipeline, from inbound through review",
+    "Design and manage the admissions process and contribute to final selection decisions",
+  ],
+  [
+    "Serve on the core team that launched ikigai Launchpad in Taiwan",
+    "Help shape the selection rubric",
+    "Support teams through workshops, office hours, investor matching, partnerships, and corporate perks",
+  ],
+  [
+    "Manage newsletters, socials, and website updates",
+    "Plan events and Demo Day",
+  ],
+];
+
 export const workPageExperience = [
   {
     company: "886 Studios",

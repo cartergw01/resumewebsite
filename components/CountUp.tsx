@@ -17,7 +17,7 @@ export default function CountUp({ to, suffix = "" }: { to: number; suffix?: stri
       observer.disconnect();
       // Start from the first painted frame so a paused tab never shows 0.
       let start = 0;
-      const duration = 1400;
+      const duration = 700;
       const tick = (now: number) => {
         if (!start) start = now;
         const t = Math.min(1, (now - start) / duration);

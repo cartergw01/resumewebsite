@@ -2522,6 +2522,11 @@ select {
     padding: 0 7px;
   }
 
+  /* Widen the invisible tap area so each icon gets a full 44px target. */
+  .site-nav-social a::before {
+    inset: -6px -7px;
+  }
+
   .cosmic-hero {
     min-height: 110svh;
     padding-top: 8.6rem;

@@ -5,6 +5,7 @@ import GalaxyBackground from "@/components/GalaxyBackground";
 import IslandReturnLink from "@/components/IslandReturnLink";
 import {
   workPageBio,
+  workPageCurrentHighlights,
   workPageExperience,
   workPageInterests,
   workPageProfileFacts,
@@ -14,20 +15,15 @@ import styles from "./WorkRoom.module.css";
 
 const [current, ...earlier] = workPageExperience;
 
-const contributions: { headline: ReactNode; detail: string }[] = [
-  {
-    headline: <><em><CountUp to={250} suffix="+" /></em> startups screened, <em><CountUp to={100} suffix="+" /></em> taken through diligence</>,
-    detail: current.details[0],
-  },
-  {
-    headline: <><em><CountUp to={15} suffix="+" /></em> batch teams supported at ikigai Launchpad</>,
-    detail: current.details[1],
-  },
-  {
-    headline: <><em>Launch Station</em>, a community program for founders</>,
-    detail: current.details[2],
-  },
+// Only the lead number of each headline counts up; the rest stay still.
+const headlines: ReactNode[] = [
+  <><em><CountUp to={250} suffix="+" /></em> startups screened, <em>100+</em> taken through diligence</>,
+  <><em><CountUp to={15} suffix="+" /></em> batch teams supported at ikigai Launchpad</>,
+  <><em>Launch Station</em>, a community program for founders</>,
 ];
+
+// The first bio paragraph repeats the 886 header, so lead with the second.
+const [bioIntro, bioLead, ...bioRest] = workPageBio;
 
 export default function WorkRoom() {
   return (
@@ -43,18 +39,18 @@ export default function WorkRoom() {
                   <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
                 </h1>
                 <dl className={styles.roles} aria-label={`Roles at ${current.company}`}>
-                  <div><dt>Associate</dt><dd>{current.dates}</dd></div>
+                  <div><dt>{current.role}</dt><dd>{current.dates}</dd></div>
                   <div><dt>Venture Fellow</dt><dd>June 2024 - September 2024</dd></div>
                 </dl>
               </header>
-              <ul className={styles.contributions}>
-                {contributions.map((item) => (
-                  <li key={item.detail}>
-                    <h2>{item.headline}</h2>
-                    <p>{item.detail}</p>
-                  </li>
+              <div className={styles.contributions}>
+                {headlines.map((headline, index) => (
+                  <div key={index}>
+                    <h2>{headline}</h2>
+                    <ul>{workPageCurrentHighlights[index].map((point) => <li key={point}>{point}</li>)}</ul>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </section>
 
             <section className={styles.earlier} aria-labelledby="earlier-work-title">
@@ -97,11 +93,11 @@ export default function WorkRoom() {
             </div>
             <div className={styles.bio}>
               <h2 id="work-profile-title">Carter Wang</h2>
-              <p>{workPageBio[0]}</p>
+              <p>{bioLead}</p>
             </div>
             <details className={styles.disclosure}>
               <summary>More about me<span className={styles.indicator} aria-hidden="true" /></summary>
-              {workPageBio.slice(1).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {[bioIntro, ...bioRest].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               <dl className={styles.facts}>
                 <div><dt>Interests</dt><dd>{`${workPageInterests}.`}</dd></div>
               </dl>
