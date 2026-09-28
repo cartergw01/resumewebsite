@@ -1,5 +1,5 @@
-/* Work: one Taipei room at night. On desktop the room stays pinned while the
-   three parts of the 886 role take turns, and the camera pans across it. */
+/* Work: the site's starfield, with 886 Studios pinned on desktop while its
+   three parts pass through one another and the stars drift closer. */
 .page {
   --ink: #070b10;
   --paper: #fff3df;
@@ -13,33 +13,15 @@
   color: var(--paper);
   background: var(--ink);
 }
-.page > [data-galaxy-background] { opacity: 0.2; mix-blend-mode: screen; }
-.page > button { position: absolute; z-index: 3; top: calc(var(--nav-clearance) - 0.5rem); right: var(--page-x); bottom: auto; left: auto; background: transparent; }
+/* --travel (0 to 1) is written by WorkScene as you scroll through 886. */
+.page > [data-galaxy-background] [data-galaxy-camera] {
+  transform: translate3d(calc(var(--travel, 0) * -3%), calc(var(--travel, 0) * -1.5%), 0) scale(calc(1.02 + var(--travel, 0) * 0.12));
+}
 .main { position: relative; z-index: 1; }
 .main a:focus-visible, .main summary:focus-visible, .main button:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
 
 /* The scene */
 .scene { position: relative; }
-.stage { position: relative; }
-.frame { position: relative; overflow: hidden; container-type: size; }
-/* --pan, --zoom, and --lift are written by WorkScene as you scroll. */
-.room {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: max(100cqw, calc(100cqh * 1.7768));
-  height: max(100cqh, calc(100cqw / 1.7768));
-  transform: translate3d(calc(var(--pan, 0.76) * (100cqw - 100%)), calc(-50% + var(--lift, 0%)), 0) scale(var(--zoom, 1));
-  transform-origin: 72% 40%;
-  will-change: transform;
-}
-.room img { object-fit: cover; }
-.frame::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  background: linear-gradient(180deg, #070b10b3 0, transparent 24%, transparent 72%, var(--ink) 100%);
-}
 .returnLink { position: relative; z-index: 2; }
 
 .intro h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.75rem, 5vw, 4.25rem); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
@@ -51,44 +33,32 @@
 .roles div + div dt { color: #d0c7ba; font-size: 0.875rem; font-weight: 400; }
 .roles dd { margin: 0; color: var(--quiet); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
 
-.acts { margin: 0; padding: 0; list-style: none; }
 .actNav { display: none; }
-.act h2 { margin: 0 0 0.9rem; font-family: var(--font-display); font-size: clamp(1.75rem, 2.6vw, 2.35rem); font-weight: 500; line-height: 1.16; letter-spacing: -0.02em; text-wrap: balance; }
+.acts { margin: 0; padding: 0; list-style: none; }
+.act h2 { margin: 0 0 1rem; font-family: var(--font-display); font-size: clamp(1.9rem, 3.4vw, 3.25rem); font-weight: 500; line-height: 1.12; letter-spacing: -0.025em; text-wrap: balance; }
 .act h2 em { color: var(--gold); font-style: normal; font-weight: 600; }
-.act p { max-width: 36rem; margin: 0; color: var(--body); font-size: 0.9375rem; line-height: 1.8; }
+.act p { max-width: 34rem; margin: 0; color: var(--body); font-size: 0.9375rem; line-height: 1.8; }
 
 @media (min-width: 761px) and (min-height: 640px) {
-  .scene { height: 290svh; }
-  .stage { position: sticky; top: 0; height: 100svh; overflow: hidden; }
-  .frame {
-    position: absolute;
+  .scene { height: 340svh; }
+  .stage {
+    position: sticky;
     top: 0;
-    right: 0;
-    bottom: 0;
-    width: 64%;
-    mask-image: linear-gradient(90deg, transparent, #000 26%);
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(2.5rem, 6vw, 6rem);
+    height: 100svh;
+    padding: var(--nav-clearance) var(--page-x) 2rem;
+    overflow: hidden;
   }
   .returnLink { position: absolute; top: var(--nav-clearance); left: var(--page-x); }
-  .stageCopy {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: clamp(2rem, 6svh, 3.5rem);
-    width: min(38rem, 46vw);
-    height: 100%;
-    margin-left: var(--page-x);
-    padding: calc(var(--nav-clearance) + 3rem) 0 2.5rem;
-    text-shadow: 0 1px 14px var(--ink);
-  }
-  .scene { height: 340svh; }
-  .actNav { display: flex; flex-wrap: wrap; gap: 0 1.5rem; margin: 0 0 -1rem; }
+  .actNav { display: grid; justify-items: start; margin-top: 2.25rem; }
   .actNav button {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
+    gap: 0.6rem;
+    min-height: 40px;
     padding: 0;
     border: 0;
     color: var(--quiet);
@@ -102,7 +72,7 @@
   .actNav button:hover, .actNav button[aria-current] { color: var(--paper); }
   .actNav button[aria-current]::before { background: var(--gold); opacity: 1; }
   /* The three acts share one cell and pass through each other with scroll. */
-  .acts { display: grid; }
+  .acts { display: grid; align-items: center; }
   .act {
     grid-area: 1 / 1;
     opacity: var(--o, 0);
@@ -160,15 +130,11 @@
 
 /* Phones and short screens: no pinning, everything stacked and open */
 @media not all and (min-width: 761px) and (min-height: 640px) {
-  .stage { display: flex; flex-direction: column; padding-top: var(--nav-clearance); }
-  .returnLink { order: 0; margin: 0 var(--page-x) 1rem; }
-  .frame { order: 1; height: min(58svh, 30rem); mask-image: linear-gradient(180deg, #000 70%, transparent); }
-  .room { transition: none; }
-  .stageCopy { order: 2; position: relative; z-index: 2; margin: -4.5rem var(--page-x) 0; }
-  .acts { display: grid; gap: 2.5rem; margin-top: 3rem; }
+  .stage { padding: var(--nav-clearance) var(--page-x) 0; }
+  .returnLink { margin-bottom: 2rem; }
+  .acts { display: grid; gap: 2.75rem; margin-top: 3.5rem; }
 }
 @media (max-width: 760px) {
-  .page > button { top: calc(var(--nav-clearance) - 0.6rem); }
   .after { grid-template-columns: minmax(0, 1fr); padding-top: 4.5rem; }
   .profile { position: static; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); column-gap: 1.25rem; }
   .portrait { grid-row: span 1; margin: 0; }
@@ -179,5 +145,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .page > [data-galaxy-background] [data-galaxy-camera] { transform: none; }
   .actNav button, .actNav button::before, .indicator { transition: none; }
 }
