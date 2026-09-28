@@ -9,6 +9,12 @@ import {
 import IslandReturnLink from "@/components/IslandReturnLink";
 import styles from "./WorkProfile.module.css";
 
+const currentDetailHeadings = [
+  "Sourcing & diligence",
+  "Accelerator programs",
+  "Founder community",
+];
+
 export default function PortfolioHome() {
   const [current, ...earlier] = workPageExperience;
 
@@ -34,7 +40,11 @@ export default function PortfolioHome() {
       <div className={styles.columns}>
         <div>
           <section className={styles.current} aria-labelledby="current-work">
-            <h2 id="current-work">{current.company}</h2>
+            <h2 id="current-work">
+              <a className={styles.companyLink} href="https://886studios.com/" target="_blank" rel="noopener noreferrer">
+                {current.company} <span aria-hidden="true">↗</span>
+              </a>
+            </h2>
             <div className={styles.role}>
               <strong>Associate</strong><span>{current.dates}</span>
             </div>
@@ -42,7 +52,12 @@ export default function PortfolioHome() {
               <span>Venture Fellow</span><span>June 2024 - September 2024</span>
             </div>
             <ul className={styles.details}>
-              {current.details.map((detail) => <li key={detail}>{detail}</li>)}
+              {current.details.map((detail, index) => (
+                <li key={detail}>
+                  <h3 className={styles.detailHeading}>{currentDetailHeadings[index]}</h3>
+                  {detail}
+                </li>
+              ))}
             </ul>
           </section>
 

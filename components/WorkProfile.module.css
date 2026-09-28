@@ -10,12 +10,16 @@
 .columns { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: clamp(2.5rem, 7vw, 6rem); }
 .main h2 { margin: 0 0 1.5rem; font-family: var(--font-display); font-size: clamp(1.8rem, 2.6vw, 2.35rem); font-weight: 600; letter-spacing: -0.025em; line-height: 1.2; }
 .current, .profile { border-top: 1px solid var(--cw-line); padding-top: 1.75rem; }
+.companyLink { color: inherit; text-decoration: underline; text-decoration-color: #e9d5b755; text-decoration-thickness: 1px; text-underline-offset: 7px; }
+.companyLink span { display: inline-block; color: #d9b786; font-family: var(--font-sans), sans-serif; font-size: 0.55em; vertical-align: middle; }
+.companyLink:hover { text-decoration-color: #e9d5b7; }
 .role { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; margin-top: 0.45rem; color: var(--cw-muted); font-size: 0.875rem; line-height: 1.6; }
 .role strong { color: var(--cw-paper); font-weight: 500; }
 .role > :last-child { font-variant-numeric: tabular-nums; }
 .details { display: grid; gap: 1rem; margin: 1.5rem 0 0; padding-left: 1rem; color: #fff7ead1; font-size: 0.9375rem; line-height: 1.85; list-style: disc; }
 .details li { padding-left: 0.25rem; }
 .details li::marker { color: #d9b78688; font-size: 0.65em; }
+.detailHeading { margin: 0 0 0.25rem; color: var(--cw-paper); font-size: 1rem; font-weight: 600; line-height: 1.6; }
 .earlier { margin-top: 3.5rem; }
 .experience { border-bottom: 1px solid var(--cw-line); }
 .experience summary { display: flex; align-items: start; justify-content: space-between; gap: 1.5rem; padding: 1.4rem 0; cursor: pointer; list-style: none; }
