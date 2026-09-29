@@ -61,7 +61,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
       <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
           <Image
-            src="/world-writing-cutout-v1.webp" alt="" width={960} height={529}
+            src="/world-writing-cutout-v2.webp" alt="" width={1689} height={931}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
           />
