@@ -13,6 +13,17 @@
   color: var(--paper);
   background: var(--ink);
 }
+/* A slow, compositor-only drift so the stars always feel alive, even while
+   the video loads. It follows the page's pause control and reduced motion. */
+.page > [data-galaxy-background] [data-galaxy-camera] {
+  animation: work-star-drift 32s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.page[data-ambient-paused="true"] > [data-galaxy-background] [data-galaxy-camera] { animation-play-state: paused; }
+@keyframes work-star-drift {
+  from { transform: translate3d(1.5%, 1%, 0) scale(1.03); }
+  to { transform: translate3d(-3.5%, -2%, 0) scale(1.09); }
+}
 .main {
   position: relative;
   z-index: 1;
@@ -39,8 +50,10 @@
 .contributions ul { display: grid; gap: 0.4rem; max-width: 40rem; margin: 0; padding-left: 1.25rem; list-style: disc; color: var(--body); font-size: 0.9375rem; line-height: 1.7; }
 .contributions ul li { padding-left: 0.35rem; }
 .contributions ul li::marker { color: var(--gold); }
-.contributions h2 { margin: 0 0 0.85rem; font-family: var(--font-display); font-size: clamp(1.5rem, 2.3vw, 2rem); font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; text-wrap: balance; }
-.contributions h2 em { color: var(--gold); font-style: normal; font-weight: 600; font-variant-numeric: tabular-nums; }
+.contributions h2 { margin: 0 0 0.85rem; font-family: var(--font-display); font-size: clamp(1.4rem, 2.1vw, 1.8rem); font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; text-wrap: balance; }
+.contributions a { color: #ead6b8; text-decoration: underline; text-decoration-color: #e6c79466; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 200ms ease, text-decoration-color 200ms ease; }
+.contributions h2 a { color: inherit; }
+.contributions a:hover { color: var(--gold); text-decoration-color: currentColor; }
 
 /* Earlier roles */
 .earlier > h2 { margin: 0 0 2.25rem; color: #f2e2c9; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.5rem); font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; }
@@ -58,7 +71,8 @@
 .research a:hover { text-decoration-color: currentColor; }
 
 .disclosure { margin-top: 0.25rem; }
-.disclosure summary { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 44px; color: #ead6b8; font-size: 0.8125rem; list-style: none; cursor: pointer; }
+/* The arrow sits right after its label, so the pair reads as one control. */
+.disclosure summary { display: flex; align-items: center; gap: 0.65rem; width: fit-content; min-height: 44px; color: #ead6b8; font-size: 0.8125rem; list-style: none; cursor: pointer; }
 .disclosure summary::-webkit-details-marker { display: none; }
 /* A down chevron that flips to point up while the section is open. */
 .indicator { flex: none; width: 8px; height: 8px; margin: -4px 2px 0; border-right: 1.5px solid var(--gold); border-bottom: 1.5px solid var(--gold); transform: rotate(45deg); transition: transform 220ms var(--cw-ease), margin 220ms var(--cw-ease); }
@@ -97,5 +111,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .indicator { transition: none; }
+  .indicator, .contributions a { transition: none; }
+  .page > [data-galaxy-background] [data-galaxy-camera] { animation: none; }
 }

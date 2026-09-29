@@ -1,11 +1,9 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import CountUp from "@/components/CountUp";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import IslandReturnLink from "@/components/IslandReturnLink";
 import {
   workPageBio,
-  workPageCurrentHighlights,
   workPageExperience,
   workPageInterests,
   workPageProfileFacts,
@@ -15,15 +13,43 @@ import styles from "./WorkRoom.module.css";
 
 const [current, ...earlier] = workPageExperience;
 
-// Only the lead number of each headline counts up; the rest stay still.
-const headlines: ReactNode[] = [
-  <><em><CountUp to={250} suffix="+" /></em> startups screened, <em>100+</em> taken through diligence</>,
-  <><em><CountUp to={15} suffix="+" /></em> batch teams supported at ikigai Launchpad</>,
-  <><em>Launch Station</em>, a community program for founders</>,
+function Out({ href, children }: { href: string; children: ReactNode }) {
+  return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
+
+const highlights: { heading: ReactNode; points: ReactNode[] }[] = [
+  {
+    heading: <>Lead deal sourcing for a new <Out href="https://withikigai.com">accelerator</Out></>,
+    points: [
+      "Screen and interview 250+ early-stage startups",
+      "Run diligence on 100+ startups",
+      "Own the full application pipeline, from inbound through review",
+      "Design and manage the admissions process and contribute to final selection decisions",
+    ],
+  },
+  {
+    heading: "Served on the core team that created ikigai Launchpad in Taiwan",
+    points: [
+      "Supported 15+ batch teams through workshops, office hours, investor matching, partnerships, and corporate perks",
+      "Helped shape the selection rubric",
+    ],
+  },
+  {
+    heading: "Founder community & content",
+    points: [
+      "Built Launch Station, a residency program, with over 20 founders",
+      "Orchestrate founder and community events: hackathons, pitch nights, co-founder matching, and more",
+      <>
+        Lead content: <Out href="https://886studios.substack.com/">newsletters</Out>, socials
+        (<Out href="https://x.com/886Studios">X</Out>, <Out href="https://www.linkedin.com/company/886studios/">LinkedIn</Out>, <Out href="https://www.instagram.com/ikigai_launchpad/">Instagram</Out>),
+        and rebuilt our <Out href="https://www.886studios.com/">website</Out>
+      </>,
+    ],
+  },
 ];
 
-// The first bio paragraph repeats the 886 header, so lead with the second.
-const [bioIntro, bioLead, ...bioRest] = workPageBio;
+// The first bio paragraph repeats the 886 header, so the profile skips it.
+const [, bioLead, ...bioRest] = workPageBio;
 
 export default function WorkRoom() {
   return (
@@ -44,10 +70,10 @@ export default function WorkRoom() {
                 </dl>
               </header>
               <div className={styles.contributions}>
-                {headlines.map((headline, index) => (
+                {highlights.map((item, index) => (
                   <div key={index}>
-                    <h2>{headline}</h2>
-                    <ul>{workPageCurrentHighlights[index].map((point) => <li key={point}>{point}</li>)}</ul>
+                    <h2>{item.heading}</h2>
+                    <ul>{item.points.map((point, pointIndex) => <li key={pointIndex}>{point}</li>)}</ul>
                   </div>
                 ))}
               </div>
@@ -97,7 +123,7 @@ export default function WorkRoom() {
             </div>
             <details className={styles.disclosure}>
               <summary>More about me<span className={styles.indicator} aria-hidden="true" /></summary>
-              {[bioIntro, ...bioRest].map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+              {bioRest.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               <dl className={styles.facts}>
                 <div><dt>Interests</dt><dd>{`${workPageInterests}.`}</dd></div>
               </dl>
