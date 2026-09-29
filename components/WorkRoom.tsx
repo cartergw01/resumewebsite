@@ -12,6 +12,21 @@ const [current, ...earlier] = workPageExperience;
 const previous = earlier.filter((item) => item.company !== "Korobra Capital");
 const onTheSide = earlier.filter((item) => item.company === "Korobra Capital");
 
+// Company marks, shown beside each name. They're decorative (the name is right
+// there), and CSS tints them all the same cream so they read as one family.
+const logos: Record<string, string> = {
+  "886 Studios": "/logos/886-studios.png",
+  "Contrary Research": "/logos/contrary.svg",
+  "Slug Fund Investment Group": "/logos/slug-fund.svg",
+  "Korobra Capital": "/logos/korobra-capital.png",
+};
+
+function Logo({ company, size }: { company: string; size: number }) {
+  const src = logos[company];
+  if (!src) return null;
+  return <Image className={styles.logo} src={src} alt="" aria-hidden="true" width={size} height={size} unoptimized />;
+}
+
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
@@ -75,7 +90,7 @@ function Experience({ item }: { item: Earlier }) {
   return (
     <li className={styles.experience}>
       <header className={styles.experienceHeading}>
-        <h3>{item.company}</h3>
+        <h3><Logo company={item.company} size={26} />{item.company}</h3>
         <p className={styles.date}>{item.dates}</p>
         <p className={styles.role}>{shortTitles[item.company] ?? item.role}</p>
       </header>
@@ -99,6 +114,7 @@ export default function WorkRoom() {
             <section aria-labelledby="current-work-title">
               <header className={styles.intro}>
                 <h1 id="current-work-title">
+                  <Logo company={current.company} size={56} />
                   <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
                 </h1>
                 <p className={styles.roleLine}>

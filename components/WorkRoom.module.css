@@ -41,7 +41,9 @@
 .contributions a:hover, .story a:hover, .closing a:hover { color: var(--gold); text-decoration-color: currentColor; }
 
 /* 886 Studios */
-.intro h1 { margin: 0; font-family: var(--font-display); font-size: clamp(2.75rem, 5vw, 4.25rem); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
+/* Company marks: every source logo is flattened to one warm cream tone. */
+.logo { flex: none; object-fit: contain; filter: brightness(0) invert(0.93) sepia(0.25); opacity: 0.9; }
+.intro h1 { display: flex; align-items: center; gap: 0.3em; margin: 0; font-family: var(--font-display); font-size: clamp(2.75rem, 5vw, 4.25rem); font-weight: 600; line-height: 1.04; letter-spacing: -0.035em; }
 .intro h1 a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
 .intro h1 a:hover { text-decoration-color: #efd2a299; }
 .roleLine { margin: 1.1rem 0 0; color: var(--quiet); font-size: 0.9375rem; line-height: 1.6; }
@@ -61,7 +63,8 @@
 .experiences { display: grid; gap: 2rem; margin: 0; padding: 0; list-style: none; }
 .experience { min-width: 0; }
 .experienceHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0.2rem 1.5rem; }
-.experienceHeading h3 { margin: 0; color: var(--paper); font-size: 1.25rem; font-weight: 600; line-height: 1.35; }
+.intro h1 .logo { width: 0.8em; height: 0.8em; }
+.experienceHeading h3 { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--paper); font-size: 1.25rem; font-weight: 600; line-height: 1.35; }
 .experienceHeading p { margin: 0; }
 .date { color: var(--quiet); font-size: 0.8125rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .role { grid-column: 1 / -1; color: #d0c7ba; font-size: 0.9375rem; line-height: 1.6; }
