@@ -52,7 +52,7 @@ const highlights: { heading: string; story: ReactNode }[] = [
     story: (
       <>
         I built Launch Station, a residency program with 20+ founders, and host events for the wider community: hackathons, pitch nights, co-founder matching.
-        I also write our <Out href="https://886studios.substack.com/">newsletter</Out>, run our socials (<Out href="https://x.com/886Studios">X</Out>, <Out href="https://www.linkedin.com/company/886studios/">LinkedIn</Out>, <Out href="https://www.instagram.com/ikigai_launchpad/">Instagram</Out>), and rebuilt our <Out href="https://www.886studios.com/">website</Out>.
+        I also write our <Out href="https://886studios.substack.com/">newsletter</Out>, run our socials, and rebuilt our <Out href="https://www.886studios.com/">website</Out>.
       </>
     ),
   },
