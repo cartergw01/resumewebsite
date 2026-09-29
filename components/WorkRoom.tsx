@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import IslandReturnLink from "@/components/IslandReturnLink";
@@ -99,6 +100,18 @@ function Experience({ item }: { item: Earlier }) {
   );
 }
 
+// Side work that lives on its own pages of the site.
+const sideProjects: { title: string; story: ReactNode }[] = [
+  {
+    title: "Projects",
+    story: <>I build small apps and tools for fun, mostly for Taipei and the things I&apos;m into: TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a poker odds calculator, and more. <Link href="/projects">See my projects</Link></>,
+  },
+  {
+    title: "Writing",
+    story: <>I write essays on Substack about technology, attention, identity, and work, plus a yearly roundup of the best things I read. <Link href="/writing">Read my writing</Link></>,
+  },
+];
+
 // The first two bio paragraphs repeat the 886 section, so the profile keeps
 // the personal one.
 const bioLead = workPageBio[2];
@@ -147,6 +160,12 @@ export default function WorkRoom() {
               <h2 id="side-work-title">On the side</h2>
               <ul className={styles.experiences}>
                 {onTheSide.map((item) => <Experience key={item.company} item={item} />)}
+                {sideProjects.map((item) => (
+                  <li key={item.title} className={styles.experience}>
+                    <header className={styles.experienceHeading}><h3>{item.title}</h3></header>
+                    <p className={styles.story}>{item.story}</p>
+                  </li>
+                ))}
               </ul>
             </section>
 
