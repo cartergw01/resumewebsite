@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("city and workshop details animate only while active and respect the shared pause control and reduced motion", async ({ page }) => {
+test("city and workshop details animate only while active and respect reduced motion", async ({ page }) => {
   await page.goto("/2.0");
   await expect(page.getByRole("button", { name: /island animation/ })).toHaveCount(0);
   for (const world of ["work", "projects"] as const) {
@@ -11,13 +11,9 @@ test("city and workshop details animate only while active and respect the shared
     const detail = visual.locator("svg > g").first();
     const initial = await detail.evaluate((node) => getComputedStyle(node).opacity);
     await expect.poll(() => detail.evaluate((node) => getComputedStyle(node).opacity)).not.toBe(initial);
-    await page.getByRole("button", { name: "Pause background video" }).click();
-    await expect(visual).toHaveAttribute("data-motion-running", "false");
-    await expect(detail).toHaveCSS("animation-play-state", "paused");
     await page.getByRole("button", { name: "Show Writing island" }).click();
-    await page.getByRole("button", { name: `Show ${title} island` }).click();
     await expect(visual).toHaveAttribute("data-motion-running", "false");
-    await page.getByRole("button", { name: "Play background video" }).click();
+    await page.getByRole("button", { name: `Show ${title} island` }).click();
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await expect(visual).toHaveAttribute("data-motion-running", "false");

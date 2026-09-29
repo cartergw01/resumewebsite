@@ -27,11 +27,6 @@
 .starfieldVideo { opacity: 0; }
 .starfieldMedia[data-video-ready="true"] .starfieldVideo { opacity: 1; }
 .starfieldMedia[data-video-ready="true"] .starfieldPoster { opacity: 0; }
-.galaxyToggle { position: absolute; z-index: 6; top: 1.25rem; left: calc(var(--page-x) - 12px); display: grid; place-items: center; width: 44px; height: 44px; padding: 12px; border: 0; border-radius: 50%; color: #eddbbf8c; background: transparent; cursor: pointer; }
-.galaxyToggle svg { width: 20px; height: 20px; }
-.galaxyToggle:hover, .galaxyToggle:focus-visible { color: #fff1d7; background: #fff7ea0c; }
-.galaxyToggle:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 2px; }
-.stage > .galaxyToggle { top: auto; bottom: var(--controls-bottom); }
 .middleStars, .flightStars { position: absolute; overflow: hidden; pointer-events: none; will-change: transform; }
 .middleStars { inset: -25% -55%; opacity: calc(0.24 + var(--flight) * 0.26); transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
 .flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
@@ -174,7 +169,6 @@
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
-.stage[data-entering] .galaxyToggle,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
 .stage[data-entering] .galaxy { animation: entry-space 1000ms ease-in forwards; }
 .stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0; }
@@ -288,7 +282,6 @@
 @media (max-width: 760px) {
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 8.5rem; }
-  .galaxyToggle { top: 0.35rem; left: 0.75rem; }
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
@@ -339,7 +332,6 @@
   .workshopCue > span { left: auto; right: 19%; bottom: 0; }
   .desktopCuePath { display: initial; }
   .mobileCuePath { display: none; }
-  .stage > .galaxyToggle { left: 0.75rem; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 48%; gap: 0.75rem; }
   .chapters button { flex: 1; min-width: 0; }
@@ -362,10 +354,6 @@
 
 .pageGalaxy { position: fixed; z-index: 0; opacity: 0.65; }
 .pageGalaxy .galaxy { transform: none; }
-.pageGalaxyToggle { position: fixed; }
-@media (max-width: 760px) {
-  .pageGalaxyToggle { top: auto; bottom: max(1rem, env(safe-area-inset-bottom)); left: auto; right: 1rem; background: #030611cc; }
-}
 
 /* The lamp welcomes the reader before the page warms. Idle remains quiet. */
 .readingLamp { opacity: calc(var(--reading-lamp, 1) * 0.4); transition: opacity 280ms ease; }

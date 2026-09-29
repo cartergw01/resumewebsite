@@ -20,7 +20,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     let disposed = false;
     let attempting = false;
-    const shouldPlay = () => !motion.matches && !connection?.saveData && stage.dataset.ambientPaused !== "true"
+    const shouldPlay = () => !motion.matches && !connection?.saveData
       && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
     const sync = () => {
       const rate = stage.dataset.travelling === "true" || stage.dataset.engaged === "true" ? 1 : 0.65;
@@ -41,7 +41,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-ambient-paused", "data-travelling", "data-engaged"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);

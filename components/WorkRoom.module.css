@@ -14,12 +14,11 @@
   background: var(--ink);
 }
 /* A slow, compositor-only drift so the stars always feel alive, even while
-   the video loads. It follows the page's pause control and reduced motion. */
+   the video loads. It respects reduced motion. */
 .page > [data-galaxy-background] [data-galaxy-camera] {
   animation: work-star-drift 32s ease-in-out infinite alternate;
   will-change: transform;
 }
-.page[data-ambient-paused="true"] > [data-galaxy-background] [data-galaxy-camera] { animation-play-state: paused; }
 @keyframes work-star-drift {
   from { transform: translate3d(1.5%, 1%, 0) scale(1.03); }
   to { transform: translate3d(-3.5%, -2%, 0) scale(1.09); }
@@ -80,8 +79,6 @@
 .about p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
 
 @media (max-width: 760px) {
-  /* Keep the background-video toggle off the text: park it beside Back to islands. */
-  .page > button { position: absolute; top: calc(var(--nav-clearance) - 0.6rem); right: calc(var(--page-x) - 12px); bottom: auto; left: auto; background: transparent; }
   .main { padding-bottom: 4.5rem; }
   .returnLink { margin-bottom: 2rem; }
   .workHistory { gap: 4rem; }

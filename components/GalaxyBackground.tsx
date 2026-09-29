@@ -5,10 +5,7 @@ import styles from "./IslandHome.module.css";
 
 export default function GalaxyBackground({ page = false }: { page?: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const intentRef = useRef<"auto" | "play" | "pause">("auto");
-  const syncRef = useRef<() => void>(() => {});
   const [ready, setReady] = useState(false);
-  const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -20,10 +17,11 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
     let disposed = false;
     let attempting = false;
     let generation = 0;
-    const prefersStill = () => intentRef.current === "auto" && (motion.matches || Boolean(connection?.saveData));
-    const shouldPlay = () => intentRef.current !== "pause" && !prefersStill() && !document.hidden && !stage.dataset.entering;
+    // No manual pause control: the video only stills for reduced motion,
+    // data saver, a hidden tab, or while entering an island.
+    const prefersStill = () => motion.matches || Boolean(connection?.saveData);
+    const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering;
     const sync = () => {
-      stage.dataset.ambientPaused = String(intentRef.current === "pause");
       // Keep the real video running while reading, with more energy in flight.
       const rate = !page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1;
       // Loading or switching the portrait source restores the default rate.
@@ -49,10 +47,9 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
       void video.play().then(() => {
         if (disposed || !shouldPlay()) video.pause();
       }).catch(() => {
-        // Keep the poster and Play control if browser autoplay is blocked.
+        // Keep the poster if browser autoplay is blocked.
       }).finally(() => { if (attempt === generation) attempting = false; });
     };
-    syncRef.current = sync;
     const observer = new MutationObserver(sync);
     observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
     motion.addEventListener("change", sync);
@@ -67,14 +64,13 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
       portrait.removeEventListener("change", sync);
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
-      syncRef.current = () => {};
       video.pause();
     };
   }, [page]);
 
   return (
     <>
-      <div className={`${styles.galaxySpace} ${page ? styles.pageGalaxy : ""}`} data-galaxy-background data-ambient-paused={!playing} aria-hidden="true">
+      <div className={`${styles.galaxySpace} ${page ? styles.pageGalaxy : ""}`} data-galaxy-background aria-hidden="true">
         <div className={styles.galaxy} data-galaxy-camera>
           <div className={styles.starfieldMedia} data-background-visual data-video-ready={ready}>
             <picture className={styles.starfieldPoster}>
@@ -84,25 +80,12 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
             <video
               ref={videoRef} className={styles.starfieldVideo} data-background-video
               autoPlay muted loop playsInline preload="none" disablePictureInPicture tabIndex={-1}
-              onPlaying={() => { setReady(true); setPlaying(true); }}
-              onPause={() => setPlaying(false)}
-              onError={() => { setReady(false); setPlaying(false); }}
+              onPlaying={() => setReady(true)}
+              onError={() => setReady(false)}
             />
           </div>
         </div>
       </div>
-      <button
-        type="button" className={`${styles.galaxyToggle} ${page ? styles.pageGalaxyToggle : ""}`} aria-label={`${playing ? "Pause" : "Play"} background video`}
-        title={`${playing ? "Pause" : "Play"} background video`}
-        onClick={() => {
-          intentRef.current = playing ? "pause" : "play";
-          syncRef.current();
-        }}
-      >
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          {playing ? <path d="M7 5v10M13 5v10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /> : <path d="m7 4 9 6-9 6V4Z" fill="currentColor" />}
-        </svg>
-      </button>
     </>
   );
 }

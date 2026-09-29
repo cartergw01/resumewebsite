@@ -24,11 +24,11 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const sync = () => {
       const allowed = !motion.matches && !connection?.saveData;
-      visual.dataset.motionRunning = String(allowed && stage.dataset.ambientPaused !== "true" && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
+      visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-ambient-paused"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
