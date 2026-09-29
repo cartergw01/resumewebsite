@@ -10,6 +10,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
+  const [warm, setWarm] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -20,9 +21,10 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     let disposed = false;
     let attempting = false;
-    const shouldPlay = () => !motion.matches && !connection?.saveData && stage.dataset.ambientPaused !== "true"
+    const shouldPlay = () => !motion.matches && !connection?.saveData
       && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
     const sync = () => {
+      if (stage.dataset.warm === "true") setWarm(true);
       const rate = stage.dataset.travelling === "true" || stage.dataset.engaged === "true" ? 1 : 0.65;
       video.defaultPlaybackRate = rate;
       video.playbackRate = rate;
@@ -41,7 +43,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-ambient-paused", "data-travelling", "data-engaged"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-warm"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -60,11 +62,11 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     <>
       <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
-          <Image
+          {warm ? <Image
             src="/world-writing-cutout-v2.webp" alt="" width={1689} height={931}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
-          />
+          /> : null}
           <video
             ref={videoRef} className={styles.writingVideo} muted loop playsInline preload="none"
             aria-hidden="true" disablePictureInPicture

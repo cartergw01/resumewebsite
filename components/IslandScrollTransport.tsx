@@ -32,6 +32,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const comet = track.querySelector<HTMLElement>("[data-scene-comet]")!;
     const next = track.querySelector<HTMLButtonElement>("[data-next-scene]")!;
     const nextLabel = next.querySelector<HTMLElement>("[data-next-label]")!;
+    const flightTitle = track.querySelector<HTMLElement>("[data-flight-title]")!;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const duration = scenes.length - 1 + FINAL_HOLD;
     let frame = 0;
@@ -44,11 +45,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let starRestTimer = 0;
     let cameraProgress: number | null = null;
     let previousFrame = 0;
+    let heading = 1;
+    let previousProgress = 0;
 
+    // Off-screen islands load on the first sign of travel, not on first paint.
+    const warm = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
     const render = (now: number) => {
       frame = 0;
       if (stage.dataset.entering) return;
       const progress = clamp((window.scrollY - start) / travel);
+      if (progress > 0) warm();
       // Soften wheel steps without delaying the scroll-position indicator.
       const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 65);
       cameraProgress = cameraProgress === null || motion.matches
@@ -64,7 +70,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const arc = from % 2 === 0 ? 1 : -1;
       const retreat = phase(crossing, 0, 0.3);
       const passage = phase(crossing, 0.18, 0.78);
-      const approach = phase(crossing, 0.3, 0.83);
+      // The next island starts arriving while the last one is still in view,
+      // so the camera never lingers on empty space between them.
+      const approach = phase(crossing, 0.22, 0.83);
+      const reveal = phase(crossing, 0.12, 0.36);
       const arrivalLight = phase(crossing, 0.82, 0.92);
       const arrivalCopy = phase(crossing, 0.9, 0.98);
       const arrivalCue = phase(crossing, 0.95, 1);
@@ -81,13 +90,15 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         // A reversible camera path: pull away before travelling, then approach
         // a solid, dim silhouette. Arrival finishes before light and copy return.
         const distance = 1 - approach;
-        const x = outgoing ? -12 * retreat - 145 * passage : 34 * Math.pow(distance, 1.1);
-        const y = outgoing ? -arc * (8 * retreat + 40 * Math.sin(passage * Math.PI / 2))
-          : arc * (38 * distance + 12 * Math.sin(distance * Math.PI));
-        const scale = outgoing ? 1 - 0.5 * retreat - 0.38 * passage : 0.16 + 0.84 * approach;
+        const x = outgoing ? -12 * retreat - 145 * passage : 55 * Math.pow(distance, 1.1);
+        const y = outgoing ? -arc * (8 * retreat + 28 * Math.sin(passage * Math.PI / 2))
+          : arc * (26 * distance + 10 * Math.sin(distance * Math.PI));
+        // Islands stay large enough to read as places, never specks.
+        const scale = outgoing ? 1 - 0.35 * retreat - 0.2 * passage : 0.45 + 0.55 * approach;
         const bank = outgoing ? -arc * 3 * passage : arc * 3 * distance;
         art[index].style.transform = motion.matches ? "none"
           : `translate3d(${x}%, ${y}%, 0) rotate(${bank}deg) scale(${scale})`;
+        art[index].style.opacity = motion.matches || outgoing ? "1" : reveal.toFixed(4);
         const copyOpacity = motion.matches ? 1 : outgoing
           ? 1 - phase(crossing, 0, 0.18) : arrivalCopy;
         copy[index].style.transform = motion.matches ? "none"
@@ -103,6 +114,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         if (worlds[index].id === "projects") art[index].style.setProperty("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
       });
+      // Name the destination while no island copy is on screen.
+      if (Math.abs(progress - previousProgress) > 0.0005) heading = progress > previousProgress ? 1 : -1;
+      previousProgress = progress;
+      const destination = worlds[heading > 0 ? Math.min(from + 1, worlds.length - 1) : from].title;
+      if (flightTitle.textContent !== destination) flightTitle.textContent = destination;
+      const titleShow = motion.matches ? 0 : Math.sin(Math.PI * clamp((crossing - 0.12) / 0.8));
+      flightTitle.style.opacity = (0.08 * titleShow).toFixed(4);
+      flightTitle.style.transform = `translate3d(${(6 - 12 * crossing).toFixed(2)}vw, 0, 0) scale(${(0.96 + 0.04 * titleShow).toFixed(4)})`;
       stage.style.setProperty("--camera-progress", cameraProgress.toFixed(4));
       stage.style.setProperty("--camera-path", (from + passage).toFixed(4));
       stage.style.setProperty("--camera-arc", (arc * Math.sin(mix * Math.PI)).toFixed(4));
@@ -134,6 +153,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           scene.dataset.active = String(index === current);
           if (index === current) buttons[index].setAttribute("aria-current", "step");
           else buttons[index].removeAttribute("aria-current");
+          buttons[index].setAttribute("aria-label", index === current
+            ? `Show ${worlds[index].title} island, selected. Activate again to open ${worlds[index].title}`
+            : `Show ${worlds[index].title} island`);
         });
         nextLabel.textContent = current === scenes.length - 1 ? "Back to start" : "Scroll to explore";
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the Work island" : `Scroll to the ${worlds[current + 1].title} island`);
@@ -160,6 +182,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       schedule();
     };
     const jump = (index: number, instant = false) => {
+      warm();
       const progress = index / Math.max(1, scenes.length - 1);
       // Safari can retain a pending smooth scroll when a quick second tap
       // targets the current position. Cancel that flight before starting one.
@@ -169,7 +192,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         behavior: instant || motion.matches ? "instant" : "smooth",
       });
     };
-    jumpRef.current = jump;
+    // A second tap on the selected island opens its page through the same
+    // landmark approach as clicking the island itself.
+    jumpRef.current = (index: number) => {
+      const link = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
+      if (index === activeIndex && link) link.click();
+      else jump(index);
+    };
     const advance = () => jump(activeIndex === scenes.length - 1 ? 0 : activeIndex + 1);
     const followHash = () => {
       const hash = window.location.hash.slice(1);
@@ -197,8 +226,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     motion.addEventListener("change", schedule);
     next.addEventListener("click", advance);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
+    const intents = ["wheel", "touchstart", "keydown"] as const;
+    intents.forEach(type => window.addEventListener(type, warm, { passive: true, once: true }));
+    sceneNav.addEventListener("focusin", warm);
 
     return () => {
+      intents.forEach(type => window.removeEventListener(type, warm));
+      sceneNav.removeEventListener("focusin", warm);
       observer.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
@@ -215,10 +249,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
 
   return (
     <main ref={trackRef} className={styles.track} data-scene="work" aria-label="Three islands: work, writing, and projects">
-      <div className={styles.stage} data-island-stage data-travelling="false" data-engaged="false">
+      <div className={styles.stage} data-island-stage data-travelling="false" data-engaged="false" data-warm="false">
         <GalaxyBackground />
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />
+        <p className={styles.flightTitle} data-flight-title aria-hidden="true" />
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label="Scroll to the Writing island">

@@ -49,7 +49,7 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
   await expect(page.locator("html")).not.toHaveAttribute("data-book-transition");
 });
 
-test("idle video stays alive, interaction increases its pace, and Pause remains authoritative", async ({ page }) => {
+test("idle video stays alive and interaction increases its pace", async ({ page }) => {
   await page.goto("/2.0#writing");
   const video = page.locator("[data-background-video]");
   const book = page.locator("#writing [data-island-link]");
@@ -60,8 +60,5 @@ test("idle video stays alive, interaction increases its pace, and Pause remains 
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(1);
   await page.getByRole("button", { name: "Show Writing island" }).focus();
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(0.55);
-  await page.getByRole("button", { name: "Pause background video" }).click();
-  await book.focus();
-  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
-  await expect.poll(() => page.locator("#writing video").evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
+  expect(await video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
 });

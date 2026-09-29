@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("writing video loads on arrival, loops, pauses, and stops offscreen", async ({ page }) => {
+test("writing video loads on arrival, loops, and stops offscreen", async ({ page }) => {
   const requested: string[] = [];
   page.on("request", (request) => { if (request.url().includes("writing-island-loop")) requested.push(request.url()); });
   await page.goto("/2.0");
@@ -15,11 +15,8 @@ test("writing video loads on arrival, loops, pauses, and stops offscreen", async
   expect(await video.evaluate((node: HTMLVideoElement) => node.muted && node.loop && node.playsInline)).toBe(true);
   expect(await video.evaluate((node: HTMLVideoElement) => node.duration)).toBeCloseTo(8, 1);
 
-  await page.getByRole("button", { name: "Pause background video" }).click();
-  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
   await expect(page).toHaveURL(/\/2\.0(?:#writing)?$/);
   await video.evaluate((node: HTMLVideoElement) => { node.currentTime = 7.75; });
-  await page.getByRole("button", { name: "Play background video" }).click();
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");

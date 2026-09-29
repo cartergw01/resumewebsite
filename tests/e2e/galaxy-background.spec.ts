@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("background video advances without scrolling, pauses across islands, and loops", async ({ page }) => {
+test("background video advances without scrolling, keeps playing across islands, and loops", async ({ page }) => {
   await page.goto("/2.0");
   const video = page.locator("[data-background-video]");
   const visual = page.locator("[data-background-visual]");
@@ -22,17 +22,14 @@ test("background video advances without scrolling, pauses across islands, and lo
   await expect.poll(frame).not.toBe(initialFrame);
   expect(await page.evaluate(() => scrollY)).toBe(0);
 
-  await page.getByRole("button", { name: "Pause background video" }).click();
-  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
-  const pausedTime = await video.evaluate((node: HTMLVideoElement) => node.currentTime);
+  // There is no manual pause control; the video keeps playing across islands.
+  await expect(page.getByRole("button", { name: /background video/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Show Writing island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
-  expect(await video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBe(pausedTime);
+  expect(await video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
   await video.evaluate((node: HTMLVideoElement) => { node.currentTime = 11.75; });
-  await page.getByRole("button", { name: "Play background video" }).click();
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await expect(visual).toHaveAttribute("data-video-ready", "true");
-  await expect(page.getByRole("button", { name: "Pause background video" })).toBeVisible();
   await page.getByRole("link", { name: "Enter Writing island" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
@@ -40,7 +37,7 @@ test("background video advances without scrolling, pauses across islands, and lo
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
 });
 
-test("reduced motion uses a poster and supports an explicit choice to play", async ({ page }) => {
+test("reduced motion uses a poster and follows preference changes", async ({ page }) => {
   const requested: string[] = [];
   page.on("request", (request) => { if (/starfield-loop-.*\.mp4/.test(request.url())) requested.push(request.url()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -49,16 +46,12 @@ test("reduced motion uses a poster and supports an explicit choice to play", asy
   const video = page.locator("[data-background-video]");
   await expect(visual).toHaveAttribute("data-video-ready", "false");
   await expect.poll(() => visual.locator("img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-  await expect(page.getByRole("button", { name: "Play background video" })).toBeVisible();
   expect(requested).toEqual([]);
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await expect(visual).toHaveAttribute("data-video-ready", "true");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(visual).toHaveAttribute("data-video-ready", "false");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
-  await page.getByRole("button", { name: "Play background video" }).click();
-  await expect(visual).toHaveAttribute("data-video-ready", "true");
-  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
 });
 
 test("background video switches orientation and continues playing", async ({ page }) => {

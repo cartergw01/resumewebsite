@@ -131,7 +131,8 @@ test("islands travel through the scene as solid objects and scrolling reverses t
   const work = page.locator("#work [data-scene-art]");
   await expect(work).toBeVisible();
   const start = await work.boundingBox();
-  await scrollScreens(page, 0.74);
+  // Mid-flight between Work and Writing on the 320svh track.
+  await scrollScreens(page, 0.55);
   await expectScene(page, "writing");
   await expect(page.locator("#work")).toHaveCSS("opacity", "1");
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
@@ -150,7 +151,8 @@ test("islands travel through the scene as solid objects and scrolling reverses t
 test("reduced motion replaces camera travel with still cuts and updates live", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0");
-  await scrollScreens(page, 0.74);
+  // Mid-flight between Work and Writing on the 320svh track.
+  await scrollScreens(page, 0.55);
   await expectScene(page, "writing");
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
   await expect(page.locator("#writing [data-scene-art]")).toHaveCSS("transform", "none");
@@ -179,4 +181,28 @@ test("resize preserves the current island and compact viewports stay usable", as
     await page.getByRole("button", { name: "Show Writing island" }).click();
     await expectScene(page, "writing");
   }
+});
+
+test("tapping the selected island tab opens its page", async ({ page }) => {
+  await page.goto("/2.0#writing");
+  await expectScene(page, "writing");
+  const tab = page.getByRole("button", { name: "Show Writing island" });
+  await expect(tab).toHaveAttribute("aria-label", /Activate again to open Writing/);
+  await expect(page.getByRole("button", { name: "Show Projects island" })).toHaveAttribute("aria-label", "Show Projects island");
+  await tab.click();
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
+  await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
+});
+
+test("off-screen islands wait for the first sign of travel", async ({ page }) => {
+  const requested: string[] = [];
+  page.on("request", (request) => { if (/world-(writing|projects)|taipei-flix/.test(request.url())) requested.push(request.url()); });
+  await page.goto("/2.0");
+  await expect.poll(() => page.locator("#work [data-island-visual] img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+  expect(requested).toEqual([]);
+  await page.mouse.wheel(0, 120);
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true");
+  await expect.poll(() => requested.length).toBeGreaterThanOrEqual(2);
+  await expect(page.locator("#writing [data-island-visual] img")).toHaveCount(1);
+  await expect(page.locator("#projects [data-island-visual] img")).toHaveCount(1);
 });
