@@ -20,12 +20,12 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 // Written in Carter's first-person voice; every fact matches content/portfolio.ts.
 const highlights: { heading: string; story: ReactNode }[] = [
   {
-    heading: "Finding founders",
-    story: <>I run deal sourcing for our <Out href="https://withikigai.com">accelerator</Out>. I&apos;ve screened and interviewed 250+ early-stage startups, gone deep on diligence with 100+ of them, and built the admissions process that decides who gets in.</>,
-  },
-  {
     heading: "Building ikigai Launchpad",
     story: "I was on the core team that created ikigai Launchpad in Taiwan. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, investor intros, and partnerships.",
+  },
+  {
+    heading: "Finding founders",
+    story: <>I run deal sourcing for our <Out href="https://withikigai.com">accelerator</Out>. I&apos;ve screened and interviewed 250+ early-stage startups, gone deep on diligence with 100+ of them, and built the admissions process that decides who gets in.</>,
   },
   {
     heading: "Community & content",
@@ -40,7 +40,7 @@ const highlights: { heading: string; story: ReactNode }[] = [
 
 type Earlier = (typeof earlier)[number];
 
-// One-line stories for earlier roles; the full details stay under "What I did".
+// One-line stories for earlier roles; the full bullet details live on /resume.
 function earlierStory(item: Earlier): ReactNode {
   switch (item.company) {
     case "Contrary Research": {
@@ -111,12 +111,6 @@ export default function WorkRoom() {
                       <p className={styles.role}>{item.role}</p>
                     </header>
                     <p className={styles.story}>{earlierStory(item)}</p>
-                    <details className={styles.disclosure}>
-                      <summary aria-label={`What I did at ${item.company}`}>
-                        What I did<span className={styles.indicator} aria-hidden="true" />
-                      </summary>
-                      <ul className={styles.details}>{item.details.map((detail) => <li key={detail}>{detail}</li>)}</ul>
-                    </details>
                   </li>
                 ))}
               </ol>

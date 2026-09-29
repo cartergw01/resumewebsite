@@ -71,9 +71,6 @@
 /* A down chevron that flips to point up while the section is open. */
 .indicator { flex: none; width: 8px; height: 8px; margin: -4px 2px 0; border-right: 1.5px solid var(--gold); border-bottom: 1.5px solid var(--gold); transform: rotate(45deg); transition: transform 220ms var(--cw-ease), margin 220ms var(--cw-ease); }
 .disclosure[open] > summary .indicator { margin-top: 4px; transform: rotate(225deg); }
-.details { display: grid; gap: 0.75rem; margin: 0.5rem 0; padding-left: 1.25rem; list-style: disc; color: #d0c7ba; font-size: 0.9375rem; line-height: 1.8; }
-.details li { padding-left: 0.35rem; }
-.details li::marker { color: var(--gold); }
 
 /* Profile */
 .profile { position: sticky; top: calc(var(--nav-clearance) + 1rem); display: grid; gap: 0.25rem; text-shadow: 0 1px 12px var(--ink); }
