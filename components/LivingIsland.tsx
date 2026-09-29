@@ -14,8 +14,8 @@ const artwork = {
 export default function LivingIsland({ world, preview }: { world: keyof typeof artwork; preview?: string }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
-  // Only the first island loads with the page; the rest wait for travel.
-  const [warm, setWarm] = useState(world === "work");
+  // The opening view shows light previews; full islands wait for travel.
+  const [warm, setWarm] = useState(false);
 
   useEffect(() => {
     const visual = visualRef.current;
@@ -48,7 +48,7 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 110vw, 68vw" priority={world === "work"} loading={world === "work" ? undefined : "eager"}
+          sizes="(max-width: 760px) 110vw, 68vw" loading="eager"
           unoptimized draggable={false} className={motionStyles.image} /> : null}
         {world === "work" ? (
           <svg className={motionStyles.details} viewBox="0 0 960 540" aria-hidden="true">

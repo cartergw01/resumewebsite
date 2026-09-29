@@ -5,8 +5,7 @@ test("city and workshop details animate only while active and respect reduced mo
   await expect(page.getByRole("button", { name: /island animation/ })).toHaveCount(0);
   for (const world of ["work", "projects"] as const) {
     const title = world === "work" ? "Work" : "Projects";
-    // Work is already selected on load; tapping it again would open /work.
-    if (world !== "work") await page.getByRole("button", { name: `Show ${title} island` }).click();
+    await page.getByRole("button", { name: `Show ${title} island` }).click();
     const visual = page.locator(`[data-living-island=${world}]`);
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     const detail = visual.locator("svg > g").first();
@@ -48,7 +47,7 @@ test("each subpage returns to its island and Projects opens on the working scree
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     // Check after the rocket's arrival too; its delayed reset used to erase
     // the correct island position on a fast production route transition.
-    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(world === "work" ? 0 : world === "writing" ? 0.5 : 1, 3);
+    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
     await expect(page.locator(`#${world} [data-island-link]`)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -62,7 +61,7 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
     await page.setViewportSize(viewport);
     await page.goto("/2.0");
     for (const title of ["Work", "Writing", "Projects"]) {
-      if (title !== "Work") await page.getByRole("button", { name: `Show ${title} island` }).click();
+      await page.getByRole("button", { name: `Show ${title} island` }).click();
       const scene = page.locator(`#${title.toLowerCase()}`);
       const copy = await scene.locator("[data-scene-copy]").boundingBox();
       const art = await scene.locator("[data-scene-art]").boundingBox();

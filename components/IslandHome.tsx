@@ -1,54 +1,112 @@
+import type { ReactNode } from "react";
 import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
+import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
-import { essays, projects } from "@/content/portfolio";
+import { essays, projects, workRoles } from "@/content/portfolio";
+import { siteConfig } from "@/lib/seo";
 import styles from "./IslandHome.module.css";
 
-const worlds = [
+const stops = [
+  { id: "intro" },
   { id: "work", title: "Work" },
   { id: "writing", title: "Writing" },
   { id: "projects", title: "Projects" },
+  { id: "hello" },
 ] as const;
+
+function Out({ href, children }: { href: string; children: ReactNode }) {
+  return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
+
+const dash = (period: string) => period.replace(" - ", " – ");
+
+function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
+  switch (id) {
+    case "intro":
+      return <>
+        <h1 id="hero-title">Carter Wang</h1>
+        <p className={styles.description}>
+          working in Taipei at <Out href="https://886studios.com">886 Studios</Out> alongside the founders of Twitch and Guitar Hero, backing early-stage startups. writing and building things for fun on the side.
+        </p>
+      </>;
+    case "work":
+      return <>
+        <h2 id="work-heading">Work</h2>
+        <p className={styles.description}>
+          associate at <Out href="https://886studios.com">886 Studios</Out>, working on <Out href="https://withikigai.com">ikigai Launchpad</Out> in Taipei.
+        </p>
+        <ul className={styles.facts} aria-label="Roles">
+          {workRoles.slice(0, 3).map((role) => (
+            <li key={role.company}><span>{role.role}, {role.company}</span><span className={styles.factMeta}>{dash(role.period)}</span></li>
+          ))}
+        </ul>
+      </>;
+    case "writing":
+      return <>
+        <h2 id="writing-heading">Writing</h2>
+        <p className={styles.description}>
+          essays on human nature, culture, and technology at <Out href={siteConfig.social.substack}><em>flying Arrows</em></Out>.
+        </p>
+        <ul className={styles.facts} aria-label="Latest essays">
+          {essays.slice(0, 2).map((essay) => (
+            <li key={essay.href}><Out href={essay.href}>{essay.title}</Out><span className={styles.factMeta}>{essay.date}</span></li>
+          ))}
+        </ul>
+      </>;
+    case "projects":
+      return <>
+        <h2 id="projects-heading">Projects</h2>
+        <p className={styles.description}>fun projects i made.</p>
+        <ul className={styles.facts} aria-label="Selected projects">
+          {projects.slice(0, 3).map((project) => (
+            <li key={project.href}><Out href={project.href}>{project.title}</Out></li>
+          ))}
+        </ul>
+      </>;
+    case "hello":
+      return <>
+        <h2 id="hello-heading">Say hi</h2>
+        <p className={styles.description}>Building something? I&apos;d love to hear about it.</p>
+        <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
+          <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
+          <li><Out href={siteConfig.social.x}>X</Out></li>
+          <li><Out href={siteConfig.social.linkedin}>LinkedIn</Out></li>
+          <li><Out href={siteConfig.social.substack}>Substack</Out></li>
+        </ul>
+      </>;
+  }
+}
+
+function Art({ id }: { id: (typeof stops)[number]["id"] }) {
+  switch (id) {
+    case "intro": return <IslandOverview variant="intro" />;
+    case "hello": return <IslandOverview variant="outro" />;
+    case "writing": return <WritingIsland essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} />;
+    default: return <LivingIsland world={id} preview={id === "projects" ? projects[0]?.image : undefined} />;
+  }
+}
 
 export default function IslandHome() {
   return (
     <div className={styles.home}>
+      <a className={styles.skipLink} href="#islands">Skip to content</a>
       <SiteNav hidePrimary />
-      <IslandScrollTransport worlds={worlds.map(({ id, title }) => ({ id, title }))}>
-        {worlds.map((world, index) => (
+      <IslandScrollTransport worlds={stops.map((stop) => ({ id: stop.id, title: "title" in stop ? stop.title : undefined }))}>
+        {stops.map((stop, index) => (
           <section
-            key={world.id}
-            id={world.id}
-            className={`${styles.scene} ${styles[world.id]}`}
+            key={stop.id}
+            id={stop.id}
+            className={`${styles.scene} ${styles[stop.id]}`}
             data-island-scene
             data-active={index === 0}
-            aria-labelledby={index === 0 ? "hero-title" : `${world.id}-heading`}
+            aria-labelledby={index === 0 ? "hero-title" : `${stop.id}-heading`}
             aria-hidden={index !== 0}
             inert={index !== 0}
           >
-            <div className={styles.copy} data-scene-copy>
-              {index === 0 ? (
-                <>
-                  <h1 id="hero-title">Carter Wang</h1>
-                  <p className={styles.description}>
-                    working in Taipei at <a href="https://886studios.com" target="_blank" rel="noopener noreferrer">886 Studios</a> alongside the founders of Twitch and Guitar Hero, backing early-stage startups. writing and building things for fun on the side.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h2 id={`${world.id}-heading`}>{world.title}</h2>
-                  <p className={styles.description}>
-                    {world.id === "writing" ? (
-                      <>essays on human nature, culture, and technology at <a href="https://carterko.substack.com/" target="_blank" rel="noopener noreferrer"><em>flying Arrows</em></a>.</>
-                    ) : "fun projects i made."}
-                  </p>
-                </>
-              )}
-            </div>
-            <div className={styles.art} data-scene-art>
-              {world.id === "writing" ? <WritingIsland essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} /> : <LivingIsland world={world.id} preview={world.id === "projects" ? projects[0]?.image : undefined} />}
-            </div>
+            <div className={styles.copy} data-scene-copy><Copy id={stop.id} /></div>
+            <div className={styles.art} data-scene-art><Art id={stop.id} /></div>
           </section>
         ))}
       </IslandScrollTransport>

@@ -14,12 +14,13 @@ const landmarks: Record<string, { x: number; y: number; name: string }> = {
 
 function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string) {
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
-  const image = visual.querySelector("img")!;
+  const image = visual.querySelector("img");
   const focus = landmarks[title] ?? { x: 0.5, y: 0.5, name: title };
   const width = visual.offsetWidth;
   const height = visual.offsetHeight;
-  const imageWidth = image.naturalWidth || Number(image.getAttribute("width"));
-  const imageHeight = image.naturalHeight || Number(image.getAttribute("height"));
+  // An island still loading falls back to its declared (or box) proportions.
+  const imageWidth = image?.naturalWidth || Number(image?.getAttribute("width")) || width;
+  const imageHeight = image?.naturalHeight || Number(image?.getAttribute("height")) || height;
   const fit = Math.min(width / imageWidth, height / imageHeight);
   const focusX = (width - imageWidth * fit) / 2 + imageWidth * fit * focus.x;
   const focusY = (height - imageHeight * fit) / 2 + imageHeight * fit * focus.y;
@@ -94,6 +95,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     }
     const reset = () => {
       cancelled = true;
+      window.removeEventListener("keydown", escape);
       zoom.cancel();
       cancelAnimationFrame(arrivalFrame);
       clearTimeout(recoveryTimer);
@@ -106,6 +108,9 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       window.dispatchEvent(new Event("scroll"));
     };
     cleanupRef.current = reset;
+    // Escape backs out of the approach and restores the island.
+    function escape(event: KeyboardEvent) { if (event.key === "Escape" && !handedOff) reset(); }
+    window.addEventListener("keydown", escape);
     // Recover the homepage if a destination fails to mount, allowing a retry.
     recoveryTimer = window.setTimeout(() => { cancelScreen?.(); reset(); }, 8_000);
     void zoom.finished.then(() => {
