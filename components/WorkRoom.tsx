@@ -189,7 +189,7 @@ export default function WorkRoom() {
             </section>
 
             <p className={styles.closing}>
-              Building something? I&apos;d love to hear about it. <a href={`mailto:${siteConfig.email}`}>Say hi</a>
+              Building something? I&apos;d love to hear about it. <Out href={siteConfig.social.x}>Say hi</Out>
             </p>
           </div>
         </div>
