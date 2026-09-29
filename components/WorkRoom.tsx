@@ -36,7 +36,12 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 const highlights: { heading: string; story: ReactNode }[] = [
   {
     heading: "Building ikigai Launchpad",
-    story: "I was on the core team that created ikigai Launchpad in Taiwan. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, investor intros, and partnerships.",
+    story: (
+      <>
+        <Out href="https://886studios.com/programs">ikigai Launchpad</Out> is our 10-week, in-person accelerator in Taipei that invests $100K in every startup we accept.
+        I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, investor intros, and partnerships.
+      </>
+    ),
   },
   {
     heading: "Finding founders",
@@ -104,16 +109,22 @@ function Experience({ item }: { item: Earlier }) {
 const sideProjects: { title: string; story: ReactNode }[] = [
   {
     title: "Projects",
-    story: <>I build small apps and tools for fun, mostly for Taipei and the things I&apos;m into: TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a poker odds calculator, and more. <Link href="/projects">See my projects</Link></>,
+    story: <>I build web apps and tools for fun. I&apos;ve built TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a sleep tracker app, a stock portfolio tracker, a poker odds calculator, and more. <Link href="/projects">See my projects</Link></>,
   },
   {
     title: "Writing",
-    story: <>I write essays on Substack about technology, attention, identity, and work, plus a yearly roundup of the best things I read. <Link href="/writing">Read my writing</Link></>,
+    story: <>I write essays on Substack about technology, attention, identity, and work. <Link href="/writing">Read my writing</Link></>,
   },
 ];
 
-// The first two bio paragraphs repeat the 886 section, so the profile keeps
-// the personal one.
+const aboutFacts = [
+  { label: "Based in", value: "Taipei" },
+  { label: "From", value: "Irvine, CA" },
+  { label: "Studied at", value: "UC Santa Cruz" },
+];
+
+// The first two bio paragraphs repeat the 886 section, so About keeps the
+// personal one.
 const bioLead = workPageBio[2];
 
 export default function WorkRoom() {
@@ -169,21 +180,18 @@ export default function WorkRoom() {
               </ul>
             </section>
 
+            <section className={styles.about} aria-labelledby="about-title">
+              <h2 id="about-title">About me</h2>
+              <dl className={styles.facts}>
+                {aboutFacts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+              </dl>
+              <p>{bioLead}</p>
+            </section>
+
             <p className={styles.closing}>
               Building something? I&apos;d love to hear about it. <a href={`mailto:${siteConfig.email}`}>Say hi</a>
             </p>
           </div>
-
-          <aside className={styles.profile} aria-labelledby="work-profile-title">
-            <div className={styles.portrait}>
-              <Image src="/headshot.jpg" alt="Carter Wang" fill sizes="(min-width: 761px) 240px, 38vw" />
-            </div>
-            <div className={styles.bio}>
-              <h2 id="work-profile-title">Carter Wang</h2>
-              <p className={styles.facts}>Taipei · from Irvine, CA · UC Santa Cruz</p>
-              <p>{bioLead}</p>
-            </div>
-          </aside>
         </div>
       </main>
     </>
