@@ -28,10 +28,9 @@
   z-index: 1;
   width: min(1220px, calc(100% - 2 * var(--page-x)));
   margin: 0 auto;
-  padding: var(--nav-clearance) 0 7rem;
+  padding: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem)) 0 7rem;
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
-.returnLink { margin-bottom: clamp(2.5rem, 7svh, 4rem); }
 /* One reading column, wide enough for the photo, narrow enough to read. */
 .desk { max-width: 46rem; }
 .workHistory { display: grid; gap: clamp(4.5rem, 10svh, 6.5rem); min-width: 0; }
@@ -80,7 +79,6 @@
 
 @media (max-width: 760px) {
   .main { padding-bottom: 4.5rem; }
-  .returnLink { margin-bottom: 2rem; }
   .workHistory { gap: 4rem; }
   .contributions { gap: 2.25rem; margin-top: 2.5rem; }
   .photo { margin-top: 2.75rem; }

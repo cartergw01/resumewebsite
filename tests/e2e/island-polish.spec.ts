@@ -30,7 +30,7 @@ test("each subpage returns to its island and Projects opens on the working scree
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
     await page.goto(`/${world}`);
-    const back = page.getByRole("link", { name: "Back to islands" });
+    const back = page.getByRole("link", { name: "Home", exact: true });
     await expect(back).toHaveAttribute("href", `/2.0#${world}`);
     if (world === "projects") {
       await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");

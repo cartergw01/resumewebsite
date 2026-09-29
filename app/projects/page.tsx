@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
 import GalaxyBackground from "@/components/GalaxyBackground";
-import IslandReturnLink from "@/components/IslandReturnLink";
 import ProjectScreen from "@/components/ProjectScreen";
 import worldStyles from "@/components/ProjectsWorld.module.css";
 import { projects } from "@/content/portfolio";
@@ -36,7 +35,6 @@ export default function ProjectsPage() {
       <main className={`subpage-main topic-main projects-main ${worldStyles.main}`}>
         <header className={`subpage-hero topic-hero projects-hero ${worldStyles.hero}`} data-workshop-reveal>
           <div className={worldStyles.heading}>
-            <IslandReturnLink island="projects" />
             <h1>Projects</h1>
             <p>fun projects i made.</p>
           </div>

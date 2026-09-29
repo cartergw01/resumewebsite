@@ -1,3 +1,0 @@
-.link { display: inline-flex; align-items: center; width: fit-content; min-height: 44px; color: #e9d5b7; font-size: 0.875rem; font-weight: 500; text-decoration: underline; text-decoration-color: #e9d5b755; text-underline-offset: 5px; }
-.link:hover { color: #fff7ea; }
-.link:focus-visible { outline: 1px solid #e9d5b7; outline-offset: 4px; border-radius: 3px; }

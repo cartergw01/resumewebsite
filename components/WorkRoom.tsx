@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import GalaxyBackground from "@/components/GalaxyBackground";
-import IslandReturnLink from "@/components/IslandReturnLink";
 import { siteConfig } from "@/lib/seo";
 import { workPageBio, workPageExperience } from "@/content/portfolio";
 import batchPhoto from "@/public/ikigai-batch.jpg";
@@ -132,7 +131,6 @@ export default function WorkRoom() {
     <>
       <GalaxyBackground page />
       <main className={styles.main} data-work-desk>
-        <div className={styles.returnLink}><IslandReturnLink island="work" /></div>
         <div className={styles.desk}>
           <div className={styles.workHistory}>
             <section aria-labelledby="current-work-title">

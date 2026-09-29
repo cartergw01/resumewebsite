@@ -28,7 +28,7 @@ test("the book opens the complete Writing archive without featuring an essay", a
   expect(new Set(titleStyles).size).toBe(1);
   await expect(page.locator('img[src="/world-writing-cutout-v1.webp"]')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole("link", { name: "Back to islands" }).click();
+  await page.getByRole("link", { name: "Home", exact: true }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   expect(errors).toEqual([]);
 });
