@@ -31,8 +31,8 @@
   padding: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem)) 0 7rem;
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
-/* One centered reading column, wide enough for the photo, narrow enough to read. */
-.desk { max-width: 46rem; margin: 0 auto; }
+/* One reading column on smaller screens; wide screens add a title column. */
+.desk { --label: 16rem; --gutter: clamp(3rem, 5vw, 5.5rem); max-width: 46rem; }
 .workHistory { display: grid; gap: clamp(4.5rem, 10svh, 6.5rem); min-width: 0; }
 
 /* Inline links in running text */
@@ -78,6 +78,25 @@
 .facts dt { margin-bottom: 0.25rem; color: var(--quiet); font-size: 0.875rem; }
 .facts dd { margin: 0; color: var(--paper); font-size: 1.125rem; font-weight: 500; }
 .about p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+
+/* Wide screens: section titles sit in a left column beside their text, so the
+   page uses the width while every line stays a comfortable length. */
+@media (min-width: 1080px) {
+  .desk { max-width: calc(var(--label) + var(--gutter) + 46rem); }
+  .contributions > div, .earlier, .side, .about {
+    display: grid;
+    grid-template-columns: var(--label) minmax(0, 46rem);
+    column-gap: var(--gutter);
+    align-items: start;
+  }
+  .contributions > div > *, .earlier > *, .side > *, .about > * { grid-column: 2; }
+  .contributions > div > h2, .earlier > h2, .side > h2, .about > h2 { grid-column: 1; grid-row: 1 / span 12; margin: 0; }
+  .contributions h2 { padding-top: 0.1rem; }
+  .earlier > h2, .side > h2, .about > h2 { font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
+  .contributions { gap: 3rem; margin-top: 3.5rem; }
+  .photo { margin-left: calc(var(--label) + var(--gutter)); }
+  .closing { margin-left: calc(var(--label) + var(--gutter)); }
+}
 
 @media (max-width: 760px) {
   .main { padding-bottom: 4.5rem; }
