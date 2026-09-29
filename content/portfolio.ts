@@ -12,7 +12,7 @@ import ignoranceCover from "@/public/essay-covers/an-ode-to-ignorance.webp";
 import taipeiFlixImage from "@/public/project-shots/taipei-flix.webp";
 import studiosImage from "@/public/project-shots/886studios.webp";
 import taipeiRunImage from "@/public/project-shots/taipei-run.jpg";
-import stockerImage from "@/public/project-shots/stocker.webp";
+import stockerImage from "@/public/project-shots/stocker.jpg";
 import taipeiGuideImage from "@/public/project-shots/taipei-guide.webp";
 import pokerImage from "@/public/project-shots/poker-odds.webp";
 import timerImage from "@/public/project-shots/ikigai-timer.jpg";

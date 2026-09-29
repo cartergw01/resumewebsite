@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import SiteNav from "@/components/SiteNav";
 import GalaxyBackground from "@/components/GalaxyBackground";
-import ProjectScreen from "@/components/ProjectScreen";
+import ProjectShot from "@/components/ProjectShot";
 import worldStyles from "@/components/ProjectsWorld.module.css";
 import { projects } from "@/content/portfolio";
 import {
@@ -16,7 +15,6 @@ import {
 export const metadata: Metadata = buildMetadata("projects");
 
 export default function ProjectsPage() {
-  const [featured, ...remaining] = projects;
   return (
     <div className={`cosmic-subpage subpage-projects subpage-topic topic-page ${worldStyles.page}`} data-rocket-launch-zone data-island-page>
       <script
@@ -44,19 +42,10 @@ export default function ProjectsPage() {
           <aside className="subpage-world-art topic-world-art" aria-hidden="true" />
 
           <section className="projects-workshop" aria-label="Project workshop">
-            {featured ? <a className={worldStyles.featured} href={featured.href} target="_blank" rel="noopener noreferrer"
-              aria-label={`Open ${featured.title} live project in a new tab`}>
-              <ProjectScreen src={featured.image} title={featured.title} />
-              <span className={worldStyles.featuredCopy} data-workshop-reveal>
-                <strong>{featured.title}</strong>
-                <span>{featured.description}</span>
-                <em>View project <span aria-hidden="true">↗</span></em>
-              </span>
-            </a> : null}
             <section className="project-list" aria-label="Live projects">
               {projects.length === 0 ? (
                 <p className="project-empty">Projects will appear here soon.</p>
-              ) : remaining.map((project, index) => (
+              ) : projects.map((project, index) => (
                 <a
                   className="project-row"
                   key={project.href}
@@ -67,15 +56,7 @@ export default function ProjectsPage() {
                   style={{ animationDelay: `${0.08 + index * 0.045}s` }}
                   data-workshop-reveal
                 >
-                  <span className="project-shot">
-                    <Image
-                      src={project.image}
-                      alt={`${project.title} website screenshot`}
-                      fill
-                      quality={86}
-                      sizes="(max-width: 760px) calc(100vw - 1.5rem), (max-width: 1200px) 31vw, 360px"
-                    />
-                  </span>
+                  <ProjectShot src={project.image} title={project.title} dock={index === 0} />
                   <span className="project-row-copy">
                     <strong>{project.title}</strong>
                     <span>{project.description}</span>
