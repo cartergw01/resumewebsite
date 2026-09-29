@@ -2,16 +2,15 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import IslandReturnLink from "@/components/IslandReturnLink";
-import {
-  workPageBio,
-  workPageExperience,
-  workPageInterests,
-  workPageProfileFacts,
-  workPageSkills,
-} from "@/content/portfolio";
+import { siteConfig } from "@/lib/seo";
+import { workPageBio, workPageExperience } from "@/content/portfolio";
+import batchPhoto from "@/public/ikigai-batch.jpg";
 import styles from "./WorkRoom.module.css";
 
 const [current, ...earlier] = workPageExperience;
+// Korobra is still running, so it sits "on the side" rather than "previously".
+const previous = earlier.filter((item) => item.company !== "Korobra Capital");
+const onTheSide = earlier.filter((item) => item.company === "Korobra Capital");
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
@@ -40,6 +39,11 @@ const highlights: { heading: string; story: ReactNode }[] = [
 
 type Earlier = (typeof earlier)[number];
 
+// Shorter titles where the story already tells the progression.
+const shortTitles: Record<string, string> = {
+  "Slug Fund Investment Group": "Vice President",
+};
+
 // One-line stories for earlier roles; the full bullet details live on /resume.
 function earlierStory(item: Earlier): ReactNode {
   switch (item.company) {
@@ -67,6 +71,19 @@ function earlierStory(item: Earlier): ReactNode {
   }
 }
 
+function Experience({ item }: { item: Earlier }) {
+  return (
+    <li className={styles.experience}>
+      <header className={styles.experienceHeading}>
+        <h3>{item.company}</h3>
+        <p className={styles.date}>{item.dates}</p>
+        <p className={styles.role}>{shortTitles[item.company] ?? item.role}</p>
+      </header>
+      <p className={styles.story}>{earlierStory(item)}</p>
+    </li>
+  );
+}
+
 // The first two bio paragraphs repeat the 886 section, so the profile keeps
 // the personal one.
 const bioLead = workPageBio[2];
@@ -84,12 +101,11 @@ export default function WorkRoom() {
                 <h1 id="current-work-title">
                   <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
                 </h1>
-                <dl className={styles.roles} aria-label={`Roles at ${current.company}`}>
-                  <div><dt>{current.role}</dt><dd>{current.dates}</dd></div>
-                  <div><dt>Venture Fellow</dt><dd>June 2024 - September 2024</dd></div>
-                </dl>
+                <p className={styles.roleLine}>
+                  <strong>{current.role}</strong> since October 2024, after starting as a Venture Fellow that summer
+                </p>
               </header>
-              <p className={styles.mission}>We&apos;re building an accelerator that backs early-stage startups, bringing a slice of Silicon Valley to Asia.</p>
+              <p className={styles.mission}>We&apos;re building an accelerator with the founders of Twitch and Guitar Hero, bringing a slice of Silicon Valley to Asia.</p>
               <div className={styles.contributions}>
                 {highlights.map((item) => (
                   <div key={item.heading}>
@@ -98,23 +114,29 @@ export default function WorkRoom() {
                   </div>
                 ))}
               </div>
+              <figure className={styles.photo}>
+                <Image src={batchPhoto} alt="An ikigai Launchpad batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 720px, 100vw" placeholder="blur" />
+                <figcaption>An ikigai Launchpad batch</figcaption>
+              </figure>
             </section>
 
             <section className={styles.earlier} aria-labelledby="earlier-work-title">
               <h2 id="earlier-work-title">Previously</h2>
               <ol className={styles.experiences}>
-                {earlier.map((item) => (
-                  <li key={item.company} className={styles.experience}>
-                    <header className={styles.experienceHeading}>
-                      <h3>{item.company}</h3>
-                      <p className={styles.date}>{item.dates}</p>
-                      <p className={styles.role}>{item.role}</p>
-                    </header>
-                    <p className={styles.story}>{earlierStory(item)}</p>
-                  </li>
-                ))}
+                {previous.map((item) => <Experience key={item.company} item={item} />)}
               </ol>
             </section>
+
+            <section className={styles.side} aria-labelledby="side-work-title">
+              <h2 id="side-work-title">On the side</h2>
+              <ul className={styles.experiences}>
+                {onTheSide.map((item) => <Experience key={item.company} item={item} />)}
+              </ul>
+            </section>
+
+            <p className={styles.closing}>
+              Building something? I&apos;d love to hear about it. <a href={`mailto:${siteConfig.email}`}>Say hi</a>
+            </p>
           </div>
 
           <aside className={styles.profile} aria-labelledby="work-profile-title">
@@ -123,21 +145,9 @@ export default function WorkRoom() {
             </div>
             <div className={styles.bio}>
               <h2 id="work-profile-title">Carter Wang</h2>
+              <p className={styles.facts}>Taipei · from Irvine, CA · UC Santa Cruz</p>
               <p>{bioLead}</p>
             </div>
-            <details className={styles.disclosure}>
-              <summary>More about me<span className={styles.indicator} aria-hidden="true" /></summary>
-              <dl className={styles.facts}>
-                <div><dt>Interests</dt><dd>{`${workPageInterests}.`}</dd></div>
-              </dl>
-            </details>
-            <details className={styles.disclosure}>
-              <summary>Background &amp; skills<span className={styles.indicator} aria-hidden="true" /></summary>
-              <dl className={styles.facts}>
-                {workPageProfileFacts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
-                <div><dt>Skills</dt><dd>{workPageSkills}</dd></div>
-              </dl>
-            </details>
           </aside>
         </div>
       </main>
