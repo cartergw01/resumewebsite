@@ -31,8 +31,8 @@
   padding: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem)) 0 7rem;
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
-/* One reading column, wide enough for the photo, narrow enough to read. */
-.desk { max-width: 46rem; }
+/* One centered reading column, wide enough for the photo, narrow enough to read. */
+.desk { max-width: 46rem; margin: 0 auto; }
 .workHistory { display: grid; gap: clamp(4.5rem, 10svh, 6.5rem); min-width: 0; }
 
 /* Inline links in running text */

@@ -154,7 +154,7 @@ export default function WorkRoom() {
                 ))}
               </div>
               <figure className={styles.photo}>
-                <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch in matching 886 t-shirts, posed together in the office" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
+                <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
                 <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
               </figure>
             </section>
