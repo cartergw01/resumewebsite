@@ -32,28 +32,27 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 }
 
 // Written in Carter's first-person voice; every fact matches content/portfolio.ts.
-const highlights: { heading: string; story: ReactNode }[] = [
+// Program descriptions follow 886studios.com's own wording.
+const highlights: { heading: string; story: ReactNode[] }[] = [
   {
     heading: "Building ikigai Launchpad",
-    story: (
-      <>
-        <Out href="https://886studios.com/programs">ikigai Launchpad</Out> is our 10-week, in-person accelerator in Taipei that invests $100K in every startup we accept.
-        I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, investor intros, and partnerships.
-      </>
-    ),
+    story: [
+      <><Out href="https://886studios.com/programs">ikigai Launchpad</Out> is a 10-week, in-person accelerator in Taipei with $100K USD, mentor office hours, investor intros, and support beyond the batch.</>,
+      "I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, and partnerships.",
+    ],
   },
   {
     heading: "Finding founders",
-    story: <>I run deal sourcing for our <Out href="https://withikigai.com">accelerator</Out>. I&apos;ve screened and interviewed 250+ early-stage startups, gone deep on diligence with 100+ of them, and built the admissions process that decides who gets in.</>,
+    story: [
+      <>I run deal sourcing for our <Out href="https://withikigai.com">accelerator</Out>. I&apos;ve screened and interviewed 350+ early-stage startups, gone deep on diligence with 100+ of them, and built the admissions process that decides who gets in.</>,
+    ],
   },
   {
     heading: "Community & content",
-    story: (
-      <>
-        I built Launch Station, a residency program with 20+ founders, and host events for the wider community: hackathons, pitch nights, co-founder matching.
-        I also write our <Out href="https://886studios.substack.com/">newsletter</Out>, run our socials, and rebuilt our <Out href="https://www.886studios.com/">website</Out>.
-      </>
-    ),
+    story: [
+      <>I built <em><Out href="https://886studios.com/programs/launch-station">Launch Station</Out></em>, our residency for founders who move faster alongside ambitious peers, with 20+ founders. I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our <Out href="https://www.886studios.com/">website</Out>.</>,
+      <>I also write our <Out href="https://886studios.substack.com/">newsletter</Out>.</>,
+    ],
   },
 ];
 
@@ -71,7 +70,7 @@ function earlierStory(item: Earlier): ReactNode {
       const links = "links" in item && item.links ? item.links : [];
       return (
         <>
-          I spent a year profiling and writing about startups like{" "}
+          I profiled and wrote deep dives on startups like{" "}
           {links.map((article, index) => (
             <span key={article.href}>
               {index > 0 ? (index === links.length - 1 ? ", and " : ", ") : null}
@@ -83,7 +82,7 @@ function earlierStory(item: Earlier): ReactNode {
       );
     }
     case "Slug Fund Investment Group":
-      return "UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing. Along the way I went from equity analyst pitching stocks to VP, and started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.";
+      return "UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing. I went from equity analyst to head of the equity analyst team, then started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.";
     case "Korobra Capital":
       return "A fund I started in 2020 for family and friends. It's now $180K+, invested long term in AI, fintech, crypto, robotics, and more.";
     default:
@@ -105,14 +104,16 @@ function Experience({ item }: { item: Earlier }) {
 }
 
 // Side work that lives on its own pages of the site.
-const sideProjects: { title: string; story: ReactNode }[] = [
+const sideProjects: { title: string; story: string; link: { href: string; label: string } }[] = [
   {
-    title: "Projects",
-    story: <>I build web apps and tools for fun. I&apos;ve built TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a sleep tracker app, a stock portfolio tracker, a poker odds calculator, and more. <Link href="/projects">See my projects</Link></>,
+    title: "Coding projects",
+    story: "I build web apps and tools for fun. I've built TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a sleep tracker app, a stock portfolio tracker, a poker odds calculator, and more.",
+    link: { href: "/projects", label: "See my coding projects" },
   },
   {
     title: "Writing",
-    story: <>I write essays on Substack about technology, attention, identity, and work. <Link href="/writing">Read my writing</Link></>,
+    story: "I write essays on Substack about technology, attention, identity, and work.",
+    link: { href: "/writing", label: "Read my writing" },
   },
 ];
 
@@ -143,18 +144,18 @@ export default function WorkRoom() {
                   <strong>{current.role}</strong> since October 2024, after starting as a Venture Fellow that summer
                 </p>
               </header>
-              <p className={styles.mission}>We&apos;re building an accelerator with the founders of Twitch and Guitar Hero, bringing a slice of Silicon Valley to Asia.</p>
+              <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. We run ikigai Launchpad, the premier Silicon Valley-style accelerator in Taipei, brought to you by the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
               <div className={styles.contributions}>
                 {highlights.map((item) => (
                   <div key={item.heading}>
                     <h2>{item.heading}</h2>
-                    <p>{item.story}</p>
+                    {item.story.map((line, index) => <p key={index}>{line}</p>)}
                   </div>
                 ))}
               </div>
               <figure className={styles.photo}>
-                <Image src={batchPhoto} alt="An ikigai Launchpad batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 720px, 100vw" placeholder="blur" />
-                <figcaption>An ikigai Launchpad batch</figcaption>
+                <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch in matching 886 t-shirts, posed together in the office" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
+                <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
               </figure>
             </section>
 
@@ -173,6 +174,7 @@ export default function WorkRoom() {
                   <li key={item.title} className={styles.experience}>
                     <header className={styles.experienceHeading}><h3>{item.title}</h3></header>
                     <p className={styles.story}>{item.story}</p>
+                    <p className={styles.more}><Link href={item.link.href}>{item.link.label}</Link></p>
                   </li>
                 ))}
               </ul>
