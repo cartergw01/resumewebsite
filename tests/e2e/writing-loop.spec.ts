@@ -44,7 +44,7 @@ test("reduced motion keeps the original artwork and responds to preference chang
 });
 
 test("a video download failure leaves the artwork and island entry usable", async ({ page }) => {
-  await page.route("**/writing-island-loop-v1.*", (route) => route.abort());
+  await page.route("**/writing-island-loop-v2.*", (route) => route.abort());
   await page.goto("/2.0#writing");
   const visual = page.locator("#writing [data-island-visual]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");

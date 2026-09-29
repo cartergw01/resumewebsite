@@ -2,12 +2,12 @@
 // Usage: node scripts/render-writing-loop.mjs /tmp/writing-loop-frames
 // Encode the frames with VP9 alpha for Chromium/Firefox and HEVC alpha for Safari.
 // ffmpeg -framerate 24 -i /tmp/writing-loop-frames/%04d.png -c:v libvpx-vp9
-//   -pix_fmt yuva420p -b:v 0 -crf 28 -row-mt 1 -threads 2 -auto-alt-ref 0
-//   -an -metadata:s:v:0 alpha_mode=1 public/writing-island-loop-v1.webm
+//   -pix_fmt yuva420p -b:v 0 -crf 30 -row-mt 1 -threads 4 -auto-alt-ref 0
+//   -an -metadata:s:v:0 alpha_mode=1 public/writing-island-loop-v2.webm
 // On macOS, encode the second source with VideoToolbox:
 // ffmpeg -framerate 24 -i /tmp/writing-loop-frames/%04d.png -c:v hevc_videotoolbox
-//   -allow_sw 1 -alpha_quality 0.85 -pix_fmt bgra -b:v 1500k -tag:v hvc1
-//   -an -movflags +faststart public/writing-island-loop-v1.mov
+//   -allow_sw 1 -alpha_quality 0.85 -pix_fmt bgra -b:v 1800k -tag:v hvc1
+//   -an -movflags +faststart public/writing-island-loop-v2.mov
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium } from "@playwright/test";
@@ -15,18 +15,23 @@ import { chromium } from "@playwright/test";
 const output = process.argv[2];
 if (!output) throw new Error("Provide a temporary frame-output directory.");
 await mkdir(output, { recursive: true });
-const source = await readFile(new URL("../public/world-writing-cutout-v1.webp", import.meta.url));
+const source = await readFile(new URL("../public/world-writing-cutout-v3.webp", import.meta.url));
+// The loop is authored in 960x530 artwork coordinates and rendered at
+// 1.75x so it stays as sharp as the full-resolution poster on Retina.
+const SCALE = 1.75;
+const WIDTH = 1680;
+const HEIGHT = 928;
 const browser = await chromium.launch({ headless: true });
 try {
-  const page = await browser.newPage({ viewport: { width: 960, height: 530 } });
-  await page.setContent('<canvas id="frame" width="960" height="530"></canvas>');
-  await page.evaluate(async (base64) => {
+  const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
+  await page.setContent(`<canvas id="frame" width="${WIDTH}" height="${HEIGHT}"></canvas>`);
+  await page.evaluate(async ({ base64, size }) => {
     const image = new Image();
     image.src = `data:image/webp;base64,${base64}`;
     await image.decode();
     const layer = document.createElement("canvas");
-    layer.width = 960;
-    layer.height = 530;
+    layer.width = size.width;
+    layer.height = size.height;
     const gl = layer.getContext("webgl", { alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
     if (!gl) throw new Error("WebGL is required for the video compositor.");
     const shader = (type, source) => {
@@ -50,7 +55,7 @@ try {
         return (d.x * (p.y - a.y) - d.y * (p.x - a.x)) / length(d);
       }
       void main() {
-        vec2 p = vec2(gl_FragCoord.x, 530.0 - gl_FragCoord.y - 0.5);
+        vec2 p = vec2(gl_FragCoord.x, ${size.height.toFixed(1)} - gl_FragCoord.y) / ${size.scale.toFixed(4)} - vec2(0.0, 0.5);
         // The outer edge of the right-hand page lifts a few pixels; the spine
         // stays anchored. A feathered mask avoids seams in the source texture.
         float paper = min(min(edge(p, vec2(455,196), vec2(558,184)),
@@ -95,8 +100,10 @@ try {
     window.renderFrame = (fraction) => {
       gl.uniform1f(time, fraction * Math.PI * 2);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
-      ctx.clearRect(0, 0, 960, 530);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, size.width, size.height);
       ctx.drawImage(layer, 0, 0);
+      ctx.setTransform(size.scale, 0, 0, size.scale, 0, 0);
       const glow = ctx.createRadialGradient(308, 119, 2, 308, 119, 45);
       const strength = 0.065 + Math.sin(fraction * Math.PI * 2) * 0.025;
       glow.addColorStop(0, `rgba(255,204,118,${strength})`);
@@ -117,7 +124,7 @@ try {
       }
       return canvas.toDataURL("image/png").split(",")[1];
     };
-  }, source.toString("base64"));
+  }, { base64: source.toString("base64"), size: { width: WIDTH, height: HEIGHT, scale: SCALE } });
   for (let frame = 0; frame < 192; frame++) {
     const png = await page.evaluate((index) => window.renderFrame(index / 192), frame);
     await writeFile(path.join(output, `${String(frame).padStart(4, "0")}.png`), Buffer.from(png, "base64"));

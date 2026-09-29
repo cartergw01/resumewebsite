@@ -7,8 +7,8 @@ import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 
 const artwork = {
-  work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v2.webp", width: 1672, height: 941 },
-  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v4.webp", width: 1200, height: 800 },
+  work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v3.webp", width: 1672, height: 941 },
+  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v5.webp", width: 1200, height: 800 },
 };
 
 export default function LivingIsland({ world, preview }: { world: keyof typeof artwork; preview?: string }) {

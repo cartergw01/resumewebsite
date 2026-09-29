@@ -39,7 +39,7 @@ test("each subpage returns to its island and Projects opens on the working scree
       await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
       const art = page.locator("[data-project-screen] img");
       await expect.poll(() => art.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-      await expect(page.locator('img[src="/world-projects-workshop-v4.webp"]')).toHaveCount(0);
+      await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
     await back.click();

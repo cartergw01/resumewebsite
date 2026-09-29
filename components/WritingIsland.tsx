@@ -63,7 +63,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
       <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
           {warm ? <Image
-            src="/world-writing-cutout-v2.webp" alt="" width={1689} height={931}
+            src="/world-writing-cutout-v3.webp" alt="" width={1689} height={931}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
           /> : null}
@@ -72,8 +72,8 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
             aria-hidden="true" disablePictureInPicture
             onPlaying={() => setReady(true)} onError={() => setReady(false)}
           >
-            <source src="/writing-island-loop-v1.mov" type={'video/quicktime; codecs="hvc1"'} />
-            <source src="/writing-island-loop-v1.webm" type={'video/webm; codecs="vp9"'} />
+            <source src="/writing-island-loop-v2.mov" type={'video/quicktime; codecs="hvc1"'} />
+            <source src="/writing-island-loop-v2.webm" type={'video/webm; codecs="vp9"'} />
           </video>
           <svg className={styles.bookResponse} viewBox="0 0 960 529" aria-hidden="true" data-book-response>
             <defs>
