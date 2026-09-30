@@ -158,6 +158,12 @@
   transition: transform 450ms var(--cw-ease);
 }
 .projects .island { width: 91%; max-height: 100%; }
+/* Once you land, the island floats gently in place; it holds still while
+   the camera travels or enters it. */
+.scene[data-active="true"] .island { animation: island-float 7s ease-in-out infinite; }
+.stage[data-travelling="true"] .island, .stage[data-entering] .island { animation-play-state: paused; }
+@keyframes island-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+@media (prefers-reduced-motion: reduce) { .scene[data-active="true"] .island { animation: none; } }
 /* Opening and closing views: all three islands at a distance. */
 .overview { position: relative; display: block; width: 100%; height: 100%; }
 /* Three equal islands in an irregular zig-zag (high, low, between) so no one
@@ -364,8 +370,10 @@
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
   /* The island fills the space between copy and controls. */
-  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 56dvh; min-height: 0; margin-inline: -3rem; }
-  .island { max-height: 56dvh; }
+  /* The art fills everything between the words and the controls, and the
+     island sits centred in it, so each stop is evenly spaced top to bottom. */
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; min-height: 0; margin-inline: -3rem; }
+  .island { max-height: 50dvh; }
   .landmarkCue { font-size: 1rem; }
   .bookCue > span { top: 12%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
@@ -383,7 +391,7 @@
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
   .copy h1, .copy h2 { font-size: 2.75rem; }
-  .art { max-height: 42dvh; }
+  .island { max-height: 42dvh; }
   .controls { gap: 0.35rem; }
 }
 @media (max-height: 600px) and (min-width: 761px) {

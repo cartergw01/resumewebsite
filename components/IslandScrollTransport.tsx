@@ -59,7 +59,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const progress = clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 65);
+      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 28);
       cameraProgress = cameraProgress === null || motion.matches
         ? progress
         : cameraProgress + (progress - cameraProgress) * smoothing;
@@ -191,6 +191,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(render);
     };
+    // Each stop rests just inside its hold, after its arrival has settled.
+    const stopProgress = (index: number) =>
+      (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
     const measure = () => {
       const progress = clamp((window.scrollY - start) / travel);
       const height = track.offsetHeight;
@@ -221,18 +224,36 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       });
       schedule();
     };
+    // Glides are driven here rather than by the browser's smooth scroll, so
+    // every flight starts instantly and eases in over a consistent length.
+    let glideFrame = 0;
+    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; };
     const jump = (index: number, instant = false) => {
       warm();
-      // Land just inside each stop's hold, after its arrival has settled.
-      const position = index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11;
-      const progress = position / duration;
+      stopGlide();
       // Safari can retain a pending smooth scroll when a quick second tap
       // targets the current position. Cancel that flight before starting one.
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
-      window.scrollTo({
-        top: start + progress * travel,
-        behavior: instant || motion.matches ? "instant" : "smooth",
-      });
+      if (instant || motion.matches) {
+        window.scrollTo({ top: start + stopProgress(index) * travel, behavior: "instant" });
+        return;
+      }
+      // Glide in progress units and re-aim every frame, so a resize or a
+      // phone rotation mid-flight still lands exactly on the stop.
+      const from = clamp((window.scrollY - start) / travel);
+      const to = stopProgress(index);
+      const length = Math.min(900, 420 + Math.abs(to - from) * duration * 220);
+      const began = performance.now();
+      const step = (now: number) => {
+        // A frame's timestamp can precede the call that started the glide.
+        const t = clamp((now - began) / length);
+        // Ease out: the camera answers immediately, then glides into the stop.
+        const eased = 1 - Math.pow(1 - t, 4);
+        window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
+        glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
+        if (t >= 1) window.dispatchEvent(new Event("scrollend"));
+      };
+      glideFrame = window.requestAnimationFrame(step);
     };
     // A second tap on the selected island opens its page through the same
     // landmark approach as clicking the island itself.
@@ -322,8 +343,116 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const intents = ["wheel", "touchstart", "keydown"] as const;
     intents.forEach(type => window.addEventListener(type, warm, { passive: true, once: true }));
     sceneNav.addEventListener("focusin", warm);
+    // When a scroll gesture comes to rest mid-flight, glide on to the next
+    // stop in the direction you were going, so the page never stops between
+    // islands. A tiny accidental nudge returns to where you were. Only real
+    // gestures settle; links, tabs, and hash jumps are left alone.
+    // No gesture yet: page timers start at zero, so 0 would read as "just now".
+    let intentAt = Number.NEGATIVE_INFINITY;
+    const nativeScrollEnd = "onscrollend" in window;
+    let touching = false;
+    let settling = false;
+    let settleTimer = 0;
+    let settleRelease = 0;
+    let direction = 1;
+    let lastScrollY = window.scrollY;
+    const place = () => clamp((window.scrollY - start) / travel) * duration;
+    const stopAt = (index: number) => stopProgress(index) * duration;
+    const nearestStop = () => {
+      const here = place();
+      return scenes.reduce((best, _, index) => Math.abs(stopAt(index) - here) < Math.abs(stopAt(best) - here) ? index : best, 0);
+    };
+    const glideTo = (index: number) => {
+      // The gesture is spent once its glide begins.
+      intentAt = Number.NEGATIVE_INFINITY;
+      settling = true;
+      window.clearTimeout(settleRelease);
+      settleRelease = window.setTimeout(() => { settling = false; }, 1000);
+      jump(index);
+    };
+    const settle = () => {
+      if (touching || stage.dataset.entering) return;
+      const here = place();
+      const nearest = nearestStop();
+      if (Math.abs(stopAt(nearest) - here) < 0.04) {
+        if (Math.abs(stopAt(nearest) - here) > 0.002) glideTo(nearest);
+        return;
+      }
+      const ahead = direction > 0
+        ? scenes.findIndex((_, index) => stopAt(index) > here)
+        : scenes.map((_, index) => index).reverse().find((index) => stopAt(index) < here) ?? 0;
+      glideTo(ahead < 0 ? scenes.length - 1 : ahead);
+    };
+    const onGestureScroll = () => {
+      // The glide's own steps are not gestures and never set direction.
+      if (glideFrame) { lastScrollY = window.scrollY; return; }
+      if (window.scrollY !== lastScrollY) direction = window.scrollY > lastScrollY ? 1 : -1;
+      lastScrollY = window.scrollY;
+      if (settling || performance.now() - intentAt > 1200) return;
+      // Browsers with a real scrollend settle when the gesture (and any
+      // native wheel animation or momentum) has truly finished; others wait
+      // for the scroll to go quiet.
+      if (nativeScrollEnd) return;
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(settle, 120);
+    };
+    // A new wheel or touch takes over from any glide in progress.
+    const markIntent = () => { intentAt = performance.now(); settling = false; stopGlide(); };
+    const onTouchStart = () => { touching = true; markIntent(); };
+    const onTouchEnd = () => {
+      touching = false;
+      markIntent();
+      // A tap without movement produces no scrollend; check once it's clear.
+      window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(settle, nativeScrollEnd ? 400 : 120);
+    };
+    // Each glide step ends a tiny native scroll; only the glide's own finish
+    // (or a gesture's real end) releases the settle lock.
+    const onScrollEnd = () => {
+      if (glideFrame) return;
+      window.clearTimeout(settleRelease);
+      settling = false;
+      if (nativeScrollEnd && !touching && performance.now() - intentAt < 1200) {
+        window.clearTimeout(settleTimer);
+        settle();
+      }
+    };
+    // Keys move exactly one stop at a time.
+    const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering) return;
+      const target0 = event.target as Element | null;
+      if (target0?.closest("input, textarea, select, [contenteditable]")) return;
+      // Space still presses a focused button or link.
+      if (event.key === " " && target0?.closest("button, a")) return;
+      const current = nearestStop();
+      const forward = event.key === "ArrowDown" || event.key === "PageDown" || (event.key === " " && !event.shiftKey);
+      const backward = event.key === "ArrowUp" || event.key === "PageUp" || (event.key === " " && event.shiftKey);
+      const target = forward ? Math.min(current + 1, scenes.length - 1)
+        : backward ? Math.max(current - 1, 0)
+        : event.key === "Home" ? 0 : event.key === "End" ? scenes.length - 1 : -1;
+      if (target < 0) return;
+      event.preventDefault();
+      glideTo(target);
+    };
+    window.addEventListener("wheel", markIntent, { passive: true });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    window.addEventListener("scroll", onGestureScroll, { passive: true });
+    window.addEventListener("scrollend", onScrollEnd);
+    window.addEventListener("keydown", onKey);
 
     return () => {
+      window.removeEventListener("wheel", markIntent);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+      window.removeEventListener("scroll", onGestureScroll);
+      window.removeEventListener("scrollend", onScrollEnd);
+      window.removeEventListener("keydown", onKey);
+      window.clearTimeout(settleTimer);
+      window.clearTimeout(settleRelease);
+      stopGlide();
       intents.forEach(type => window.removeEventListener(type, warm));
       sceneNav.removeEventListener("focusin", warm);
       observer.disconnect();

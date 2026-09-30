@@ -130,8 +130,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     current.animations.push(screen.animate([
       { transform: `matrix(${matrix.a * sx},${matrix.b * sx},${matrix.c * sy},${matrix.d * sy},${matrix.e},${matrix.f})` },
       { transform: "matrix(1,0,0,1,0,0)" },
-    ], { duration: 1250, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
-    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1250, easing: "ease-in", fill: "forwards" }));
+    ], { duration: 1200, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
+    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: "ease-in", fill: "forwards" }));
     return current.dispose;
   }
   // The deck rises off the laptop to the centre, then fans into an arc of
@@ -154,7 +154,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       { transform: matrixOf(matrix), offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
       { transform: cardPose(centerX, centerY, width, 0), offset: 0.5, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
       { transform: cardPose(x, y, width, angle), offset: 1 },
-    ], { duration: 1800, fill: "forwards" }));
+    ], { duration: 1200, fill: "forwards" }));
   }
   current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 800, easing: "ease-in-out", fill: "forwards" }));
   return current.dispose;
@@ -218,16 +218,28 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       document.documentElement.dataset[attribute] = "revealing";
       const shots = Array.from(document.querySelectorAll<HTMLElement>("[data-project-shot]"));
       const cards = Array.from(current.screen.children) as HTMLElement[];
+      // Give the row thumbnails a moment to decode so the hand-off never
+      // reveals an empty frame.
+      const thumbnails = shots.map(shot => shot.querySelector("img")).filter((image): image is HTMLImageElement => Boolean(image));
+      void Promise.all(thumbnails.map(image => image.decode().catch(() => undefined)));
       const docks = cards.map(card => {
         const index = Number(card.dataset.projectCard);
         const shot = (shots[index] ?? target).getBoundingClientRect();
         return card.animate([
           { transform: getComputedStyle(card).transform },
           { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },
-        ], { duration: 950, delay: index * 70, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+        ], { duration: 900, delay: index * 40, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
       });
       current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-out", fill: "forwards" }));
       void Promise.all(docks.map(dock => dock.finished)).then(() => {
+        if (entry !== current) return;
+        // Show the real thumbnails under the landed cards, then fade the
+        // cards away, so the hand-off is a crossfade rather than a swap.
+        document.documentElement.dataset[attribute] = "landed";
+        const fade = current.screen.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: "ease-out", fill: "forwards" });
+        current.animations.push(fade);
+        return fade.finished;
+      }).then(() => {
         if (entry !== current) return;
         target.closest<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
         current.dispose();

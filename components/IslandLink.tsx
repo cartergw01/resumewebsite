@@ -92,7 +92,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
-      }, 380);
+      }, 200);
     }
     const reset = () => {
       cancelled = true;

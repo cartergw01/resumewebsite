@@ -5,7 +5,7 @@ import IslandScrollTransport from "./IslandScrollTransport";
 import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
-import { essays, projects, workPageEssays, workRoles } from "@/content/portfolio";
+import { essays, projects } from "@/content/portfolio";
 import { siteConfig } from "@/lib/seo";
 import styles from "./IslandHome.module.css";
 
@@ -20,8 +20,6 @@ const stops = [
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
-
-const dash = (period: string) => period.replace(" - ", " – ");
 
 function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
   switch (id) {
@@ -41,11 +39,6 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
         <p className={styles.description}>
           associate at <Out href="https://886studios.com">886 Studios</Out>, working on <Out href="https://withikigai.com">ikigai Launchpad</Out> in Taipei.
         </p>
-        <ul className={styles.facts} aria-label="Roles">
-          {workRoles.slice(0, 3).map((role) => (
-            <li key={role.company}><span>{role.role}, {role.company}</span><span className={styles.factMeta}>{dash(role.period)}</span></li>
-          ))}
-        </ul>
       </>;
     case "writing":
       return <>
@@ -53,21 +46,11 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
         <p className={styles.description}>
           essays on human nature, culture, and technology at <Out href={siteConfig.social.substack}><em>flying Arrows</em></Out>.
         </p>
-        <ul className={styles.facts} aria-label="Selected essays">
-          {workPageEssays.slice(0, 3).map((essay) => (
-            <li key={essay.href}><Out href={essay.href}>{essay.title}</Out></li>
-          ))}
-        </ul>
       </>;
     case "projects":
       return <>
         <h2 id="projects-heading"><a href="/projects" data-enter-island>Projects</a></h2>
         <p className={styles.description}>fun projects i made.</p>
-        <ul className={styles.facts} aria-label="Selected projects">
-          {projects.slice(0, 3).map((project) => (
-            <li key={project.href}><Out href={project.href}>{project.title}</Out></li>
-          ))}
-        </ul>
       </>;
     case "hello":
       return <>

@@ -12,7 +12,7 @@
 .page [data-workshop-reveal] { animation: none; transition: opacity 360ms ease, translate 480ms ease; }
 :global(html[data-workshop-transition="entering"]) .page [data-workshop-reveal],
 :global(html[data-workshop-transition="arriving"]) .page [data-workshop-reveal] { opacity: 0; translate: 0 12px; }
-:global(html[data-workshop-transition]) .page [data-project-shot] { visibility: hidden; }
+:global(html[data-workshop-transition]:not([data-workshop-transition="landed"])) .page [data-project-shot] { visibility: hidden; }
 @media (max-width: 760px) {
   .main.main { width: calc(100% - 2.5rem); }
   .hero.hero { margin-bottom: 1.75rem; }

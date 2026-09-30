@@ -252,15 +252,35 @@ test("skip link and the opening islands reach content directly", async ({ page }
   await expect(skip).toBeInViewport();
   await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: "Projects" }).click();
   await expectScene(page, "projects");
-  await expect(page.getByRole("list", { name: "Selected projects" }).getByRole("link")).toHaveCount(3);
+  await expect(page.locator("#projects [data-scene-copy] ul")).toHaveCount(0);
 });
 
 test("each stop's heading enters its page like its island", async ({ page }) => {
   await page.goto("/2.0#writing");
   await expectScene(page, "writing");
-  await expect(page.getByRole("list", { name: "Selected essays" }).getByRole("link")).toHaveText(["Slop & Spiral", "We All Have Superpowers", "The Mirage of Identity"]);
+  // The landing stays simple: no example lists under the headings.
+  await expect(page.locator("#writing [data-scene-copy] ul")).toHaveCount(0);
   await page.getByRole("heading", { name: "Writing", exact: true }).getByRole("link").click();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(1);
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
+});
+
+test("a scroll gesture never rests between islands, and keys move one stop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Wheel and keyboard settling need a fine pointer.");
+  await page.goto("/2.0");
+  await page.mouse.move(640, 360);
+  // A short flick carries the camera all the way to Work.
+  await page.mouse.wheel(0, 90);
+  await expectScene(page, "work");
+  await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight)), { timeout: 5000 }).toBeCloseTo(1.11 / 4.5, 3);
+  // A tiny nudge settles back where it was.
+  await page.mouse.wheel(0, 12);
+  await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight)), { timeout: 5000 }).toBeCloseTo(1.11 / 4.5, 3);
+  await page.keyboard.press("ArrowDown");
+  await expectScene(page, "writing");
+  await page.keyboard.press("End");
+  await expectScene(page, "hello");
+  await page.keyboard.press("Home");
+  await expectScene(page, "intro");
 });

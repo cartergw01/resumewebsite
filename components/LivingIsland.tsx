@@ -24,8 +24,13 @@ export default function LivingIsland({ world, preview, posters }: { world: keyof
     if (!visual || !scene || !stage) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    let postersLoaded = false;
     const sync = () => {
       if (stage.dataset.warm === "true") setWarm(true);
+      if (!postersLoaded && posters && scene.dataset.active === "true") {
+        postersLoaded = true;
+        for (const src of posters) { const image = document.createElement("img"); image.decoding = "async"; image.src = src; }
+      }
       const allowed = !motion.matches && !connection?.saveData;
       visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
     };
@@ -42,7 +47,7 @@ export default function LivingIsland({ world, preview, posters }: { world: keyof
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
-  }, []);
+  }, [posters]);
 
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} workshop={world === "projects"}>
