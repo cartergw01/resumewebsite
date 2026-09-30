@@ -177,18 +177,18 @@
 .projects .island { width: 91%; max-height: 100%; }
 /* Opening and closing views: all three islands at a distance. */
 .overview { position: relative; display: block; width: 100%; height: 100%; }
-/* One row on a shared horizon, sized so the visible islands match: the city
-   fills 72% of its image, the desk 75%, the workshop 94%. Work's box keeps the
-   art box's proportions, since the first zoom scales it up to fill that box. */
-.overviewIsland[data-overview-island="work"] { left: 1.5%; top: 33.5%; width: 33%; height: 33%; }
-.overviewIsland[data-overview-island="writing"] { left: 33%; top: 34%; width: 32%; height: 32%; }
-.overviewIsland[data-overview-island="projects"] { left: 65.5%; top: 36.5%; width: 27%; height: 27%; }
+/* Three islands staggered in height, sized so the visible islands match: the
+   city fills 72% of its image, the desk 75%, the workshop 94%. Work's box keeps
+   the art box's proportions, since the first zoom scales it up to fill that box. */
+.overviewIsland[data-overview-island="work"] { left: 1.5%; top: 43.5%; width: 33%; height: 33%; }
+.overviewIsland[data-overview-island="writing"] { left: 33%; top: 18%; width: 32%; height: 32%; }
+.overviewIsland[data-overview-island="projects"] { left: 65.5%; top: 47%; width: 27%; height: 27%; }
 @media (max-width: 760px) {
   /* The phone art box is nearly square and bleeds past the screen, so each
      island is sized by width to fill a third of what's visible. */
-  .overviewIsland[data-overview-island="work"] { left: 6.5%; top: 33.5%; width: 33%; height: 33%; }
-  .overviewIsland[data-overview-island="writing"] { left: 34%; top: 34%; width: 32%; height: 32%; }
-  .overviewIsland[data-overview-island="projects"] { left: 64.2%; top: 37.2%; width: 25.6%; height: 25.6%; }
+  .overviewIsland[data-overview-island="work"] { left: 6.5%; top: 39.5%; width: 33%; height: 33%; }
+  .overviewIsland[data-overview-island="writing"] { left: 34%; top: 20%; width: 32%; height: 32%; }
+  .overviewIsland[data-overview-island="projects"] { left: 64.2%; top: 45%; width: 25.6%; height: 25.6%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: brightness(0.85) drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
 .overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
@@ -442,29 +442,76 @@
 /* Mouse users get the island prompt as a tooltip by the cursor; the island
    itself is the target, so its annotation stays hidden until needed.
    Touch keeps the annotations, and keyboard focus still reveals them. */
-.islandTip {
+/* A star-chart annotation: a star by the cursor, a hairline leader that
+   turns into the label's rule, and the prompt in the display italic. It
+   draws in (star, line, then words) and leaves quickly. */
+.islandTip { position: absolute; z-index: 8; top: 0; left: 0; width: 0; height: 0; pointer-events: none; will-change: transform; }
+.tipStar {
   position: absolute;
-  z-index: 8;
+  top: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffdf3 0 1.3px, #ffe3adcc 2.2px, #ffd99a33 3.2px, transparent 4px);
+  filter: drop-shadow(0 0 6px #ffd99a99);
+  opacity: 0;
+  scale: 0.3;
+  transition: opacity 140ms ease, scale 140ms ease;
+}
+.tipLeader {
+  position: absolute;
   top: 0;
   left: 0;
-  padding: 0.35rem 0.8rem 0.4rem;
-  border: 1px solid #ebd0ac40;
-  border-radius: 999px;
-  color: #fff1d7;
-  background: #030611d9;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-style: italic;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 160ms ease;
-  will-change: transform;
+  width: 30px;
+  height: 1px;
+  background: linear-gradient(90deg, #ebd0ac33, #f3dcb8e6);
+  transform-origin: 0 50%;
+  rotate: -45deg;
+  scale: 0 1;
+  transition: scale 120ms ease;
 }
-.islandTip[data-visible="true"] { opacity: 1; }
-.islandTip:empty { display: none; }
+.tipText {
+  position: absolute;
+  bottom: 21px;
+  left: 21px;
+  padding: 0 0.7rem 0.3rem 0.35rem;
+  color: #fff4e2;
+  background-image: linear-gradient(90deg, #f3dcb8e6, #ebd0ac33 92%);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-shadow: 0 0 2px #030611, 0 1px 12px #030611, 0 0 24px #eacb8838;
+  opacity: 0;
+  translate: -4px 3px;
+  transition: opacity 120ms ease, translate 120ms ease, background-size 120ms ease;
+}
+/* A soft pool of night behind the words keeps them legible over busy art. */
+.tipText::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -0.9rem -1.4rem -0.7rem -1rem;
+  background: radial-gradient(ellipse at 45% 55%, #030611d9, #030611 0%, #0306118c 45%, transparent 72%);
+  filter: blur(6px);
+}
+.islandTip[data-visible="true"] .tipStar { opacity: 1; scale: 1; transition-duration: 220ms; }
+.islandTip[data-visible="true"] .tipLeader { scale: 1 1; transition: scale 260ms var(--cw-ease) 60ms; }
+.islandTip[data-visible="true"] .tipText {
+  opacity: 1;
+  translate: 0 0;
+  background-size: 100% 1px;
+  transition: opacity 260ms ease 150ms, translate 360ms var(--cw-ease) 150ms, background-size 420ms var(--cw-ease) 200ms;
+}
 @media (hover: hover) and (pointer: fine) {
   .landmarkCue, .overviewLabel { visibility: hidden; }
   .islandLink:focus-visible .landmarkCue, .overviewIsland:focus-visible .overviewLabel { visibility: visible; }
 }
-@media (prefers-reduced-motion: reduce) { .islandTip { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tipStar, .tipLeader, .tipText, .islandTip[data-visible="true"] * { transition: none !important; } }

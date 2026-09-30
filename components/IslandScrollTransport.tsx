@@ -299,6 +299,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // With a mouse, island prompts appear as a tooltip beside the cursor
     // instead of permanent annotations; the whole island is the target.
     const tip = stage.querySelector<HTMLElement>("[data-island-tip]")!;
+    const tipText = tip.querySelector<HTMLElement>("[data-tip-text]")!;
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
     const hideTip = () => { if (tip.dataset.visible) delete tip.dataset.visible; };
     const moveTip = (event: PointerEvent) => {
@@ -306,8 +307,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         ? (event.target as Element | null)?.closest<HTMLElement>('[data-island-scene][data-active="true"] [data-tip]')
         : null;
       if (!target) return hideTip();
-      if (tip.textContent !== target.dataset.tip) tip.textContent = target.dataset.tip ?? "";
-      tip.style.transform = `translate3d(${event.clientX + 18}px, ${event.clientY + 22}px, 0)`;
+      if (tipText.textContent !== target.dataset.tip) tipText.textContent = target.dataset.tip ?? "";
+      // Anchor the annotation's star just off the rocket's right shoulder.
+      tip.style.transform = `translate3d(${event.clientX + 26}px, ${event.clientY - 14}px, 0)`;
       tip.dataset.visible = "true";
     };
     stage.addEventListener("pointermove", moveTip);
@@ -346,7 +348,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />
         <p className={styles.flightTitle} data-flight-title aria-hidden="true" />
-        <span className={styles.islandTip} data-island-tip aria-hidden="true" />
+        <span className={styles.islandTip} data-island-tip aria-hidden="true">
+          <span className={styles.tipStar} />
+          <span className={styles.tipLeader} />
+          <span className={styles.tipText} data-tip-text />
+        </span>
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
