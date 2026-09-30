@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
 import IslandOverview from "./IslandOverview";
@@ -28,7 +29,10 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
       return <>
         <h1 id="hero-title">Carter Wang</h1>
         <p className={styles.description}>
-          working in Taipei at <Out href="https://886studios.com">886 Studios</Out> alongside the founders of Twitch and Guitar Hero, backing early-stage startups. writing and building things for fun on the side.
+          backing early stage startups alongside the founders of Twitch and Guitar Hero at <Out href="https://886studios.com">886 Studios</Out>
+        </p>
+        <p className={styles.description}>
+          <Link href="/writing">Writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
         </p>
       </>;
     case "work":
@@ -68,7 +72,6 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
     case "hello":
       return <>
         <h2 id="hello-heading">Say hi</h2>
-        <p className={styles.description}>Building something? I&apos;d love to hear about it.</p>
         <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
           <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
           <li><Out href={siteConfig.social.x}>X</Out></li>

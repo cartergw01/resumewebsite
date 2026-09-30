@@ -273,6 +273,23 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     next.addEventListener("click", advance);
     stage.addEventListener("click", jumpTo);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
+    // With a mouse, island prompts appear as a tooltip beside the cursor
+    // instead of permanent annotations; the whole island is the target.
+    const tip = stage.querySelector<HTMLElement>("[data-island-tip]")!;
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const hideTip = () => { if (tip.dataset.visible) delete tip.dataset.visible; };
+    const moveTip = (event: PointerEvent) => {
+      const target = event.pointerType === "mouse" && finePointer.matches && !stage.dataset.entering && stage.dataset.travelling !== "true"
+        ? (event.target as Element | null)?.closest<HTMLElement>('[data-island-scene][data-active="true"] [data-tip]')
+        : null;
+      if (!target) return hideTip();
+      if (tip.textContent !== target.dataset.tip) tip.textContent = target.dataset.tip ?? "";
+      tip.style.transform = `translate3d(${event.clientX + 18}px, ${event.clientY + 22}px, 0)`;
+      tip.dataset.visible = "true";
+    };
+    stage.addEventListener("pointermove", moveTip);
+    stage.addEventListener("pointerleave", hideTip);
+    window.addEventListener("scroll", hideTip, { passive: true });
     const intents = ["wheel", "touchstart", "keydown"] as const;
     intents.forEach(type => window.addEventListener(type, warm, { passive: true, once: true }));
     sceneNav.addEventListener("focusin", warm);
@@ -289,6 +306,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       next.removeEventListener("click", advance);
       stage.removeEventListener("click", jumpTo);
       ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));
+      stage.removeEventListener("pointermove", moveTip);
+      stage.removeEventListener("pointerleave", hideTip);
+      window.removeEventListener("scroll", hideTip);
       window.cancelAnimationFrame(frame);
       window.clearTimeout(starRestTimer);
       jumpRef.current = () => {};
@@ -302,6 +322,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />
         <p className={styles.flightTitle} data-flight-title aria-hidden="true" />
+        <span className={styles.islandTip} data-island-tip aria-hidden="true" />
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
