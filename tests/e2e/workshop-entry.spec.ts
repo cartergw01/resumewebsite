@@ -52,7 +52,7 @@ test("one screen travels from the workshop into the first real project", async (
   await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveAttribute("data-workshop-transition");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.goBack();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   expect(errors).toEqual([]);
 });

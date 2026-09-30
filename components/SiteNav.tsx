@@ -80,7 +80,8 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
     <header className="site-nav" data-destination-nav={destination || undefined} data-scrolled={scrolled}>
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
-          {destination && <Link href={`/2.0#${active === "resume" ? "work" : active}`} scroll={false}>Home</Link>}
+          {/* Home stays on the live homepage; point it at /2.0 islands once that design launches. */}
+          {destination && <Link href="/">Home</Link>}
           {primaryLinks.map((link) => (
             <Link
               key={link.id}

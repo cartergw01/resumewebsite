@@ -421,7 +421,7 @@ test("desktop launch behavior is shared across every internal route", async ({ p
   for (const transition of [
     { from: "/work", link: "Writing", to: "/writing" },
     { from: "/writing", link: "Projects", to: "/projects" },
-    { from: "/projects", link: "Home", to: "/2.0#projects" },
+    { from: "/projects", link: "Home", to: "/" },
   ]) {
     await page.goto(transition.from);
     const link = page.getByLabel("Primary navigation").getByRole("link", { name: transition.link });

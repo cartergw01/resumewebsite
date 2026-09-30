@@ -25,13 +25,13 @@ test("city and workshop details animate only while active and respect reduced mo
   }
 });
 
-test("each subpage returns to its island and Projects opens on the working screen", async ({ page }) => {
+test("each island scene restores directly and Projects opens on the working screen", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
     await page.goto(`/${world}`);
-    const back = page.getByRole("link", { name: "Home", exact: true });
-    await expect(back).toHaveAttribute("href", `/2.0#${world}`);
+    // Home stays on the live homepage until /2.0 launches.
+    await expect(page.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("href", "/");
     if (world === "projects") {
       await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
       const video = page.locator("[data-background-video]");
@@ -41,8 +41,7 @@ test("each subpage returns to its island and Projects opens on the working scree
       await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
-    await back.click();
-    await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
+    await page.goto(`/2.0#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     // Check after the rocket's arrival too; its delayed reset used to erase
@@ -82,12 +81,12 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
   }
 });
 
-test("destination navigation stays readable on scroll and Home restores the matching island", async ({ page }) => {
+test("destination navigation stays readable on scroll and the matching island restores", async ({ page }) => {
   for (const world of ["work", "writing", "projects"]) {
     await page.goto(`/${world}`);
     const nav = page.locator(".site-nav");
     const home = page.getByRole("link", { name: "Home", exact: true });
-    await expect(home).toHaveAttribute("href", `/2.0#${world}`);
+    await expect(home).toHaveAttribute("href", "/");
     await expect(nav).toHaveAttribute("data-scrolled", "false");
     await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
     await expect(nav).toHaveAttribute("data-scrolled", "true");
@@ -95,8 +94,7 @@ test("destination navigation stays readable on scroll and Home restores the matc
     await expect(nav).toHaveCSS("position", "fixed");
     const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
     expect(backdrop).toContain("0.98");
-    await home.click();
-    await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
+    await page.goto(`/2.0#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
