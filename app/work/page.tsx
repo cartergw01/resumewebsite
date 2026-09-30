@@ -1,5 +1,6 @@
-import PortfolioHome from "@/components/PortfolioHome";
+import WorkRoom from "@/components/WorkRoom";
 import SiteNav from "@/components/SiteNav";
+import styles from "@/components/WorkRoom.module.css";
 import { breadcrumbJsonLd, jsonLdScript, webPageJsonLd } from "@/lib/seo";
 
 export default function WorkPage() {
@@ -14,9 +15,9 @@ export default function WorkPage() {
           ]),
         ])}
       />
-      <SiteNav active="work" />
-      <div className="legacy-work-root" data-rocket-launch-zone>
-        <PortfolioHome />
+      <div className={styles.page} data-rocket-launch-zone data-island-page>
+        <SiteNav active="work" />
+        <WorkRoom />
       </div>
     </>
   );

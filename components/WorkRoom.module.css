@@ -1,0 +1,104 @@
+/* Work: one calm reading flow on the site's starfield. A one-line lead, then
+   sections (Now, Previously, On the side, About me) that share one shape. */
+.page {
+  --ink: #070b10;
+  --paper: #fff3df;
+  --body: #e3dccf;
+  --quiet: #c7bdac;
+  --gold: #e6c794;
+  --gold-dim: #b69b70;
+  position: relative;
+  min-height: 100svh;
+  isolation: isolate;
+  color: var(--paper);
+  background: var(--ink);
+}
+/* A slow, compositor-only drift so the stars always feel alive, even while
+   the video loads. It respects reduced motion. */
+.page > [data-galaxy-background] [data-galaxy-camera] {
+  animation: work-star-drift 32s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes work-star-drift {
+  from { transform: translate3d(1.5%, 1%, 0) scale(1.03); }
+  to { transform: translate3d(-3.5%, -2%, 0) scale(1.09); }
+}
+.main {
+  position: relative;
+  z-index: 1;
+  width: min(1220px, calc(100% - 2 * var(--page-x)));
+  margin: 0 auto;
+  padding: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem)) 0 7rem;
+}
+.main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+/* One reading column on smaller screens; wide screens add a title column. */
+.desk { --label: 16rem; --gutter: clamp(3rem, 5vw, 5.5rem); max-width: 46rem; }
+.workHistory { display: grid; gap: clamp(4.5rem, 10svh, 6.5rem); min-width: 0; }
+
+/* Inline links in running text */
+.contributions a, .story a, .closing a, .more a { color: #ead6b8; text-decoration: underline; text-decoration-color: #e6c79466; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 200ms ease, text-decoration-color 200ms ease; }
+.contributions a:hover, .story a:hover, .closing a:hover, .more a:hover { color: var(--gold); text-decoration-color: currentColor; }
+
+/* Company marks: every source logo is flattened to one warm cream tone. */
+.logo { flex: none; object-fit: contain; filter: brightness(0) invert(0.93) sepia(0.25); opacity: 0.9; }
+/* Page lead: the one-line summary of what Carter does. */
+.lead { max-width: 22ch; margin: 0 0 clamp(3.5rem, 9svh, 5.5rem); font-family: var(--font-display); font-size: clamp(2.5rem, 4.6vw, 4rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; }
+
+/* 886 uses the same heading shape as every other company, just larger. */
+.experienceHeading h3.current { gap: 0.8rem; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; }
+.current .logo { width: 0.85em; height: 0.85em; }
+.current a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
+.current a:hover { text-decoration-color: #efd2a299; }
+.experienceHeading .pastRole { grid-column: 1; }
+
+.mission { max-width: 40rem; margin: 1.5rem 0 0; color: #f1e9da; font-size: 1.1875rem; line-height: 1.65; }
+.contributions { display: grid; gap: 1.75rem; margin-top: 2rem; }
+.contributions strong { color: var(--paper); font-weight: 600; }
+.contributions p + p { margin-top: 0.75rem; }
+.contributions p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+
+.photo { margin: 3.5rem 0 0; }
+.photo img { display: block; width: 100%; height: auto; }
+.photo figcaption { margin-top: 0.7rem; color: var(--quiet); font-size: 0.875rem; }
+
+/* Section titles and earlier roles */
+.label { width: fit-content; margin: 0 0 2rem; color: #f2e2c9; text-decoration: underline; text-decoration-color: #e6c79499; text-decoration-thickness: 1.5px; text-underline-offset: 0.22em; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.5rem); font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; }
+.experiences { display: grid; gap: 2rem; margin: 0; padding: 0; list-style: none; }
+.experience { min-width: 0; }
+.experienceHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0.2rem 1.5rem; }
+.experienceHeading h3 { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--paper); font-size: 1.25rem; font-weight: 600; line-height: 1.35; }
+.experienceHeading p { margin: 0; }
+.date { color: var(--quiet); font-size: 0.875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.role { grid-column: 1 / -1; color: var(--quiet); font-size: 1rem; line-height: 1.6; }
+.more { margin: 0.6rem 0 0; font-size: 1rem; }
+.story { max-width: 40rem; margin: 0.7rem 0 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+
+.closing { margin: 0; font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.65rem); line-height: 1.4; letter-spacing: -0.01em; }
+
+/* About me: three quick facts side by side, then the personal line. */
+.facts { display: flex; flex-wrap: wrap; gap: 1.25rem 3rem; margin: 0 0 1.5rem; }
+.facts dt { margin-bottom: 0.25rem; color: var(--quiet); font-size: 0.875rem; }
+.facts dd { margin: 0; color: var(--paper); font-size: 1.125rem; font-weight: 500; }
+.about > p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+
+/* Wide screens: each section's title sits in a left column beside its content,
+   so the page uses the width while every line stays a comfortable length. */
+@media (min-width: 1080px) {
+  .desk { max-width: calc(var(--label) + var(--gutter) + 46rem); }
+  .section { display: grid; grid-template-columns: var(--label) minmax(0, 46rem); column-gap: var(--gutter); align-items: start; }
+  .section > .body { grid-column: 2; }
+  .label { margin: 0; padding-top: 0.2rem; font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
+}
+
+@media (max-width: 760px) {
+  .main { padding-bottom: 4.5rem; }
+  .workHistory { gap: 4rem; }
+  .photo { margin-top: 2.75rem; }
+  .facts { gap: 1rem 2rem; }
+  .experienceHeading { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contributions a, .story a, .closing a, .more a, .current a { transition: none; }
+  .page > [data-galaxy-background] [data-galaxy-camera] { animation: none; }
+}

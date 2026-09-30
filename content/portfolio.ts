@@ -86,7 +86,7 @@ export const workPageInterests =
 export const workPageBio = [
   "Hey, I'm Carter! I grew up in Southern California, studied Business Management Economics at UC Santa Cruz, and am now living in Taipei working as an associate at 886 Studios alongside the founders of Twitch and Guitar Hero.",
   "We're building an accelerator that backs and supports early-stage startups, bringing a slice of Silicon Valley to Asia. Before that, I was a Research Fellow at Contrary Research, where I profiled and wrote about leading startups.",
-  "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, or writing.",
+  "Outside of work, you'll usually find me watching the Lakers, playing poker, biking around the city, building fun projects, reading, or writing at a cafe.",
 ];
 
 export const workPageExperience = [
