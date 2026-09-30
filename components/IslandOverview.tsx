@@ -22,6 +22,8 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
             data-jump={id}
             className={styles.overviewIsland}
             data-overview-island={id}
+            data-tip={island.title}
+            aria-label={island.title}
             style={{ left: `${x - size / 2}%`, top: `${y - size / 2}%`, width: `${size}%`, height: `${size}%` }}
           >
             <Image

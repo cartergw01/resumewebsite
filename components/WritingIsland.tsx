@@ -6,7 +6,7 @@ import IslandLink from "./IslandLink";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import styles from "./IslandHome.module.css";
 
-export default function WritingIsland({ essay }: { essay: EssayPreview }) {
+export default function WritingIsland({ essay, titles }: { essay: EssayPreview; titles: string[] }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
@@ -92,7 +92,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
             <ellipse className={styles.readingLamp} cx="308" cy="108" rx="33" ry="15" fill="url(#reading-lamp-light)" />
             {/* The open notebook's two pages as a flat 640x400 spread, fitted
                 to the artwork. Entering Writing lifts this spread off the island. */}
-            <rect data-book-spread width="640" height="400" fill="none" transform="matrix(0.3664 -0.0477 0.1367 0.1742 337.5 215.7)" />
+            <rect data-book-spread data-titles={JSON.stringify(titles)} width="640" height="400" fill="none" transform="matrix(0.3664 -0.0477 0.1367 0.1742 337.5 215.7)" />
             <g className={styles.printedPage} transform="matrix(0.22 -0.02 0.205 0.16 464 196)">
               <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
             </g>

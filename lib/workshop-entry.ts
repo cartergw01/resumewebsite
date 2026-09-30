@@ -13,26 +13,62 @@ type Entry = {
 };
 
 // This one visual belongs to the journey, so it survives the source route.
-// Projects docks the screen. Writing lifts the island's open notebook until
-// its pages fill the view, then opens them onto the whole archive.
+// Projects lifts the laptop screen as a deck of every project, fans it out,
+// then deals each card into its row. Writing lifts the island's open notebook
+// until its pages fill the view, then opens them onto the whole archive.
 let entry: Entry | null = null;
 const plane = (x: number, y: number, width: number, height: number, sourceWidth: number, sourceHeight: number) =>
   `matrix(${width / sourceWidth},0,0,${height / sourceHeight},${x},${y})`;
 
 export function beginWorkshopEntry(source: SVGImageElement) {
-  const image = document.createElement("img");
-  image.src = source.href.baseVal;
-  image.alt = "";
-  return beginEntry(source, image, "workshop", 320, 200);
+  const posters: string[] = JSON.parse(source.dataset.posters ?? "[]");
+  if (!posters.length) posters.push(source.href.baseVal);
+  // Stacked last-to-first, so the laptop's own screen starts on top.
+  const deck = document.createDocumentFragment();
+  posters.map((src, index) => {
+    const card = document.createElement("div");
+    card.className = styles.screen;
+    card.dataset.projectCard = String(index);
+    const image = document.createElement("img");
+    image.src = src;
+    image.alt = "";
+    card.append(image);
+    return card;
+  }).reverse().forEach(card => deck.append(card));
+  return beginEntry(source, deck, "workshop", 320, 200);
+}
+
+const matrixOf = (m: DOMMatrix) => `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})`;
+// A card of the given width, centred at (x, y) and turned by `angle` degrees,
+// expressed against its 320x200 layout box and a top-left transform origin.
+function cardPose(x: number, y: number, width: number, angle: number) {
+  const scale = width / 320;
+  const radians = angle * Math.PI / 180;
+  const cos = Math.cos(radians) * scale;
+  const sin = Math.sin(radians) * scale;
+  return `matrix(${cos},${sin},${-sin},${cos},${x - (cos * 160 - sin * 100)},${y - (sin * 160 + cos * 100)})`;
 }
 
 export function beginBookEntry(source: SVGGraphicsElement) {
-  // Blank ruled pages: entering the notebook, not any one essay.
+  // Every essay title, written into the ruled pages at the same size, so the
+  // notebook is the whole archive rather than any one essay.
+  const titles: string[] = JSON.parse(source.dataset.titles ?? "[]");
+  const half = Math.ceil(titles.length / 2);
   const spread = document.createDocumentFragment();
-  for (const side of ["left", "right"] as const) {
+  for (const [side, entries] of [["left", titles.slice(0, half)], ["right", titles.slice(half)]] as const) {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
     leaf.dataset.notebookPage = side;
+    const list = document.createElement("ol");
+    list.className = styles.titles;
+    for (const title of entries) {
+      const item = document.createElement("li");
+      const text = document.createElement("span");
+      text.textContent = title;
+      item.append(text);
+      list.append(item);
+    }
+    leaf.append(list);
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
@@ -50,13 +86,16 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   const backdrop = document.createElement("div");
   backdrop.className = styles.backdrop;
   const screen = document.createElement("div");
-  screen.className = `${styles.screen} ${kind === "book" ? styles.notebook : ""}`;
+  screen.className = kind === "book" ? `${styles.screen} ${styles.notebook}` : styles.deck;
   // The notebook is laid out at full-viewport size so its ruling stays crisp
-  // when it lands; its start transform shrinks it back onto the island.
+  // when it lands; its start transform shrinks it back onto the island. Each
+  // project card keeps the laptop screen's 320x200 box.
   const layoutWidth = kind === "book" ? innerWidth : sourceWidth;
   const layoutHeight = kind === "book" ? innerHeight : sourceHeight;
-  screen.style.width = `${layoutWidth}px`;
-  screen.style.height = `${layoutHeight}px`;
+  if (kind === "book") {
+    screen.style.width = `${layoutWidth}px`;
+    screen.style.height = `${layoutHeight}px`;
+  }
   screen.append(content);
   overlay.append(backdrop, screen);
   document.body.append(overlay);
@@ -95,14 +134,28 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 820, easing: "ease-in", fill: "forwards" }));
     return current.dispose;
   }
-  const ratio = sourceWidth / sourceHeight;
-  const width = Math.min(innerWidth * 0.88, innerHeight * 0.92, 1040);
-  const height = width / ratio;
-  screen.style.transform = plane((innerWidth - width) / 2, (innerHeight - height) / 2, width, height, sourceWidth, sourceHeight);
-  current.animations.push(screen.animate([
-    { transform: `matrix(${matrix.a},${matrix.b},${matrix.c},${matrix.d},${matrix.e},${matrix.f})` },
-    { transform: screen.style.transform },
-  ], { duration: 720, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)", fill: "forwards" }));
+  // The deck rises off the laptop to the centre, then fans into an arc of
+  // equal cards, like a hand of posters, pivoting about a point below it.
+  const cards = Array.from(screen.children) as HTMLElement[];
+  const count = cards.length;
+  const narrow = innerWidth < 760;
+  const width = Math.min(innerWidth * (narrow ? 0.4 : 0.24), innerHeight * 0.45, 340);
+  const radius = width * (narrow ? 1.9 : 2.4);
+  const spread = Math.min(count - 1, 7) * (narrow ? 5 : 7.5);
+  const centerX = innerWidth / 2;
+  const centerY = innerHeight / 2 + width * 0.12;
+  for (const card of cards) {
+    const index = Number(card.dataset.projectCard);
+    const angle = count > 1 ? -spread / 2 + index * spread / (count - 1) : 0;
+    const radians = angle * Math.PI / 180;
+    const x = centerX + radius * Math.sin(radians);
+    const y = centerY + radius * (1 - Math.cos(radians));
+    current.animations.push(card.animate([
+      { transform: matrixOf(matrix), offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
+      { transform: cardPose(centerX, centerY, width, 0), offset: 0.5, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
+      { transform: cardPose(x, y, width, angle), offset: 1 },
+    ], { duration: 1200, fill: "forwards" }));
+  }
   current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, easing: "ease-in-out", fill: "forwards" }));
   return current.dispose;
 }
@@ -125,7 +178,6 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
   current.frames.push(requestAnimationFrame(() => {
     current.frames.push(requestAnimationFrame(() => {
       if (entry !== current || !target.isConnected) return;
-      const bounds = target.getBoundingClientRect();
       const from = getComputedStyle(current.screen).transform;
       if (kind === "book") {
         // The pages swing open like doors onto the whole archive at once.
@@ -152,15 +204,21 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
         }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
         return;
       }
-      const duration = 560;
-      const dock = current.screen.animate([
-        { transform: from },
-        { transform: plane(bounds.x, bounds.y, bounds.width, bounds.height, current.width, current.height) },
-      ], { duration, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
-      current.animations.push(dock, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration, easing: "ease-out", fill: "forwards" }));
-      void dock.finished.then(() => {
+      // Deal each card into its own row's shot while the list fades in.
+      document.documentElement.dataset[attribute] = "revealing";
+      const shots = Array.from(document.querySelectorAll<HTMLElement>("[data-project-shot]"));
+      const cards = Array.from(current.screen.children) as HTMLElement[];
+      const docks = cards.map(card => {
+        const index = Number(card.dataset.projectCard);
+        const shot = (shots[index] ?? target).getBoundingClientRect();
+        return card.animate([
+          { transform: getComputedStyle(card).transform },
+          { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },
+        ], { duration: 640, delay: index * 45, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+      });
+      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
+      void Promise.all(docks.map(dock => dock.finished)).then(() => {
         if (entry !== current) return;
-        document.documentElement.dataset[attribute] = "revealing";
         target.closest<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
         current.dispose();
       }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });

@@ -98,6 +98,7 @@
 }
 .description a { color: inherit; text-decoration-color: #fff7ea55; text-underline-offset: 0.2em; }
 .description a:hover { color: var(--cw-paper); }
+.description + .description { margin-top: 0.75rem; }
 /* Real entries under each heading: quiet, scannable, one line each. */
 .facts { display: grid; gap: 0.6rem; max-width: 30rem; margin: 1.6rem 0 0; padding: 0; list-style: none; font-size: 0.9375rem; line-height: 1.4; }
 .facts li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.75rem; row-gap: 0.1rem; color: #fff7eacc; }
@@ -414,3 +415,33 @@
 /* The rocket itself stays available; its exhaust waits for an island or a flight. */
 :global(html):has(.stage[data-engaged="false"][data-travelling="false"]) :global([data-testid="rocket-effects-canvas"][data-transition-phase="idle"]) { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }
+
+/* Mouse users get the island prompt as a tooltip by the cursor; the island
+   itself is the target, so its annotation stays hidden until needed.
+   Touch keeps the annotations, and keyboard focus still reveals them. */
+.islandTip {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  left: 0;
+  padding: 0.35rem 0.8rem 0.4rem;
+  border: 1px solid #ebd0ac40;
+  border-radius: 999px;
+  color: #fff1d7;
+  background: #030611d9;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+  will-change: transform;
+}
+.islandTip[data-visible="true"] { opacity: 1; }
+.islandTip:empty { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .landmarkCue, .overviewLabel { visibility: hidden; }
+  .islandLink:focus-visible .landmarkCue, .overviewIsland:focus-visible .overviewLabel { visibility: visible; }
+}
+@media (prefers-reduced-motion: reduce) { .islandTip { transition: none; } }

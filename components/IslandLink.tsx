@@ -128,6 +128,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       data-island-link
       data-workshop={workshop || undefined}
       data-world={title.toLowerCase()}
+      data-tip={prompt}
       aria-label={`${prompt}. Enter ${title} island`}
       onClick={enter}
     >

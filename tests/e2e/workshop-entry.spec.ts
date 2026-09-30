@@ -30,7 +30,7 @@ test("workshop screen and book pages respond locally to keyboard focus and hover
   expect(await edges.evaluate(node => parseFloat(getComputedStyle(node).transitionDuration))).toBeLessThan(0.001);
 });
 
-test("one screen travels from the workshop into the first real project", async ({ page }) => {
+test("the workshop screen fans out every project and deals each into its row", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/2.0#projects");
@@ -40,7 +40,12 @@ test("one screen travels from the workshop into the first real project", async (
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   const carry = page.locator("body > [data-workshop-transition]");
   await expect(carry).toHaveAttribute("data-workshop-transition", "entering");
-  await expect(carry.locator("img")).toHaveAttribute("src", src!);
+  // A deck of every project, the laptop's own screen on top, all one size.
+  const cards = carry.locator("[data-project-card]");
+  await expect(cards).toHaveCount(8);
+  await expect(carry.locator('[data-project-card="0"] img')).toHaveAttribute("src", src!);
+  await expect(cards.last()).toHaveAttribute("data-project-card", "0");
+  expect(new Set(await cards.evaluateAll(nodes => nodes.map(node => `${(node as HTMLElement).offsetWidth}x${(node as HTMLElement).offsetHeight}`))).size).toBe(1);
   await carry.evaluate(node => node.setAttribute("data-same-screen", "true"));
   await expect(page).toHaveURL(/\/projects$/);
   await expect(carry).toHaveAttribute("data-workshop-transition", "arriving");
@@ -48,6 +53,7 @@ test("one screen travels from the workshop into the first real project", async (
   await expect(page.locator("[data-project-screen] img")).toHaveAttribute("src", src!);
   await expect(carry).toHaveCount(0);
   await expect(page.locator("[data-project-screen]")).toBeVisible();
+  await expect(page.locator("[data-project-shot]")).toHaveCount(8);
   await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toBeFocused();
   await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveAttribute("data-workshop-transition");
