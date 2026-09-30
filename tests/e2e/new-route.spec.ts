@@ -36,6 +36,6 @@ test("the island and rooftop previews remain separate from the original homepage
   const workLink = page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true });
   await workLink.click();
   await expect(page).toHaveURL(/\/work$/);
-  await expect(page.getByRole("heading", { name: "Carter Wang", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "I invest & support early-stage startups.", exact: true })).toBeVisible();
   expect(pageErrors).toEqual([]);
 });
