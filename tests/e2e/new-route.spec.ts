@@ -13,7 +13,8 @@ test("the island and rooftop previews remain separate from the original homepage
 
   await page.goto("/2.0");
   await expect(page.locator("#hero-title")).toHaveText("Carter Wang");
-  await expect(page.locator("[data-island-scene]")).toHaveCount(3);
+  // Opening view, Work, Writing, Projects, and the closing Say hi view.
+  await expect(page.locator("[data-island-scene]")).toHaveCount(5);
   await expect(page.locator(".cosmic-hero")).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com/2.0");
@@ -35,6 +36,6 @@ test("the island and rooftop previews remain separate from the original homepage
   const workLink = page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Work", exact: true });
   await workLink.click();
   await expect(page).toHaveURL(/\/work$/);
-  await expect(page.getByRole("heading", { name: "Carter Wang", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "I invest & support early-stage startups.", exact: true })).toBeVisible();
   expect(pageErrors).toEqual([]);
 });

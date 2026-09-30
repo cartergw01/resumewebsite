@@ -1,6 +1,8 @@
 .home { color: var(--cw-paper); background: #030611; }
 .home :global(.site-nav-social svg) { width: 18px; height: 18px; }
-.track { position: relative; height: 400svh; }
+@media (max-width: 760px) { .home :global(.site-nav-social svg) { width: 15px; height: 15px; } }
+/* Five stops: 100svh of stage plus about 88svh per crossing. */
+.track { position: relative; height: 496svh; }
 .stage {
   --camera-progress: 0;
   --camera-path: 0;
@@ -31,6 +33,23 @@
 .middleStars { inset: -25% -55%; opacity: calc(0.24 + var(--flight) * 0.26); transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
 .flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
 .depthTrail { transform: scaleX(calc(0.025 + var(--flight) * 0.975)); }
+.flightTitle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  color: var(--cw-paper);
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 21vw, 19rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+}
 .vignette {
   background:
     linear-gradient(90deg, #03061159, transparent 58%),
@@ -49,7 +68,8 @@
   will-change: opacity;
 }
 .scene:first-of-type { opacity: 1; visibility: visible; }
-.scene[data-active="true"] .description a,
+.scene[data-active="true"] .copy a,
+.scene[data-active="true"] .overviewIsland,
 .scene[data-active="true"] .islandLink { pointer-events: auto; }
 .copy {
   position: relative;
@@ -78,6 +98,15 @@
 }
 .description a { color: inherit; text-decoration-color: #fff7ea55; text-underline-offset: 0.2em; }
 .description a:hover { color: var(--cw-paper); }
+/* Real entries under each heading: quiet, scannable, one line each. */
+.facts { display: grid; gap: 0.6rem; max-width: 30rem; margin: 1.6rem 0 0; padding: 0; list-style: none; font-size: 0.9375rem; line-height: 1.4; }
+.facts li { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 0.75rem; row-gap: 0.1rem; color: #fff7eacc; }
+.facts a { color: var(--cw-paper); text-decoration: underline; text-decoration-color: #fff7ea40; text-underline-offset: 0.22em; transition: text-decoration-color 180ms ease; }
+.facts a:hover, .facts a:focus-visible { text-decoration-color: #fff7eab3; }
+.factMeta { color: #fff7ea8c; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.contact { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.skipLink { position: absolute; z-index: 80; top: 1rem; left: var(--page-x); padding: 0.6rem 1rem; border: 1px solid #ebd0ac66; border-radius: 999px; color: var(--cw-paper); background: #030611; font-size: 0.875rem; transform: translateY(-300%); }
+.skipLink:focus-visible { transform: none; outline: none; }
 .art {
   position: absolute;
   top: 17%;
@@ -120,7 +149,6 @@
 .landmarkCue > span { position: absolute; white-space: nowrap; }
 .landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
 .landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
-.mobileCuePath { display: none; }
 .cityCue { width: min(100cqw, 177.7778cqh); height: min(56.25cqw, 100cqh); }
 .cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
 .bookCue { width: min(100cqw, 181.4745cqh); height: min(55.1042cqw, 100cqh); }
@@ -143,6 +171,29 @@
   transition: transform 450ms var(--cw-ease);
 }
 .projects .island { width: 91%; max-height: 100%; }
+/* Opening and closing views: all three islands at a distance. */
+.overview { position: relative; display: block; width: 100%; height: 100%; }
+.overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: brightness(0.85) drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
+.overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
+.overviewIsland:not([data-overview-island="work"]) .overviewImage { animation: overview-bob 9s ease-in-out infinite; }
+.overviewIsland[data-overview-island="projects"] .overviewImage { animation-duration: 11s; animation-delay: -4s; }
+.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: clamp(0.9375rem, 1.1vw, 1.125rem); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
+/* Labels leave with the other annotations as soon as the camera moves. */
+.overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
+.overviewIsland:not([data-overview-island="work"]) .overviewLabel { bottom: -6%; }
+.overviewIsland[data-overview-island="work"] .overviewLabel { bottom: 18%; left: 12%; transform: rotate(-5deg); }
+.overview.outro .overviewIsland { filter: brightness(0.7) drop-shadow(0 24px 28px #0005); }
+.overviewIsland:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 0.25rem; border-radius: 1rem; }
+.overviewIsland:focus-visible, .overview.outro .overviewIsland:focus-visible { filter: brightness(1) drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
+.overviewIsland:focus-visible .overviewImage { transform: translateY(-6px) scale(1.03); }
+.overviewIsland:focus-visible .overviewLabel { color: #fff1d7; }
+@media (hover: hover) and (pointer: fine) {
+  .overviewIsland:hover, .overview.outro .overviewIsland:hover { filter: brightness(1) drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
+  .overviewIsland:hover .overviewImage { transform: translateY(-6px) scale(1.03); }
+  .overviewIsland:hover .overviewLabel { color: #fff1d7; }
+}
+.stage[data-travelling="true"] .overviewImage { animation-play-state: paused; }
+@keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
 .writingPoster, .writingVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .writingVideo { opacity: 0; }
@@ -188,7 +239,7 @@
   gap: 2rem;
 }
 .controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; }
-.controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; margin-left: 3.25rem; font-size: 0.75rem; }
+.controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; color: #eee7dccc; font-size: 0.875rem; letter-spacing: 0.01em; }
 .scrollArrow { display: grid; place-items: center; width: 28px; height: 40px; border: 1px solid #fff7ea33; border-radius: 20px; font-size: 1rem; }
 .scrollHint[data-last="true"] .scrollArrow { transform: rotate(180deg); }
 .chapters { position: relative; display: flex; gap: 1.5rem; }
@@ -270,6 +321,12 @@
 .shootingStar[data-moving="true"] .cometTrail > span { animation: comet-spark 650ms ease-out var(--spark-delay, 0ms) infinite; }
 .shootingStar[data-direction="backward"] .cometTrail { transform: scaleX(-1); }
 .chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 14px #eacb8866; }
+/* The selected tab doubles as a door into its page. */
+.chapterLabel::after { content: "→"; display: inline-block; width: 0; margin-left: 0; opacity: 0; overflow: hidden; vertical-align: bottom; transition: width 220ms ease, margin 220ms ease, opacity 220ms ease; }
+.chapters button[aria-current]:focus-visible .chapterLabel::after { width: 1em; margin-left: 0.3em; opacity: 0.8; }
+@media (hover: hover) and (pointer: fine) {
+  .chapters button[aria-current]:hover .chapterLabel::after { width: 1em; margin-left: 0.3em; opacity: 0.8; }
+}
 @keyframes comet-glimmer { 0%, 100% { opacity: 0.8; transform: scale(0.9); } 50% { opacity: 1; transform: scale(1.1); } }
 @keyframes comet-spark { 0% { opacity: 0; transform: translateX(4px); } 25% { opacity: 0.8; } 100% { opacity: 0; transform: translateX(-7px); } }
 .chapters button[aria-current], .controls button:hover { color: var(--cw-paper); }
@@ -281,30 +338,26 @@
 }
 @media (max-width: 760px) {
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
-  .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 8.5rem; }
+  .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7.75rem; }
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
-  /* Frame the landmarks closer on phones. Use real layout dimensions so the
-     lights, annotations, and click-to-enter geometry stay on the same plane. */
-  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 13rem); height: 100%; max-height: none; min-height: 0; margin-inline: -6.5rem; }
-  .work .art { width: calc(100% + 17rem); margin-inline: -8.5rem; }
-  .projects .art { width: calc(100% + 16rem); margin-inline: -8rem; }
-  .island { max-height: none; }
+  /* The island fills the space between copy and controls. */
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; max-height: 56dvh; min-height: 0; margin-inline: -3rem; }
+  .island { max-height: 56dvh; }
   .landmarkCue { font-size: 1rem; }
-  .cityCue > span { left: 26%; bottom: 3%; }
-  .bookCue > span { right: 24%; top: 8%; }
-  .workshopCue > span { left: 28%; right: auto; bottom: 4%; }
-  .desktopCuePath { display: none; }
-  .mobileCuePath { display: initial; }
-  .controls { right: 1.5rem; left: 1.5rem; flex-direction: column-reverse; align-items: stretch; gap: 0.75rem; }
+  .bookCue > span { top: 12%; }
+  .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
-  .controls .scrollHint { justify-content: center; margin-inline: 44px; font-size: 0.6875rem; }
+  .controls .scrollHint { justify-content: center; font-size: 0.8125rem; }
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (max-height: 740px) and (max-width: 760px) {
+  .facts { gap: 0.3rem; margin-top: 0.9rem; font-size: 0.875rem; }
+  .factMeta { display: none; }
+  .contact { gap: 0.3rem 1.25rem; }
   .stage { --controls-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
@@ -324,23 +377,19 @@
   .copy { max-width: 44%; }
   .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
-  .art, .work .art, .projects .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
+  .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .island { max-height: 68dvh; }
   .landmarkCue { font-size: 0.75rem; }
-  .cityCue > span { left: 8%; bottom: 11%; }
-  .bookCue > span { right: 17%; top: 19%; }
-  .workshopCue > span { left: auto; right: 19%; bottom: 0; }
-  .desktopCuePath { display: initial; }
-  .mobileCuePath { display: none; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 48%; gap: 0.75rem; }
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.75rem; }
-  .controls .scrollHint { margin-left: 3.25rem; margin-right: 0; font-size: 0.6875rem; }
+  .controls .scrollHint { font-size: 0.75rem; }
   .scrollArrow { width: auto; height: auto; border: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flightStars, .middleStars { display: none; }
+  .flightStars, .middleStars, .flightTitle { display: none; }
+  .overviewImage { animation: none !important; transition: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .landmarkCue { transition: none; }
@@ -362,6 +411,6 @@
 .islandLink:focus-visible .readingLamp, .stage[data-entering="writing"] .readingLamp { opacity: 0.9; }
 @media (hover: hover) and (pointer: fine) { .islandLink:hover .readingLamp { opacity: 0.9; } }
 .stage[data-engaged="false"][data-travelling="false"] .art::before { visibility: hidden; }
-/* The rocket itself stays available; only its idle exhaust becomes quieter. */
-:global(html):has(.stage[data-engaged="false"][data-travelling="false"]) :global([data-testid="rocket-effects-canvas"][data-transition-phase="idle"]) { opacity: 0.35; }
+/* The rocket itself stays available; its exhaust waits for an island or a flight. */
+:global(html):has(.stage[data-engaged="false"][data-travelling="false"]) :global([data-testid="rocket-effects-canvas"][data-transition-phase="idle"]) { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }

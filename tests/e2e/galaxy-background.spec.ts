@@ -71,12 +71,12 @@ test("background video switches orientation and continues playing", async ({ pag
 
 test("failed background video retains its poster and working island entry", async ({ page }) => {
   await page.route("**/starfield-loop-*-v1.mp4", (route) => route.abort());
-  await page.goto("/2.0");
+  await page.goto("/2.0#work");
   const visual = page.locator("[data-background-visual]");
   await expect(visual).toHaveAttribute("data-video-ready", "false");
   await expect.poll(() => visual.locator("img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(visual.locator("picture")).toHaveCSS("opacity", "1");
-  await expect(page.getByRole("heading", { name: "Carter Wang" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "Enter Work island" }).click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });

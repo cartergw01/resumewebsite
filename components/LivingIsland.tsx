@@ -1,19 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 
 const artwork = {
-  work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v1.webp", width: 960, height: 540 },
-  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v4.webp", width: 1200, height: 800 },
+  work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v3.webp", width: 1672, height: 941 },
+  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v5.webp", width: 1200, height: 800 },
 };
 
 export default function LivingIsland({ world, preview }: { world: keyof typeof artwork; preview?: string }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
+  // The opening view shows light previews; full islands wait for travel.
+  const [warm, setWarm] = useState(false);
 
   useEffect(() => {
     const visual = visualRef.current;
@@ -23,12 +25,13 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     const sync = () => {
+      if (stage.dataset.warm === "true") setWarm(true);
       const allowed = !motion.matches && !connection?.saveData;
       visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-warm"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -44,9 +47,9 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
-        <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 110vw, 68vw" priority={world === "work"} loading={world === "work" ? undefined : "eager"}
-          unoptimized draggable={false} className={motionStyles.image} />
+        {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
+          sizes="(max-width: 760px) 110vw, 68vw" loading="eager"
+          unoptimized draggable={false} className={motionStyles.image} /> : null}
         {world === "work" ? (
           <svg className={motionStyles.details} viewBox="0 0 960 540" aria-hidden="true">
             <g className={motionStyles.windows} fill="#ffd69b">
@@ -87,7 +90,7 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
             <text x="48" y="8" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="10" fill="#ffdfaa">886 Studios</text>
           </g>
         </svg> : null}
-        {world === "projects" && preview ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">
+        {world === "projects" && preview && warm ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">
           <defs>
             <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
           </defs>

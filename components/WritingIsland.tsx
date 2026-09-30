@@ -10,6 +10,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
+  const [warm, setWarm] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -23,6 +24,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     const shouldPlay = () => !motion.matches && !connection?.saveData
       && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
     const sync = () => {
+      if (stage.dataset.warm === "true") setWarm(true);
       const rate = stage.dataset.travelling === "true" || stage.dataset.engaged === "true" ? 1 : 0.65;
       video.defaultPlaybackRate = rate;
       video.playbackRate = rate;
@@ -41,7 +43,7 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-warm"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
@@ -60,18 +62,18 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
     <>
       <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
-          <Image
-            src="/world-writing-cutout-v1.webp" alt="" width={960} height={529}
+          {warm ? <Image
+            src="/world-writing-cutout-v3.webp" alt="" width={1689} height={931}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
-          />
+          /> : null}
           <video
             ref={videoRef} className={styles.writingVideo} muted loop playsInline preload="none"
             aria-hidden="true" disablePictureInPicture
             onPlaying={() => setReady(true)} onError={() => setReady(false)}
           >
-            <source src="/writing-island-loop-v1.mov" type={'video/quicktime; codecs="hvc1"'} />
-            <source src="/writing-island-loop-v1.webm" type={'video/webm; codecs="vp9"'} />
+            <source src="/writing-island-loop-v2.mov" type={'video/quicktime; codecs="hvc1"'} />
+            <source src="/writing-island-loop-v2.webm" type={'video/webm; codecs="vp9"'} />
           </video>
           <svg className={styles.bookResponse} viewBox="0 0 960 529" aria-hidden="true" data-book-response>
             <defs>

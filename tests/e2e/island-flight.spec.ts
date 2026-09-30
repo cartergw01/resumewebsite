@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function cross(page: Page, journey: number, progress: number) {
   await page.evaluate(({ journey, progress }) => {
-    const position = (journey + 0.34 + progress * 0.54) / 2.5;
+    const position = (journey + 0.34 + progress * 0.54) / 4.5;
     scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * position, behavior: "instant" });
   }, { journey, progress });
   await expect.poll(() => page.locator("[data-island-stage]").evaluate((stage) => {
@@ -20,7 +20,7 @@ async function pose(page: Page, world: string) {
 
 test("camera pulls back, follows opposite arcs, and retraces the same path", async ({ page }) => {
   await page.goto("/2.0");
-  for (const [journey, from, to, direction] of [[0, "work", "writing", 1], [1, "writing", "projects", -1]] as const) {
+  for (const [journey, from, to, direction] of [[1, "work", "writing", -1], [2, "writing", "projects", 1]] as const) {
     await cross(page, journey, 0);
     const start = await pose(page, from);
     await cross(page, journey, 0.2);
@@ -31,7 +31,13 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
     const departing = await pose(page, from);
     const incoming = await pose(page, to);
     expect(departing.scale).toBeLessThan(retreat.scale);
-    expect(incoming.scale).toBeLessThan(0.7);
+    // Both islands stay large enough to read as places mid-flight.
+    expect(departing.scale).toBeGreaterThan(0.44);
+    expect(incoming.scale).toBeGreaterThan(0.45);
+    expect(incoming.scale).toBeLessThan(0.9);
+    const title = page.locator("[data-flight-title]");
+    await expect(title).toHaveText(to === "writing" ? "Writing" : "Projects");
+    expect(Number(await title.evaluate(el => getComputedStyle(el).opacity))).toBeGreaterThan(0.05);
     expect(incoming.y * direction).toBeGreaterThan(25);
     await expect(page.locator(`#${from}`)).toHaveCSS("opacity", "1");
     await expect(page.locator(`#${to}`)).toHaveCSS("opacity", "1");
@@ -42,17 +48,19 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
     await cross(page, journey, 1);
     expect((await pose(page, to)).scale).toBeCloseTo(1, 3);
     await expect(page.locator("[data-flight-stars]")).toHaveCSS("opacity", "0");
+    await expect(page.locator("[data-flight-title]")).toHaveCSS("opacity", "0");
     await cross(page, journey, 0.55);
     const reversed = await pose(page, to);
-    expect(reversed.x).toBeCloseTo(incoming.x, 0);
-    expect(reversed.y).toBeCloseTo(incoming.y, 0);
+    // Native scroll positions round to whole pixels on the longer track.
+    expect(Math.abs(reversed.x - incoming.x)).toBeLessThan(1.5);
+    expect(Math.abs(reversed.y - incoming.y)).toBeLessThan(1.5);
     expect(reversed.scale).toBeCloseTo(incoming.scale, 2);
   }
 });
 
 test("island settles before its lights, heading, and annotation arrive", async ({ page }) => {
   await page.goto("/2.0");
-  for (const [journey, world] of [[0, "writing"], [1, "projects"]] as const) {
+  for (const [journey, world] of [[1, "writing"], [2, "projects"]] as const) {
     const copy = page.locator(`#${world} [data-scene-copy]`);
     const cue = page.locator(`#${world} [data-island-link] > span:last-child`);
     const brightness = () => page.locator(`#${world} [data-island-visual]`).evaluate(el => Number(getComputedStyle(el).filter.match(/brightness\(([^)]+)\)/)?.[1]));
@@ -81,7 +89,7 @@ test("entry centers each landmark, including when clicked during flight", async 
   ] as const) {
     await page.goto(`/2.0#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
-    if (midFlight) await cross(page, 0, 0.3);
+    if (midFlight) await cross(page, 1, 0.3);
     const visual = page.locator(`#${world} [data-island-visual]`);
     // Keyboard activation doesn't scroll a moving link into the center first.
     await page.locator(`#${world} [data-island-link]`).focus();
@@ -105,4 +113,23 @@ test("entry centers each landmark, including when clicked during flight", async 
     await visual.evaluate(node => node.getAnimations().forEach(animation => animation.play()));
     await expect(page).toHaveURL(new RegExp(`/${world}$`));
   }
+});
+
+test("the opening view zooms into its Work island instead of flying past it", async ({ page }) => {
+  await page.goto("/2.0");
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
+  await expect(page.locator('#intro [data-overview-island="work"]')).toBeVisible();
+  for (const progress of [0.35, 0.6, 0.8]) {
+    await cross(page, 0, progress);
+    const [overview, island] = await Promise.all([
+      page.locator('#intro [data-overview-island="work"]').boundingBox(),
+      page.locator("#work [data-island-visual]").boundingBox(),
+    ]);
+    // The distant island and the arriving one share position and size.
+    expect(Math.abs(overview!.x + overview!.width / 2 - (island!.x + island!.width / 2))).toBeLessThan(3);
+    expect(Math.abs(overview!.width - island!.width)).toBeLessThan(3);
+  }
+  await cross(page, 0, 1);
+  expect((await pose(page, "work")).scale).toBeCloseTo(1, 3);
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
 });

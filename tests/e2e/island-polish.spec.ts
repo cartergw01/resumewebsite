@@ -38,7 +38,7 @@ test("each subpage returns to its island and Projects opens on the working scree
       await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
       const art = page.locator("[data-project-screen] img");
       await expect.poll(() => art.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-      await expect(page.locator('img[src="/world-projects-workshop-v4.webp"]')).toHaveCount(0);
+      await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
     await back.click();
@@ -47,7 +47,7 @@ test("each subpage returns to its island and Projects opens on the working scree
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     // Check after the rocket's arrival too; its delayed reset used to erase
     // the correct island position on a fast production route transition.
-    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(world === "work" ? 0 : world === "writing" ? 0.5 : 1, 3);
+    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
     await expect(page.locator(`#${world} [data-island-link]`)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -99,7 +99,7 @@ test("destination navigation stays readable on scroll and Home restores the matc
     await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
-    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(world === "work" ? 0 : world === "writing" ? 0.5 : 1, 3);
+    await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
     await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
   }
 });
