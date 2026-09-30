@@ -5,7 +5,7 @@ import IslandScrollTransport from "./IslandScrollTransport";
 import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
-import { essays, projects, workRoles } from "@/content/portfolio";
+import { essays, projects, workPageEssays, workRoles } from "@/content/portfolio";
 import { siteConfig } from "@/lib/seo";
 import styles from "./IslandHome.module.css";
 
@@ -32,12 +32,12 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
           backing early stage startups alongside the founders of Twitch and Guitar Hero at <Out href="https://886studios.com">886 Studios</Out>
         </p>
         <p className={styles.description}>
-          <Link href="/writing">Writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
+          <Link href="/writing">writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
         </p>
       </>;
     case "work":
       return <>
-        <h2 id="work-heading">Work</h2>
+        <h2 id="work-heading"><a href="/work" data-enter-island>Work</a></h2>
         <p className={styles.description}>
           associate at <Out href="https://886studios.com">886 Studios</Out>, working on <Out href="https://withikigai.com">ikigai Launchpad</Out> in Taipei.
         </p>
@@ -49,19 +49,19 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
       </>;
     case "writing":
       return <>
-        <h2 id="writing-heading">Writing</h2>
+        <h2 id="writing-heading"><a href="/writing" data-enter-island>Writing</a></h2>
         <p className={styles.description}>
           essays on human nature, culture, and technology at <Out href={siteConfig.social.substack}><em>flying Arrows</em></Out>.
         </p>
-        <ul className={styles.facts} aria-label="Latest essays">
-          {essays.slice(0, 2).map((essay) => (
-            <li key={essay.href}><Out href={essay.href}>{essay.title}</Out><span className={styles.factMeta}>{essay.date}</span></li>
+        <ul className={styles.facts} aria-label="Selected essays">
+          {workPageEssays.slice(0, 3).map((essay) => (
+            <li key={essay.href}><Out href={essay.href}>{essay.title}</Out></li>
           ))}
         </ul>
       </>;
     case "projects":
       return <>
-        <h2 id="projects-heading">Projects</h2>
+        <h2 id="projects-heading"><a href="/projects" data-enter-island>Projects</a></h2>
         <p className={styles.description}>fun projects i made.</p>
         <ul className={styles.facts} aria-label="Selected projects">
           {projects.slice(0, 3).map((project) => (

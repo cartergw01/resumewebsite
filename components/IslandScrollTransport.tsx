@@ -3,7 +3,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import GalaxyBackground from "./GalaxyBackground";
 import JourneyStars from "./JourneyStars";
-import { introFocus } from "@/lib/island-overview";
 import styles from "./IslandHome.module.css";
 
 // Stops without a title (the opening and closing views) have no tab.
@@ -51,6 +50,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let previousFrame = 0;
     let heading = 1;
     let previousProgress = 0;
+    // Where the opening view's Work island sits in its art box (percent), read
+    // from layout so each breakpoint's arrangement drives the first zoom.
+    let introFocus = { x: 50, y: 50, size: 100 };
 
     // Off-screen islands load on the first sign of travel, not on first paint.
     const warm = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
@@ -208,6 +210,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         window.scrollTo({ top: start + progress * travel, behavior: "instant" });
       }
       measuredHeight = height;
+      const focus = art[0].querySelector<HTMLElement>('[data-overview-island="work"]');
+      if (focus && art[0].offsetWidth) {
+        introFocus = {
+          x: (focus.offsetLeft + focus.offsetWidth / 2) / art[0].offsetWidth * 100,
+          y: (focus.offsetTop + focus.offsetHeight / 2) / art[0].offsetHeight * 100,
+          size: focus.offsetWidth / art[0].offsetWidth * 100,
+        };
+      }
       // Opening and closing views park the star on the first and last tab.
       const centers = buttons.map((button) => button.offsetLeft + button.offsetWidth / 2);
       starStops = worlds.map((_, index) => {
@@ -242,6 +252,18 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const index = hash === "constellation" ? 0 : worlds.findIndex((world) => world.id === hash);
       if (index >= 0) jump(index, true);
     };
+    // A stop's heading enters its page exactly as its island does. This runs
+    // on the window's capture phase, ahead of the rocket's generic link launch,
+    // and re-dispatches the click on the island so both behave identically.
+    const enterFromHeading = (event: MouseEvent) => {
+      const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
+      if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const island = heading.closest("[data-island-scene]")?.querySelector<HTMLAnchorElement>("[data-island-link]");
+      if (!island) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      island.click();
+    };
     // Islands in the opening and closing views fly the camera to their stop.
     const jumpTo = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-jump]");
@@ -272,6 +294,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     motion.addEventListener("change", schedule);
     next.addEventListener("click", advance);
     stage.addEventListener("click", jumpTo);
+    window.addEventListener("click", enterFromHeading, true);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
     // With a mouse, island prompts appear as a tooltip beside the cursor
     // instead of permanent annotations; the whole island is the target.
@@ -305,6 +328,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       motion.removeEventListener("change", schedule);
       next.removeEventListener("click", advance);
       stage.removeEventListener("click", jumpTo);
+      window.removeEventListener("click", enterFromHeading, true);
       ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));
       stage.removeEventListener("pointermove", moveTip);
       stage.removeEventListener("pointerleave", hideTip);

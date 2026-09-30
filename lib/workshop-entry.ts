@@ -120,7 +120,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   window.addEventListener("popstate", current.dispose);
   window.addEventListener("resize", current.dispose);
   motion.addEventListener("change", current.dispose);
-  timeout = window.setTimeout(current.dispose, 8_000);
+  timeout = window.setTimeout(current.dispose, 10_000);
 
   if (kind === "book") {
     // Start exactly on the island's pages, then flatten until they fill the view.
@@ -130,8 +130,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     current.animations.push(screen.animate([
       { transform: `matrix(${matrix.a * sx},${matrix.b * sx},${matrix.c * sy},${matrix.d * sy},${matrix.e},${matrix.f})` },
       { transform: "matrix(1,0,0,1,0,0)" },
-    ], { duration: 820, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
-    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 820, easing: "ease-in", fill: "forwards" }));
+    ], { duration: 1250, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
+    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1250, easing: "ease-in", fill: "forwards" }));
     return current.dispose;
   }
   // The deck rises off the laptop to the centre, then fans into an arc of
@@ -154,9 +154,9 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       { transform: matrixOf(matrix), offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
       { transform: cardPose(centerX, centerY, width, 0), offset: 0.5, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
       { transform: cardPose(x, y, width, angle), offset: 1 },
-    ], { duration: 1200, fill: "forwards" }));
+    ], { duration: 1800, fill: "forwards" }));
   }
-  current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 600, easing: "ease-in-out", fill: "forwards" }));
+  current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 800, easing: "ease-in-out", fill: "forwards" }));
   return current.dispose;
 }
 
@@ -174,6 +174,16 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
   if (!current || current.kind !== kind || current.overlay.dataset[attribute] !== "entering") return;
   current.overlay.dataset[attribute] = "arriving";
   document.documentElement.dataset[attribute] = "arriving";
+  // Let the notebook land or the fan finish opening, and hold a beat on it,
+  // before the pages open or the cards are dealt.
+  const settled = Promise.all(current.animations.map(animation => animation.finished));
+  void settled.then(() => new Promise(resolve => setTimeout(resolve, 280))).then(() => {
+    if (entry !== current) return;
+    arrive(current, target, kind, attribute);
+  }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
+}
+
+function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attribute: string) {
   // Wait for Next's scroll restoration and the destination layout together.
   current.frames.push(requestAnimationFrame(() => {
     current.frames.push(requestAnimationFrame(() => {
@@ -182,7 +192,7 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
       if (kind === "book") {
         // The pages swing open like doors onto the whole archive at once.
         document.documentElement.dataset[attribute] = "revealing";
-        const open = { duration: 900, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
+        const open = { duration: 1300, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
         const [left, right] = Array.from(current.screen.children) as HTMLElement[];
         // Each page fades as it turns edge-on, so no sliver lingers at the hinge.
         const swing = (angle: number) => [
@@ -195,7 +205,7 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
           dock,
           left.animate(swing(104), open),
           current.screen.animate([{ transform: from }, { transform: "scale(1.08)" }], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-out", fill: "forwards" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;
@@ -214,9 +224,9 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
         return card.animate([
           { transform: getComputedStyle(card).transform },
           { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },
-        ], { duration: 640, delay: index * 45, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+        ], { duration: 950, delay: index * 70, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
       });
-      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }));
+      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-out", fill: "forwards" }));
       void Promise.all(docks.map(dock => dock.finished)).then(() => {
         if (entry !== current) return;
         target.closest<HTMLAnchorElement>("a")?.focus({ preventScroll: true });

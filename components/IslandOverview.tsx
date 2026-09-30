@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { introPlacements, outroPlacements } from "@/lib/island-overview";
+import { overviewOrder } from "@/lib/island-overview";
 import styles from "./IslandHome.module.css";
 
 const islands = {
@@ -10,10 +10,9 @@ const islands = {
 
 // All three islands at a distance. Each one flies the camera to its stop.
 export default function IslandOverview({ variant }: { variant: "intro" | "outro" }) {
-  const placements = variant === "intro" ? introPlacements : outroPlacements;
   return (
     <nav className={`${styles.overview} ${styles[variant]}`} aria-label="Islands" data-overview={variant}>
-      {placements.map(({ id, x, y, size }) => {
+      {overviewOrder.map((id) => {
         const island = islands[id];
         return (
           <a
@@ -24,11 +23,10 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
             data-overview-island={id}
             data-tip={island.title}
             aria-label={island.title}
-            style={{ left: `${x - size / 2}%`, top: `${y - size / 2}%`, width: `${size}%`, height: `${size}%` }}
           >
             <Image
               src={island.src} alt="" width={island.width} height={island.height}
-              sizes={`(max-width: 760px) ${Math.round(size * 1.2)}vw, ${Math.round(size * 0.7)}vw`}
+              sizes="(max-width: 760px) 60vw, 34vw" quality={90}
               priority={variant === "intro"} draggable={false} className={styles.overviewImage}
             />
             <span className={styles.overviewLabel}>{island.title}</span>

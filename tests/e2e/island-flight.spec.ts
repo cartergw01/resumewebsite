@@ -98,7 +98,7 @@ test("entry centers each landmark, including when clicked during flight", async 
     const point = await visual.evaluate((node: HTMLElement, { fx, fy }) => {
       const animation = node.getAnimations().find(animation => (animation.effect as KeyframeEffect).getKeyframes().some(frame => frame.transformOrigin))!;
       animation.pause();
-      animation.currentTime = 999;
+      animation.currentTime = Number(animation.effect!.getComputedTiming().endTime) - 1;
       const image = node.querySelector("img")!;
       const fit = Math.min(node.offsetWidth / image.naturalWidth, node.offsetHeight / image.naturalHeight);
       const probe = document.createElement("span");

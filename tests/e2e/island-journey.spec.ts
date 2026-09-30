@@ -250,3 +250,13 @@ test("skip link and the opening islands reach content directly", async ({ page }
   await expectScene(page, "projects");
   await expect(page.getByRole("list", { name: "Selected projects" }).getByRole("link")).toHaveCount(3);
 });
+
+test("each stop's heading enters its page like its island", async ({ page }) => {
+  await page.goto("/2.0#writing");
+  await expectScene(page, "writing");
+  await expect(page.getByRole("list", { name: "Selected essays" }).getByRole("link")).toHaveText(["Slop & Spiral", "We All Have Superpowers", "The Mirage of Identity"]);
+  await page.getByRole("heading", { name: "Writing", exact: true }).getByRole("link").click();
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
+  await expect(page.locator("body > [data-book-transition]")).toHaveCount(1);
+  await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
+});
