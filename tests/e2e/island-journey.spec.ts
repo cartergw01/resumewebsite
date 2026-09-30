@@ -68,8 +68,12 @@ test("shooting star follows the full page proportionally in both directions", as
           const rect = button.getBoundingClientRect();
           return rect.left + rect.width / 2;
         });
-        // The opening and closing views park the star on the first and last tab.
-        const stops = [centers[0], ...centers, centers[centers.length - 1]];
+        // The opening and closing views rest the star on the track's end points.
+        const ends = Array.from(document.querySelectorAll("[data-track-end]")).map((end) => {
+          const rect = end.getBoundingClientRect();
+          return rect.left + rect.width / 2;
+        });
+        const stops = [ends[0], ...centers, ends[1]];
         const place = Math.min(fraction * 4.5, 4);
         const stop = Math.min(Math.floor(place), 3);
         const expected = stops[stop] + (stops[stop + 1] - stops[stop]) * (place - stop);

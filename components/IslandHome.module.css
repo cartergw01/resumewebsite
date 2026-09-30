@@ -260,16 +260,28 @@
 }
 .controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; }
 .controls .scrollHint { display: inline-flex; align-items: center; gap: 0.85rem; min-height: 44px; color: #eee7dccc; font-size: 0.875rem; letter-spacing: 0.01em; }
-.scrollArrow { display: grid; place-items: center; width: 28px; height: 40px; border: 1px solid #fff7ea33; border-radius: 20px; font-size: 1rem; }
+/* A capsule track with a shooting star falling through it, echoing the comet
+   in the tab bar. At the last stop the track turns over and the star rises. */
+.scrollArrow { position: relative; display: block; flex: none; width: 22px; height: 38px; overflow: hidden; border: 1px solid #fff7ea38; border-radius: 11px; background: linear-gradient(#fff7ea05, #fff7ea0d); transition: border-color 220ms ease; }
 .scrollHint[data-last="true"] .scrollArrow { transform: rotate(180deg); }
-/* The arrow drifts in the direction it points, then settles. */
-.scrollArrow { animation: scroll-nudge 2.2s var(--cw-ease) infinite; }
-.scrollHint:hover .scrollArrow, .scrollHint:focus-visible .scrollArrow { animation-duration: 1.1s; }
-.stage[data-travelling="true"] .scrollArrow { animation-play-state: paused; }
-@keyframes scroll-nudge { 0%, 55%, 100% { translate: 0 0; } 25% { translate: 0 5px; } 38% { translate: 0 1px; } }
-@media (prefers-reduced-motion: reduce) { .scrollArrow { animation: none; } }
+.scrollHint:hover .scrollArrow, .scrollHint:focus-visible .scrollArrow { border-color: #ebd0ac8c; }
+.scrollStar { position: absolute; top: 0; left: 50%; width: 2px; height: 16px; margin-left: -1px; border-radius: 1px; background: linear-gradient(#bddbff00, #bddbff66 45%, #fff1ce); animation: scroll-fall 2.4s cubic-bezier(0.55, 0, 0.35, 1) infinite; }
+.scrollStar::after { content: ""; position: absolute; bottom: -2.5px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: radial-gradient(circle, #fffdf3 0 1.2px, #ffe3adcc 2px, transparent 2.6px); filter: drop-shadow(0 0 4px #c6deff); }
+@keyframes scroll-fall {
+  0% { translate: 0 -18px; opacity: 0; }
+  18% { opacity: 1; }
+  62% { translate: 0 28px; opacity: 1; }
+  74%, 100% { translate: 0 38px; opacity: 0; }
+}
+.scrollHint:hover .scrollStar, .scrollHint:focus-visible .scrollStar { animation-duration: 1.3s; }
+.stage[data-travelling="true"] .scrollStar { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .scrollStar { animation: none; top: 10px; } }
 .chapters { position: relative; display: flex; gap: 1.5rem; }
 .chapters button { position: relative; min-width: 6.5rem; min-height: 44px; text-align: center; }
+/* Where the journey starts and ends: the star rests here on the opening and
+   closing views, so no tab looks selected before you've reached it. */
+.trackEnd { position: relative; flex: none; width: 0.75rem; min-height: 44px; }
+.trackEnd::after { content: ""; position: absolute; bottom: 0.35rem; left: 50%; width: 5px; height: 5px; border: 1px solid #adc8e866; border-radius: 50%; transform: translate(-50%, 50%); }
 .chapterLabel { display: block; margin-bottom: 1.1rem; color: #e4e2de; font-size: 0.875rem; font-weight: 700; letter-spacing: 0.015em; transition: color 250ms ease, text-shadow 250ms ease; }
 .chapterStar {
   position: absolute;
@@ -377,8 +389,8 @@
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
-  .controls .scrollHint { justify-content: center; font-size: 0.8125rem; }
-  .scrollArrow { width: auto; height: auto; border: 0; }
+  .controls .scrollHint { justify-content: center; gap: 0.65rem; font-size: 0.8125rem; }
+  .scrollArrow { width: 18px; height: 30px; border-radius: 9px; }
 }
 @media (max-height: 740px) and (max-width: 760px) {
   .facts { gap: 0.3rem; margin-top: 0.9rem; font-size: 0.875rem; }
@@ -411,7 +423,7 @@
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.75rem; }
   .controls .scrollHint { font-size: 0.75rem; }
-  .scrollArrow { width: auto; height: auto; border: 0; }
+  .scrollArrow { width: 16px; height: 26px; border-radius: 8px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .flightStars, .middleStars, .flightTitle { display: none; }

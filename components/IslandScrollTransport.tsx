@@ -188,7 +188,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             : `Show ${title} island`);
         });
         const upcoming = worlds[current + 1];
-        nextLabel.textContent = current === scenes.length - 1 ? "Back to start" : "Scroll to explore";
+        // Name where the next scroll goes: take off, each stop in turn, home.
+        nextLabel.textContent = current === scenes.length - 1 ? "Back to the start"
+          : current === 0 ? "Scroll to take off"
+          : `Next stop: ${upcoming.title ?? "say hi"}`;
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the start"
           : upcoming.title ? `Scroll to the ${upcoming.title} island` : "Scroll to the end");
         next.dataset.last = String(current === scenes.length - 1);
@@ -218,11 +221,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           size: focus.offsetWidth / art[0].offsetWidth * 100,
         };
       }
-      // Opening and closing views park the star on the first and last tab.
+      // The opening and closing views have no tab: the star rests on the
+      // track's start and end points instead, so home never reads as Work.
       const centers = buttons.map((button) => button.offsetLeft + button.offsetWidth / 2);
+      const [trackStart, trackEnd] = Array.from(sceneNav.querySelectorAll<HTMLElement>("[data-track-end]"))
+        .map((end) => end.offsetLeft + end.offsetWidth / 2);
       starStops = worlds.map((_, index) => {
         const tab = buttonScene.indexOf(index);
-        return tab >= 0 ? centers[tab] : index < buttonScene[0] ? centers[0] : centers[centers.length - 1];
+        return tab >= 0 ? centers[tab] : index < buttonScene[0] ? trackStart : trackEnd;
       });
       schedule();
     };
@@ -365,10 +371,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
-            <span className={styles.scrollArrow} aria-hidden="true">↓</span>
-            <span data-next-label>Scroll to explore</span>
+            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
+            <span data-next-label>Scroll to take off</span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
+            <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
             {worlds.map((world, index) => world.title ? (
               <button
                 type="button"
@@ -382,6 +389,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
                 <span className={styles.chapterStar} aria-hidden="true" />
               </button>
             ) : null)}
+            <span className={styles.trackEnd} data-track-end="end" aria-hidden="true" />
             <span className={styles.shootingStar} data-scene-comet aria-hidden="true">
               <span className={styles.cometTrail}>
                 <span /><span /><span />
