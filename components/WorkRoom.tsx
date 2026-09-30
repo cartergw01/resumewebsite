@@ -38,7 +38,7 @@ const highlights: { heading: string; story: ReactNode[] }[] = [
     heading: "Building ikigai Launchpad",
     story: [
       <><Out href="https://886studios.com/programs">ikigai Launchpad</Out> is a 10-week, in-person accelerator in Taipei with $100K USD, mentor office hours, investor intros, and support beyond the batch.</>,
-      "I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops, office hours, and partnerships.",
+      "I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops and partnerships.",
     ],
   },
   {
@@ -133,42 +133,50 @@ export default function WorkRoom() {
       <GalaxyBackground page />
       <main className={styles.main} data-work-desk>
         <div className={styles.desk}>
+          <h1 className={styles.lead}>I invest &amp; support early-stage startups.</h1>
+
+          {/* Every section is the same shape: a title on the left, its content on the right. */}
           <div className={styles.workHistory}>
-            <section aria-labelledby="current-work-title">
-              <header className={styles.intro}>
-                <h1 id="current-work-title">
-                  <Logo company={current.company} size={56} />
-                  <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
-                </h1>
-                <p className={styles.roleLine}>
-                  <strong>{current.role}</strong> since October 2024, after starting as a Venture Fellow that summer
-                </p>
-              </header>
-              <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. We run ikigai Launchpad, the premier Silicon Valley-style accelerator in Taipei, brought to you by the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
-              <div className={styles.contributions}>
-                {highlights.map((item) => (
-                  <div key={item.heading}>
-                    <h2>{item.heading}</h2>
-                    {item.story.map((line, index) => <p key={index}>{line}</p>)}
-                  </div>
-                ))}
+            <section className={styles.section} aria-labelledby="now-title">
+              <h2 id="now-title" className={styles.label}>Now</h2>
+              <div className={styles.body}>
+                <header className={styles.experienceHeading}>
+                  <h3 className={styles.current}>
+                    <Logo company={current.company} size={36} />
+                    <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
+                  </h3>
+                  <p className={styles.date}>{current.dates}</p>
+                  <p className={styles.role}>{current.role}</p>
+                  <p className={`${styles.role} ${styles.pastRole}`}>Venture Fellow</p>
+                  <p className={styles.date}>June 2024 - September 2024</p>
+                </header>
+                <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
+                <div className={styles.contributions}>
+                  {highlights.map((item) => (
+                    <div key={item.heading}>
+                      {item.story.map((line, index) => (
+                        <p key={index}>{index === 0 ? <><strong>{item.heading}.</strong>{" "}</> : null}{line}</p>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <figure className={styles.photo}>
+                  <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
+                  <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
+                </figure>
               </div>
-              <figure className={styles.photo}>
-                <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
-                <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
-              </figure>
             </section>
 
-            <section className={styles.earlier} aria-labelledby="earlier-work-title">
-              <h2 id="earlier-work-title">Previously</h2>
-              <ol className={styles.experiences}>
+            <section className={styles.section} aria-labelledby="earlier-work-title">
+              <h2 id="earlier-work-title" className={styles.label}>Previously</h2>
+              <ol className={`${styles.body} ${styles.experiences}`}>
                 {previous.map((item) => <Experience key={item.company} item={item} />)}
               </ol>
             </section>
 
-            <section className={styles.side} aria-labelledby="side-work-title">
-              <h2 id="side-work-title">On the side</h2>
-              <ul className={styles.experiences}>
+            <section className={styles.section} aria-labelledby="side-work-title">
+              <h2 id="side-work-title" className={styles.label}>On the side</h2>
+              <ul className={`${styles.body} ${styles.experiences}`}>
                 {onTheSide.map((item) => <Experience key={item.company} item={item} />)}
                 {sideProjects.map((item) => (
                   <li key={item.title} className={styles.experience}>
@@ -180,17 +188,21 @@ export default function WorkRoom() {
               </ul>
             </section>
 
-            <section className={styles.about} aria-labelledby="about-title">
-              <h2 id="about-title">About me</h2>
-              <dl className={styles.facts}>
-                {aboutFacts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
-              </dl>
-              <p>{bioLead}</p>
+            <section className={styles.section} aria-labelledby="about-title">
+              <h2 id="about-title" className={styles.label}>About me</h2>
+              <div className={`${styles.body} ${styles.about}`}>
+                <dl className={styles.facts}>
+                  {aboutFacts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+                </dl>
+                <p>{bioLead}</p>
+              </div>
             </section>
 
-            <p className={styles.closing}>
-              Building something? I&apos;d love to hear about it. <Out href={siteConfig.social.x}>Say hi</Out>
-            </p>
+            <div className={styles.section}>
+              <p className={`${styles.body} ${styles.closing}`}>
+                Building something? I&apos;d love to hear about it. <Out href={siteConfig.social.x}>Say hi</Out>
+              </p>
+            </div>
           </div>
         </div>
       </main>
