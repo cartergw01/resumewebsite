@@ -35,7 +35,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const comet = track.querySelector<HTMLElement>("[data-scene-comet]")!;
     const next = track.querySelector<HTMLButtonElement>("[data-next-scene]")!;
     const nextLabel = next.querySelector<HTMLElement>("[data-next-label]")!;
-    const flightTitle = track.querySelector<HTMLElement>("[data-flight-title]")!;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const duration = scenes.length - 1 + FINAL_HOLD;
     let frame = 0;
@@ -48,8 +47,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let starRestTimer = 0;
     let cameraProgress: number | null = null;
     let previousFrame = 0;
-    let heading = 1;
-    let previousProgress = 0;
     // Where the opening view's Work island sits in its art box (percent), read
     // from layout so each breakpoint's arrangement drives the first zoom.
     let introFocus = { x: 50, y: 50, size: 100 };
@@ -138,14 +135,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         if (worlds[index].id === "projects") art[index].style.setProperty("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
       });
-      // Name the destination while no island copy is on screen.
-      if (Math.abs(progress - previousProgress) > 0.0005) heading = progress > previousProgress ? 1 : -1;
-      previousProgress = progress;
-      const destination = worlds[heading > 0 ? Math.min(from + 1, worlds.length - 1) : from].title ?? "";
-      if (flightTitle.textContent !== destination) flightTitle.textContent = destination;
-      const titleShow = motion.matches ? 0 : Math.sin(Math.PI * clamp((crossing - 0.12) / 0.8));
-      flightTitle.style.opacity = (0.08 * titleShow).toFixed(4);
-      flightTitle.style.transform = `translate3d(${(6 - 12 * crossing).toFixed(2)}vw, 0, 0) scale(${(0.96 + 0.04 * titleShow).toFixed(4)})`;
       stage.style.setProperty("--camera-progress", cameraProgress.toFixed(4));
       stage.style.setProperty("--camera-path", (from + passage).toFixed(4));
       stage.style.setProperty("--camera-arc", (arc * Math.sin(mix * Math.PI)).toFixed(4));
@@ -362,7 +351,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <GalaxyBackground />
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />
-        <p className={styles.flightTitle} data-flight-title aria-hidden="true" />
         <span className={styles.islandTip} data-island-tip aria-hidden="true">
           <span className={styles.tipStar} />
           <span className={styles.tipLeader} />

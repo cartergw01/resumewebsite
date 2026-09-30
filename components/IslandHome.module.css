@@ -33,23 +33,6 @@
 .middleStars { inset: -25% -55%; opacity: calc(0.24 + var(--flight) * 0.26); transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
 .flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
 .depthTrail { transform: scaleX(calc(0.025 + var(--flight) * 0.975)); }
-.flightTitle {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  margin: 0;
-  color: var(--cw-paper);
-  font-family: var(--font-display);
-  font-size: clamp(6rem, 21vw, 19rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.045em;
-  opacity: 0;
-  pointer-events: none;
-  user-select: none;
-  will-change: transform, opacity;
-}
 .vignette {
   background:
     linear-gradient(90deg, #03061159, transparent 58%),
@@ -426,7 +409,7 @@
   .scrollArrow { width: 16px; height: 26px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .flightStars, .middleStars, .flightTitle { display: none; }
+  .flightStars, .middleStars { display: none; }
   .overviewImage { animation: none !important; transition: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }

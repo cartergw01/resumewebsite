@@ -35,9 +35,7 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
     expect(departing.scale).toBeGreaterThan(0.44);
     expect(incoming.scale).toBeGreaterThan(0.45);
     expect(incoming.scale).toBeLessThan(0.9);
-    const title = page.locator("[data-flight-title]");
-    await expect(title).toHaveText(to === "writing" ? "Writing" : "Projects");
-    expect(Number(await title.evaluate(el => getComputedStyle(el).opacity))).toBeGreaterThan(0.05);
+    await expect(page.locator("[data-flight-title]")).toHaveCount(0);
     expect(incoming.y * direction).toBeGreaterThan(25);
     await expect(page.locator(`#${from}`)).toHaveCSS("opacity", "1");
     await expect(page.locator(`#${to}`)).toHaveCSS("opacity", "1");
@@ -48,7 +46,6 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
     await cross(page, journey, 1);
     expect((await pose(page, to)).scale).toBeCloseTo(1, 3);
     await expect(page.locator("[data-flight-stars]")).toHaveCSS("opacity", "0");
-    await expect(page.locator("[data-flight-title]")).toHaveCSS("opacity", "0");
     await cross(page, journey, 0.55);
     const reversed = await pose(page, to);
     // Native scroll positions round to whole pixels on the longer track.
