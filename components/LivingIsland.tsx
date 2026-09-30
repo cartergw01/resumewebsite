@@ -11,7 +11,7 @@ const artwork = {
   projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v5.webp", width: 1200, height: 800 },
 };
 
-export default function LivingIsland({ world, preview }: { world: keyof typeof artwork; preview?: string }) {
+export default function LivingIsland({ world, preview, posters }: { world: keyof typeof artwork; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
   // The opening view shows light previews; full islands wait for travel.
@@ -96,7 +96,7 @@ export default function LivingIsland({ world, preview }: { world: keyof typeof a
           </defs>
           <ellipse className={motionStyles.screenSpill} cx="831" cy="316" rx="74" ry="23" fill="url(#workshop-screen-spill)" />
           <g transform="matrix(0.121875 -0.028125 -0.06 0.19 831 270)">
-            <image className={motionStyles.screenPreview} data-workshop-screen href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
+            <image className={motionStyles.screenPreview} data-workshop-screen data-posters={JSON.stringify(posters ?? [preview])} href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
             <rect className={motionStyles.screenRim} width="320" height="200" rx="3" fill="none" stroke="#ffe2ba" strokeWidth="5" />
           </g>
         </svg> : null}

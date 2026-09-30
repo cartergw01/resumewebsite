@@ -54,3 +54,5 @@
   .titles li { height: calc(var(--rule) * 3); }
   .titles span { font-size: clamp(13px, 4.1vw, 17px); }
 }
+/* Projects: every poster card shares the laptop screen's look and size. */
+.deck { position: absolute; inset: 0; }
