@@ -83,7 +83,7 @@ function Art({ id }: { id: (typeof stops)[number]["id"] }) {
   switch (id) {
     case "intro": return <IslandOverview variant="intro" />;
     case "hello": return <IslandOverview variant="outro" />;
-    case "writing": return <WritingIsland essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} />;
+    case "writing": return <WritingIsland essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} titles={essays.map((essay) => essay.title)} />;
     default: return <LivingIsland world={id} preview={id === "projects" ? projects[0]?.image : undefined} />;
   }
 }

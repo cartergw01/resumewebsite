@@ -12,6 +12,11 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
+  // Every essay title is written in, all at the same size.
+  const written = carry.locator("[data-notebook-page] li");
+  await expect(written).toHaveCount(11);
+  await expect(written.first()).toHaveText("The Cost of Keeping Up");
+  expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
   await expect.poll(() => carry.locator('[data-notebook-page="right"]').evaluate((leaf) => {
     const box = leaf.getBoundingClientRect();
     return Math.round(box.right) >= innerWidth - 1 && Math.round(box.bottom) >= innerHeight - 1;

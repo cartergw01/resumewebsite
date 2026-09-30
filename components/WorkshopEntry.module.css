@@ -14,7 +14,7 @@
   width: 50%;
   background-color: #ecdfc6;
   background-image:
-    linear-gradient(#ecdfc6 0 min(15vh, 120px), transparent 0),
+    linear-gradient(#ecdfc6 0 calc(var(--rule) * 4), transparent 0),
     repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), #8b71543d calc(var(--rule) - 1px) var(--rule));
   backface-visibility: hidden;
   will-change: transform;
@@ -25,8 +25,32 @@
   /* The reading lamp's warm pool falls across the left page. */
   background-image:
     radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 55%),
-    linear-gradient(#ecdfc6 0 min(15vh, 120px), transparent 0),
+    linear-gradient(#ecdfc6 0 calc(var(--rule) * 4), transparent 0),
     repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), #8b71543d calc(var(--rule) - 1px) var(--rule));
   box-shadow: inset -4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f;
 }
 .leaf.right { right: 0; transform-origin: right center; box-shadow: inset 4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f; }
+/* Titles rest on the ruling: each takes two lines, sitting on the lower one
+   and wrapping onto the upper one only when the page is narrow. */
+.titles { margin: 0; padding: calc(var(--rule) * 3) 14% 0 12%; list-style: none; }
+.right .titles { padding-right: 10%; padding-left: 15%; }
+.titles li { display: flex; align-items: flex-end; height: calc(var(--rule) * 2); }
+.titles span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #33271cdb;
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(14px, calc(var(--rule) * 0.62), 21px);
+  font-style: italic;
+  line-height: var(--rule);
+  /* Seat the baseline on the ruled line; keep the italic overhang unclipped. */
+  translate: 0 calc(var(--rule) * 0.36);
+  padding-right: 0.3em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+/* Narrow pages wrap longer titles, so each keeps a blank line above it. */
+@media (max-width: 760px) {
+  .titles li { height: calc(var(--rule) * 3); }
+  .titles span { font-size: clamp(13px, 4.1vw, 17px); }
+}

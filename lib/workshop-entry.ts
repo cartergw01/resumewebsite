@@ -27,12 +27,25 @@ export function beginWorkshopEntry(source: SVGImageElement) {
 }
 
 export function beginBookEntry(source: SVGGraphicsElement) {
-  // Blank ruled pages: entering the notebook, not any one essay.
+  // Every essay title, written into the ruled pages at the same size, so the
+  // notebook is the whole archive rather than any one essay.
+  const titles: string[] = JSON.parse(source.dataset.titles ?? "[]");
+  const half = Math.ceil(titles.length / 2);
   const spread = document.createDocumentFragment();
-  for (const side of ["left", "right"] as const) {
+  for (const [side, entries] of [["left", titles.slice(0, half)], ["right", titles.slice(half)]] as const) {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
     leaf.dataset.notebookPage = side;
+    const list = document.createElement("ol");
+    list.className = styles.titles;
+    for (const title of entries) {
+      const item = document.createElement("li");
+      const text = document.createElement("span");
+      text.textContent = title;
+      item.append(text);
+      list.append(item);
+    }
+    leaf.append(list);
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
