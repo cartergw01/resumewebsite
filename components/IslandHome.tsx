@@ -29,7 +29,7 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
       return <>
         <h1 id="hero-title">Carter Wang</h1>
         <p className={styles.description}>
-          backing early stage startups alongside the founders of Twitch and Guitar Hero at <Out href="https://886studios.com">886 Studios</Out>
+          backing early stage startups alongside the founders of Twitch and Guitar Hero at <Out href="https://886studios.com">886 Studios</Out>.
         </p>
         <p className={styles.description}>
           <Link href="/writing">writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
