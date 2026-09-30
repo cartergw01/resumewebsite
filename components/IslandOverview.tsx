@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { overviewOrder } from "@/lib/island-overview";
+import { overviewOrder, tipSide } from "@/lib/island-overview";
 import styles from "./IslandHome.module.css";
 
 const islands = {
@@ -22,6 +22,7 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
             className={styles.overviewIsland}
             data-overview-island={id}
             data-tip={island.title}
+            data-tip-side={tipSide[id]}
             aria-label={island.title}
           >
             <Image

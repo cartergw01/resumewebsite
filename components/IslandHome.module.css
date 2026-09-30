@@ -177,18 +177,20 @@
 .projects .island { width: 91%; max-height: 100%; }
 /* Opening and closing views: all three islands at a distance. */
 .overview { position: relative; display: block; width: 100%; height: 100%; }
-/* Three islands staggered in height, sized so the visible islands match: the
-   city fills 72% of its image, the desk 75%, the workshop 94%. Work's box keeps
-   the art box's proportions, since the first zoom scales it up to fill that box. */
-.overviewIsland[data-overview-island="work"] { left: 1.5%; top: 43.5%; width: 33%; height: 33%; }
-.overviewIsland[data-overview-island="writing"] { left: 33%; top: 18%; width: 32%; height: 32%; }
-.overviewIsland[data-overview-island="projects"] { left: 65.5%; top: 47%; width: 27%; height: 27%; }
+/* Three equal islands in an irregular zig-zag (high, low, between) so no one
+   of them sits on a peak. Boxes are sized so the visible islands match: the
+   city fills 72% of its image, the desk 75%, the workshop 94%. Work's box
+   keeps the art box's proportions, since the first zoom scales it to fill it.
+   Nothing starts left of the art box, so the islands clear the hero text. */
+.overviewIsland[data-overview-island="work"] { left: 0%; top: 8%; width: 44.2%; height: 44.2%; }
+.overviewIsland[data-overview-island="writing"] { left: 29%; top: 50.5%; width: 42.9%; height: 42.9%; }
+.overviewIsland[data-overview-island="projects"] { left: 59%; top: 21%; width: 34.1%; height: 34.1%; }
 @media (max-width: 760px) {
-  /* The phone art box is nearly square and bleeds past the screen, so each
-     island is sized by width to fill a third of what's visible. */
-  .overviewIsland[data-overview-island="work"] { left: 6.5%; top: 39.5%; width: 33%; height: 33%; }
-  .overviewIsland[data-overview-island="writing"] { left: 34%; top: 20%; width: 32%; height: 32%; }
-  .overviewIsland[data-overview-island="projects"] { left: 64.2%; top: 45%; width: 25.6%; height: 25.6%; }
+  /* Phones zig-zag down the tall art box (left, right, left) so each island
+     can be far larger than a third of the screen's width. */
+  .overviewIsland[data-overview-island="work"] { left: 7%; top: -3%; width: 50%; height: 50%; }
+  .overviewIsland[data-overview-island="writing"] { left: 42%; top: 26%; width: 48.3%; height: 48.3%; }
+  .overviewIsland[data-overview-island="projects"] { left: 17%; top: 58%; width: 38.4%; height: 38.4%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: brightness(0.85) drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
 .overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
@@ -502,6 +504,19 @@
   background: radial-gradient(ellipse at 45% 55%, #030611d9, #030611 0%, #0306118c 45%, transparent 72%);
   filter: blur(6px);
 }
+/* The other three corners mirror the leader and move the words around it. */
+.islandTip[data-side="nw"] .tipLeader { rotate: -135deg; }
+.islandTip[data-side="se"] .tipLeader { rotate: 45deg; }
+.islandTip[data-side="sw"] .tipLeader { rotate: 135deg; }
+.islandTip[data-side$="w"] .tipText {
+  right: 21px;
+  left: auto;
+  padding: 0 0.35rem 0.3rem 0.7rem;
+  background-image: linear-gradient(270deg, #f3dcb8e6, #ebd0ac33 92%);
+  background-position: 100% 100%;
+  translate: 4px 3px;
+}
+.islandTip[data-side^="s"] .tipText { top: calc(21px - 1.2em - 0.3rem); bottom: auto; }
 .islandTip[data-visible="true"] .tipStar { opacity: 1; scale: 1; transition-duration: 220ms; }
 .islandTip[data-visible="true"] .tipLeader { scale: 1 1; transition: scale 260ms var(--cw-ease) 60ms; }
 .islandTip[data-visible="true"] .tipText {

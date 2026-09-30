@@ -309,7 +309,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (!target) return hideTip();
       if (tipText.textContent !== target.dataset.tip) tipText.textContent = target.dataset.tip ?? "";
       // Anchor the annotation's star just off the rocket's right shoulder.
-      tip.style.transform = `translate3d(${event.clientX + 26}px, ${event.clientY - 14}px, 0)`;
+      // Open toward the island's own corner, flipping away from a screen edge.
+      let side = target.dataset.tipSide ?? "ne";
+      if (side.endsWith("e") && event.clientX > innerWidth - 300) side = `${side[0]}w`;
+      else if (side.endsWith("w") && event.clientX < 300) side = `${side[0]}e`;
+      if (side.startsWith("n") && event.clientY < 120) side = `s${side[1]}`;
+      else if (side.startsWith("s") && event.clientY > innerHeight - 140) side = `n${side[1]}`;
+      if (tip.dataset.side !== side) tip.dataset.side = side;
+      const dx = side.endsWith("e") ? 26 : -26;
+      const dy = side.startsWith("n") ? -14 : 18;
+      tip.style.transform = `translate3d(${event.clientX + dx}px, ${event.clientY + dy}px, 0)`;
       tip.dataset.visible = "true";
     };
     stage.addEventListener("pointermove", moveTip);

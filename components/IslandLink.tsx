@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
+import { tipSide } from "@/lib/island-overview";
 
 const landmarks: Record<string, { x: number; y: number; name: string }> = {
   Work: { x: 0.588, y: 0.278, name: "Taipei tower" },
@@ -129,6 +130,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       data-workshop={workshop || undefined}
       data-world={title.toLowerCase()}
       data-tip={prompt}
+      data-tip-side={tipSide[title.toLowerCase() as keyof typeof tipSide]}
       aria-label={`${prompt}. Enter ${title} island`}
       onClick={enter}
     >
