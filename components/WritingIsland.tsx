@@ -90,6 +90,9 @@ export default function WritingIsland({ essay }: { essay: EssayPreview }) {
           </svg>
           <svg className={styles.bookDetails} viewBox="0 0 960 529" aria-hidden="true">
             <ellipse className={styles.readingLamp} cx="308" cy="108" rx="33" ry="15" fill="url(#reading-lamp-light)" />
+            {/* The open notebook's two pages as a flat 640x400 spread, fitted
+                to the artwork. Entering Writing lifts this spread off the island. */}
+            <rect data-book-spread width="640" height="400" fill="none" transform="matrix(0.3664 -0.0477 0.1367 0.1742 337.5 215.7)" />
             <g className={styles.printedPage} transform="matrix(0.22 -0.02 0.205 0.16 464 196)">
               <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
             </g>
