@@ -89,8 +89,8 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       screenTimer = window.setTimeout(() => {
         const screen = visual.querySelector<SVGImageElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
-        const page = visual.querySelector<SVGSVGElement>("[data-book-page]");
-        if (!cancelled && page) cancelScreen = beginBookEntry(page);
+        const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
+        if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
       }, 280);
     }
     const reset = () => {

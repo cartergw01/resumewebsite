@@ -4,14 +4,18 @@ test("the book opens the complete Writing archive without featuring an essay", a
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/2.0#writing");
-  const source = page.locator("[data-book-page]");
-  await expect(source).toContainText("The Cost ofKeeping Up");
-  const print = await source.innerHTML();
+  await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
   await page.locator("#writing [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  // The island's open notebook lifts off as a blank ruled spread and fills the view.
   const carry = page.locator("body > [data-book-transition]");
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
-  expect(await carry.locator("svg").innerHTML()).toBe(print);
+  await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
+  await expect(carry.locator("svg")).toHaveCount(0);
+  await expect.poll(() => carry.locator('[data-notebook-page="right"]').evaluate((leaf) => {
+    const box = leaf.getBoundingClientRect();
+    return Math.round(box.right) >= innerWidth - 1 && Math.round(box.bottom) >= innerHeight - 1;
+  })).toBe(true);
   await carry.evaluate(node => node.setAttribute("data-same-page", "true"));
   await expect(page).toHaveURL(/\/writing$/);
   await expect(carry).toHaveAttribute("data-book-transition", "arriving");

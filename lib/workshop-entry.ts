@@ -13,7 +13,8 @@ type Entry = {
 };
 
 // This one visual belongs to the journey, so it survives the source route.
-// Projects docks the screen; Writing reveals its entire archive equally.
+// Projects docks the screen. Writing lifts the island's open notebook until
+// its pages fill the view, then opens them onto the whole archive.
 let entry: Entry | null = null;
 const plane = (x: number, y: number, width: number, height: number, sourceWidth: number, sourceHeight: number) =>
   `matrix(${width / sourceWidth},0,0,${height / sourceHeight},${x},${y})`;
@@ -25,13 +26,19 @@ export function beginWorkshopEntry(source: SVGImageElement) {
   return beginEntry(source, image, "workshop", 320, 200);
 }
 
-export function beginBookEntry(source: SVGSVGElement) {
-  const paper = source.cloneNode(true) as SVGSVGElement;
-  paper.removeAttribute("data-book-page");
-  return beginEntry(source, paper, "book", 320, 400);
+export function beginBookEntry(source: SVGGraphicsElement) {
+  // Blank ruled pages: entering the notebook, not any one essay.
+  const spread = document.createDocumentFragment();
+  for (const side of ["left", "right"] as const) {
+    const leaf = document.createElement("div");
+    leaf.className = `${styles.leaf} ${styles[side]}`;
+    leaf.dataset.notebookPage = side;
+    spread.append(leaf);
+  }
+  return beginEntry(source, spread, "book", 640, 400);
 }
 
-function beginEntry(source: SVGGraphicsElement, content: Element, kind: Entry["kind"], sourceWidth: number, sourceHeight: number) {
+function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind"], sourceWidth: number, sourceHeight: number) {
   const matrix = source.getScreenCTM();
   if (!matrix || matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
   entry?.dispose();
@@ -43,9 +50,13 @@ function beginEntry(source: SVGGraphicsElement, content: Element, kind: Entry["k
   const backdrop = document.createElement("div");
   backdrop.className = styles.backdrop;
   const screen = document.createElement("div");
-  screen.className = `${styles.screen} ${kind === "book" ? styles.paper : ""}`;
-  screen.style.width = `${sourceWidth}px`;
-  screen.style.height = `${sourceHeight}px`;
+  screen.className = `${styles.screen} ${kind === "book" ? styles.notebook : ""}`;
+  // The notebook is laid out at full-viewport size so its ruling stays crisp
+  // when it lands; its start transform shrinks it back onto the island.
+  const layoutWidth = kind === "book" ? innerWidth : sourceWidth;
+  const layoutHeight = kind === "book" ? innerHeight : sourceHeight;
+  screen.style.width = `${layoutWidth}px`;
+  screen.style.height = `${layoutHeight}px`;
   screen.append(content);
   overlay.append(backdrop, screen);
   document.body.append(overlay);
@@ -53,7 +64,7 @@ function beginEntry(source: SVGGraphicsElement, content: Element, kind: Entry["k
 
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   let timeout = 0;
-  const current: Entry = { kind, width: sourceWidth, height: sourceHeight, overlay, screen, backdrop, animations: [], frames: [], dispose: () => {
+  const current: Entry = { kind, width: layoutWidth, height: layoutHeight, overlay, screen, backdrop, animations: [], frames: [], dispose: () => {
     clearTimeout(timeout);
     current.frames.forEach(cancelAnimationFrame);
     current.animations.forEach(animation => animation.cancel());
@@ -72,8 +83,20 @@ function beginEntry(source: SVGGraphicsElement, content: Element, kind: Entry["k
   motion.addEventListener("change", current.dispose);
   timeout = window.setTimeout(current.dispose, 8_000);
 
+  if (kind === "book") {
+    // Start exactly on the island's pages, then flatten until they fill the view.
+    const sx = sourceWidth / layoutWidth;
+    const sy = sourceHeight / layoutHeight;
+    screen.style.transform = "none";
+    current.animations.push(screen.animate([
+      { transform: `matrix(${matrix.a * sx},${matrix.b * sx},${matrix.c * sy},${matrix.d * sy},${matrix.e},${matrix.f})` },
+      { transform: "matrix(1,0,0,1,0,0)" },
+    ], { duration: 820, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
+    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 820, easing: "ease-in", fill: "forwards" }));
+    return current.dispose;
+  }
   const ratio = sourceWidth / sourceHeight;
-  const width = kind === "book" ? Math.min(innerWidth * 0.82, innerHeight * 0.7 * ratio, 420) : Math.min(innerWidth * 0.88, innerHeight * 0.92, 1040);
+  const width = Math.min(innerWidth * 0.88, innerHeight * 0.92, 1040);
   const height = width / ratio;
   screen.style.transform = plane((innerWidth - width) / 2, (innerHeight - height) / 2, width, height, sourceWidth, sourceHeight);
   current.animations.push(screen.animate([
@@ -104,13 +127,33 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
       if (entry !== current || !target.isConnected) return;
       const bounds = target.getBoundingClientRect();
       const from = getComputedStyle(current.screen).transform;
-      const duration = kind === "book" ? 360 : 560;
-      // Open the archive as a whole, without promoting any particular essay.
-      if (kind === "book") document.documentElement.dataset[attribute] = "revealing";
-      const dock = current.screen.animate(kind === "book" ? [
-        { transform: from, opacity: 1 },
-        { transform: `${from} translateY(-18px)`, opacity: 0 },
-      ] : [
+      if (kind === "book") {
+        // The pages swing open like doors onto the whole archive at once.
+        document.documentElement.dataset[attribute] = "revealing";
+        const open = { duration: 900, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
+        const [left, right] = Array.from(current.screen.children) as HTMLElement[];
+        // Each page fades as it turns edge-on, so no sliver lingers at the hinge.
+        const swing = (angle: number) => [
+          { transform: "rotateY(0deg)", opacity: 1 },
+          { transform: `rotateY(${angle * 0.75}deg)`, opacity: 1, offset: 0.7 },
+          { transform: `rotateY(${angle}deg)`, opacity: 0 },
+        ];
+        const dock = right.animate(swing(-104), open);
+        current.animations.push(
+          dock,
+          left.animate(swing(104), open),
+          current.screen.animate([{ transform: from }, { transform: "scale(1.08)" }], open),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 700, easing: "ease-out", fill: "forwards" }),
+        );
+        void dock.finished.then(() => {
+          if (entry !== current) return;
+          target.focus({ preventScroll: true });
+          current.dispose();
+        }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
+        return;
+      }
+      const duration = 560;
+      const dock = current.screen.animate([
         { transform: from },
         { transform: plane(bounds.x, bounds.y, bounds.width, bounds.height, current.width, current.height) },
       ], { duration, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
@@ -118,7 +161,7 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
       void dock.finished.then(() => {
         if (entry !== current) return;
         document.documentElement.dataset[attribute] = "revealing";
-        (kind === "book" ? target : target.closest<HTMLAnchorElement>("a"))?.focus({ preventScroll: true });
+        target.closest<HTMLAnchorElement>("a")?.focus({ preventScroll: true });
         current.dispose();
       }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
     }));
