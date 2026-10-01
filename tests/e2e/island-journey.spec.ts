@@ -250,9 +250,9 @@ test("skip link and the opening islands reach content directly", async ({ page }
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
   await expect(skip).toBeInViewport();
-  await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: "Projects" }).click();
-  await expectScene(page, "projects");
-  await expect(page.locator("#projects [data-scene-copy] ul")).toHaveCount(0);
+  // The opening islands open their pages directly.
+  await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: "Enter Projects island" }).click();
+  await expect(page).toHaveURL(/\/projects$/);
 });
 
 test("each stop's heading enters its page like its island", async ({ page }) => {

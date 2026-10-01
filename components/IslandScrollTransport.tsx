@@ -277,15 +277,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       event.stopImmediatePropagation();
       island.click();
     };
-    // Islands in the opening and closing views fly the camera to their stop.
-    const jumpTo = (event: MouseEvent) => {
-      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-jump]");
-      if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const index = worlds.findIndex((world) => world.id === link.dataset.jump);
-      if (index < 0) return;
-      event.preventDefault();
-      jump(index);
-    };
     const engage = (event: Event) => {
       const pointer = event as PointerEvent;
       if (pointer.type.startsWith("pointer") && pointer.pointerType !== "mouse") return;
@@ -306,7 +297,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("hashchange", followHash);
     motion.addEventListener("change", schedule);
     next.addEventListener("click", advance);
-    stage.addEventListener("click", jumpTo);
     window.addEventListener("click", enterFromHeading, true);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
     // With a mouse, island prompts appear as a tooltip beside the cursor
@@ -459,7 +449,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("hashchange", followHash);
       motion.removeEventListener("change", schedule);
       next.removeEventListener("click", advance);
-      stage.removeEventListener("click", jumpTo);
       window.removeEventListener("click", enterFromHeading, true);
       ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));
       stage.removeEventListener("pointermove", moveTip);
@@ -487,6 +476,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
             <span data-next-label>scroll down</span>
+            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
             <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
