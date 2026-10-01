@@ -177,10 +177,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             : `Show ${title} island`);
         });
         const upcoming = worlds[current + 1];
-        // Name where the next scroll goes: take off, each stop in turn, home.
-        nextLabel.textContent = current === scenes.length - 1 ? "Back to the start"
-          : current === 0 ? "Scroll to take off"
-          : `Next stop: ${upcoming.title ?? "say hi"}`;
+        nextLabel.textContent = current === scenes.length - 1 ? "back to the start" : "scroll down";
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the start"
           : upcoming.title ? `Scroll to the ${upcoming.title} island` : "Scroll to the end");
         next.dataset.last = String(current === scenes.length - 1);
@@ -489,7 +486,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
-            <span data-next-label>Scroll to take off</span>
+            <span data-next-label>scroll down</span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
             <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
