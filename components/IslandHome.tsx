@@ -54,7 +54,7 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
       </>;
     case "hello":
       return <>
-        <h2 id="hello-heading">Say hi</h2>
+        <h2 id="hello-heading">say hi!</h2>
         <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
           <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
           <li><Out href={siteConfig.social.x}>X</Out></li>
