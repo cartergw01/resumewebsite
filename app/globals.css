@@ -21,7 +21,7 @@
   /* Destination pages share one column, lined up with their nav. */
   --subpage-gutter: clamp(1.25rem, 4vw, 2.5rem);
   --subpage-column: min(1120px, calc(100% - 2 * var(--subpage-gutter)));
-  --subpage-top: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem));
+  --subpage-top: calc(var(--nav-clearance) + clamp(0.75rem, 3svh, 2rem));
   --type-caption: 0.72rem;
   --type-small: 0.875rem;
   --type-body: 1rem;
