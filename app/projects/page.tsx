@@ -3,6 +3,8 @@ import SiteNav from "@/components/SiteNav";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import ProjectShot from "@/components/ProjectShot";
 import worldStyles from "@/components/ProjectsWorld.module.css";
+import IslandLine from "@/components/IslandLine";
+import heading from "@/components/PageHeading.module.css";
 import { projects } from "@/content/portfolio";
 import {
   breadcrumbJsonLd,
@@ -31,11 +33,9 @@ export default function ProjectsPage() {
       <GalaxyBackground page />
 
       <main className={`subpage-main topic-main projects-main ${worldStyles.main}`}>
-        <header className={`subpage-hero topic-hero projects-hero ${worldStyles.hero}`} data-workshop-reveal>
-          <div className={worldStyles.heading}>
-            <h1>Projects</h1>
-            <p>fun projects i made.</p>
-          </div>
+        <header className={heading.header} data-workshop-reveal>
+          <h1>Projects</h1>
+          <p><IslandLine id="projects" /></p>
         </header>
 
         <section className="topic-layout projects-layout" aria-label="Projects world">

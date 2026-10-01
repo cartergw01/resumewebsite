@@ -3,6 +3,8 @@ import SiteNav from "@/components/SiteNav";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
+import IslandLine from "@/components/IslandLine";
+import heading from "@/components/PageHeading.module.css";
 import styles from "@/components/WritingWorld.module.css";
 import {
   breadcrumbJsonLd,
@@ -33,8 +35,9 @@ export default function WritingPage() {
       <SiteNav active="writing" />
 
       <main className="subpage-main topic-main">
-        <header className={`subpage-hero topic-hero writing-hero ${styles.hero}`} data-book-reveal>
+        <header className={heading.header} data-book-reveal>
           <WritingHeading />
+          <p><IslandLine id="writing" /></p>
         </header>
 
         <section className="writing-archive" aria-label="Substack essay archive" data-book-reveal>

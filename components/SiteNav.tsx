@@ -90,7 +90,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
           {/* Home stays on the live homepage; point it at /2.0 islands once that design launches. */}
-          {destination && <Link href="/">Home</Link>}
+          {destination && <Link href="/" className="site-nav-home">Home</Link>}
           {primaryLinks.map((link) => (
             <Link
               key={link.id}

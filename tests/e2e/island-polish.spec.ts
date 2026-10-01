@@ -30,8 +30,12 @@ test("each island scene restores directly and Projects opens on the working scre
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
     await page.goto(`/${world}`);
-    // Home stays on the live homepage until /2.0 launches.
-    await expect(page.getByRole("link", { name: "Home", exact: true })).toHaveAttribute("href", "/");
+    // Home stays on the live homepage until /2.0 launches. Phones drop it,
+    // since Back to islands already sits in the corner.
+    const home = page.locator(".site-nav-home");
+    await expect(home).toHaveAttribute("href", "/");
+    if ((page.viewportSize()?.width ?? 1280) <= 760) await expect(home).toBeHidden();
+    else await expect(home).toBeVisible();
     if (world === "projects") {
       await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
       const video = page.locator("[data-background-video]");
@@ -85,8 +89,7 @@ test("destination navigation stays readable on scroll and the matching island re
   for (const world of ["work", "writing", "projects"]) {
     await page.goto(`/${world}`);
     const nav = page.locator(".site-nav");
-    const home = page.getByRole("link", { name: "Home", exact: true });
-    await expect(home).toHaveAttribute("href", "/");
+    await expect(page.locator(".site-nav-home")).toHaveAttribute("href", "/");
     await expect(nav).toHaveAttribute("data-scrolled", "false");
     await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
     await expect(nav).toHaveAttribute("data-scrolled", "true");

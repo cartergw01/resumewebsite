@@ -92,6 +92,9 @@
 .facts a:hover, .facts a:focus-visible { text-decoration-color: #fff7eab3; }
 .factMeta { color: #fff7ea8c; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
 .contact { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+/* A full 44px touch target around each short contact link, without moving it. */
+.contact a { position: relative; }
+.contact a::after { content: ""; position: absolute; inset: -12px -10px; }
 .skipLink { position: absolute; z-index: 80; top: 1rem; left: var(--page-x); padding: 0.6rem 1rem; border: 1px solid #ebd0ac66; border-radius: 999px; color: var(--cw-paper); background: #030611; font-size: 0.875rem; transform: translateY(-300%); }
 .skipLink:focus-visible { transform: none; outline: none; }
 .art {
@@ -381,6 +384,10 @@
   .chapters button { flex: 1; min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
   .controls .scrollHint { justify-content: center; gap: 0.3rem; font-size: 0.8125rem; }
+  /* The opening and closing views already label each island, so the tab
+     names step back there and only the track and comet remain. */
+  .chapterLabel { transition: color 250ms ease, text-shadow 250ms ease, opacity 260ms ease; }
+  .track[data-scene="intro"] .chapterLabel, .track[data-scene="hello"] .chapterLabel { opacity: 0; }
   .scrollArrow { width: 12px; height: 30px; }
 }
 @media (max-height: 740px) and (max-width: 760px) {

@@ -18,6 +18,10 @@
   --page-x: clamp(1.25rem, 6vw, 7rem);
   --nav-top: clamp(0.9rem, 2vw, 1.4rem);
   --nav-clearance: clamp(6.25rem, 9vw, 8rem);
+  /* Destination pages share one column, lined up with their nav. */
+  --subpage-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --subpage-column: min(1120px, calc(100% - 2 * var(--subpage-gutter)));
+  --subpage-top: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem));
   --type-caption: 0.72rem;
   --type-small: 0.875rem;
   --type-body: 1rem;
@@ -491,6 +495,7 @@ select {
   grid-row: 1;
   justify-self: start;
   gap: 0.45rem;
+  margin-left: -12px;
   pointer-events: auto;
 }
 .site-nav-return svg { transition: transform 200ms var(--cw-ease); }
@@ -1307,7 +1312,7 @@ select {
 }
 
 /* Destination pages keep their routes available as the content scrolls. */
-.site-nav[data-destination-nav] { position: fixed; }
+.site-nav[data-destination-nav] { position: fixed; width: var(--subpage-column); }
 .site-nav[data-destination-nav][data-scrolled="true"]::before {
   height: calc(var(--nav-top) + 4rem);
   background: linear-gradient(180deg, #030611fa 0%, #030611fa 65%, #030611e6 78%, #03061100 100%);
@@ -2518,7 +2523,9 @@ select {
   .site-nav[data-destination-nav] { grid-template-columns: auto auto 1fr auto; }
   .site-nav[data-destination-nav] .site-nav-primary { grid-column: 2; }
   .site-nav[data-destination-nav] .site-nav-social { grid-column: 4; }
-  .site-nav a.site-nav-return { padding: 0 8px; }
+  .site-nav a.site-nav-return { margin-left: -8px; padding: 0 8px; }
+  /* The arrow already goes home, so phones drop Home to give the routes room. */
+  .site-nav[data-destination-nav] .site-nav-home { display: none; }
   .site-nav-return-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   .site-nav a {

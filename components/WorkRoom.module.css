@@ -1,4 +1,4 @@
-/* Work: one calm reading flow on the site's starfield. A one-line lead, then
+/* Work: one calm reading flow on the site's starfield. The shared header, then
    sections (Now, Previously, On the side, About me) that share one shape. */
 .page {
   --ink: #070b10;
@@ -26,9 +26,9 @@
 .main {
   position: relative;
   z-index: 1;
-  width: min(1220px, calc(100% - 2 * var(--page-x)));
+  width: var(--subpage-column);
   margin: 0 auto;
-  padding: calc(var(--nav-clearance) + clamp(1.5rem, 6svh, 3.5rem)) 0 7rem;
+  padding: var(--subpage-top) 0 7rem;
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
 /* One reading column on smaller screens; wide screens add a title column. */
@@ -41,8 +41,6 @@
 
 /* Company marks: every source logo is flattened to one warm cream tone. */
 .logo { flex: none; object-fit: contain; filter: brightness(0) invert(0.93) sepia(0.25); opacity: 0.9; }
-/* Page lead: the one-line summary of what Carter does. */
-.lead { max-width: 22ch; margin: 0 0 clamp(3.5rem, 9svh, 5.5rem); font-family: var(--font-display); font-size: clamp(2.5rem, 4.6vw, 4rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; }
 
 /* 886 uses the same heading shape as every other company, just larger. */
 .experienceHeading h3.current { gap: 0.8rem; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; }

@@ -1,6 +1,8 @@
 .page.page { background: radial-gradient(ellipse at 70% 18%, #b9894210, transparent 55%), #050810; }
 .page.page::before, .page.page::after { content: none; }
-.hero.hero h1 { font-size: clamp(3.4rem, 4.8vw, 4.5rem); }
+/* The shared subpage column, with the archive flush under the header. */
+.page.page :global(.subpage-main) { width: var(--subpage-column); padding-top: var(--subpage-top); }
+.page.page :global(.writing-archive) { margin-top: 0; padding-left: 0; }
 .page [data-book-reveal] { transition: opacity 360ms ease, translate 480ms var(--cw-ease); }
 :global(html[data-book-transition="entering"]) .page [data-book-reveal],
 :global(html[data-book-transition="arriving"]) .page [data-book-reveal] { opacity: 0; translate: 0 10px; }

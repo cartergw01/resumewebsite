@@ -5,6 +5,8 @@ import GalaxyBackground from "@/components/GalaxyBackground";
 import { siteConfig } from "@/lib/seo";
 import { workPageBio, workPageExperience } from "@/content/portfolio";
 import batchPhoto from "@/public/ikigai-batch.jpg";
+import IslandLine from "./IslandLine";
+import heading from "./PageHeading.module.css";
 import styles from "./WorkRoom.module.css";
 
 const [current, ...earlier] = workPageExperience;
@@ -133,7 +135,10 @@ export default function WorkRoom() {
       <GalaxyBackground page />
       <main className={styles.main} data-work-desk>
         <div className={styles.desk}>
-          <h1 className={styles.lead}>I invest &amp; support early-stage startups.</h1>
+          <header className={heading.header}>
+            <h1>Work</h1>
+            <p><IslandLine id="work" /></p>
+          </header>
 
           {/* Every section is the same shape: a title on the left, its content on the right. */}
           <div className={styles.workHistory}>

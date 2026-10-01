@@ -5,6 +5,7 @@ import IslandScrollTransport from "./IslandScrollTransport";
 import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
+import IslandLine from "./IslandLine";
 import { essays, projects } from "@/content/portfolio";
 import { siteConfig } from "@/lib/seo";
 import styles from "./IslandHome.module.css";
@@ -36,21 +37,17 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
     case "work":
       return <>
         <h2 id="work-heading"><a href="/work" data-enter-island>Work</a></h2>
-        <p className={styles.description}>
-          associate at <Out href="https://886studios.com">886 Studios</Out>, working on <Out href="https://withikigai.com">ikigai Launchpad</Out> in Taipei.
-        </p>
+        <p className={styles.description}><IslandLine id="work" /></p>
       </>;
     case "writing":
       return <>
         <h2 id="writing-heading"><a href="/writing" data-enter-island>Writing</a></h2>
-        <p className={styles.description}>
-          essays on human nature, culture, and technology at <Out href={siteConfig.social.substack}><em>flying Arrows</em></Out>.
-        </p>
+        <p className={styles.description}><IslandLine id="writing" /></p>
       </>;
     case "projects":
       return <>
         <h2 id="projects-heading"><a href="/projects" data-enter-island>Projects</a></h2>
-        <p className={styles.description}>fun projects i made.</p>
+        <p className={styles.description}><IslandLine id="projects" /></p>
       </>;
     case "hello":
       return <>
