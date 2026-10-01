@@ -117,7 +117,7 @@ async function startRocketLaunchProbe(page: Page, durationMs = 620) {
 
       const effectsCanvas = document.querySelector<HTMLCanvasElement>("[data-testid='rocket-effects-canvas']");
       const launchStillRendering = effectsCanvas?.dataset.animationState === "running"
-        && (probeWindow.__rocketProbeMaxScale ?? 0) < 3.05;
+        && (probeWindow.__rocketProbeMaxScale ?? 0) < 2.05;
       if (performance.now() < until || launchStillRendering) {
         requestAnimationFrame(tick);
       }
@@ -180,13 +180,15 @@ async function expectRocketReachedBalancedScale(page: Page) {
   await expect.poll(() => page.evaluate(() => {
     const probeWindow = window as RocketTestWindow;
     return probeWindow.__rocketProbeMaxScale ?? 0;
-  })).toBeGreaterThan(3.05);
+  })).toBeGreaterThan(2.05);
 
   const maxScale = await page.evaluate(() => {
     const probeWindow = window as RocketTestWindow;
     return probeWindow.__rocketProbeMaxScale ?? 0;
   });
-  expect(maxScale).toBeLessThanOrEqual(3.3);
+  // Takeoff growth is deliberately modest (1 + LAUNCH_SCALE_BOOST = 2.2, up
+  // to 2.6 from a hovered start) so the scale-linked plume stays slim.
+  expect(maxScale).toBeLessThanOrEqual(2.7);
 }
 
 async function startRocketReturnProbe(

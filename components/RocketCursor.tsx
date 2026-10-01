@@ -52,15 +52,15 @@ const LAUNCH_IGNITION_FRACTION = 0.30;
 const WARP_IN_DURATION = 240;   // ms
 const WARP_IN_SCALE_START = 0.84;
 const LAUNCH_TRAVEL_EXTRA = 180;
-const LAUNCH_SCALE_BOOST = 2.25;
+// The rocket grows less on takeoff; the plume's width follows its scale.
+const LAUNCH_SCALE_BOOST = 1.2;
 const LAUNCH_BOOST_LENGTH = 320;
 const LAUNCH_SHOCKWAVE_DELAY = 72;
-const LAUNCH_SHOCKWAVE_WIDE_DELAY = 138;
-const LAUNCH_SHOCKWAVE_LIFE = 38;
-const LAUNCH_SHOCKWAVE_LIFE_LARGE = 52;
-const LAUNCH_SHOCKWAVE_LIFE_WIDE = 64;
-const LAUNCH_IGNITION_PARTICLES = 22;
-const ROCKET_OPACITY_TRANSITION = "opacity 0.06s ease-out";
+const LAUNCH_SHOCKWAVE_LIFE = 30;
+const LAUNCH_SHOCKWAVE_LIFE_LARGE = 40;
+const LAUNCH_IGNITION_PARTICLES = 12;
+// Long enough that the rocket fades back in at the cursor rather than popping.
+const ROCKET_OPACITY_TRANSITION = "opacity 0.24s ease-out";
 const ROUTE_COMMIT_TIMEOUT = 8_000;
 
 type WorldAsset = {
@@ -577,9 +577,9 @@ export function RocketCursor() {
           y: sy + (Math.random() - 0.5) * 4,
           vx: Math.sin(spread) * ignitionSpeed,
           vy: Math.cos(spread) * ignitionSpeed + 0.6,
-          size: 1 + Math.random() * 2.8,
+          size: 0.6 + Math.random() * 1.6,
           life: 0,
-          maxLife: 32 + Math.random() * 24,
+          maxLife: 22 + Math.random() * 16,
           r: 255,
           g: 100 + Math.floor(Math.random() * 95),
           b: 5 + Math.floor(Math.random() * 28),
@@ -593,7 +593,7 @@ export function RocketCursor() {
         x: sx,
         y: sy,
         radius: 0,
-        maxRadius: cursorEnabled ? 130 : 96,
+        maxRadius: cursorEnabled ? 86 : 72,
         life: 0,
         maxLife: cursorEnabled ? LAUNCH_SHOCKWAVE_LIFE : 24,
         r: 255,
@@ -604,11 +604,8 @@ export function RocketCursor() {
       });
       if (cursorEnabled) {
         schedule(() => {
-          shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 215, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 110, b: 22, smooth: true, intensity: 1.08 });
+          shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 150, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_LARGE, r: 255, g: 110, b: 22, smooth: true, intensity: 0.8 });
         }, LAUNCH_SHOCKWAVE_DELAY);
-        schedule(() => {
-          shockwaves.push({ x: sx, y: sy, radius: 0, maxRadius: 300, life: 0, maxLife: LAUNCH_SHOCKWAVE_LIFE_WIDE, r: 255, g: 80, b: 12, smooth: true, intensity: 0.78 });
-        }, LAUNCH_SHOCKWAVE_WIDE_DELAY);
       }
 
       const finishLaunch = () => {
@@ -1121,17 +1118,17 @@ export function RocketCursor() {
         // unscaled rocket was 18 px, making the exhaust look detached from the
         // vehicle instead of driven by its boosters.
         const engineHalfWidth = ROCKET_ENGINE_HALF_WIDTH * renderedScale;
-        const plumeHalfWidth = engineHalfWidth * (0.82 + launchRamp * 0.18);
+        const plumeHalfWidth = engineHalfWidth * (0.6 + launchRamp * 0.1);
         // Launch boost is canvas-based because the rocket leaves the viewport.
         drawCone(plumeHalfWidth,        255,  45,   5, 0.21, flutter);
         drawCone(plumeHalfWidth * 0.50, 255, 135,  15, 0.61);
         drawCone(plumeHalfWidth * 0.24, 255, 240, 150, 0.95);
 
         const b2 = launchRamp * launchRamp;
-        drawCone(plumeHalfWidth * b2,        255,  65,  8, 0.24 * b2, 1);
-        drawCone(plumeHalfWidth * 0.55 * b2, 255, 160, 35, 0.42 * b2, 1);
+        drawCone(plumeHalfWidth * 0.8 * b2,  255,  65,  8, 0.22 * b2, 1);
+        drawCone(plumeHalfWidth * 0.45 * b2, 255, 160, 35, 0.38 * b2, 1);
 
-        const flareRadius = plumeHalfWidth * (1.15 + launchRamp * 0.18);
+        const flareRadius = plumeHalfWidth * (0.95 + launchRamp * 0.1);
         const bellGlow = ctx.createRadialGradient(exhaustX, exhaustY, 0, exhaustX, exhaustY, flareRadius);
         bellGlow.addColorStop(0,    `rgba(255, 250, 220, ${0.86 * plumeStr * flicker})`);
         bellGlow.addColorStop(0.28, `rgba(255, 175,  55, ${0.46 * plumeStr * flicker})`);
@@ -1157,15 +1154,15 @@ export function RocketCursor() {
       const emitCount = Math.min(requestedParticles, PARTICLE_CAP - particles.length);
       if (emitCount > 0) {
         for (let i = 0; i < emitCount; i++) {
-          const driftSpd = 0.22 + Math.random() * 0.86;
+          const driftSpd = 0.9 + Math.random() * 1.4;
           particles.push({
             x:       tipX + (Math.random() - 0.5) * 8,
             y:       tipY + (Math.random() - 0.5) * 6,
             vx:      pDirX * driftSpd + (Math.random() - 0.5) * 0.24,
             vy:      pDirY * driftSpd + (Math.random() - 0.5) * 0.24,
-            size:    0.65 + Math.random() * 3.4,
+            size:    0.5 + Math.random() * 1.8,
             life:    0,
-            maxLife: 34 + Math.random() * 24,
+            maxLife: 18 + Math.random() * 14,
             r:       255,
             g:       110 + Math.floor(Math.random() * 70),
             b:        10 + Math.floor(Math.random() * 30),
