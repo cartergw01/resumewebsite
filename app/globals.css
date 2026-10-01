@@ -485,6 +485,17 @@ select {
   grid-column: 2;
 }
 
+/* Back to islands: the same upper-left spot on every subpage. */
+.site-nav a.site-nav-return {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  gap: 0.45rem;
+  pointer-events: auto;
+}
+.site-nav-return svg { transition: transform 200ms var(--cw-ease); }
+.site-nav-return:hover svg, .site-nav-return:focus-visible svg { transform: translateX(-3px); }
+
 .site-nav-social {
   grid-column: 3;
   justify-self: end;
@@ -2502,6 +2513,13 @@ select {
     height: 40px;
     padding: 0 2px;
   }
+
+  /* Phones: Back to islands keeps the upper-left corner as an arrow. */
+  .site-nav[data-destination-nav] { grid-template-columns: auto auto 1fr auto; }
+  .site-nav[data-destination-nav] .site-nav-primary { grid-column: 2; }
+  .site-nav[data-destination-nav] .site-nav-social { grid-column: 4; }
+  .site-nav a.site-nav-return { padding: 0 8px; }
+  .site-nav-return-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   .site-nav a {
     position: relative;

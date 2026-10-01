@@ -78,6 +78,15 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
 
   return (
     <header className="site-nav" data-destination-nav={destination || undefined} data-scrolled={scrolled}>
+      {/* Every subpage returns to its island from the same upper-left spot. */}
+      {destination && (
+        <Link href={`/2.0#${active === "resume" ? "work" : active}`} scroll={false} className="site-nav-return" aria-label="Back to islands">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M13 8H3m0 0 4.5-4.5M3 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="site-nav-return-label">Back to islands</span>
+        </Link>
+      )}
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
           {/* Home stays on the live homepage; point it at /2.0 islands once that design launches. */}
