@@ -4,6 +4,7 @@
 /* Five stops: 100svh of stage plus about 88svh per crossing. */
 .track { position: relative; height: 496svh; }
 .stage {
+  --island-grade: brightness(1.45) saturate(1.32) contrast(1.025);
   --camera-progress: 0;
   --camera-path: 0;
   --camera-arc: 0;
@@ -160,6 +161,9 @@
   filter: brightness(var(--island-light, 1)) drop-shadow(0 32px 36px #0005);
   transition: transform 450ms var(--cw-ease);
 }
+/* Grade the rendered media separately from arrival lighting and live page
+   previews, so video, stills and distant islands share the same exposure. */
+.island > img, .island > video, .overviewImage { filter: var(--island-grade); }
 .projects .island { width: 91%; max-height: 100%; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
@@ -181,7 +185,7 @@
   .overviewIsland[data-overview-island="writing"] { left: 43%; top: 29%; width: 48%; height: 48%; }
   .overviewIsland[data-overview-island="projects"] { left: 10%; top: 57%; width: 48%; height: 48%; }
 }
-.overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: brightness(0.85) drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
+.overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
 .overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
 /* A shared slow drift, offset per island; Work holds still because the
    camera's first zoom targets its exact position. */
@@ -191,13 +195,12 @@
 /* Labels leave with the other annotations as soon as the camera moves. */
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
 .overviewIsland .overviewLabel { bottom: 4%; }
-.overview.outro .overviewIsland { filter: brightness(0.7) drop-shadow(0 24px 28px #0005); }
 .overviewIsland:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 0.25rem; border-radius: 1rem; }
-.overviewIsland:focus-visible, .overview.outro .overviewIsland:focus-visible { filter: brightness(1) drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
+.overviewIsland:focus-visible { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
 .overviewIsland:focus-visible .overviewImage { transform: translateY(-6px) scale(1.03); }
 .overviewIsland:focus-visible .overviewLabel { color: #fff1d7; }
 @media (hover: hover) and (pointer: fine) {
-  .overviewIsland:hover, .overview.outro .overviewIsland:hover { filter: brightness(1) drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
+  .overviewIsland:hover { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
   .overviewIsland:hover .overviewImage { transform: translateY(-6px) scale(1.03); }
   .overviewIsland:hover .overviewLabel { color: #fff1d7; }
 }
