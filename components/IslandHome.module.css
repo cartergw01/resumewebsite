@@ -362,6 +362,7 @@
   .copy { max-width: 24rem; }
   .description { max-width: 30ch; }
   .art { right: -7%; width: 71%; }
+  .overviewIsland[data-overview-island="projects"] { left: 48%; }
 }
 @media (max-width: 760px) {
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
