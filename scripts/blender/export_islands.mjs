@@ -21,5 +21,20 @@ for (const world of ["work", "writing", "projects"]) {
   await writeFile(path.join(output, name), image);
   metadata[world].src = `/blender/${name}`;
 }
+// Fingerprint both loop formats together so a re-render cannot leave browsers
+// displaying an older scene over the new still and interaction coordinates.
+const loops = await Promise.all(["mov", "webm"].map(async (extension) => ({
+  extension,
+  buffer: await readFile(path.join(input, `writing-loop.${extension}`)),
+})));
+const videoHash = createHash("sha256");
+for (const { buffer } of loops) videoHash.update(buffer);
+const videoFingerprint = videoHash.digest("hex").slice(0, 8);
+metadata.writing.video = {};
+for (const { extension, buffer } of loops) {
+  const name = `writing-loop-${videoFingerprint}.${extension}`;
+  await writeFile(path.join(output, name), buffer);
+  metadata.writing.video[extension] = `/blender/${name}`;
+}
 await writeFile(path.join(root, "lib/blender-islands.json"), JSON.stringify(metadata, null, 2) + "\n");
-console.log("Exported three transparent Blender renders and matching interaction anchors.");
+console.log("Exported three transparent Blender renders, the Writing loop, and matching interaction anchors.");

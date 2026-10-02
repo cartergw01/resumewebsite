@@ -45,7 +45,7 @@ test("reduced motion keeps the Blender still and responds to preference changes"
 });
 
 test("a video download failure leaves the artwork and island entry usable", async ({ page }) => {
-  await page.route("**/blender/writing-loop.*", (route) => route.abort());
+  await page.route("**/blender/writing-loop-*.*", (route) => route.abort());
   await page.goto("/2.0#writing");
   const visual = page.locator("#writing [data-island-visual]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");

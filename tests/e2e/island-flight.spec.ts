@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import artwork from "../../lib/blender-islands.json" with { type: "json" };
 
 async function cross(page: Page, journey: number, progress: number) {
   await page.evaluate(({ journey, progress }) => {
@@ -78,12 +79,14 @@ test("island settles before its lights, heading, and annotation arrive", async (
 });
 
 test("entry centers each landmark, including when clicked during flight", async ({ page }) => {
-  for (const [world, name, fx, fy, midFlight] of [
-    ["work", "Taipei tower", 0.588, 0.278, false],
-    ["writing", "open book", 0.52, 0.43, false],
-    ["projects", "workshop laptop", 0.705, 0.345, false],
-    ["work", "Taipei tower", 0.588, 0.278, true],
+  for (const [world, name, midFlight] of [
+    ["work", "Taipei tower", false],
+    ["writing", "open book", false],
+    ["projects", "workshop laptop", false],
+    ["work", "Taipei tower", true],
   ] as const) {
+    const fx = artwork[world].landmark[0] / artwork[world].width;
+    const fy = artwork[world].landmark[1] / artwork[world].height;
     await page.goto(`/2.0#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     if (midFlight) await cross(page, 1, 0.3);

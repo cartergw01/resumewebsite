@@ -142,7 +142,7 @@
 .cityCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
 .cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
 .bookCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
-.bookCue > span { right: 17%; top: 19%; transform: rotate(6deg); }
+.bookCue > span { right: 17%; top: -1%; transform: rotate(6deg); }
 .workshopCue { width: min(91cqw, 150cqh); height: min(60.6667cqw, 100cqh); }
 .workshopCue > span { right: 19%; bottom: 0; transform: rotate(4deg); }
 .islandLink:focus-visible .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
@@ -169,20 +169,17 @@
 @media (prefers-reduced-motion: reduce) { .scene[data-active="true"] .island { animation: none; } }
 /* Opening and closing views: all three islands at a distance. */
 .overview { position: relative; display: block; width: 100%; height: 100%; }
-/* Three equal islands in an irregular zig-zag (high, low, between) so no one
-   of them sits on a peak. Match the Blender renders' visible silhouettes:
-   the city/workshop fill 63% of their images, and the wide desk fills 84%. Work's box
-   keeps the art box's proportions, since the first zoom scales it to fill it.
-   Nothing starts left of the art box, so the islands clear the hero text. */
+/* Match the visible size of the rebuilt city, study and workshop. Work's box
+   keeps the art box's proportions because the first journey zooms from it. */
 .overviewIsland[data-overview-island="work"] { left: 0%; top: 8%; width: 44.2%; height: 44.2%; }
-.overviewIsland[data-overview-island="writing"] { left: 35%; top: 53%; width: 33.5%; height: 33.5%; }
-.overviewIsland[data-overview-island="projects"] { left: 55%; top: 21%; width: 44.2%; height: 44.2%; }
+.overviewIsland[data-overview-island="writing"] { left: 32%; top: 53%; width: 42.3%; height: 42.3%; }
+.overviewIsland[data-overview-island="projects"] { left: 57%; top: 18%; width: 42.3%; height: 42.3%; }
 @media (max-width: 760px) {
   /* Phones zig-zag down the tall art box (left, right, left) so each island
      can be far larger than a third of the screen's width. */
   .overviewIsland[data-overview-island="work"] { left: 7%; top: -3%; width: 50%; height: 50%; }
-  .overviewIsland[data-overview-island="writing"] { left: 48%; top: 31%; width: 38%; height: 38%; }
-  .overviewIsland[data-overview-island="projects"] { left: 12%; top: 54%; width: 50%; height: 50%; }
+  .overviewIsland[data-overview-island="writing"] { left: 43%; top: 29%; width: 48%; height: 48%; }
+  .overviewIsland[data-overview-island="projects"] { left: 10%; top: 57%; width: 48%; height: 48%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: brightness(0.85) drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
 .overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
@@ -378,7 +375,7 @@
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: 100%; min-height: 0; margin-inline: -3rem; }
   .island { max-height: 50dvh; }
   .landmarkCue { font-size: 1rem; }
-  .bookCue > span { top: 12%; }
+  .bookCue > span { top: -5%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   .chapters { justify-content: space-between; gap: 1rem; }
   .chapters button { flex: 1; min-width: 0; }

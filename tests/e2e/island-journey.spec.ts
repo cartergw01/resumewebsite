@@ -216,15 +216,16 @@ test("tapping the selected island tab opens its page", async ({ page }) => {
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
 });
 
-test("off-screen islands wait for the first sign of travel", async ({ page }) => {
+test("off-screen islands wait for the first sign of travel", async ({ page }, testInfo) => {
   // Full-size island files; the opening view uses small optimized previews.
   const requested: string[] = [];
-  page.on("request", (request) => { if (/^\/(world-|_next\/static\/media\/taipei-flix)/.test(new URL(request.url()).pathname)) requested.push(request.url()); });
+  page.on("request", (request) => { if (/^\/(blender\/island-|_next\/static\/media\/taipei-flix)/.test(new URL(request.url()).pathname)) requested.push(request.url()); });
   await page.goto("/2.0");
   await expect.poll(() => page.locator("#intro img").first().evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(page.locator("#work [data-island-visual] img")).toHaveCount(0);
   expect(requested).toEqual([]);
-  await page.mouse.wheel(0, 120);
+  if (testInfo.project.name === "desktop") await page.mouse.wheel(0, 120);
+  else await page.getByRole("button", { name: "Scroll to the Work island" }).tap();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true");
   await expect.poll(() => requested.length).toBeGreaterThanOrEqual(3);
   await expect(page.locator("#work [data-island-visual] img")).toHaveCount(1);

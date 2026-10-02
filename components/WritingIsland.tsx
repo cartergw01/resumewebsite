@@ -74,8 +74,8 @@ export default function WritingIsland({ essay, titles }: { essay: EssayPreview; 
             aria-hidden="true" disablePictureInPicture
             onPlaying={() => setReady(true)} onError={() => setReady(false)}
           >
-            <source src="/blender/writing-loop.mov" type={'video/quicktime; codecs="hvc1"'} />
-            <source src="/blender/writing-loop.webm" type={'video/webm; codecs="vp9"'} />
+            <source src={island.video.mov} type={'video/quicktime; codecs="hvc1"'} />
+            <source src={island.video.webm} type={'video/webm; codecs="vp9"'} />
           </video>
           <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response>
             <defs>
