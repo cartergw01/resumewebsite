@@ -98,7 +98,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     let cancelled = false;
     if (workshop || book) {
       screenTimer = window.setTimeout(() => {
-        const screen = visual.querySelector<SVGImageElement>("[data-workshop-screen]");
+        const screen = visual.querySelector<SVGGraphicsElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);

@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
-import { artworkPlane, islandArtwork } from "@/lib/island-artwork";
+import PerspectiveArtwork from "./PerspectiveArtwork";
+import { artworkOutline, islandArtwork } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 
@@ -56,12 +57,12 @@ export default function LivingIsland({ world, preview, posters }: { world: "work
         {world === "work" ? <>
           <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.windows} fill="#ffd69b">
-              {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="1.8" />)}
+              {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.65" />)}
             </g>
           </svg>
           <svg className={motionStyles.cityDetails} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.towerWelcome} fill="#dfecff">
-              <circle cx={city.tower[0]} cy={city.tower[1]} r="2.4" />
+              <circle cx={city.tower[0]} cy={city.tower[1]} r="1.1" />
             </g>
           </svg>
         </> : <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
@@ -69,7 +70,7 @@ export default function LivingIsland({ world, preview, posters }: { world: "work
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />
           </g>
           <g className={motionStyles.bulbs} fill="#fff0c6">
-            {workshop.bulbs.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="3" />)}
+            {workshop.bulbs.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.9" />)}
           </g>
         </svg>}
         {world === "projects" && preview && warm ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">
@@ -77,10 +78,12 @@ export default function LivingIsland({ world, preview, posters }: { world: "work
             <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
           </defs>
           <ellipse className={motionStyles.screenSpill} cx={workshop.screenGlow[0]} cy={workshop.screenGlow[1]} rx="64" ry="24" fill="url(#workshop-screen-spill)" />
-          <g transform={artworkPlane(workshop.screen, 320, 200)}>
-            <image className={motionStyles.screenPreview} data-workshop-screen data-posters={JSON.stringify(posters ?? [preview])} href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
-            <rect className={motionStyles.screenRim} width="320" height="200" rx="3" fill="none" stroke="#ffe2ba" strokeWidth="5" />
+          <g className={motionStyles.screenPreview} data-workshop-screen data-src={preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
+            <PerspectiveArtwork corners={workshop.screen} width={320} height={200}>
+              <image href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
+            </PerspectiveArtwork>
           </g>
+          <path className={motionStyles.screenRim} d={artworkOutline(workshop.screen)} fill="none" stroke="#ffe2ba" strokeWidth="0.6" />
         </svg> : null}
       </span>
     </IslandLink>

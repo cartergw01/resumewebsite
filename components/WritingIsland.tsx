@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
-import { artworkOutline, artworkPlane, islandArtwork } from "@/lib/island-artwork";
+import PerspectiveArtwork from "./PerspectiveArtwork";
+import { artworkOutline, islandArtwork } from "@/lib/island-artwork";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import styles from "./IslandHome.module.css";
 
@@ -92,9 +93,11 @@ export default function WritingIsland({ essay, titles }: { essay: EssayPreview; 
           <svg className={styles.bookDetails} viewBox="0 0 1200 800" aria-hidden="true">
             <ellipse className={styles.readingLamp} cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
             {/* These planes are projected from the actual Blender notebook. */}
-            <rect data-book-spread data-titles={JSON.stringify(titles)} width="640" height="400" fill="none" transform={artworkPlane(island.spread, 640, 400)} />
-            <g className={styles.printedPage} transform={artworkPlane(island.page, 320, 400)}>
-              <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
+            <path data-book-spread data-corners={JSON.stringify(island.spread)} data-titles={JSON.stringify(titles)} fill="none" d={artworkOutline(island.spread)} />
+            <g className={styles.printedPage}>
+              <PerspectiveArtwork corners={island.page} width={320} height={400}>
+                <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
+              </PerspectiveArtwork>
             </g>
           </svg>
         </span>

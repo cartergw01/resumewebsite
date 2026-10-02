@@ -35,7 +35,7 @@ test("the workshop screen fans out every project and deals each into its row", a
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/2.0#projects");
   const source = page.locator("[data-workshop-screen]");
-  const src = await source.getAttribute("href");
+  const src = await source.getAttribute("data-src");
   await page.locator("#projects [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   const carry = page.locator("body > [data-workshop-transition]");

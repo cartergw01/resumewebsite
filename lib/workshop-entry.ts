@@ -1,4 +1,5 @@
 import styles from "@/components/WorkshopEntry.module.css";
+import { artworkTransform } from "./island-artwork";
 
 type Entry = {
   kind: "workshop" | "book";
@@ -20,9 +21,9 @@ let entry: Entry | null = null;
 const plane = (x: number, y: number, width: number, height: number, sourceWidth: number, sourceHeight: number) =>
   `matrix(${width / sourceWidth},0,0,${height / sourceHeight},${x},${y})`;
 
-export function beginWorkshopEntry(source: SVGImageElement) {
+export function beginWorkshopEntry(source: SVGGraphicsElement) {
   const posters: string[] = JSON.parse(source.dataset.posters ?? "[]");
-  if (!posters.length) posters.push(source.href.baseVal);
+  if (!posters.length) posters.push(source.dataset.src ?? "");
   // Stacked last-to-first, so the laptop's own screen starts on top.
   const deck = document.createDocumentFragment();
   posters.map((src, index) => {
@@ -38,7 +39,6 @@ export function beginWorkshopEntry(source: SVGImageElement) {
   return beginEntry(source, deck, "workshop", 320, 200);
 }
 
-const matrixOf = (m: DOMMatrix) => `matrix(${m.a},${m.b},${m.c},${m.d},${m.e},${m.f})`;
 // A card of the given width, centred at (x, y) and turned by `angle` degrees,
 // expressed against its 320x200 layout box and a top-left transform origin.
 function cardPose(x: number, y: number, width: number, angle: number) {
@@ -96,6 +96,15 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     screen.style.width = `${layoutWidth}px`;
     screen.style.height = `${layoutHeight}px`;
   }
+  const projected: number[][] = JSON.parse(source.dataset.corners ?? "[]");
+  if (projected.length !== 4) return null;
+  // getScreenCTM still returns SVGMatrix in some engines, which has no
+  // DOMMatrix.transformPoint method. Its six affine coefficients are portable.
+  const corners = projected.map(([x, y]) => [
+    matrix.a * x + matrix.c * y + matrix.e,
+    matrix.b * x + matrix.d * y + matrix.f,
+  ]);
+  const startTransform = artworkTransform(corners, layoutWidth, layoutHeight);
   screen.append(content);
   overlay.append(backdrop, screen);
   document.body.append(overlay);
@@ -124,11 +133,9 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
 
   if (kind === "book") {
     // Start exactly on the island's pages, then flatten until they fill the view.
-    const sx = sourceWidth / layoutWidth;
-    const sy = sourceHeight / layoutHeight;
     screen.style.transform = "none";
     current.animations.push(screen.animate([
-      { transform: `matrix(${matrix.a * sx},${matrix.b * sx},${matrix.c * sy},${matrix.d * sy},${matrix.e},${matrix.f})` },
+      { transform: startTransform },
       { transform: "matrix(1,0,0,1,0,0)" },
     ], { duration: 1200, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
     current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: "ease-in", fill: "forwards" }));
@@ -151,7 +158,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const x = centerX + radius * Math.sin(radians);
     const y = centerY + radius * (1 - Math.cos(radians));
     current.animations.push(card.animate([
-      { transform: matrixOf(matrix), offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
+      { transform: startTransform, offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
       { transform: cardPose(centerX, centerY, width, 0), offset: 0.5, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
       { transform: cardPose(x, y, width, angle), offset: 1 },
     ], { duration: 1200, fill: "forwards" }));
