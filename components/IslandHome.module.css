@@ -4,7 +4,7 @@
 /* Five stops: 100svh of stage plus about 88svh per crossing. */
 .track { position: relative; height: 496svh; }
 .stage {
-  --island-grade: brightness(1.45) saturate(1.32) contrast(1.025);
+  --island-grade: brightness(1.16) saturate(1.10) contrast(1.02);
   --camera-progress: 0;
   --camera-path: 0;
   --camera-arc: 0;

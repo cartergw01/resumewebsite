@@ -20,10 +20,16 @@ scenes; no generated image backplates are used.
   storage, an open electronics enclosure, circuit-board components, soldering
   station, cables, caliper and laptop. It uses the same furniture scale.
 
-The sky shader provides reflections; local lights illuminate the working
-surfaces. The camera uses perspective without miniature depth-of-field blur.
-The rock foundation is a continuous irregular mesh rather than repeated round
-boulders. All materials are procedural and editable in the saved scenes.
+The sky shader provides reflections; broad, neutral daylight keeps the matte
+surfaces readable, with local lights illuminating the working surfaces. The
+camera uses perspective without miniature depth-of-field blur.
+
+The shared foundation has chipped stone faces, an uneven soil rim, continuous
+moss patches, embedded gravel, fine grass and exposed roots. Walnut, oak and
+reclaimed floorboards have directional grain and varying roughness. Lime plaster,
+flax cloth, worn leather and unglazed terracotta keep the interiors earthy;
+architectural glass and bare metal retain their distinct reflective finish.
+All materials are procedural and editable in the saved scenes.
 
 ### Architectural reference sources
 

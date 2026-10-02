@@ -26,7 +26,7 @@ WINDOWS = []
 ANIMATED = []
 
 
-def material(name, color, metal=0, rough=0.45, emission=0):
+def material(name, color, metal=0, rough=0.65, emission=0):
     mat = bpy.data.materials.new(name)
     mat.diffuse_color = (*color, 1)
     mat.use_nodes = True
@@ -34,75 +34,107 @@ def material(name, color, metal=0, rough=0.45, emission=0):
     bs.inputs['Base Color'].default_value = (*color, 1)
     bs.inputs['Metallic'].default_value = metal
     bs.inputs['Roughness'].default_value = rough
+    bs.inputs['Specular IOR Level'].default_value = .28
     if emission:
         bs.inputs['Emission Color'].default_value = (*color, 1)
         bs.inputs['Emission Strength'].default_value = emission
     return mat
 
 
-def textured(name, dark, pale, kind='stone', metal=0, rough=.7):
-    """Object-space materials remain self contained in the saved Blender scene."""
+def textured(name, dark, pale, kind='stone', metal=0, rough=.85, grain=None):
+    """Matte, multiscale surfaces: grain changes color, normal and roughness."""
     mat = material(name, dark, metal, rough)
     nodes, links = mat.node_tree.nodes, mat.node_tree.links
     bs = nodes.get('Principled BSDF')
+    bs.inputs['Specular IOR Level'].default_value = .22 if not metal else .35
     coord = nodes.new('ShaderNodeTexCoord')
     mapping = nodes.new('ShaderNodeVectorMath'); mapping.operation='MULTIPLY'
-    mapping.inputs[1].default_value = (1.5, 38, 5) if kind=='wood' else (1, 1, 1)
+    mapping.inputs[1].default_value = grain or ((1.2, 32, 5) if kind=='wood' else (1, 1, 1))
     links.new(coord.outputs['Object'], mapping.inputs[0])
-    noise = nodes.new('ShaderNodeTexNoise')
-    noise.inputs['Scale'].default_value = 3.5 if kind=='wood' else 5
-    noise.inputs['Detail'].default_value = 5
-    noise.inputs['Roughness'].default_value = .72
-    links.new(mapping.outputs[0], noise.inputs['Vector'])
+    texture = nodes.new('ShaderNodeTexNoise')
+    texture.inputs['Scale'].default_value = 3 if kind=='wood' else 5
+    texture.inputs['Detail'].default_value = 5
+    texture.inputs['Roughness'].default_value = .78
+    links.new(mapping.outputs[0], texture.inputs['Vector'])
     ramp = nodes.new('ShaderNodeValToRGB')
-    ramp.color_ramp.elements[0].position=.16
+    ramp.color_ramp.elements[0].position=.23
     ramp.color_ramp.elements[0].color=(*dark,1)
-    ramp.color_ramp.elements[1].position=.84
+    ramp.color_ramp.elements[1].position=.78
     ramp.color_ramp.elements[1].color=(*pale,1)
-    links.new(noise.outputs['Fac'],ramp.inputs[0]); links.new(ramp.outputs[0],bs.inputs['Base Color'])
-    fine=nodes.new('ShaderNodeTexNoise'); fine.inputs['Scale'].default_value=90 if kind=='wood' else 72
+    links.new(texture.outputs['Fac'],ramp.inputs[0]); links.new(ramp.outputs[0],bs.inputs['Base Color'])
+    # Material-specific relief avoids using the same cloudy bump on everything.
+    profiles = {
+        'wood': (65,.006,.007), 'stone': (48,.028,.075),
+        'soil': (65,.019,.040), 'moss': (85,.026,.028),
+        'plaster': (95,.008,.006), 'fabric': (150,.004,.001),
+        'paper': (150,.0006,.0002), 'metal': (90,.001,.001),
+    }
+    scale, distance, broad_distance = profiles.get(kind,profiles['stone'])
+    fine=nodes.new('ShaderNodeTexNoise'); fine.inputs['Scale'].default_value=scale
     fine.inputs['Detail'].default_value=3
     links.new(mapping.outputs[0],fine.inputs['Vector'])
-    bump=nodes.new('ShaderNodeBump'); bump.inputs['Strength'].default_value=.18
-    bump.inputs['Distance'].default_value=.0015 if kind=='wood' else .005
+    bump=nodes.new('ShaderNodeBump'); bump.inputs['Strength'].default_value=.38
+    bump.inputs['Distance'].default_value=distance
     links.new(fine.outputs['Fac'],bump.inputs['Height'])
-    broad=nodes.new('ShaderNodeBump'); broad.inputs['Strength'].default_value=.15
-    broad.inputs['Distance'].default_value=.002 if kind=='wood' else .013
-    links.new(noise.outputs['Fac'],broad.inputs['Height'])
-    links.new(broad.outputs[0],bump.inputs['Normal']); links.new(bump.outputs[0],bs.inputs['Normal'])
+    broad=nodes.new('ShaderNodeBump'); broad.inputs['Strength'].default_value=.35
+    broad.inputs['Distance'].default_value=broad_distance
+    links.new(texture.outputs['Fac'],broad.inputs['Height'])
+    links.new(broad.outputs[0],bump.inputs['Normal'])
+    normal=bump.outputs[0]
+    if kind=='stone':
+        cracks=nodes.new('ShaderNodeTexVoronoi'); cracks.feature='DISTANCE_TO_EDGE'
+        cracks.inputs['Scale'].default_value=7
+        links.new(coord.outputs['Object'],cracks.inputs['Vector'])
+        fissure=nodes.new('ShaderNodeValToRGB')
+        fissure.color_ramp.elements[0].position=.012
+        fissure.color_ramp.elements[1].position=.055
+        links.new(cracks.outputs['Distance'],fissure.inputs[0])
+        fracture=nodes.new('ShaderNodeBump'); fracture.inputs['Strength'].default_value=.48
+        fracture.inputs['Distance'].default_value=.032
+        links.new(fissure.outputs[0],fracture.inputs['Height'])
+        links.new(normal,fracture.inputs['Normal']);normal=fracture.outputs[0]
+    links.new(normal,bs.inputs['Normal'])
+    roughness=nodes.new('ShaderNodeMapRange')
+    roughness.inputs['From Min'].default_value=.15;roughness.inputs['From Max'].default_value=.85
+    roughness.inputs['To Min'].default_value=max(.25,rough-.10)
+    roughness.inputs['To Max'].default_value=min(1,rough+.09)
+    links.new(texture.outputs['Fac'],roughness.inputs['Value'])
+    links.new(roughness.outputs[0],bs.inputs['Roughness'])
     return mat
 
 
 def palette():
     global P
     P = {
-        'rock': textured('Fractured slate · mineral grain',(.026,.032,.031),(.17,.18,.16)),
-        'rock2': textured('Weathered stone · strata',(.038,.044,.039),(.22,.21,.17)),
-        'rock3': textured('Deep mineral seams',(.012,.017,.018),(.07,.08,.075)),
-        'stone': textured('Weathered limestone',(.095,.105,.10),(.25,.26,.23)),
-        'soil': textured('Damp earth',(.024,.019,.013),(.095,.078,.042)),
-        'jade': material('Muted green enamel',(.07,.13,.105),metal=.22,rough=.34),
-        'teal': material('Charcoal painted steel',(.018,.032,.036),metal=.35,rough=.32),
-        'glass': material('Blue green architectural glazing',(.045,.115,.115),metal=.48,rough=.17),
-        'glass2': material('Bronze architectural glazing',(.105,.098,.085),metal=.62,rough=.27),
-        'glass3': material('Silver architectural glazing',(.19,.23,.24),metal=.65,rough=.28),
-        'concrete': textured('Architectural concrete',(.22,.225,.21),(.28,.286,.266)),
-        'brick': textured('Fired clay brick',(.12,.055,.035),(.28,.14,.08)),
-        'brass': textured('Patinated brass',(.16,.105,.038),(.40,.29,.13),metal=.76,rough=.37),
-        'copper': material('Oxidised copper',(.19,.10,.063),metal=.55,rough=.48),
-        'wood': textured('Oiled walnut · long grain',(.055,.026,.012),(.24,.12,.048),'wood',rough=.46),
-        'oak': textured('Worn oak · long grain',(.14,.074,.033),(.38,.24,.12),'wood',rough=.51),
-        'paper': textured('Warm rag paper',(.72,.70,.65),(.86,.84,.79),rough=.82),
-        'page': material('Fine page edges',(.55,.49,.38),rough=.8),
-        'ink': material('Soft black rubber',(.012,.017,.02),rough=.57),
-        'moss': textured('Ground moss',(.022,.045,.018),(.12,.16,.063)),
-        'leaf': material('Leaf green',(.10,.17,.063),rough=.72),
-        'leaf2': material('Shadow foliage',(.033,.077,.035),rough=.81),
-        'leaf3': material('Young foliage',(.18,.24,.09),rough=.72),
-        'clay': textured('Unglazed terracotta',(.22,.082,.043),(.45,.22,.11)),
-        'leather': textured('Tanned leather',(.045,.018,.013),(.14,.060,.023),rough=.52),
-        'linen': textured('Woven book cloth',(.13,.17,.18),(.26,.31,.30),rough=.9),
-        'redcloth': textured('Burgundy book cloth',(.08,.024,.021),(.23,.075,.043),rough=.9),
+        'rock': textured('Weathered shale · fractured mineral grain',(.050,.046,.033),(.22,.20,.15)),
+        'rock2': textured('Ochre mineral faces',(.075,.058,.035),(.28,.23,.15)),
+        'rock3': textured('Deep mineral seams',(.023,.025,.019),(.095,.091,.067)),
+        'stone': textured('Weathered limestone',(.15,.145,.12),(.32,.30,.245)),
+        'soil': textured('Exposed humus and grit',(.045,.026,.015),(.18,.12,.06),'soil',rough=.97),
+        'jade': material('Weathered green paint',(.065,.105,.075),metal=.05,rough=.72),
+        'teal': textured('Worn charcoal painted steel',(.025,.036,.032),(.065,.077,.06),'metal',metal=.12,rough=.68),
+        'glass': material('Blue green architectural glazing',(.045,.105,.095),metal=.40,rough=.24),
+        'glass2': material('Bronze architectural glazing',(.105,.098,.085),metal=.50,rough=.32),
+        'glass3': material('Silver architectural glazing',(.19,.23,.24),metal=.58,rough=.31),
+        'concrete': textured('Mineral architectural concrete',(.235,.23,.20),(.33,.325,.29),'plaster',rough=.9),
+        'plaster': textured('Hand trowelled lime plaster',(.30,.275,.225),(.45,.42,.35),'plaster',rough=.94),
+        'brick': textured('Fired clay brick',(.12,.055,.035),(.28,.14,.08),'plaster'),
+        'brass': textured('Patinated brass',(.16,.105,.038),(.40,.29,.13),'metal',metal=.76,rough=.48),
+        'copper': material('Oxidised copper',(.19,.10,.063),metal=.45,rough=.62),
+        'wood': textured('Weathered walnut · open grain',(.072,.044,.025),(.25,.17,.095),'wood',rough=.83),
+        'oak': textured('Unvarnished oak · open grain',(.16,.11,.064),(.38,.285,.175),'wood',rough=.86),
+        'floorwood': textured('Reclaimed floorboards · lengthwise grain',(.065,.046,.026),(.24,.18,.10),'wood',rough=.9,grain=(32,1.2,5)),
+        'paper': textured('Warm rag paper',(.72,.70,.65),(.86,.84,.79),'paper',rough=.94),
+        'page': material('Fine page edges',(.55,.49,.38),rough=.9),
+        'ink': material('Soft black rubber',(.012,.017,.02),rough=.78),
+        'moss': textured('Lichen and moss',(.038,.062,.020),(.18,.22,.075),'moss',rough=.98),
+        'leaf': material('Leaf green',(.095,.145,.046),rough=.83),
+        'leaf2': material('Shadow foliage',(.039,.070,.021),rough=.9),
+        'leaf3': material('Young foliage',(.19,.23,.065),rough=.82),
+        'clay': textured('Unglazed terracotta',(.19,.083,.047),(.37,.20,.11),'plaster',rough=.93),
+        'leather': textured('Worn tanned leather',(.051,.028,.018),(.15,.09,.050),'fabric',rough=.76),
+        'linen': textured('Natural flax cloth',(.20,.205,.165),(.34,.335,.265),'fabric',rough=.97),
+        'redcloth': textured('Faded rust book cloth',(.095,.049,.035),(.24,.13,.08),'fabric',rough=.96),
         'light': material('Warm practical lights',(1,.67,.30),emission=3),
         'window': material('Warm occupied offices',(.83,.55,.26),emission=.65),
         'window2': material('Cool occupied offices',(.54,.68,.72),emission=.42),
@@ -113,6 +145,14 @@ def palette():
         'paving': textured('Urban pavers',(.085,.087,.082),(.16,.165,.157),rough=.77),
         'steel': material('Brushed aluminium',(.30,.33,.34),metal=.83,rough=.3),
     }
+    # Continuous patches follow the surface rather than the mesh's triangle grid.
+    ground=textured('Earth · irregular moss and exposed humus',(.065,.040,.018),(.16,.19,.064),'soil',rough=.98)
+    ramp=next(n for n in ground.node_tree.nodes if n.type=='VALTORGB')
+    ramp.color_ramp.elements[0].position=.30
+    ramp.color_ramp.elements[1].position=.66
+    ramp.color_ramp.elements.new(.48).color=(.13,.087,.038,1)
+    ramp.color_ramp.elements.new(.55).color=(.065,.092,.025,1)
+    P['ground']=ground
 
 def finish(obj, name, mat, bevel=0):
     obj.name = name
@@ -224,45 +264,72 @@ def foliage(name, center, scale, rng, count=220):
 
 def foundation(seed):
     rng=random.Random(seed)
-    count=144; verts=[]; rings=[]
-    # A continuous fractured mass: broad geological forms, no repeated boulders.
-    contour=[1+.055*math.sin(i*math.tau/count*3)+.035*math.cos(i*math.tau/count*7) for i in range(count)]
-    for k in range(33):
-        t=k/32; z=-3.05*t
-        radius=(1-t)**.80*.975+.025
+    count=192; levels=64; verts=[]; rings=[]; faces=[]; materials=[]
+    # Broken cliff contours replace the old smooth, periodically stacked rings.
+    outline=[rng.uniform(.91,1.05) for _ in range(24)]
+    def point(a,t):
+        phase=(a%math.tau)/math.tau*24;i=int(phase);f=phase-i
+        edge=outline[i%24]*(1-f)+outline[(i+1)%24]*f
+        coarse=noise.noise_vector(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL').x
+        grit=noise.noise_vector(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL').x
+        radius=((1-t)**.72*.98+.02)*edge*(1+coarse*.16+grit*.027)
+        z=-3.05*t+(.045*grit+.07*coarse)*min(1,t*18)
+        return Vector((math.cos(a)*4.1*radius+.3*t,math.sin(a)*2.95*radius+.15*t,z))
+    for k in range(levels+1):
         ring=[]
         for i in range(count):
-            a=i*math.tau/count
-            layer=.035*math.sin(t*math.pi*13+a*3)+.04*math.cos(a*11+t*8)
-            n=noise.noise_vector(Vector((math.cos(a)*3.1,math.sin(a)*3.1,t*6)),noise_basis='PERLIN_ORIGINAL').x
-            r=radius*contour[i]*(1+layer+n*.19)
-            zz=z+(0 if k==0 else .045*math.sin(a*7+t*8))
-            ring.append(len(verts));verts.append((math.cos(a)*4.1*r+.3*t,math.sin(a)*2.95*r+.15*t,zz))
+            ring.append(len(verts));verts.append(point(i*math.tau/count,k/levels))
         rings.append(ring)
-    faces=[tuple(reversed(rings[0]))]
-    for k in range(32):
+    for k in range(levels):
         for i in range(count):
             j=(i+1)%count
             faces.extend([(rings[k][i],rings[k+1][i],rings[k][j]),(rings[k][j],rings[k+1][i],rings[k+1][j])])
+            mat=2 if k<3 else 0
+            materials.extend([mat,mat])
+    # A tessellated soil cap with an exposed organic rim and a level inner plot.
+    inner=[]
+    for radius in [.0,.18,.38,.60,.78,.9,1.0]:
+        ring=[]
+        for i in range(count):
+            v=verts[rings[0][i]]*radius
+            v.z=0 if radius==1 else .014+max(0,radius-.7)*noise.noise_vector(Vector((v.x*8,v.y*8,seed))).x*.075
+            ring.append(len(verts));verts.append(v)
+        inner.append(ring)
+    for k in range(len(inner)-1):
+        for i in range(count):
+            j=(i+1)%count
+            faces.extend([(inner[k][i],inner[k+1][i],inner[k+1][j]),(inner[k][i],inner[k+1][j],inner[k][j])])
+            mat=1 if k<4 else 2
+            materials.extend([mat,mat])
     obj=mesh('Island · eroded basalt escarpment',verts,faces,'rock')
-    obj.data.materials.append(P['soil'])
-    for poly in obj.data.polygons: poly.use_smooth=True
-    obj.data.polygons[0].material_index=1;obj.data.polygons[0].use_smooth=False
-    for i in range(28):
-        a=i*math.tau/28;r=rng.uniform(.93,.985)
-        x,y=math.cos(a)*4.0*r,math.sin(a)*2.85*r
+    for mat in ['soil','ground']:obj.data.materials.append(P[mat])
+    for poly,mat in zip(obj.data.polygons,materials):
+        poly.material_index=mat
+        # Dense facets catch daylight like chipped stone, without inflated edges.
+        poly.use_smooth=poly.index>=levels*count*2
+    # Low groundcover, grass, gravel and roots sit in the soil around the edge.
+    for i in range(64):
+        a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.90,.99);v.z=.03
         if i%3==0:
-            foliage('Crevice vegetation',(x,y,.035),(.19,.11,.05),rng,80)
-            pts=[(x*(1-t*.05),y*(1-t*.05),.04-t*.55) for t in [0,.3,.6,1]]
-            curve('Roots following a fissure',pts,.004,'wood')
-    # A few fine mineral veins break across the broad rock surface.
-    for j in range(9):
-        a=math.pi+j*.24
-        pts=[]
-        for k in range(10):
-            t=.08+k*.068;r=(1-t)**.80*.985
-            pts.append((math.cos(a)*4.1*r+.3*t,math.sin(a)*2.95*r+.15*t,-3.05*t))
-        curve('Basalt · hairline fault',pts,.005,'rock3')
+            foliage('Rim · low wild groundcover',v,(.19,.14,.085),rng,110)
+        grass_verts=[];grass_faces=[]
+        for j in range(rng.randint(16,32)):
+            x=v.x+rng.uniform(-.13,.13);y=v.y+rng.uniform(-.10,.10)
+            h=rng.uniform(.035,.15);lean=rng.uniform(-.04,.04);w=rng.uniform(.002,.006)
+            n=len(grass_verts)
+            grass_verts.extend([(x-w,y,.025),(x+w,y,.025),(x+lean,y+.025,h)])
+            grass_faces.append((n,n+1,n+2))
+        mesh('Rim · fine wild grass',grass_verts,grass_faces,'moss' if i%2 else 'leaf2')
+        for j in range(3):
+            pos=v+Vector((rng.uniform(-.12,.12),rng.uniform(-.1,.1),-.016))
+            size=rng.uniform(.018,.060)
+            stone=sphere('Rim · embedded angular gravel',pos,(size,size*.75,size*.48),'rock2' if j%2 else 'rock',1)
+            stone.rotation_euler=(rng.random(),rng.random(),rng.random()*math.pi)
+        if i%8==0:
+            pts=[point(a+.014*math.sin(t*22),t)+Vector((math.cos(a)*.012,math.sin(a)*.012,.01)) for t in [0,.025,.06,.105,.17,.24]]
+            curve('Cliff · exposed root',pts,.006,'wood')
+            branch=[pts[2],point(a+.04,.10),point(a+.07,.15)]
+            curve('Cliff · branching root',branch,.003,'wood')
 
 
 def tree(x,y,scale=1):
@@ -426,7 +493,7 @@ def street(a,b,width):
 
 
 def city():
-    P['glass']=material('Taipei · green architectural glazing',(.055,.135,.11),metal=.48,rough=.17)
+    P['glass']=material('Taipei · green architectural glazing',(.055,.12,.092),metal=.42,rough=.24)
     foundation(31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     # A compressed Xinyi composition. North is +Y; east is +X.
@@ -558,7 +625,7 @@ def book_stack(x,y,z):
 def floorboards():
     for i in range(22):
         x=(i-10.5)*.30; length=2.1*math.sqrt(max(0,1-(x/3.8)**2))
-        box('Floor · aged oak plank',(x,0,.10),(.289,length*2,.095),'oak' if i%4==0 else 'wood',.006)
+        box('Floor · aged oak plank',(x,0,.10),(.289,length*2,.095),'floorwood',.003)
         for y in [-length+.10,length-.10]:
             for xx in [x-.095,x+.095]: cylinder('Floor · iron nail',(xx,y,.152),.007,.003,'ink',8,bevel=0)
 
@@ -625,8 +692,8 @@ def notebook(x,y,z):
 def writing():
     foundation(73);floorboards()
     # An open architectural section: plaster, a large window and built-in joinery.
-    box('Study · plaster rear wall',(-.18,1.98,2.11),(6.1,.09,3.90),'concrete',.005)
-    box('Study · left return',(-3.19,1.1,2.11),(.09,1.82,3.9),'concrete',.005)
+    box('Study · plaster rear wall',(-.18,1.98,2.11),(6.1,.09,3.90),'plaster',.003)
+    box('Study · left return',(-3.19,1.1,2.11),(.09,1.82,3.9),'plaster',.003)
     # Framed window to the left of the shelves; glass catches the cool sky.
     box('Study · window recess',(-1.96,1.914,2.46),(1.72,.065,2.22),'ink',.002)
     box('Study · window glass',(-1.96,1.874,2.46),(1.58,.011,2.10),'glass',.001)
@@ -702,7 +769,7 @@ def hammer(x,y,z):
 def workshop():
     foundation(107);floorboards()
     # A practical studio wall, with a small tool rail rather than a giant toy pegboard.
-    box('Workshop · painted masonry wall',(0,1.96,2.12),(6.26,.10,3.94),'stone',.003)
+    box('Workshop · painted masonry wall',(0,1.96,2.12),(6.26,.10,3.94),'plaster',.003)
     for zz in [.16,4.04]:box('Workshop · wall trim',(0,1.889,zz),(6.24,.045,.06),'teal',.002)
     box('Workshop · perforated steel panel',(-1.22,1.864,2.80),(2.80,.028,1.33),'teal',.002)
     vs=[];fs=[]
@@ -823,7 +890,7 @@ def setup(world, width, samples, engine, device):
     scene.world.node_tree.nodes['Background'].inputs[1].default_value=.17
     scene.view_settings.view_transform='AgX'
     scene.view_settings.look='AgX - Medium High Contrast'
-    scene.view_settings.exposure=-.12
+    scene.view_settings.exposure=.25
     if engine=='CYCLES':
         scene.cycles.samples=samples
         scene.cycles.use_denoising=True
@@ -858,11 +925,11 @@ def camera_and_lights(scene):
     target=rotation@Vector(((xmin+xmax)/2,(ymin+ymax)/2,0))
     distance=max((xmax-xmin),1.5*(ymax-ymin))/.83/(36/70)
     camera.location=target+direction*(distance+3)
-    # Broad cool sky and restrained warm practicals separate glass, timber and metal.
-    light('Sky · north window',(-7,-4,11),(.61,.76,1),950,8,(0,0,.7))
-    light('Dusk · horizon',(4,5,7),(1,.73,.46),780,6,(0,0,1))
-    light('Front · reflected sky',(0,-8,3),(.67,.78,1),155,7,(0,0,.7))
-    light('Cliff · ambient bounce',(-4,-3,-1),(.44,.56,.64),38,5,(0,0,-.8))
+    # Broad daylight keeps matte timber and stone clear; practicals add warmth.
+    light('Sky · north window',(-7,-4,11),(.82,.87,1),1150,9,(0,0,.7))
+    light('Dusk · horizon',(4,5,7),(1,.85,.65),850,7,(0,0,1))
+    light('Front · reflected sky',(0,-8,3),(.82,.87,1),220,8,(0,0,.7))
+    light('Cliff · ambient bounce',(-4,-3,-1),(.66,.69,.60),55,6,(0,0,-.8))
     bpy.context.view_layer.update()
     # Fit the perspective projection itself, including the nearest corners.
     for step in range(6):
@@ -921,7 +988,11 @@ def main():
             frames=args.output/'writing-frames'
             frames.mkdir(exist_ok=True)
             scene.render.resolution_x=1200; scene.render.resolution_y=800
-            if args.engine=='CYCLES': scene.cycles.samples=24
+            if args.engine=='CYCLES':
+                scene.cycles.samples=24
+                scene.cycles.adaptive_threshold=.08
+                scene.cycles.adaptive_min_samples=4
+                scene.render.use_persistent_data=True
             # Animation stays on a fixed camera so the live page still aligns.
             for frame in range(1,49):
                 scene.frame_set(frame)
