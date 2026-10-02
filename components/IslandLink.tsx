@@ -6,12 +6,22 @@ import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
 import { tipSide } from "@/lib/island-overview";
+import { islandLandmarks } from "@/lib/island-artwork";
 
-const landmarks: Record<string, { x: number; y: number; name: string }> = {
-  Work: { x: 0.588, y: 0.278, name: "Taipei tower" },
-  Writing: { x: 0.52, y: 0.43, name: "open book" },
-  Projects: { x: 0.705, y: 0.345, name: "workshop laptop" },
-};
+const landmarks: Record<string, { x: number; y: number; name: string }> = islandLandmarks;
+
+function landmarkArrow(title: string) {
+  const focus = landmarks[title];
+  const x = focus.x * 1200, y = focus.y * 800;
+  const [start, first, last] = title === "Work"
+    ? [[250, 665], [560, 755], [x + 140, y + 150]]
+    : title === "Writing"
+      ? [[945, 175], [855, 145], [x + 160, y - 160]]
+      : [[880, 735], [1140, 660], [x + 240, y + 100]];
+  const angle = Math.atan2(y - last[1], x - last[0]);
+  const wing = (side: number) => `${x - 13 * Math.cos(angle) + side * 6 * Math.sin(angle)} ${y - 13 * Math.sin(angle) - side * 6 * Math.cos(angle)}`;
+  return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
+}
 
 function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string) {
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
@@ -137,8 +147,8 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       {children}
       <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>{prompt}</span>
-        <svg viewBox={workshop ? "0 0 1200 800" : book ? "0 0 960 529" : "0 0 960 540"} fill="none" aria-hidden="true">
-          <path d={workshop ? "M915 735C1180 700 1180 365 850 284M869 276L850 284L865 301" : book ? "M737 141C692 127 627 145 565 215M565 201L565 215L579 211" : "M294 469C470 499 752 346 575 155M576 171L575 155L591 160"} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+        <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
+          <path d={landmarkArrow(title)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>

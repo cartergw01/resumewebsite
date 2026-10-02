@@ -55,7 +55,7 @@ test("the workshop screen fans out every project and deals each into its row", a
   await expect(page.locator("[data-project-screen]")).toBeVisible();
   await expect(page.locator("[data-project-shot]")).toHaveCount(8);
   await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toBeFocused();
-  await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
+  await expect(page.locator('img[src^="/blender/island-projects-"]')).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveAttribute("data-workshop-transition");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.goBack();

@@ -1,13 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { overviewOrder, tipSide } from "@/lib/island-overview";
+import { islandArtwork as islands } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
-
-const islands = {
-  work: { title: "Work", prompt: "learn about my work", src: "/world-work-cutout-v3.webp", width: 1672, height: 941 },
-  writing: { title: "Writing", prompt: "read my writing", src: "/world-writing-cutout-v3.webp", width: 1689, height: 931 },
-  projects: { title: "Projects", prompt: "see what I’ve built", src: "/world-projects-workshop-v5.webp", width: 1200, height: 800 },
-};
 
 // All three islands at a distance. Each one opens its page directly.
 export default function IslandOverview({ variant }: { variant: "intro" | "outro" }) {

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("writing video loads on arrival, loops, and stops offscreen", async ({ page }) => {
   const requested: string[] = [];
-  page.on("request", (request) => { if (request.url().includes("writing-island-loop")) requested.push(request.url()); });
+  page.on("request", (request) => { if (request.url().includes("/blender/writing-loop")) requested.push(request.url()); });
   await page.goto("/2.0");
   await expect(page.getByRole("button", { name: /island animation/ })).toHaveCount(0);
   const video = page.locator("#writing video");
@@ -13,10 +13,11 @@ test("writing video loads on arrival, loops, and stops offscreen", async ({ page
   await expect(visual).toHaveAttribute("data-video-ready", "true");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
   expect(await video.evaluate((node: HTMLVideoElement) => node.muted && node.loop && node.playsInline)).toBe(true);
-  expect(await video.evaluate((node: HTMLVideoElement) => node.duration)).toBeCloseTo(8, 1);
+  expect(await video.evaluate((node: HTMLVideoElement) => node.duration)).toBeCloseTo(4, 1);
+  await expect(visual.locator("img")).toHaveAttribute("src", /\/blender\/island-writing-[a-f0-9]+\.webp$/);
 
   await expect(page).toHaveURL(/\/2\.0(?:#writing)?$/);
-  await video.evaluate((node: HTMLVideoElement) => { node.currentTime = 7.75; });
+  await video.evaluate((node: HTMLVideoElement) => { node.currentTime = node.duration - 0.25; });
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
@@ -25,9 +26,9 @@ test("writing video loads on arrival, loops, and stops offscreen", async ({ page
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
 });
 
-test("reduced motion keeps the original artwork and responds to preference changes", async ({ page }) => {
+test("reduced motion keeps the Blender still and responds to preference changes", async ({ page }) => {
   const requested: string[] = [];
-  page.on("request", (request) => { if (request.url().includes("writing-island-loop")) requested.push(request.url()); });
+  page.on("request", (request) => { if (request.url().includes("/blender/writing-loop")) requested.push(request.url()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0#writing");
   const visual = page.locator("#writing [data-island-visual]");
@@ -44,7 +45,7 @@ test("reduced motion keeps the original artwork and responds to preference chang
 });
 
 test("a video download failure leaves the artwork and island entry usable", async ({ page }) => {
-  await page.route("**/writing-island-loop-v2.*", (route) => route.abort());
+  await page.route("**/blender/writing-loop.*", (route) => route.abort());
   await page.goto("/2.0#writing");
   const visual = page.locator("#writing [data-island-visual]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");

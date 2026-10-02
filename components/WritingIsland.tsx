@@ -3,10 +3,12 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
+import { artworkOutline, artworkPlane, islandArtwork } from "@/lib/island-artwork";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import styles from "./IslandHome.module.css";
 
 export default function WritingIsland({ essay, titles }: { essay: EssayPreview; titles: string[] }) {
+  const island = islandArtwork.writing;
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
@@ -63,7 +65,7 @@ export default function WritingIsland({ essay, titles }: { essay: EssayPreview; 
       <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
           {warm ? <Image
-            src="/world-writing-cutout-v3.webp" alt="" width={1689} height={931}
+            src={island.src} alt="" width={island.width} height={island.height}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
           /> : null}
@@ -72,28 +74,26 @@ export default function WritingIsland({ essay, titles }: { essay: EssayPreview; 
             aria-hidden="true" disablePictureInPicture
             onPlaying={() => setReady(true)} onError={() => setReady(false)}
           >
-            <source src="/writing-island-loop-v2.mov" type={'video/quicktime; codecs="hvc1"'} />
-            <source src="/writing-island-loop-v2.webm" type={'video/webm; codecs="vp9"'} />
+            <source src="/blender/writing-loop.mov" type={'video/quicktime; codecs="hvc1"'} />
+            <source src="/blender/writing-loop.webm" type={'video/webm; codecs="vp9"'} />
           </video>
-          <svg className={styles.bookResponse} viewBox="0 0 960 529" aria-hidden="true" data-book-response>
+          <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response>
             <defs>
               <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">
                 <stop stopColor="#fff3c6" stopOpacity="0.05" /><stop offset="1" stopColor="#ffe6a1" stopOpacity="0.5" />
               </linearGradient>
               <radialGradient id="reading-lamp-light"><stop stopColor="#ffdc8b" stopOpacity="0.7" /><stop offset="1" stopColor="#ffdc8b" stopOpacity="0" /></radialGradient>
             </defs>
-            <path className={styles.pageLight} d="M330 222Q380 196 449 196Q483 205 519 266Q458 272 397 290Z M461 196Q498 179 527 188Q567 206 621 243Q564 239 527 265Q504 218 461 196Z" fill="url(#book-page-light)" />
+            <path className={styles.pageLight} d={artworkOutline(island.spread)} fill="url(#book-page-light)" />
             <g className={styles.pageEdges} fill="none" stroke="#ffe5a6" strokeWidth="1.25" strokeLinecap="round">
-              <path d="M331 226Q360 264 397 290Q460 272 515 268 M530 267Q574 246 629 251" />
-              <path d="M455 199Q494 219 521 264" opacity="0.6" />
+              <path d={artworkOutline(island.spread)} />
             </g>
           </svg>
-          <svg className={styles.bookDetails} viewBox="0 0 960 529" aria-hidden="true">
-            <ellipse className={styles.readingLamp} cx="308" cy="108" rx="33" ry="15" fill="url(#reading-lamp-light)" />
-            {/* The open notebook's two pages as a flat 640x400 spread, fitted
-                to the artwork. Entering Writing lifts this spread off the island. */}
-            <rect data-book-spread data-titles={JSON.stringify(titles)} width="640" height="400" fill="none" transform="matrix(0.3664 -0.0477 0.1367 0.1742 337.5 215.7)" />
-            <g className={styles.printedPage} transform="matrix(0.22 -0.02 0.205 0.16 464 196)">
+          <svg className={styles.bookDetails} viewBox="0 0 1200 800" aria-hidden="true">
+            <ellipse className={styles.readingLamp} cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
+            {/* These planes are projected from the actual Blender notebook. */}
+            <rect data-book-spread data-titles={JSON.stringify(titles)} width="640" height="400" fill="none" transform={artworkPlane(island.spread, 640, 400)} />
+            <g className={styles.printedPage} transform={artworkPlane(island.page, 320, 400)}>
               <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
             </g>
           </svg>
