@@ -1,16 +1,20 @@
 // Remove excess transparent camera margin consistently from renders, animation
 // frames and interaction coordinates. Keep an 88% fit inside the 3:2 art box.
-// node scripts/blender/prepare_islands.mjs RAW_DIRECTORY WEB_DIRECTORY
+// node scripts/blender/prepare_islands.mjs RAW_DIRECTORY WEB_DIRECTORY [--world work]
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const [input, output] = process.argv.slice(2);
+const [input, output, flag, selectedWorld] = process.argv.slice(2);
+const worlds = ["work", "writing", "projects"];
+if ((flag && flag !== "--world") || (flag && !worlds.includes(selectedWorld)) || process.argv.length > 6) {
+  throw new Error("Use --world work, writing, or projects, or omit it to prepare all worlds.");
+}
 if (!input || !output || path.resolve(input) === path.resolve(output)) {
   throw new Error("Pass different raw-render and prepared-output directories.");
 }
 await mkdir(output, { recursive: true });
-for (const world of ["work", "writing", "projects"]) {
+for (const world of selectedWorld ? [selectedWorld] : worlds) {
   const source = path.join(input, `${world}.png`);
   const { data, info } = await sharp(source).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   let left = info.width, top = info.height, right = 0, bottom = 0;

@@ -456,31 +456,8 @@ def landscape(world,seed):
     grass.data.materials.append(P['leaf']);grass.data.materials.append(P['moss'])
     for face in grass.data.polygons:face.material_index=rng.choices([0,1,2],[4,3,1])[0]
     if world=='work':
-        for i in range(68):
-            a=rng.uniform(0,math.tau);r=rng.uniform(.70,.90)
-            x=5.25*r*math.cos(a);y=3.60*r*math.sin(a)
-            if abs(x)<3.35 and abs(y)<2.22:continue
-            z=surface(x,y)
-            if z is None:continue
-            created=capture(tree,x,y,rng.uniform(.22,.34))
-            transform_objects(created,offset=(0,0,z))
-        # The original Xinyi streets now end in pedestrian places, not bare soil.
-        terrain_path('Xinyi · west promenade',[(-4.45,-1.08),(-3.35,-.95)],.045,seed,'paving',.028)
-        terrain_path('Xinyi · east promenade',[(3.25,-.95),(4.37,-.78)],.045,seed,'paving',.028)
-        terrain_path('Xinyi · plaza approach',[(3.16,.50),(3.90,.50),(4.10,-.72)],.045,seed,'paving',.028)
-        pavers=[];tiles=[]
-        for row in range(73):
-            for col in range(60):
-                x=-4.05+col*.012;y=-.70+row*.012;z=terrain_height(x,y,seed)+.014;n=len(pavers)
-                pavers.extend([(x,y,z),(x+.011,y,z),(x+.011,y+.011,z),(x,y+.011,z)])
-                tiles.append((n,n+1,n+2,n+3))
-        mesh('Xinyi · metre-scale civic paving',pavers,tiles,'paving')
-        for x,y in [(-4.25,-.65),(-4.22,.25),(3.86,-.5),(3.85,.95)]:
-            z=terrain_height(x,y,seed)
-            box('Xinyi · raised planter',(x,y,z+.012),(.065,.065,.020),'stone',.001)
-            created=capture(tree,x,y,.15)
-            transform_objects(created,offset=(0,0,z+.015))
-            box('Plaza · timber bench',(x+.055,y,z+.023),(.016,.05,.008),'wood',.001)
+        # The developed district and its planting are composed together below.
+        # Scattering trees here would put them inside the later building plots.
         # Yellow taxis, scooter bays and a green cycle strip are characteristic
         # street details, authored at the same scale as the surrounding city.
         P['taxi']=material('Taipei taxi yellow',(.72,.43,.018),rough=.55)
@@ -527,14 +504,14 @@ def landscape(world,seed):
         for z in [.065,.365]:cylinder('Reel · flange',(3.62,-.83,z),.33,.035,'oak',40,bevel=.006)
 
 
-def tree(x,y,scale=1):
+def tree(x,y,scale=1,base=0):
     rng=random.Random(int((x+10)*109+(y+10)*170))
     trunk=.012*scale
-    rod('Tree · fine bark trunk',(x,y,.055),(x,y,.52*scale),trunk,'wood')
+    rod('Tree · fine bark trunk',(x,y,base+.008),(x,y,base+.52*scale),trunk,'wood')
     for i in range(7):
         a=rng.uniform(0,math.tau)
-        p=(x+math.cos(a)*.12*scale,y+math.sin(a)*.12*scale,(.42+i*.046)*scale)
-        rod('Tree · branch',(x,y,.32*scale),p,.006*scale,'wood')
+        p=(x+math.cos(a)*.12*scale,y+math.sin(a)*.12*scale,base+(.42+i*.046)*scale)
+        rod('Tree · branch',(x,y,base+.32*scale),p,.006*scale,'wood')
         foliage('Tree · fine canopy',p,(.16*scale,.15*scale,.16*scale),rng,100)
 
 def plant(x,y,z,scale=1):
@@ -697,26 +674,154 @@ def rectilinear_block(name,x,y,w,d,h,seed,style=0,base=.055):
     for xx in [x-w*.22,x+w*.22]:box(name+' · entry',(xx,y-d/2-.006,base+.035),(.05,.025,.07),'glass',.001)
 
 
-def street(a,b,width):
+def street(a,b,width,base=0):
     delta=Vector(b)-Vector(a);angle=math.atan2(delta.y,delta.x);center=(Vector(a)+Vector(b))/2
-    box('Street · curb and sidewalk',(center.x,center.y,.031),(delta.length,width+.10,.018),'concrete',.001,angle)
-    box('Street · asphalt',(center.x,center.y,.042),(delta.length,width,.008),'ink',0,angle)
+    box('Street · curb and sidewalk',(center.x,center.y,base+.031),(delta.length,width+.10,.018),'concrete',.001,angle)
+    box('Street · asphalt',(center.x,center.y,base+.042),(delta.length,width,.008),'ink',0,angle)
     direction=delta.normalized();normal=Vector((-direction.y,direction.x))
     for t in range(int(delta.length/.085)):
         p=Vector(a)+direction*(t*.085+.025)
-        box('Street · lane marking',(p.x,p.y,.047),(.035,.004,.001),'paper',0,angle)
+        box('Street · lane marking',(p.x,p.y,base+.047),(.035,.004,.001),'paper',0,angle)
     for end in [.17,delta.length-.17]:
         p=Vector(a)+direction*end
         for i in range(8):
             q=p+normal*((i-3.5)*width/9)
-            box('Street · zebra crossing',(q.x,q.y,.048),(.068,width/18,.001),'paper',0,angle)
+            box('Street · zebra crossing',(q.x,q.y,base+.048),(.068,width/18,.001),'paper',0,angle)
+
+
+def city_frontage(name,x,y,w,d,h,seed,base=.055):
+    """Human-scale apartment and shop fabric around the landmark district."""
+    rng=random.Random(seed)
+    wall=rng.choice(['city-tile','city-plaster','city-grey','brick'])
+    box(name+' · tiled apartment body',(x,y+.018,base+.036+(h-.072)/2),(w,d-.036,h-.072),wall,.002)
+    box(name+' · recessed shopfront',(x,y+.026,base+.028),(w*.92,d-.07,.056),'glass2',.001)
+    # A continuous covered pavement at the ground floor, with slender piers.
+    for xx in [x-w*.46,x+w*.46]:
+        box(name+' · arcade pier',(xx,y-d/2+.006,base+.040),(.013,.014,.080),wall,.001)
+    box(name+' · arcade canopy',(x,y-d/2-.016,base+.084),(w+.008,.10,.012),'concrete',.001)
+    box(name+' · shop fascia',(x,y-d/2-.065,base+.068),(w*.78,.005,.021),rng.choice(['jade','city-rust','teal']),.001)
+    rows=max(2,round((h-.09)/.037));cols=max(2,round(w/.055))
+    vs=[];fs=[];mats=[]
+    for row in range(rows):
+        z=base+.11+row*(h-.12)/rows
+        occupied=rng.random()<.20
+        for col in range(cols):
+            xx=x-w/2+(col+.5)*w/cols;ww=w/cols*.34;hh=.010
+            n=len(vs);vs.extend([(xx-ww,y-d/2-.001,z-hh),(xx+ww,y-d/2-.001,z-hh),(xx+ww,y-d/2-.001,z+hh),(xx-ww,y-d/2-.001,z+hh)])
+            fs.append((n,n+1,n+2,n+3));mats.append(1 if occupied and col%3!=2 else 0)
+        if row%2==0 and seed%4!=0:
+            box(name+' · balcony slab',(x,y-d/2-.014,z-.015),(w*.91,.044,.005),'concrete',.001)
+            rod(name+' · balcony rail',(x-w*.43,y-d/2-.035,z+.003),(x+w*.43,y-d/2-.035,z+.003),.0017,'steel',6)
+            box(name+' · external AC',(x+w*.32,y-d/2-.018,z+.008),(.022,.018,.012),'city-grey',.001)
+        if seed%4==1:
+            for xx in [x-w*.32,x+w*.32]:
+                box(name+' · balcony dividing fin',(xx,y-d/2-.011,z),(.009,.05,.036),wall,.001)
+    glazing=mesh(name+' · recessed windows',vs,fs,'glass2');glazing.data.materials.append(P['window3'])
+    for face,mat in zip(glazing.data.polygons,mats):face.material_index=mat
+    # The side elevation has its own rhythm; roofs vary instead of repeating
+    # the same three oversized mechanical boxes on every building.
+    for z in [base+.15+i*.072 for i in range(max(1,round((h-.12)/.072)))]:
+        box(name+' · side window',(x-w/2-.001,y,z),(.002,d*.46,.020),'glass',0)
+    box(name+' · rooftop',(x,y,base+h),(w+.015,d+.014,.012),'city-roof',.001)
+    for yy in [y-d/2,y+d/2]:box(name+' · parapet',(x,yy,base+h+.012),(w,.008,.025),wall,.001)
+    for xx in [x-w/2,x+w/2]:box(name+' · parapet',(xx,y,base+h+.012),(.008,d,.025),wall,.001)
+    if seed%3:
+        ew=w*rng.uniform(.38,.64);ed=d*rng.uniform(.36,.60);eh=rng.uniform(.033,.064)
+        box(name+' · roof extension',(x-w*.10,y+d*.16,base+h+eh/2),(ew,ed,eh),'city-grey',.001)
+        roof=box(name+' · weathered sheet roof',(x-w*.10,y+d*.16,base+h+eh+.006),(ew+.015,ed+.014,.006),'city-rust' if seed%2 else 'teal',.001)
+        roof.rotation_euler.x=.09 if seed%2 else -.07
+    else:
+        for offset in [-.16,.16]:
+            box(name+' · roof ventilation',(x+offset*w,y,base+h+.020),(.040,.055,.030),'steel',.002)
+    cylinder(name+' · rooftop water tank',(x+w*.28,y-d*.20,base+h+.032),.012,.048,'steel',16,bevel=.001)
+    box(name+' · tank support',(x+w*.28,y-d*.20,base+h+.009),(.033,.033,.012),'concrete',.001)
+
+
+def urban_extension():
+    """Fill the larger ground with connected city blocks and a planted edge."""
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    ground=bpy.data.objects['Island · eroded basalt escarpment']
+    terrain=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
+    inverse=ground.matrix_world.inverted();rng=random.Random(886)
+    def surface(x,y):
+        hit,_,_,_=terrain.ray_cast(inverse@Vector((x,y,10)),Vector((0,0,-1)))
+        if hit is None:return None
+        z=(ground.matrix_world@hit).z
+        return z if z>-.025 else None
+    def plot(name,x,y,w,d,h,seed):
+        corners=[surface(x+dx*w/2,y+dy*d/2) for dx,dy in [(-1,-1),(1,-1),(1,1),(-1,1)]]
+        if any(z is None for z in corners):return
+        low,high=min(corners),max(corners)
+        if high-low>.18:return
+        base=high+.028
+        box(name+' · terraced plot',(x,y,(low+base)/2),(w+.035,d+.035,base-low),'paving',.001)
+        city_frontage(name,x,y,w,d,h,seed,base)
+    # Perimeter streets connect to the original Xinyi spine. The western and
+    # eastern shoulders become small urban terraces, not an empty lawn.
+    street((-4.03,-.95),(-3.30,-.95),.15,.08)
+    street((3.22,-.95),(4.12,-.95),.15,.07)
+    street((-3.55,-1.93),(-3.55,1.75),.12,.06)
+    street((3.48,-1.90),(3.48,1.80),.12,.06)
+    street((-3.55,1.72),(-2.80,1.72),.10,.05)
+    street((2.63,1.71),(3.49,1.71),.10,.05)
+    street((-2.53,2.42),(2.44,2.42),.13,.035)
+    street((-1.05,2.13),(-1.05,2.45),.13,.025)
+    street((1.55,2.13),(1.55,2.45),.13,.025)
+    i=0
+    # Unequal widths and shared walls create blocks, rather than freestanding
+    # identical miniatures in evenly spaced rows.
+    for side in [-1,1]:
+        for column in range(2):
+            x=side*(3.83+column*.38)
+            y=-1.73+column*.30
+            while y<1.51-column*.22:
+                d=rng.uniform(.26,.41);w=rng.uniform(.25,.33)
+                plot('Neighborhood · side frontage',x,y+d/2,w,d,rng.uniform(.25,.67),900+i)
+                y+=d+.027;i+=1
+    for y,start,end in [(2.77,-2.54,2.40)]:
+        x=start
+        while x<end-.22:
+            w=rng.uniform(.24,.41)
+            if abs(x+w/2+.55)>.35+w/2:
+                plot('Neighborhood · north frontage',x+w/2,y,w,.34,rng.uniform(.31,.74),1000+i)
+            x+=w+.028;i+=1
+    # Three supporting silhouettes frame 101 with a broader skyline.
+    for x,y,w,d,h,seed in [(-3.00,1.88,.44,.43,1.28,810),(-.55,2.82,.41,.40,1.69,811),(3.00,1.96,.38,.45,1.10,812)]:
+        z=surface(x,y) or .02
+        rectilinear_block('District · setback office podium',x,y,w+.09,d+.09,.24,seed,0,base=z+.035)
+        curtain_tower('District · slender office shaft',x,y,z+.27,w,w*.88,h-.28,round(h/.045),seed,mat='glass3' if seed%2 else 'glass2',columns=12)
+        box('District · recessed crown',(x,y,z+h+.035),(w*.57,d*.57,.07),'teal',.001)
+    # A planted perimeter promenade leaves breathing room between city and
+    # cliff. Trees follow the actual cap so none float beyond its notches.
+    for a,b in [((-3.10,-2.53),(-1.48,-2.71)),((-1.48,-2.71),(1.22,-2.72)),((1.22,-2.72),(2.68,-2.48))]:
+        terrain_path('City edge · stone promenade',[a,b],.095,31,'paving',.07)
+    for i in range(150):
+        a=rng.uniform(0,math.tau);r=rng.uniform(.82,.91)
+        x=5.25*r*math.cos(a);y=3.67*r*math.sin(a)
+        z=surface(x,y)
+        if z is None or (abs(x)>3.45 and abs(y)<1.80):continue
+        # Natural clumps, with clear openings onto the approach paths.
+        if abs(x)<.45 and y<-2.3:continue
+        tree(x,y,rng.uniform(.25,.42),z)
+    for x,y in [(-2.4,-2.59),(-1.5,-2.65),(.3,-2.76),(1.75,-2.55),(2.60,-2.44)]:
+        z=surface(x,y)
+        if z is None:continue
+        box('Promenade · timber bench',(x,y,z+.023),(.050,.017,.009),'wood',.001)
+        rod('Promenade · low lamp',(x+.07,y,z),(x+.07,y,z+.068),.002,'teal',8)
+        sphere('Promenade · warm light',(x+.07,y,z+.069),(.006,.006,.004),'light',1)
 
 
 def city():
     P['glass']=material('Taipei · green architectural glazing',(.055,.12,.092),metal=.42,rough=.24)
+    P['city-tile']=textured('City · warm ceramic tile',(.23,.20,.16),(.39,.35,.28),'plaster',rough=.82)
+    P['city-plaster']=textured('City · pale weathered render',(.26,.26,.24),(.43,.43,.40),'plaster',rough=.92)
+    P['city-grey']=material('City · grey mineral facade',(.20,.23,.23),rough=.84)
+    P['city-roof']=textured('City · aged flat roof',(.055,.065,.065),(.13,.14,.13),'plaster',rough=.94)
+    P['city-rust']=material('City · weathered red sheet metal',(.16,.074,.043),metal=.12,rough=.77)
     foundation(31);landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
-    ground.data.materials[2]=textured('Xinyi · park meadow',(.046,.060,.020),(.16,.18,.071),'moss',rough=.98)
+    ground.data.materials[2]=textured('Xinyi · park meadow',(.035,.051,.018),(.115,.135,.048),'moss',rough=.98)
     # A compressed Xinyi composition. North is +Y; east is +X.
     # Xinyi Road, City Hall Road, Songzhi Road and Songshou Road frame the blocks.
     street((-3.35,-.95),(3.25,-.95),.24)
@@ -747,7 +852,7 @@ def city():
     for j in range(3):
         box('Nan Shan · planted retail terrace',(2.09,.19+j*.055,.15+j*.15),(.94-j*.11,1.12-j*.09,.14),'glass2',.002)
         box('Nan Shan · terrace coping',(2.09,.19+j*.055,.225+j*.15),(.96-j*.11,1.14-j*.09,.015),'steel',.001)
-        for i in range(7):tree(1.69+i*.12,-.28+j*.09,.16)
+        for i in range(7):tree(1.69+i*.12,-.28+j*.09,.16,.23+j*.15)
     nx,ny=2.13,.72
     curtain_tower('Nan Shan · continuous folded shaft',nx,ny,.06,.48,.54,2.44,44,312,mat='glass3',columns=26)
     for side in [-1,1]:
@@ -773,14 +878,14 @@ def city():
     for x,y,w,d in [(-3.25,.30,.36,1.63),(3.16,.36,.33,1.62),(-.07,-2.14,3.80,.22)]:
         box('City · planted perimeter',(x,y,.043),(w,d,.018),'moss',.01)
     # Older, narrower mixed-use blocks south of Xinyi Road.
-    for i in range(20):
-        x=-2.94+(i%10)*.62;y=-1.42-(i//10)*.52
-        if abs(x)>2.8 and y<-1.7:continue
-        w=rng.uniform(.22,.40);d=rng.uniform(.24,.34);h=rng.uniform(.20,.53)
-        city_block('Xinyi · mixed-use frontage',x,y,w,d,h,480+i,i%4)
-        if i%3==0:
-            box('Street · shop canopy',(x,y-d/2-.018,.1),(w*.85,.09,.012),'jade',.002)
-            for k in range(3):cylinder('Roof · water tank',(x-.08+k*.072,y,h+.125),.027,.077,'steel',20,bevel=.001)
+    i=0
+    for y in [-1.43,-1.96]:
+        for start,end in [(-3.08,-1.23),(-.85,1.34),(1.76,2.54),(2.86,3.22)]:
+            x=start
+            while x<end-.16:
+                w=min(rng.uniform(.19,.34),end-x-.015)
+                city_frontage('Xinyi · arcade frontage',x+w/2,y,w,rng.uniform(.27,.33),rng.uniform(.23,.54),480+i)
+                x+=w+.018;i+=1
     # Street trees are 8–12m tall, cars 4m long at the same scale as the tower.
     for i in range(38):
         x=-3.05+i*.16
@@ -796,9 +901,9 @@ def city():
     for x in [-3,-2.4,-1.8,-.8,-.1,.7,1.8,2.4,3]:
         rod('Streetlamp',(x,-.77,.04),(x,-.77,.14),.0014,'steel',8)
         box('Streetlamp head',(x,-.78,.143),(.025,.008,.004),'light',.001)
-    for i in range(170):
-        x=rng.uniform(-3.65,3.65);y=rng.uniform(-2.3,2.3)
-        if .69<(x/3.9)**2+(y/2.8)**2<.94:tree(x,y,.21+rng.random()*.045)
+    urban_extension()
+    for x,y in [(-1.08,-.90),(1.53,-.94),(2.65,1.34)]:
+        light('City · warm intersection',(x,y,.24),(1,.66,.32),.16,.08,(x,y,.05))
 
 
 def torus(name,loc,major,minor,mat,rotation=(0,0,0)):

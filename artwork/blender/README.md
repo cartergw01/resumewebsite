@@ -14,6 +14,13 @@ scenes; no generated image backplates are used.
   Taipei 101 uses eight equal eight-floor modules above a separate inward
   tapering base, smaller glazing, narrow mullions, corner details and a distinct
   observation crown and spire. One scene unit represents approximately 100m.
+  Connected neighborhoods occupy the western, eastern and northern shoulders.
+  Narrow shopfronts have covered ground-floor arcades, recessed windows,
+  different balcony arrangements, external air conditioning, parapets, water
+  tanks and irregular roof extensions. Three supporting office silhouettes
+  bridge the low-rise fabric and landmark towers. A planted promenade follows
+  the front edge. These surrounding blocks are composed interpretations, not
+  additional surveyed replicas of named buildings.
 - **Writing:** a study with slim walnut furniture, a usable upholstered chair,
   open bookshelves, a sheltered reading garden, low stone walls, trellis,
   a framed window, an open notebook, mug,
@@ -58,8 +65,9 @@ the timber stack. The three essay journals and the real project prints remain.
 
 Every foundation uses the same proportions: the terrain is 35% wider and deeper
 in plan, and the cliff is 18% taller than the original earthy version. Buildings
-and furniture retain their size. The extra land is soil and vegetation around
-the original central plot, so each scene has a substantial natural perimeter.
+and furniture retain their size. The interiors use the extra land for soil and
+vegetation around the central plot. Work extends its streets and building plots
+into that land, with a narrower planted perimeter around the larger district.
 Shared elevation noise raises the outer shoulders; paths, embedded bedrock and
 planting follow the same surface. A smaller broad key creates contact shadows,
 local warm lamps light the book and bench, and a cool rim separates the cliffs.
@@ -134,6 +142,19 @@ overview and interactive scenes. A new render remounts its media component so
 the Writing video, still, and book projection update together.
 For a quick check, render one world at `--width 1400 --samples 40` without
 `--animate`, and inspect the PNG before rendering the loop.
+
+To revise Work alone, render with `--world work`, then prepare and export only
+that world. The other worlds and the Writing video retain their existing files
+and coordinates:
+
+```sh
+node scripts/blender/prepare_islands.mjs .blender-build/work-final .blender-build/work-web --world work
+node scripts/blender/export_islands.mjs .blender-build/work-web --world work
+```
+
+Both scripts also accept `--world projects` or `--world writing`. Writing still
+requires all 48 animation frames during preparation and both encoded video
+formats during export, so its still, loop and interaction anchors stay together.
 
 ## Interaction alignment
 

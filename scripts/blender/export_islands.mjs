@@ -1,17 +1,23 @@
 // Convert the Blender renders and their projected anchors into website assets.
-// node scripts/blender/export_islands.mjs /tmp/carter-islands
+// node scripts/blender/export_islands.mjs /tmp/carter-islands [--world work]
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 
-const input = process.argv[2];
+const [input, flag, selectedWorld] = process.argv.slice(2);
+const allWorlds = ["work", "writing", "projects"];
+if ((flag && flag !== "--world") || (flag && !allWorlds.includes(selectedWorld)) || process.argv.length > 5) {
+  throw new Error("Use --world work, writing, or projects, or omit it to export all worlds.");
+}
 if (!input) throw new Error("Pass the Blender render output directory.");
 const root = path.resolve(import.meta.dirname, "../..");
 const output = path.join(root, "public/blender");
 await mkdir(output, { recursive: true });
-const metadata = {};
-for (const world of ["work", "writing", "projects"]) {
+const manifest = path.join(root, "lib/blender-islands.json");
+const metadata = selectedWorld ? JSON.parse(await readFile(manifest, "utf8")) : {};
+const worlds = selectedWorld ? [selectedWorld] : allWorlds;
+for (const world of worlds) {
   metadata[world] = JSON.parse(await readFile(path.join(input, `${world}.json`), "utf8"));
   const image = await sharp(path.join(input, `${world}.png`))
     .webp({ quality: 91, alphaQuality: 100, effort: 6 })
@@ -23,18 +29,20 @@ for (const world of ["work", "writing", "projects"]) {
 }
 // Fingerprint both loop formats together so a re-render cannot leave browsers
 // displaying an older scene over the new still and interaction coordinates.
-const loops = await Promise.all(["mov", "webm"].map(async (extension) => ({
-  extension,
-  buffer: await readFile(path.join(input, `writing-loop.${extension}`)),
-})));
-const videoHash = createHash("sha256");
-for (const { buffer } of loops) videoHash.update(buffer);
-const videoFingerprint = videoHash.digest("hex").slice(0, 8);
-metadata.writing.video = {};
-for (const { extension, buffer } of loops) {
-  const name = `writing-loop-${videoFingerprint}.${extension}`;
-  await writeFile(path.join(output, name), buffer);
-  metadata.writing.video[extension] = `/blender/${name}`;
+if (worlds.includes("writing")) {
+  const loops = await Promise.all(["mov", "webm"].map(async (extension) => ({
+    extension,
+    buffer: await readFile(path.join(input, `writing-loop.${extension}`)),
+  })));
+  const videoHash = createHash("sha256");
+  for (const { buffer } of loops) videoHash.update(buffer);
+  const videoFingerprint = videoHash.digest("hex").slice(0, 8);
+  metadata.writing.video = {};
+  for (const { extension, buffer } of loops) {
+    const name = `writing-loop-${videoFingerprint}.${extension}`;
+    await writeFile(path.join(output, name), buffer);
+    metadata.writing.video[extension] = `/blender/${name}`;
+  }
 }
-await writeFile(path.join(root, "lib/blender-islands.json"), JSON.stringify(metadata, null, 2) + "\n");
-console.log("Exported three transparent Blender renders, the Writing loop, and matching interaction anchors.");
+await writeFile(manifest, JSON.stringify(metadata, null, 2) + "\n");
+console.log(`Exported ${worlds.join(", ")} artwork and matching interaction anchors${worlds.includes("writing") ? ", including the Writing loop" : ""}.`);
