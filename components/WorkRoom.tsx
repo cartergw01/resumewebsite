@@ -6,6 +6,9 @@ import { siteConfig } from "@/lib/seo";
 import { workPageBio, workPageExperience } from "@/content/portfolio";
 import batchPhoto from "@/public/ikigai-batch.jpg";
 import IslandLine from "./IslandLine";
+import WorkArrival from "./WorkArrival";
+import TaipeiMark from "./TaipeiMark";
+import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
 import styles from "./WorkRoom.module.css";
 
@@ -129,48 +132,78 @@ const aboutFacts = [
 // personal one.
 const bioLead = workPageBio[2];
 
+function WorkHeader({ preview = false }: { preview?: boolean }) {
+  return (
+    <header className={heading.header}>
+      <div className={styles.title}>
+        <h1 tabIndex={-1}>Work</h1>
+        {preview ? <TaipeiMark /> : <WorkArrival />}
+      </div>
+      <p><IslandLine id="work" /></p>
+    </header>
+  );
+}
+
+function CurrentWork({ preview = false }: { preview?: boolean }) {
+  return (
+    <section className={styles.section} aria-labelledby={preview ? undefined : "now-title"}>
+      <h2 id={preview ? undefined : "now-title"} className={styles.label}>Now</h2>
+      <div className={styles.body}>
+        <header className={styles.experienceHeading}>
+          <h3 className={styles.current}>
+            <Logo company={current.company} size={36} />
+            <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
+          </h3>
+          <p className={styles.date}>{current.dates}</p>
+          <p className={styles.role}>{current.role}</p>
+          <p className={`${styles.role} ${styles.pastRole}`}>Venture Fellow</p>
+          <p className={styles.date}>June 2024 - September 2024</p>
+        </header>
+        <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
+        <div className={styles.contributions}>
+          {highlights.map((item) => (
+            <div key={item.heading}>
+              {item.story.map((line, index) => (
+                <p key={index}>{index === 0 ? <><strong>{item.heading}.</strong>{" "}</> : null}{line}</p>
+              ))}
+            </div>
+          ))}
+        </div>
+        {!preview && <figure className={styles.photo}>
+          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
+          <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
+        </figure>}
+      </div>
+    </section>
+  );
+}
+
+// Inert source for the carried window. The opening is rendered from the same
+// components as /work, so the view through the glass matches its destination.
+export function WorkWindowPreview() {
+  return <div data-work-window-content hidden inert aria-hidden="true">
+    <div className={styles.page}>
+      <div className={styles.main}>
+        <div className={styles.desk}>
+          <WorkHeader preview />
+          <div className={styles.workHistory}><CurrentWork preview /></div>
+        </div>
+      </div>
+    </div>
+  </div>;
+}
+
 export default function WorkRoom() {
   return (
     <>
       <GalaxyBackground page />
       <main className={styles.main} data-work-desk>
-        <div className={styles.desk}>
-          <header className={heading.header}>
-            <h1>Work</h1>
-            <p><IslandLine id="work" /></p>
-          </header>
+        <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
+          <WorkHeader />
 
           {/* Every section is the same shape: a title on the left, its content on the right. */}
           <div className={styles.workHistory}>
-            <section className={styles.section} aria-labelledby="now-title">
-              <h2 id="now-title" className={styles.label}>Now</h2>
-              <div className={styles.body}>
-                <header className={styles.experienceHeading}>
-                  <h3 className={styles.current}>
-                    <Logo company={current.company} size={36} />
-                    <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
-                  </h3>
-                  <p className={styles.date}>{current.dates}</p>
-                  <p className={styles.role}>{current.role}</p>
-                  <p className={`${styles.role} ${styles.pastRole}`}>Venture Fellow</p>
-                  <p className={styles.date}>June 2024 - September 2024</p>
-                </header>
-                <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
-                <div className={styles.contributions}>
-                  {highlights.map((item) => (
-                    <div key={item.heading}>
-                      {item.story.map((line, index) => (
-                        <p key={index}>{index === 0 ? <><strong>{item.heading}.</strong>{" "}</> : null}{line}</p>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-                <figure className={styles.photo}>
-                  <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
-                  <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
-                </figure>
-              </div>
-            </section>
+            <CurrentWork />
 
             <section className={styles.section} aria-labelledby="earlier-work-title">
               <h2 id="earlier-work-title" className={styles.label}>Previously</h2>

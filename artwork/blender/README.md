@@ -159,7 +159,8 @@ formats during export, so its still, loop and interaction anchors stay together.
 ## Interaction alignment
 
 `lib/blender-islands.json` records projected coordinates for landmarks, lights,
-and all four corners of the physical notebook and screen. Regenerate it whenever
+the eight Taipei 101 tiers, and all four corners of the tower window, notebook,
+and screen. Regenerate it whenever
 a camera or landmark moves. The site projects live SVG artwork onto those
 surfaces and carries the same perspective into the destination transition.
 
@@ -167,6 +168,13 @@ surfaces and carries the same perspective into the destination transition.
 `components/PerspectiveArtwork.tsx` renders it with clipped SVG triangles, which
 work in both Chromium and WebKit. Entry animations use the corresponding CSS
 projective matrix. The regression test checks all four corners of a tilted plane.
+
+Work's entry lights the tower tiers, carries a window from its south facade,
+and lands a small spark on the destination's Taipei mark. Its window shows the
+same opening components used by `/work`, so the content stays aligned during
+the handoff. `lib/work-entry.ts` owns the short-lived overlay; reduced motion,
+Escape, resizing and back navigation clear it. No extra image or video is
+loaded for this transition.
 
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or
 save-data preferences. The still remains the playback fallback. The background

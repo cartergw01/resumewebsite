@@ -229,7 +229,7 @@
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
 .stage[data-entering]::after { animation: entry-cover 1000ms ease-in both; }
-.stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after { animation: none; }
+.stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after, .stage[data-entering="work"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,

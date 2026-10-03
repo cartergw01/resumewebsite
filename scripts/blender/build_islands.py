@@ -640,6 +640,10 @@ def taipei101(x,y):
         coin=torus('101 · round-and-square emblem',(x,y+sy*.263,1.13),.073,.010,'jade',(math.pi/2,0,0))
         box('101 · emblem center',(x,y+sy*.265,1.13),(.032,.015,.032),'jade',.001)
     ANCHORS['landmark']=(x,y,3.34);ANCHORS['tower']=(x,y,4.43)
+    # The Work arrival travels through a real patch of the south-facing glazing.
+    # Keep its corners and the eight cornices tied to the render camera.
+    ANCHORS['entryWindow']=[(x-.075,y-.253,3.445),(x+.075,y-.253,3.445),(x-.075,y-.242,3.265),(x+.075,y-.242,3.265)]
+    ANCHORS['towerSteps']=[(x,y-(.516/2),1.19+i*.337+.323) for i in range(8)]
 
 
 def city_block(name,x,y,w,d,h,seed,style=0):

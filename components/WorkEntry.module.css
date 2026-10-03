@@ -1,0 +1,31 @@
+.overlay { position: fixed; inset: 0; z-index: 90; overflow: hidden; pointer-events: none; }
+.window {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  background: #071015;
+  will-change: transform;
+}
+.glazing { position: absolute; inset: 0; box-shadow: inset 0 0 0 2px #e9cf9f; background: #98bda012; }
+.preview { position: absolute; inset: 0; overflow: hidden; }
+/* These are the glazing's mullions. The camera passes between them. */
+.glazing::before, .glazing::after { content: ""; position: absolute; top: 0; bottom: 0; width: 1px; background: #c8d2c260; }
+.glazing::before { left: 18%; }
+.glazing::after { right: 18%; }
+.spark { position: absolute; top: 0; left: 0; width: 12px; height: 12px; color: #ffe1a7; filter: drop-shadow(0 0 5px #efc16b88); transform-origin: center; }
+.spark svg { display: block; width: 100%; height: 100%; }
+.window > .spark { top: calc(50% - 6px); left: calc(50% - 6px); }
+.flight { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.trail { fill: none; stroke: #e6c794; stroke-width: 1; stroke-linecap: round; }
+.place { display: inline-flex; align-items: center; gap: 0.65rem; width: fit-content; color: #d5c6ac; font-size: 0.75rem; letter-spacing: 0.12em; }
+.placeHost { display: contents; }
+.place svg { width: 17px; height: 38px; overflow: visible; color: #b5c4b6; }
+.place circle { fill: #ffe1a7; }
+:global(html[data-work-transition="entering"]) .arrival { visibility: hidden; }
+:global(html[data-work-transition="arriving"]) .place [data-work-spark-target] { opacity: 0; }
+:global(html[data-work-transition="arriving"]) .arrival { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) {
+  .overlay { display: none; }
+  :global(html[data-work-transition]) .arrival { visibility: visible; pointer-events: auto; }
+  :global(html[data-work-transition]) .place [data-work-spark-target] { opacity: 1; }
+}

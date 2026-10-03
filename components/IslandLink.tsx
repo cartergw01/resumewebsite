@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
+import { beginWorkEntry } from "@/lib/work-entry";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
@@ -71,6 +72,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     if (stage.dataset.entering) return;
 
     router.prefetch(href);
+    const city = title === "Work";
     const { x, y, scale, origin, name } = landmarkApproach(visual, link, landmark);
     const initial = getComputedStyle(visual);
     const initialTransform = initial.transform;
@@ -82,9 +84,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     // Find the landmark first, then accelerate toward it with the rocket.
     const zoom = visual.animate([
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin, offset: 0, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
-      { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(1.32)`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
+      { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(${city ? 1.12 : 1.32})`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin, offset: 1 },
-    ], { duration: workshop || book ? 1400 : 1000, fill: "forwards" });
+    ], { duration: city ? 1250 : workshop || book ? 1400 : 1000, fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
@@ -92,17 +94,20 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     let handedOff = false;
     let cancelScreen: (() => void) | null = null;
     let cancelled = false;
-    if (workshop || book) {
+    if (workshop || book || city) {
       screenTimer = window.setTimeout(() => {
         const screen = visual.querySelector<SVGGraphicsElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
-      }, 200);
+        const window = visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]");
+        if (!cancelled && window) cancelScreen = beginWorkEntry(window);
+      }, city ? 350 : 200);
     }
     const reset = () => {
       cancelled = true;
       window.removeEventListener("keydown", escape);
+      motion.removeEventListener("change", skipMotion);
       zoom.cancel();
       cancelAnimationFrame(arrivalFrame);
       clearTimeout(recoveryTimer);
@@ -117,7 +122,14 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     cleanupRef.current = reset;
     // Escape backs out of the approach and restores the island.
     function escape(event: KeyboardEvent) { if (event.key === "Escape" && !handedOff) reset(); }
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    function skipMotion() {
+      if (!motion.matches || handedOff) return;
+      reset();
+      router.push(href);
+    }
     window.addEventListener("keydown", escape);
+    motion.addEventListener("change", skipMotion);
     // Recover the homepage if a destination fails to mount, allowing a retry.
     recoveryTimer = window.setTimeout(() => { cancelScreen?.(); reset(); }, 8_000);
     void zoom.finished.then(() => {

@@ -6,6 +6,7 @@ import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
 import IslandLine from "./IslandLine";
+import { WorkWindowPreview } from "./WorkRoom";
 import { essays, projects } from "@/content/portfolio";
 import { siteConfig } from "@/lib/seo";
 import { islandArtwork, islandLandmarks } from "@/lib/island-artwork";
@@ -77,6 +78,7 @@ function Art({ id }: { id: (typeof stops)[number]["id"] }) {
 export default function IslandHome() {
   return (
     <div className={styles.home}>
+      <WorkWindowPreview />
       <a className={styles.skipLink} href="#islands">Skip to content</a>
       <SiteNav hidePrimary />
       <IslandScrollTransport worlds={stops.map((stop) => ({ id: stop.id, title: "title" in stop ? stop.title : undefined }))}>

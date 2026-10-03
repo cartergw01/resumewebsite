@@ -71,6 +71,18 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             <g className={motionStyles.towerWelcome} fill="#dfecff">
               <circle cx={city.tower[0]} cy={city.tower[1]} r="1.1" />
             </g>
+            <g className={motionStyles.cityWake} fill="#ffdf9e">
+              {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="1.1" style={{ "--wake-delay": `${210 + index * 12}ms` } as CSSProperties} />)}
+            </g>
+            <g className={motionStyles.towerClimb} stroke="#ffdf9e" strokeLinecap="round">
+              {city.towerSteps.map(([x, y], index) => <path key={index} d={`M${x - 12} ${y - 2}L${x} ${y + 1}L${x + 12} ${y - 2}`} style={{ "--wake-delay": `${index * 32}ms` } as CSSProperties} />)}
+            </g>
+            <g className={motionStyles.crownSpark} style={{ transformOrigin: `${city.tower[0]}px ${city.tower[1]}px` }} fill="#ffe8b7">
+              <path d={`M${city.tower[0]} ${city.tower[1] - 8}q1 7 8 8q-7 1 -8 8q-1 -7 -8 -8q7 -1 8 -8Z`} />
+            </g>
+            <g data-city-entry-window data-corners={JSON.stringify(city.entryWindow)}>
+              <path className={motionStyles.entryWindow} d={artworkOutline(city.entryWindow)} fill="#eacd96" />
+            </g>
           </svg>
         </> : <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
           <g className={motionStyles.lamp} fill="#ffd38b">
