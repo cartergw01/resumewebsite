@@ -22,13 +22,24 @@
 .towerWelcome { opacity: var(--city-tower, 1); }
 .citySign { opacity: calc(0.45 + var(--city-tower, 1) * 0.55); }
 .windows { animation: windows 7s ease-in-out infinite; }
+.traffic { opacity: 0; animation: traffic 17s linear infinite; }
+.screenRefresh { animation: screen-light 12s ease-in-out infinite; }
 .windowsLate { animation: windows 11s ease-in-out -4s infinite; }
 .screen { animation: screen 8s ease-in-out infinite; mix-blend-mode: screen; }
 .lamp { animation: lamp 6s ease-in-out -2s infinite; filter: blur(8px); mix-blend-mode: screen; }
 .bulbs { animation: windows 9s ease-in-out -3s infinite; }
 .artwork[data-motion-running="false"] .details > * { animation-play-state: paused; }
+.artwork[data-motion-running="false"] .screenRefresh { animation-play-state: paused; }
+@keyframes traffic {
+  0%, 12% { opacity: 0; transform: translate(0, 0); }
+  16% { opacity: 0.9; }
+  58% { opacity: 0.9; }
+  62%, 100% { opacity: 0; transform: translate(var(--traffic-x), var(--traffic-y)); }
+}
+@keyframes screen-light { 0%, 100% { opacity: 0.91; } 38%, 66% { opacity: 1; } }
 @keyframes windows { 0%, 100% { opacity: 0.08; } 42%, 58% { opacity: 0.75; } }
 @keyframes screen { 0%, 100% { opacity: 0.015; } 50% { opacity: 0.14; } }
 @keyframes lamp { 0%, 100% { opacity: 0.03; } 50% { opacity: 0.18; } }
 @media (prefers-reduced-motion: reduce) { .details { display: none; } }
 @media (prefers-reduced-motion: reduce) { .screenPreview, .screenSpill, .screenRim { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .screenRefresh { animation: none; } }

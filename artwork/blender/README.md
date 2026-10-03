@@ -41,6 +41,21 @@ of the latest three essays in `content/portfolio.ts`: “The Cost of Keeping Up,
 “Slop and Spiral,” and “We All Have Superpowers.” Reading-list roundups are
 excluded, matching the Writing page’s essay grouping.
 
+The refinement pass gives each cliff an irregular plan, warped sedimentary
+ledges, recessed seams and vertical faults. Material variation follows mineral
+pockets instead of painting uniform stripes around the whole island. Planting
+uses actual clustered grass blades with bare earth between drifts. City paving,
+rocks, benches and planting have their own architectural scale; the Work scene
+also includes recessed upper storeys, balcony rails and grouped office lighting.
+
+The notebook has 22 curved sheets per side, uneven cut edges, a recessed cloth
+spine and a gently lifting corner. Its projected live content stays anchored to
+the fixed readable part of the page. The rug has a soft, irregular selvedge,
+visible warp, loose fringe and a crossing weave shader. Sawn board ends use ring
+grain. The workshop replaces repeated empty bins with a compartmented parts
+tray, cable coil and canvas tool roll; one drawer is open and offcuts lie beside
+the timber stack. The three essay journals and the real project prints remain.
+
 Every foundation uses the same proportions: the terrain is 35% wider and deeper
 in plan, and the cliff is 18% taller than the original earthy version. Buildings
 and furniture retain their size. The extra land is soil and vegetation around
@@ -69,8 +84,13 @@ are not included or used as image textures.
 1. Open `work.blend`, `writing.blend`, or `projects.blend` in Blender.
 2. Use camera view for the website composition. Objects have descriptive names.
 3. Render with **Render → Render Image**. Transparent film is enabled.
-4. Writing has a four-second loop on frames 1–48 at 12 fps. Its lamp and loose
-   correspondence move subtly; the notebook and camera remain fixed.
+4. Writing has a four-second loop on frames 1–48 at 12 fps. Its lamp, loose
+   correspondence, page corner and plant leaves move subtly; the ground, camera
+   and reading surface remain fixed. Frame 49 matches frame 1 for seamless
+   repetition. Work adds an occasional pair of headlights along a projected
+   foreground street. The workshop screen varies its light slightly while
+   preserving the project that carries into the destination. These browser
+   details pause offscreen, during entry, and when motion is reduced.
 
 Scenes are tested with Blender 5.2.2 LTS, Cycles CPU. Intermediate renders are
 ignored by Git. Save manually edited variants under another name before

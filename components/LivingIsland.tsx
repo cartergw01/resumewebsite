@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
@@ -14,6 +14,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   const island = artwork[world];
   const city = artwork.work;
   const workshop = artwork.projects;
+  const traffic = city.traffic;
   // The opening view shows light previews; full islands wait for travel.
   const [warm, setWarm] = useState(false);
 
@@ -60,6 +61,11 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             <g className={motionStyles.windows} fill="#ffd69b">
               {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.65" />)}
             </g>
+            {traffic?.length === 2 ? <g className={motionStyles.traffic} data-island-traffic
+              style={{ "--traffic-x": `${traffic[1][0] - traffic[0][0]}px`, "--traffic-y": `${traffic[1][1] - traffic[0][1]}px` } as CSSProperties}>
+              <circle cx={traffic[0][0]} cy={traffic[0][1]} r="0.8" fill="#ffe4ad" />
+              <circle cx={traffic[0][0] - 1.8} cy={traffic[0][1]} r="0.5" fill="#d89b70" />
+            </g> : null}
           </svg>
           <svg className={motionStyles.cityDetails} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.towerWelcome} fill="#dfecff">
@@ -80,9 +86,11 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
           </defs>
           <ellipse className={motionStyles.screenSpill} cx={workshop.screenGlow[0]} cy={workshop.screenGlow[1]} rx="64" ry="24" fill="url(#workshop-screen-spill)" />
           <g className={motionStyles.screenPreview} data-workshop-screen data-src={preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
-            <PerspectiveArtwork corners={workshop.screen} width={320} height={200}>
-              <image href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
-            </PerspectiveArtwork>
+            <g className={motionStyles.screenRefresh} data-screen-light>
+              <PerspectiveArtwork corners={workshop.screen} width={320} height={200}>
+                <image href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
+              </PerspectiveArtwork>
+            </g>
           </g>
           <path className={motionStyles.screenRim} d={artworkOutline(workshop.screen)} fill="none" stroke="#ffe2ba" strokeWidth="0.6" />
         </svg> : null}

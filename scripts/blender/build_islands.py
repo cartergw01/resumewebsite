@@ -81,6 +81,21 @@ def textured(name, dark, pale, kind='stone', metal=0, rough=.85, grain=None):
     links.new(texture.outputs['Fac'],broad.inputs['Height'])
     links.new(broad.outputs[0],bump.inputs['Normal'])
     normal=bump.outputs[0]
+    if kind=='fabric':
+        # Crossing warp and weft distinguish cloth from mottled plaster.
+        waves=[]
+        for axis in ['X','Y']:
+            wave=nodes.new('ShaderNodeTexWave');wave.bands_direction=axis
+            wave.inputs['Scale'].default_value=95
+            wave.inputs['Distortion'].default_value=1.3
+            links.new(coord.outputs['Object'],wave.inputs['Vector']);waves.append(wave)
+        weave=nodes.new('ShaderNodeMath');weave.operation='MULTIPLY'
+        for i,wave in enumerate(waves):links.new(wave.outputs['Color'],weave.inputs[i])
+        woven=nodes.new('ShaderNodeBump');woven.inputs['Strength'].default_value=.6
+        woven.inputs['Distance'].default_value=.005
+        links.new(weave.outputs[0],woven.inputs['Height']);links.new(normal,woven.inputs['Normal'])
+        normal=woven.outputs[0]
+        bs.inputs['Sheen Weight'].default_value=.24
     if kind=='stone':
         cracks=nodes.new('ShaderNodeTexVoronoi'); cracks.feature='DISTANCE_TO_EDGE'
         cracks.inputs['Scale'].default_value=7
@@ -146,13 +161,33 @@ def palette():
         'steel': material('Brushed aluminium',(.30,.33,.34),metal=.83,rough=.3),
     }
     # Continuous patches follow the surface rather than the mesh's triangle grid.
-    ground=textured('Earth · irregular moss and exposed humus',(.065,.040,.018),(.16,.19,.064),'soil',rough=.98)
+    ground=textured('Earth · irregular moss and exposed humus',(.047,.032,.016),(.13,.145,.057),'soil',rough=.98)
     ramp=next(n for n in ground.node_tree.nodes if n.type=='VALTORGB')
     ramp.color_ramp.elements[0].position=.30
-    ramp.color_ramp.elements[1].position=.66
+    ramp.color_ramp.elements[1].position=.76
     ramp.color_ramp.elements.new(.48).color=(.13,.087,.038,1)
-    ramp.color_ramp.elements.new(.55).color=(.065,.092,.025,1)
+    ramp.color_ramp.elements.new(.62).color=(.055,.072,.025,1)
     P['ground']=ground
+    for axis in ['X','Y']:
+        mat=material('Oak · sawn end grain '+axis,(.27,.19,.105),rough=.92)
+        nodes,links=mat.node_tree.nodes,mat.node_tree.links
+        coord=nodes.new('ShaderNodeTexCoord');wave=nodes.new('ShaderNodeTexWave')
+        wave.wave_type='RINGS';wave.rings_direction=axis
+        wave.inputs['Scale'].default_value=18;wave.inputs['Distortion'].default_value=4
+        links.new(coord.outputs['Object'],wave.inputs['Vector'])
+        ramp=nodes.new('ShaderNodeValToRGB')
+        ramp.color_ramp.elements[0].color=(.16,.095,.042,1)
+        ramp.color_ramp.elements[1].color=(.36,.26,.14,1)
+        links.new(wave.outputs['Color'],ramp.inputs[0])
+        links.new(ramp.outputs[0],nodes.get('Principled BSDF').inputs['Base Color'])
+        P['endgrain'+axis]=mat
+
+
+def sawn_ends(obj,axis='X'):
+    obj.data.materials.append(P['endgrain'+axis])
+    for index in ([3,5] if axis=='X' else [2,4]):
+        obj.data.polygons[index].material_index=len(obj.data.materials)-1
+    return obj
 
 def finish(obj, name, mat, bevel=0):
     obj.name = name
@@ -275,16 +310,26 @@ def foundation(seed):
     rng=random.Random(seed)
     count=192; levels=64; verts=[]; rings=[]; faces=[]; materials=[]
     # Broken cliff contours replace the old smooth, periodically stacked rings.
-    outline=[rng.uniform(.91,1.05) for _ in range(24)]
+    outline=[rng.uniform(.88,1.05) for _ in range(24)]
+    # Different plans share the same sedimentary structure. Local faults cut
+    # vertically through stepped ledges rather than smoothing into a bowl.
+    faults=[(rng.uniform(0,math.tau),rng.uniform(.08,.18),rng.uniform(.06,.15)) for _ in range(11)]
+    strata=[(0,1),(.10,.99),(.15,.86),(.29,.88),(.34,.72),(.48,.74),(.54,.56),(.70,.57),(.77,.35),(.90,.28),(1,.025)]
     def point(a,t):
         phase=(a%math.tau)/math.tau*24;i=int(phase);f=phase-i
         edge=outline[i%24]*(1-f)+outline[(i+1)%24]*f
         coarse=noise.noise_vector(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL').x
         grit=noise.noise_vector(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL').x
-        radius=((1-t)**.72*.98+.02)*edge*(1+coarse*.16+grit*.027)
+        warped=max(0,min(1,t+(.075*math.sin(a*3+seed)+.032*math.sin(a*7))*math.sin(math.pi*t)))
+        for (ta,ra),(tb,rb) in zip(strata,strata[1:]):
+            if ta<=warped<=tb:
+                profile=ra+(rb-ra)*(warped-ta)/(tb-ta);break
+        fissure=sum(depth*math.exp(-(math.atan2(math.sin(a-angle),math.cos(a-angle))/width)**2) for angle,width,depth in faults)
+        profile=profile*.62+((1-t)**.80*.98+.02)*.38
+        radius=profile*edge*(1+coarse*.19+grit*.035-fissure*min(1,t*14))
         x=math.cos(a)*4.1*radius+.3*t;y=math.sin(a)*2.95*radius+.15*t
         rise=terrain_height(x*1.35,y*1.35,seed)/1.18
-        z=-3.05*t+(.045*grit+.07*coarse)*min(1,t*18)+rise*(1-t)**3
+        z=-3.05*t+(.055*grit+.16*coarse)*min(1,t*18)+rise*(1-t)**3
         return Vector((x,y,z))
     for k in range(levels+1):
         ring=[]
@@ -295,7 +340,9 @@ def foundation(seed):
         for i in range(count):
             j=(i+1)%count
             faces.extend([(rings[k][i],rings[k+1][i],rings[k][j]),(rings[k][j],rings[k+1][i],rings[k+1][j])])
-            mat=2 if k<3 else 0
+            t=k/levels
+            mineral=noise.noise_vector(verts[rings[k][i]]*2.7+Vector((seed,0,0))).x
+            mat=2 if k<2 else (3 if mineral>.23 else (4 if mineral<-.40 else 0))
             materials.extend([mat,mat])
     # A tessellated soil cap with an exposed organic rim and a level inner plot.
     inner=[]
@@ -314,21 +361,24 @@ def foundation(seed):
             mat=1 if k<4 else 2
             materials.extend([mat,mat])
     obj=mesh('Island · eroded basalt escarpment',verts,faces,'rock')
-    for mat in ['soil','ground']:obj.data.materials.append(P[mat])
+    for mat in ['soil','ground','rock2','rock3']:obj.data.materials.append(P[mat])
     for poly,mat in zip(obj.data.polygons,materials):
         poly.material_index=mat
         # Dense facets catch daylight like chipped stone, without inflated edges.
         poly.use_smooth=poly.index>=levels*count*2
     # Low groundcover, grass, gravel and roots sit in the soil around the edge.
-    for i in range(64):
+    city_scale=.18 if seed==31 else 1
+    for i in range(110):
         a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.87,.98)
         v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18+.03
         if i%3==0:
-            foliage('Rim · low wild groundcover',v,(.19,.14,.085),rng,110)
+            foliage('Rim · low wild groundcover',v,(.19*city_scale,.14*city_scale,.085*city_scale),rng,110)
         grass_verts=[];grass_faces=[]
         for j in range(rng.randint(16,32)):
             x=v.x+rng.uniform(-.13,.13);y=v.y+rng.uniform(-.10,.10)
-            h=rng.uniform(.035,.15);lean=rng.uniform(-.04,.04);w=rng.uniform(.002,.006)
+            rim=point(math.atan2(y/2.95,x/4.1),0)
+            if math.hypot(x/4.1,y/2.95)>.96*math.hypot(rim.x/4.1,rim.y/2.95):continue
+            h=rng.uniform(.035,.15)*city_scale;lean=rng.uniform(-.04,.04)*city_scale;w=rng.uniform(.002,.006)*city_scale
             n=len(grass_verts)
             z=terrain_height(x*1.35,y*1.35,seed)/1.18+.025
             grass_verts.extend([(x-w,y,z),(x+w,y,z),(x+lean,y+.025,z+h)])
@@ -336,10 +386,10 @@ def foundation(seed):
         mesh('Rim · fine wild grass',grass_verts,grass_faces,'moss' if i%2 else 'leaf2')
         for j in range(3):
             pos=v+Vector((rng.uniform(-.12,.12),rng.uniform(-.1,.1),-.016))
-            size=rng.uniform(.018,.060)
+            size=rng.uniform(.018,.060)*city_scale
             stone=sphere('Rim · embedded angular gravel',pos,(size,size*.75,size*.48),'rock2' if j%2 else 'rock',1)
             stone.rotation_euler=(rng.random(),rng.random(),rng.random()*math.pi)
-        if i%8==0:
+        if i%8==0 and seed!=31:
             pts=[point(a+.014*math.sin(t*22),t)+Vector((math.cos(a)*.012,math.sin(a)*.012,.01)) for t in [0,.025,.06,.105,.17,.24]]
             curve('Cliff · exposed root',pts,.006,'wood')
             branch=[pts[2],point(a+.04,.10),point(a+.07,.15)]
@@ -358,34 +408,79 @@ def terrain_path(name,points,width,seed,mat='stone',step=.28):
         angle=math.atan2(delta.y,delta.x)
         for i in range(count):
             p=a+delta*((i+.5)/count);z=terrain_height(p.x,p.y,seed)
-            box(name,(p.x,p.y,z+.041),(delta.length/count-.025,width*rng.uniform(.89,1.04),.065),mat,.018,angle+rng.uniform(-.035,.035))
+            city=seed==31
+            box(name,(p.x,p.y,z+(.012 if city else .041)),(max(.004,delta.length/count-(.002 if city else .025)),width*rng.uniform(.96,1.01) if city else width*rng.uniform(.89,1.04),.018 if city else .065),mat,.001 if city else .018,angle+rng.uniform(-.008 if city else -.035,.008 if city else .035))
 
 
 def landscape(world,seed):
     rng=random.Random(seed+18)
+    # Raycast the actual soil cap, including its notches. An ideal ellipse
+    # places some clumps outside the newly fractured outline.
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    ground=bpy.data.objects['Island · eroded basalt escarpment']
+    terrain=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
+    inverse=ground.matrix_world.inverted()
+    def surface(x,y):
+        hit,normal,index,distance=terrain.ray_cast(inverse@Vector((x,y,10)),Vector((0,0,-1)))
+        if hit is None:return None
+        pos=ground.matrix_world@hit
+        return pos.z if pos.z>-.03 else None
     # A few embedded mineral outcrops and dense planted pockets create scale.
     for x,y in [(-4.35,.85),(3.95,1.87),(-2.85,-2.75),(2.65,-2.84),(4.55,-.55)]:
-        z=terrain_height(x,y,seed)
-        rock=sphere('Terrain · exposed bedrock',(x,y,z-.08),(.43,.31,.23),'rock2',2)
+        z=surface(x,y)
+        if z is None:continue
+        size=.16 if world=='work' else 1
+        rock=sphere('Terrain · exposed bedrock',(x,y,z-.08*size),(.43*size,.31*size,.23*size),'rock2',2)
         rock.rotation_euler.z=rng.uniform(-1,1)
         for i in range(4):
-            p=(x+rng.uniform(-.42,.42),y+rng.uniform(-.30,.30),z+.02)
-            foliage('Terrain · sheltered planting',p,(.24,.19,.12),rng,130)
+            px=x+rng.uniform(-.42,.42);py=y+rng.uniform(-.30,.30);pz=surface(px,py)
+            if pz is None:continue
+            p=(px,py,pz+.02)
+            foliage('Terrain · sheltered planting',p,(.24*size,.19*size,.12*size),rng,130)
+    # Actual blades form drifts, with bare earth between them and around paths.
+    verts=[];faces=[]
+    for i in range(150 if world=='work' else 65):
+        a=rng.uniform(0,math.tau);r=rng.uniform(.80,.93)
+        x=5.25*r*math.cos(a);y=3.65*r*math.sin(a)
+        if abs(x)<2 and y<-2.5:continue
+        for j in range(45):
+            xx=x+rng.gauss(0,.13);yy=y+rng.gauss(0,.10)
+            z=surface(xx,yy)
+            if z is None:continue
+            z+=.012;h=rng.uniform(.07,.23)*(.16 if world=='work' else 1)
+            w=h*.035;lean=rng.uniform(-.4,.4)*h;n=len(verts)
+            verts.extend([(xx-w,yy,z),(xx+w,yy,z),(xx+lean+w*.4,yy+.012,z+h*.65),(xx+lean,yy+.02,z+h)])
+            faces.extend([(n,n+1,n+2),(n,n+2,n+3)])
+    grass=mesh('Terrain · clustered meadow blades',verts,faces,'leaf2')
+    grass.data.materials.append(P['leaf']);grass.data.materials.append(P['moss'])
+    for face in grass.data.polygons:face.material_index=rng.choices([0,1,2],[4,3,1])[0]
     if world=='work':
+        for i in range(68):
+            a=rng.uniform(0,math.tau);r=rng.uniform(.70,.90)
+            x=5.25*r*math.cos(a);y=3.60*r*math.sin(a)
+            if abs(x)<3.35 and abs(y)<2.22:continue
+            z=surface(x,y)
+            if z is None:continue
+            created=capture(tree,x,y,rng.uniform(.22,.34))
+            transform_objects(created,offset=(0,0,z))
         # The original Xinyi streets now end in pedestrian places, not bare soil.
-        terrain_path('Xinyi · west promenade',[(-4.45,-1.08),(-3.35,-.95)],.32,seed,'paving',.15)
-        terrain_path('Xinyi · east promenade',[(3.25,-.95),(4.37,-.78)],.36,seed,'paving',.15)
-        terrain_path('Xinyi · plaza approach',[(3.16,.50),(3.90,.50),(4.10,-.72)],.35,seed,'paving',.15)
-        for row in range(7):
-            for col in range(6):
-                x=-4.05+col*.16;y=-.70+row*.17
-                box('Xinyi · civic plaza paver',(x,y,terrain_height(x,y,seed)+.035),(.15,.16,.04),'paving',.002)
+        terrain_path('Xinyi · west promenade',[(-4.45,-1.08),(-3.35,-.95)],.045,seed,'paving',.028)
+        terrain_path('Xinyi · east promenade',[(3.25,-.95),(4.37,-.78)],.045,seed,'paving',.028)
+        terrain_path('Xinyi · plaza approach',[(3.16,.50),(3.90,.50),(4.10,-.72)],.045,seed,'paving',.028)
+        pavers=[];tiles=[]
+        for row in range(73):
+            for col in range(60):
+                x=-4.05+col*.012;y=-.70+row*.012;z=terrain_height(x,y,seed)+.014;n=len(pavers)
+                pavers.extend([(x,y,z),(x+.011,y,z),(x+.011,y+.011,z),(x,y+.011,z)])
+                tiles.append((n,n+1,n+2,n+3))
+        mesh('Xinyi · metre-scale civic paving',pavers,tiles,'paving')
         for x,y in [(-4.25,-.65),(-4.22,.25),(3.86,-.5),(3.85,.95)]:
             z=terrain_height(x,y,seed)
-            box('Xinyi · raised planter',(x,y,z+.05),(.28,.42,.10),'stone',.008)
-            created=capture(tree,x,y,.40)
-            transform_objects(created,offset=(0,0,z+.08))
-            box('Plaza · timber bench',(x+.22,y,z+.065),(.12,.30,.035),'wood',.003)
+            box('Xinyi · raised planter',(x,y,z+.012),(.065,.065,.020),'stone',.001)
+            created=capture(tree,x,y,.15)
+            transform_objects(created,offset=(0,0,z+.015))
+            box('Plaza · timber bench',(x+.055,y,z+.023),(.016,.05,.008),'wood',.001)
         # Yellow taxis, scooter bays and a green cycle strip are characteristic
         # street details, authored at the same scale as the surrounding city.
         P['taxi']=material('Taipei taxi yellow',(.72,.43,.018),rough=.55)
@@ -420,7 +515,9 @@ def landscape(world,seed):
         terrain_path('Workshop · worn yard paving',[(1.50,-3.24),(1.05,-2.62),(.30,-1.96)],.92,seed,'paving',.35)
         for i in range(2):box('Workshop · stone threshold step',(.30,-2.15+i*.22,.045+i*.045),(1.35,.30,.09),'stone',.015)
         for i in range(7):
-            box('Yard · reclaimed timber stack',(-3.82,-.48,.14+i*.061),(.40,1.88,.055),'floorwood',.004,rot=.08*(i%2))
+            sawn_ends(box('Yard · reclaimed timber stack',(-3.82,-.48,.14+i*.061),(.40,1.88,.055),'floorwood',.004,rot=.08*(i%2)),'Y')
+        for i in range(5):
+            sawn_ends(box('Yard · loose sawn offcut',(-3.57+i*.14,-1.61+.06*(i%2),.045+i*.013),(.12,.32+i*.09,.035),'floorwood',.002,rot=-.25+i*.13),'Y')
         for x in [-3.98,-3.65]:box('Yard · stack bearer',(x,-.48,.07),(.13,1.95,.10),'wood',.003)
         box('Yard · material crate',(3.64,.45,.24),(.65,.85,.46),'wood',.008)
         for x in [3.40,3.63,3.86]:box('Yard · crate slat',(x,.01,.26),(.16,.024,.42),'oak',.003)
@@ -462,6 +559,15 @@ def plant(x,y,z,scale=1):
             n=j*3; faces.extend([(n,n+3,n+4,n+1),(n+1,n+4,n+5,n+2)])
         leaf=mesh('Plant · curved living leaf',verts,faces,'leaf2' if i%3 else 'leaf')
         for poly in leaf.data.polygons: poly.use_smooth=True
+        if bpy.context.scene.name.startswith('Writing'):
+            leaf.shape_key_add(name='Rest')
+            breeze=leaf.shape_key_add(name='Gentle leaf flex')
+            for index,point in enumerate(breeze.data):
+                weight=(index//3)/8
+                point.co.z+=.025*scale*weight*weight
+                point.co.x+=.012*scale*weight*weight
+            for frame,value in [(1,0),(13,.6 if i%2 else .3),(29,1),(41,.25),(49,0)]:
+                breeze.value=value;breeze.keyframe_insert(data_path='value',frame=frame)
         curve('Plant · central leaf vein',[verts[j*3+1] for j in range(9)],.0018*scale,'moss')
 
 
@@ -471,6 +577,7 @@ def window_grid(x,y,width,depth,height,seed,base=.10,spacing=.075):
     for side in ['front','right','back']:
         span=width if side!='right' else depth
         cols=max(3,int(span/spacing))
+        suites={}
         for row in range(rows):
             for col in range(cols):
                 h=base+height*(row+.5)/rows
@@ -484,7 +591,9 @@ def window_grid(x,y,width,depth,height,seed,base=.10,spacing=.075):
                 else:
                     p=(x+width/2+.0015,y+u,h)
                     quad=[(p[0],p[1]-w,h-hh),(p[0],p[1]+w,h-hh),(p[0],p[1]+w,h+hh),(p[0],p[1]-w,h+hh)]
-                lit=rng.random()<(.22 if row%6<4 else .07)
+                suite=(row//3,col//4)
+                if suite not in suites:suites[suite]=rng.random()<.23
+                lit=suites[suite] and rng.random()<.87
                 n=len(verts); verts.extend(quad); faces.append(tuple(range(n,n+4)))
                 mats.append(rng.choices([0,1,2],[5,2,3])[0] if lit else 3)
                 if lit and side=='front' and rng.random()<.014: WINDOWS.append(p)
@@ -517,7 +626,8 @@ def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',col
                 u0=(col+.065)/cols;u1=(col+.935)/cols
                 v0=(row+.12)/floors;v1=(row+.87)/floors
                 n=len(vs);vs.extend([pt(u0,v0),pt(u1,v0),pt(u1,v1),pt(u0,v1)]);fs.append((n,n+1,n+2,n+3))
-                ms.append(rng.choice([1,2,3]) if occupied and rng.random()<.26 else rng.choice([0,0,0,4,5]))
+                if col%5==0:suite_lit=occupied and rng.random()<.40
+                ms.append(rng.choice([1,1,2,3]) if suite_lit and rng.random()<.9 else rng.choice([0,0,0,4,5]))
                 if ms[-1]==1 and side==0 and rng.random()<.01: WINDOWS.append(tuple(pt((u0+u1)/2,(v0+v1)/2)))
         for col in range(cols+1):
             rod(name+' · narrow aluminium mullion',pt(col/cols,0),pt(col/cols,1),.0008,'steel',4)
@@ -556,23 +666,35 @@ def taipei101(x,y):
 
 
 def city_block(name,x,y,w,d,h,seed,style=0):
+    if 'mixed-use' in name and style%3:
+        # Older blocks have recessed penthouses, balcony bands and roof gardens.
+        rectilinear_block(name,x,y,w,d,h*.73,seed,style)
+        rectilinear_block(name+' · recessed upper storey',x+.025,y+.025,w*.76,d*.77,h*.27,seed+53,style,base=.055+h*.73)
+        for z in [.13,.23,.33]:
+            if z>h*.70:continue
+            box(name+' · balcony ledge',(x,y-d/2-.019,z),(w*.83,.045,.009),'concrete',.001)
+            rod(name+' · balcony rail',(x-w*.4,y-d/2-.04,z+.030),(x+w*.4,y-d/2-.04,z+.030),.002,'steel',6)
+    else:rectilinear_block(name,x,y,w,d,h,seed,style)
+
+
+def rectilinear_block(name,x,y,w,d,h,seed,style=0,base=.055):
     rng=random.Random(seed)
-    box(name+' · mass',(x,y,.055+h/2),(w,d,h),['concrete','glass','glass2','stone'][style%4],.001)
+    box(name+' · mass',(x,y,base+h/2),(w,d,h),['concrete','glass','glass2','stone'][style%4],.001)
     # Hundreds of small panes, concrete piers, roof plant and recessed entrances.
-    window_grid(x,y,w,d,h,seed,base=.055,spacing=.025 if h>1 else .032)
+    window_grid(x,y,w,d,h,seed,base=base,spacing=.025 if h>1 else .032)
     rows=max(2,round(h/.038))
     for j in range(rows+1):
-        box(name+' · floor slab',(x,y,.055+j*h/rows),(w+.003,d+.003,.004 if style else .007),'teal' if style else 'concrete',0)
+        box(name+' · floor slab',(x,y,base+j*h/rows),(w+.003,d+.003,.004 if style else .007),'teal' if style else 'concrete',0)
     for side in [-1,1]:
         for j in range(max(2,int(w/.09))):
             xx=x-w/2+.035+j*.09
-            box(name+' · facade pier',(xx,y+side*(d/2+.001),.055+h/2),(.007,.004,h),'steel' if style else 'concrete',0)
-    box(name+' · roof slab',(x,y,h+.06),(w+.012,d+.012,.018),'concrete',.001)
+            box(name+' · facade pier',(xx,y+side*(d/2+.001),base+h/2),(.007,.004,h),'steel' if style else 'concrete',0)
+    box(name+' · roof slab',(x,y,h+base+.005),(w+.012,d+.012,.018),'concrete',.001)
     for j in range(3):
         xx=x+rng.uniform(-.25,.25)*w;yy=y+rng.uniform(-.25,.25)*d
-        box(name+' · roof mechanical',(xx,yy,h+.088),(.045,.073,.035),'steel',.001)
-        for k in range(4):box(name+' · condenser louvre',(xx,yy-.029+k*.018,h+.107),(.040,.004,.002),'ink',0)
-    for xx in [x-w*.22,x+w*.22]:box(name+' · entry',(xx,y-d/2-.006,.09),(.05,.025,.07),'glass',.001)
+        box(name+' · roof mechanical',(xx,yy,h+base+.033),(.045,.073,.035),'steel',.001)
+        for k in range(4):box(name+' · condenser louvre',(xx,yy-.029+k*.018,h+base+.052),(.040,.004,.002),'ink',0)
+    for xx in [x-w*.22,x+w*.22]:box(name+' · entry',(xx,y-d/2-.006,base+.035),(.05,.025,.07),'glass',.001)
 
 
 def street(a,b,width):
@@ -594,13 +716,16 @@ def city():
     P['glass']=material('Taipei · green architectural glazing',(.055,.12,.092),metal=.42,rough=.24)
     foundation(31);landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
+    ground.data.materials[2]=textured('Xinyi · park meadow',(.046,.060,.020),(.16,.18,.071),'moss',rough=.98)
     # A compressed Xinyi composition. North is +Y; east is +X.
     # Xinyi Road, City Hall Road, Songzhi Road and Songshou Road frame the blocks.
     street((-3.35,-.95),(3.25,-.95),.24)
-    street((-1.05,-2.1),(-1.05,2.2),.18)
-    street((1.55,-2.0),(1.55,2.2),.17)
+    street((-1.05,-2.36),(-1.05,2.2),.18)
+    street((1.55,-2.36),(1.55,2.2),.17)
     street((-3.3,1.35),(3.25,1.35),.18)
     street((-3.15,.12),(-1.17,.12),.13)
+    street((-2.80,-2.32),(1.67,-2.32),.10)
+    ANCHORS['traffic']=[(-2.65,-2.32,.064),(1.38,-2.32,.064)]
     street((2.70,-1.95),(2.70,1.65),.14)
     tx,ty=.52,-.39
     # The low mall adjoins the tower northwards; repeated sawtooth roof skylights.
@@ -723,7 +848,7 @@ def book_stack(x,y,z):
 def floorboards():
     for i in range(22):
         x=(i-10.5)*.30; length=2.1*math.sqrt(max(0,1-(x/3.8)**2))
-        box('Floor · aged oak plank',(x,0,.10),(.289,length*2,.095),'floorwood',.003)
+        sawn_ends(box('Floor · aged oak plank',(x,0,.10),(.289,length*2,.095),'floorwood',.003),'Y')
         for y in [-length+.10,length-.10]:
             for xx in [x-.095,x+.095]: cylinder('Floor · iron nail',(xx,y,.152),.007,.003,'ink',8,bevel=0)
 
@@ -766,25 +891,64 @@ def chair(x,y):
 
 def notebook(x,y,z):
     width=.92;depth=.64
+    rng=random.Random(733)
+    curve('Notebook · recessed cloth spine',[(x,y-depth/2,z+.009),(x,y,z+.007),(x,y+depth/2,z+.009)],.008,'leather')
     for side in [-1,1]:
         box('Notebook · soft cloth binding',(x+side*width/4,y,z+.006),(width/2+.009,depth+.025,.012),'linen',.003)
-        for layer in range(12):
+        for layer in range(22):
             verts=[]
+            edge=rng.uniform(-.004,.004)
             for yy in [-depth/2,depth/2]:
                 for i in range(33):
-                    xx=side*(.008+i/32*(width/2-.008))
-                    zz=z+.020+layer*.0007+.012*math.sin(abs(xx)/(width/2)*math.pi)
-                    verts.append((x+xx,y+yy,zz))
+                    u=i/32;xx=side*(.010+u*(width/2-.010+edge))
+                    zz=z+.018+layer*.0013+.046*math.sin(u*math.pi)**.70
+                    verts.append((x+xx,y+yy+edge*u,zz))
             obj=mesh('Notebook · individual paper sheet',verts,[(i,i+1,i+34,i+33) for i in range(32)],'paper')
             for f in obj.data.polygons:f.use_smooth=True
-    ANCHORS['spread']=[(x-width/2,y+depth/2,z+.03),(x+width/2,y+depth/2,z+.03),(x-width/2,y-depth/2,z+.03),(x+width/2,y-depth/2,z+.03)]
-    ANCHORS['page']=[(x+.022,y+.28,z+.039),(x+.424,y+.28,z+.036),(x+.022,y-.28,z+.039),(x+.424,y-.28,z+.036)]
-    ANCHORS['landmark']=(x,y,z+.035)
+            if layer==21 and side==1:
+                obj.shape_key_add(name='Rest');corner=obj.shape_key_add(name='Lifted paper corner')
+                for index,point in enumerate(corner.data):
+                    weight=max(0,(index%33-25)/7)**2*(1 if index<33 else 0)
+                    point.co.z+=.022*weight
+                for frame,value in [(1,0),(25,1),(49,0)]:corner.value=value;corner.keyframe_insert(data_path='value',frame=frame)
+    ANCHORS['spread']=[(x-width/2,y+depth/2,z+.072),(x+width/2,y+depth/2,z+.072),(x-width/2,y-depth/2,z+.072),(x+width/2,y-depth/2,z+.072)]
+    ANCHORS['page']=[(x+.075,y+.27,z+.087),(x+.406,y+.27,z+.077),(x+.075,y-.27,z+.087),(x+.406,y-.27,z+.077)]
+    ANCHORS['landmark']=(x,y,z+.07)
     rng=random.Random(233)
     for j in range(16):
         yy=y-.275+j*.035
-        box('Notebook · handwritten line',(x-.225,yy,z+.039),(rng.uniform(.19,.36),.001,.001),'page',0)
-    curve('Notebook · silk bookmark',[(x,y+.31,z+.04),(x+.002,y-.30,z+.04),(x+.014,y-.40,z-.005)],.0025,'redcloth')
+        length=rng.uniform(.19,.32)
+        pts=[]
+        for i in range(12):
+            xx=-.225-length/2+length*i/11;u=abs(xx)/(.46)
+            pts.append((x+xx,yy,z+.047+.046*math.sin(u*math.pi)**.70))
+        curve('Notebook · handwritten line',pts,.00045,'page')
+    curve('Notebook · silk bookmark',[(x,y+.31,z+.045),(x+.002,y-.30,z+.045),(x+.014,y-.40,z-.005)],.0025,'redcloth')
+
+
+def woven_rug():
+    # A soft selvedge and individually modelled warp make this read as cloth.
+    verts=[];faces=[];cols=90;rows=65
+    for j in range(rows+1):
+        for i in range(cols+1):
+            u=i/cols;v=j/rows
+            edge=abs(u-.5)*2
+            x=.1+(u-.5)*4.31+.009*math.sin(v*38)*edge**12
+            y=-.61+(v-.5)*3.21+.008*math.sin(u*47)*(abs(v-.5)*2)**12
+            z=.157+.006*math.sin(u*21+v*3)*math.sin(v*16)+.012*edge**16*math.sin(v*9)**2
+            verts.append((x,y,z))
+    for j in range(rows):
+        for i in range(cols):
+            a=j*(cols+1)+i;faces.append((a,a+1,a+cols+2,a+cols+1))
+    rug=mesh('Study · softly rumpled woven rug',verts,faces,'linen')
+    for face in rug.data.polygons:face.use_smooth=True
+    for i in range(215):
+        x=-2.05+i*.02
+        curve('Rug · visible warp',[(x,-2.21+j*.20,.166+.002*math.sin(i+j)) for j in range(17)],.0018,'linen')
+    for side in [-1,1]:
+        for i in range(115):
+            y=-2.18+i*.027
+            curve('Rug · loose flax fringe',[(side*2.14+.1,y,.164),(side*2.20+.1,y+.006,.157),(side*(2.24+.008*math.sin(i))+.1,y+.003,.151)],.0018,'linen')
 
 
 def image_panel(name, source, center, width, height):
@@ -864,7 +1028,7 @@ def writing():
             rod('Desk · tapered oak leg',(x*1.035,y,.16),(x,y,1.55),.045,'wood',24)
         box('Desk · short apron',(x,-.70,1.41),(.055,1.31,.18),'wood',.002)
     for y in [-1.32,-.07]:box('Desk · long apron',(.1,y,1.43),(3.18,.055,.13),'wood',.002)
-    for i in range(5):box('Desk · solid walnut top',(.1,-1.39+i*.32,1.58),(3.56,.315,.060),'wood',.005)
+    for i in range(5):sawn_ends(box('Desk · solid walnut top',(.1,-1.39+i*.32,1.58),(3.56,.315,.060),'wood',.005))
     box('Desk · inset drawer',(.05,-1.417,1.43),(1.16,.04,.13),'wood',.002)
     rod('Desk · recessed drawer pull',(-.10,-1.443,1.45),(.20,-1.443,1.45),.008,'brass')
     capture(notebook,.16,-.80,1.614,scale=(1.22,1.22,1.22),origin=(.16,-.80,1.614))
@@ -899,12 +1063,10 @@ def writing():
         ANIMATED.append(leaf)
     chair(-.95,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
-    light('Study · paper warmth',(.2,-1.15,2.75),(1,.78,.51),8,1.1,(.1,-.8,1.65))
+    light('Study · paper warmth',(.2,-1.15,2.75),(1,.78,.51),25,.8,(.1,-.8,1.65))
     plant(-2.65,.57,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
-    box('Study · wool rug',(.10,-.61,.161),(4.31,3.21,.010),'linen',.008)
-    for side in [-1,1]:
-        for i in range(83):rod('Rug · fringe',(side*2.16+.1,-2.12+i*.037,.164),(side*2.23+.1,-2.12+i*.037,.164),.0015,'page',6)
+    woven_rug()
 
 
 def hammer(x,y,z):
@@ -943,13 +1105,19 @@ def workshop():
         for y in [-.60,.72]:box('Bench · welded steel leg',(x,y,.95),(.085,.085,1.56),'teal',.004)
         box('Bench · steel crossmember',(x,.06,.47),(.067,1.4,.067),'teal',.003)
     for y in [-.60,.72]:box('Bench · steel apron',(0,y,1.59),(4.42,.055,.15),'teal',.003)
-    for i in range(9):box('Bench · laminated beech top',(0,-.70+i*.19,1.74),(4.74,.185,.10),'oak',.003)
+    for i in range(9):sawn_ends(box('Bench · laminated beech top',(0,-.70+i*.19,1.74),(4.74,.185,.10),'oak',.003))
     box('Bench · lower shelf',(0,.08,.50),(4.38,1.33,.035),'wood',.003)
     # One real cabinet, with narrow reveals and small handles.
     for row in range(4):
         z=.71+row*.223
-        box('Bench · painted drawer',(-1.51,-.56,z),(1.03,.70,.20),'teal',.006)
-        rod('Bench · drawer handle',(-1.72,-.928,z+.045),(-1.30,-.928,z+.045),.010,'steel')
+        if row==3:
+            box('Bench · open drawer bottom',(-1.51,-.76,z-.085),(1.03,1.03,.020),'wood',.004)
+            for x in [-2.016,-1.004]:box('Bench · drawer side',(x,-.76,z),(.018,1.03,.19),'teal',.003)
+            box('Bench · open drawer front',(-1.51,-1.275,z),(1.03,.025,.20),'teal',.006)
+            for i in range(4):box('Drawer · spare component',(-1.84+i*.22,-1.05,z-.015),(.13,.22,.06),'steel' if i%2 else 'ink',.003)
+        else:box('Bench · painted drawer',(-1.51,-.56,z),(1.03,.70,.20),'teal',.006)
+        yy=-1.297 if row==3 else -.928
+        rod('Bench · drawer handle',(-1.72,yy,z+.045),(-1.30,yy,z+.045),.010,'steel')
     for i in range(9):cylinder('Bench · dog hole',(-2.04+i*.44,-.69,1.792),.012,.002,'ink',16,bevel=0)
     # A 27-inch studio monitor gives the screen a clear silhouette above the
     # tools. A separate keyboard and trackpad preserve credible desk proportions.
@@ -998,6 +1166,18 @@ def workshop():
     rod('Iron · steel tip',(-1.79,-.40,1.823),(-1.77,-.56,1.823),.005,'steel')
     curve('Iron · flexible cable',[(-1.82,-.17,1.823),(-2.04,-.18,1.81),(-2.15,.20,1.81),(-1.96,.36,1.81),(-1.80,.35,1.89)],.005,'ink')
     practical=desk_lamp(-1.55,.77,1.792,.51)
+    # Different working objects replace the three identical empty cases.
+    box('Bench · shallow parts tray',(-.43,-.12,.55),(.82,.76,.05),'teal',.006)
+    for x in [-.84,-.02]:box('Tray · side',(x,-.12,.63),(.015,.76,.14),'teal',.003)
+    for y in [-.50,.26]:box('Tray · end',(-.43,y,.63),(.82,.015,.14),'teal',.003)
+    for i in range(3):box('Tray · compartment divider',(-.66+i*.23,-.12,.62),(.008,.74,.12),'steel',.002)
+    for i in range(12):
+        x=-.74+(i%4)*.20;y=-.36+(i//4)*.21
+        cylinder('Tray · spare fitting',(x,y,.60),.034,.055,'brass' if i%3 else 'steel',12,bevel=.002)
+    for i in range(5):torus('Bench · coiled extension lead',(.64,-.04,.55+i*.017),.28-i*.012,.012,'ink')
+    box('Bench · cable connector',(.78,-.35,.575),(.055,.11,.050),'teal',.006)
+    box('Bench · folded canvas tool roll',(1.50,.05,.60),(.65,.65,.15),'linen',.025,rot=.10)
+    for x in [1.28,1.69]:box('Tool roll · leather strap',(x,.05,.68),(.045,.68,.014),'leather',.003,rot=.10)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -1015,7 +1195,6 @@ def workshop():
         box('Carton · label',(.75+i*.49,1.39,3.19),(.14,.002,.08),'paper',0)
     bpy.context.view_layer.update()
     transform_objects(set(bpy.context.scene.objects)-rear_storage,scale=(1,1,.72),origin=(0,0,.16))
-    for x in [-.45,.60,1.55]:box('Bench · equipment case',(x,.10,.71),(.77,.82,.38),'teal',.014)
     # A low stool with metal legs and a modest padded seat.
     for xx in [-.27,.27]:
         for yy in [-.27,.27]:rod('Stool · splayed steel leg',(2.75+xx*1.25,-.78+yy*1.25,.16),(2.75+xx,-.78+yy,1.08),.021,'teal',20)
@@ -1088,11 +1267,11 @@ def camera_and_lights(scene):
     distance=max((xmax-xmin),1.5*(ymax-ymin))/.83/(36/70)
     camera.location=target+direction*(distance+3)
     # Broad daylight keeps matte timber and stone clear; practicals add warmth.
-    light('Sky · north window',(-7,-4,11),(.82,.87,1),1250,6,(0,0,.7))
-    light('Dusk · horizon',(4,5,7),(1,.85,.65),850,7,(0,0,1))
-    light('Front · reflected sky',(0,-8,3),(.82,.87,1),220,8,(0,0,.7))
-    light('Cliff · ambient bounce',(-4,-3,-1),(.66,.69,.60),55,6,(0,0,-.8))
-    light('Cliff · cool edge',(5,3,1),(.53,.68,1),190,4,(0,0,-.8))
+    light('Sky · north window',(-7,-4,11),(.86,.90,1),1450,4.5,(0,0,.7))
+    light('Dusk · horizon',(4,5,7),(1,.81,.57),750,5,(0,0,1))
+    light('Front · reflected sky',(0,-8,3),(.82,.87,1),160,8,(0,0,.7))
+    light('Cliff · ambient bounce',(-4,-3,-1),(.66,.69,.60),35,6,(0,0,-.8))
+    light('Cliff · cool edge',(5,3,1),(.53,.68,1),230,3,(0,0,-.8))
     bpy.context.view_layer.update()
     # Fit the perspective projection itself, including the nearest corners.
     for step in range(6):

@@ -8,11 +8,14 @@ test("city and workshop details animate only while active and respect reduced mo
     await page.getByRole("button", { name: `Show ${title} island` }).click();
     const visual = page.locator(`[data-living-island=${world}]`);
     await expect(visual).toHaveAttribute("data-motion-running", "true");
+    const ambient = visual.locator(world === "work" ? "[data-island-traffic]" : "[data-screen-light]").first();
+    await expect(ambient).toHaveCSS("animation-play-state", "running");
     const detail = visual.locator("svg > g").first();
     const initial = await detail.evaluate((node) => getComputedStyle(node).opacity);
     await expect.poll(() => detail.evaluate((node) => getComputedStyle(node).opacity)).not.toBe(initial);
     await page.getByRole("button", { name: "Show Writing island" }).click();
     await expect(visual).toHaveAttribute("data-motion-running", "false");
+    await expect(ambient).toHaveCSS("animation-play-state", "paused");
     await page.getByRole("button", { name: `Show ${title} island` }).click();
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     await page.emulateMedia({ reducedMotion: "reduce" });
