@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
+import IslandOrbit from "./IslandOrbit";
+import type { OrbitProjection } from "@/lib/island-orbit";
+import orbitAssets from "@/lib/island-orbit-assets.json";
 
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
@@ -15,6 +18,11 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   const city = artwork.work;
   const workshop = artwork.projects;
   const traffic = city.traffic;
+  const orbitAnchors = useMemo(() => {
+    const anchors: OrbitProjection = { landmark: [island.landmark] };
+    anchors[world === "work" ? "entryWindow" : "screen"] = world === "work" ? city.entryWindow : workshop.screen;
+    return anchors;
+  }, [city, island, workshop, world]);
   // The opening view shows light previews; full islands wait for travel.
   const [warm, setWarm] = useState(false);
 
@@ -106,6 +114,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
           </g>
           <path className={motionStyles.screenRim} d={artworkOutline(workshop.screen)} fill="none" stroke="#ffe2ba" strokeWidth="0.6" />
         </svg> : null}
+        {warm ? <IslandOrbit world={world} asset={orbitAssets[world]} anchors={orbitAnchors} /> : null}
       </span>
     </IslandLink>
   </>;

@@ -1,0 +1,11 @@
+.canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; opacity: 0; pointer-events: none; touch-action: pan-y pinch-zoom; filter: var(--island-grade); }
+.canvas[data-orbit-ready="true"] { pointer-events: auto; cursor: grab; }
+.canvas[data-orbit-live="true"] { opacity: 1; }
+.canvas[data-orbit-dragging="true"] { cursor: grabbing; }
+.controls { position: absolute; bottom: -0.75rem; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 1.1rem; white-space: nowrap; color: #d7ccb8b3; font-size: 0.75rem; line-height: 1.4; }
+.controls button { pointer-events: auto; min-height: 44px; padding: 0.35rem 0.5rem; border: 0; background: none; color: #e9d4b6; font: inherit; text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
+.controls button:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 3px; }
+:global([data-island-stage][data-travelling="true"]) .controls,
+:global([data-island-stage][data-entering]) .controls { visibility: hidden; }
+.instructions { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 760px) { .controls { bottom: -1rem; font-size: 0.6875rem; } }

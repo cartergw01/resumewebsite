@@ -9,7 +9,7 @@ import { beginWorkEntry } from "@/lib/work-entry";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
-function landmarkArrow(title: string, focus: IslandLandmark) {
+export function landmarkArrow(title: string, focus: IslandLandmark) {
   const x = focus.x * 1200, y = focus.y * 800;
   const [start, first, last] = title === "Work"
     ? [[250, 665], [560, 755], [x + 140, y + 150]]
@@ -22,6 +22,7 @@ function landmarkArrow(title: string, focus: IslandLandmark) {
 }
 
 function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark) {
+  if (visual.dataset.orbitLandmark) focus = { ...focus, ...JSON.parse(visual.dataset.orbitLandmark) };
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
   const image = visual.querySelector("img");
   const width = visual.offsetWidth;
@@ -145,6 +146,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       href={href}
       className={styles.islandLink}
       data-island-link
+      draggable={false}
       data-workshop={workshop || undefined}
       data-world={title.toLowerCase()}
       data-tip={prompt}

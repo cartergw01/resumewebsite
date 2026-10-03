@@ -15,6 +15,7 @@ const eslintConfig = [
       ".next/**",
       ".claude/**",
       "node_modules/**",
+      "public/draco/**", // Vendored upstream decoder; keep its source unchanged.
       "next-env.d.ts",
     ],
   },

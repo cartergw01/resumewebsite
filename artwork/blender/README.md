@@ -179,3 +179,43 @@ loaded for this transition.
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or
 save-data preferences. The still remains the playback fallback. The background
 video, scrolling journeys and rocket effect are independent.
+
+## Interactive angles
+
+The homepage's three detailed islands also have compressed GLB versions.
+`components/IslandOrbit.tsx` loads the active world's model after its journey
+settles. Its poster/video stays visible until a drag or arrow-key interaction.
+Horizontal touch drags turn the model; vertical swipes retain native scrolling.
+Drag release never opens a page. Click or Enter still uses the landmark entry
+and rocket. R or the reset button restores the original rendered view.
+
+Regenerate a model from its editable Blender source:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/work.blend --threads 6 --python scripts/blender/export_orbit.py -- --world work
+```
+
+Repeat with `writing` or `projects`. This saves an intermediate scene under
+`.blender-build/orbit`, writes a hashed GLB to `public/blender`, and updates
+`lib/island-orbit-assets.json`. The original `.blend` stays untouched. If the
+camera framing changes, pass `--crop X Y WIDTH HEIGHT` using the 1200×800 crop
+printed by `prepare_islands.mjs`; otherwise the current manifest crop is kept.
+Remove superseded GLBs after checking the new model in the browser.
+
+The exporter joins detailed geometry, bakes procedural base colors, preserves
+image planes and surface roughness, and uses Draco compression. Lighting and
+fine wood/stone grain run in the browser; they approximate the offline Cycles
+render, so a live angle is not pixel-identical to the still. Models currently
+range from about 3–7 MiB. They load per active world, render only on input or
+resize, and release GPU resources when another world finishes arriving.
+Save-data, unsupported WebGL, failed downloads, or context loss retain the
+original artwork and normal navigation. Manual rotation also works with reduced
+motion, with no automatic orbit or inertial spin.
+
+`lib/island-orbit.ts` recovers the 3D surface beneath each projected landmark by
+raycasting, then updates the annotation and entry corners while turning. The
+workshop's project preview stays attached to its screen. Tests in
+`tests/e2e/island-orbit.spec.ts` cover drag/click separation, all three destinations,
+keyboard controls, reset, reduced motion, failed downloads, and native touch
+scrolling. The Draco files under `public/draco` come from the installed Three.js
+package; their licenses are included there.

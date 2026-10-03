@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
+import IslandOrbit from "./IslandOrbit";
+import orbitAssets from "@/lib/island-orbit-assets.json";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
@@ -10,6 +12,7 @@ import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import styles from "./IslandHome.module.css";
 
 export default function WritingIsland({ artwork: island, landmark, essay, titles }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; titles: string[] }) {
+  const orbitAnchors = useMemo(() => ({ landmark: [island.landmark], spread: island.spread }), [island]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
@@ -24,7 +27,8 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
     let disposed = false;
     let attempting = false;
-    const shouldPlay = () => !motion.matches && !connection?.saveData
+    const visual = video.closest<HTMLElement>("[data-island-visual]")!;
+    const shouldPlay = () => !visual.dataset.orbitLive && !motion.matches && !connection?.saveData
       && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
     const sync = () => {
       if (stage.dataset.warm === "true") setWarm(true);
@@ -45,6 +49,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
       }
     };
     const observer = new MutationObserver(sync);
+    observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
     observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-warm"] });
     motion.addEventListener("change", sync);
@@ -100,6 +105,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
               </PerspectiveArtwork>
             </g>
           </svg>
+          {warm ? <IslandOrbit world="writing" asset={orbitAssets.writing} anchors={orbitAnchors} /> : null}
         </span>
       </IslandLink>
     </>

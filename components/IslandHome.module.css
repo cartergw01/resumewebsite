@@ -122,7 +122,7 @@
 .writing .art::before { background: radial-gradient(ellipse, #f7b96b17, transparent 65%); }
 .projects .art::before { background: radial-gradient(ellipse, #f7b96b12, transparent 65%); }
 .islandLink { position: relative; display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.islandLink { container-type: size; }
+.islandLink { container-type: size; user-select: none; -webkit-user-select: none; }
 /* Every annotation uses the same coordinates and contained bounds as its art. */
 .landmarkCue {
   position: absolute;
@@ -166,10 +166,12 @@
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
 .island > img, .island > video, .overviewImage { filter: var(--island-grade); }
+.island[data-orbit-live="true"] > img, .island[data-orbit-live="true"] > video, .island[data-orbit-live="true"] > svg { opacity: 0 !important; }
 .projects .island { width: 91%; max-height: 100%; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
 .scene[data-active="true"] .island { animation: island-float 7s ease-in-out infinite; }
+.island:has([data-orbit-dragging="true"]) { animation-play-state: paused; }
 .stage[data-travelling="true"] .island, .stage[data-entering] .island { animation-play-state: paused; }
 @keyframes island-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
 @media (prefers-reduced-motion: reduce) { .scene[data-active="true"] .island { animation: none; } }
