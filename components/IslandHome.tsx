@@ -8,6 +8,7 @@ import WritingIsland from "./WritingIsland";
 import IslandLine from "./IslandLine";
 import { essays, projects } from "@/content/portfolio";
 import { siteConfig } from "@/lib/seo";
+import { islandArtwork, islandLandmarks } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 
 const stops = [
@@ -66,8 +67,10 @@ function Art({ id }: { id: (typeof stops)[number]["id"] }) {
   switch (id) {
     case "intro": return <IslandOverview variant="intro" />;
     case "hello": return <IslandOverview variant="outro" />;
-    case "writing": return <WritingIsland essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} titles={essays.map((essay) => essay.title)} />;
-    default: return <LivingIsland world={id} preview={id === "projects" ? projects[0]?.image : undefined} posters={id === "projects" ? projects.map((project) => project.image) : undefined} />;
+    // One server-side manifest supplies overview images, live media and anchors.
+    // New renders remount the client media so a playing video cannot stay stale.
+    case "writing": return <WritingIsland key={`${islandArtwork.writing.src}:${islandArtwork.writing.video.webm}`} artwork={islandArtwork.writing} landmark={islandLandmarks.Writing} essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} titles={essays.map((essay) => essay.title)} />;
+    default: return <LivingIsland key={islandArtwork[id].src} artwork={islandArtwork} landmark={islandLandmarks[id === "work" ? "Work" : "Projects"]} world={id} preview={id === "projects" ? projects[0]?.image : undefined} posters={id === "projects" ? projects.map((project) => project.image) : undefined} />;
   }
 }
 

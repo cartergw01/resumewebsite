@@ -31,6 +31,11 @@ flax cloth, worn leather and unglazed terracotta keep the interiors earthy;
 architectural glass and bare metal retain their distinct reflective finish.
 All materials are procedural and editable in the saved scenes.
 
+Every foundation uses the same proportions: the terrain is 35% wider and deeper
+in plan, and the cliff is 18% taller than the original earthy version. Buildings
+and furniture retain their size. The extra land is soil and vegetation around
+the original central plot, so each scene has a substantial natural perimeter.
+
 ### Architectural reference sources
 
 1. [C.Y. Lee & Partners — Taipei 101](https://www.cylee.com/project/Taipei-101?lang=en):
@@ -91,6 +96,9 @@ remain available in the input directory.
 
 Safari uses transparent HEVC; Chromium uses transparent VP9. Both video formats
 and the stills receive content hashes to avoid stale media after a revision.
+The server passes the same artwork manifest and landmark coordinates into the
+overview and interactive scenes. A new render remounts its media component so
+the Writing video, still, and book projection update together.
 For a quick check, render one world at `--width 1400 --samples 40` without
 `--animate`, and inspect the PNG before rendering the loop.
 

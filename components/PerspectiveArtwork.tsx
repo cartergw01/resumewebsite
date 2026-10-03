@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { artworkProjection } from "@/lib/island-artwork";
+import { artworkProjection } from "@/lib/artwork-perspective";
 
 // SVG has no portable projective transform. Small clipped triangles follow the
 // four-corner camera projection in Chromium and WebKit, without a canvas texture

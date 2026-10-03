@@ -4,15 +4,16 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
-import { artworkOutline, islandArtwork } from "@/lib/island-artwork";
+import { artworkOutline } from "@/lib/artwork-perspective";
+import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 
-export default function LivingIsland({ world, preview, posters }: { world: "work" | "projects"; preview?: string; posters?: string[] }) {
+export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
-  const island = islandArtwork[world];
-  const city = islandArtwork.work;
-  const workshop = islandArtwork.projects;
+  const island = artwork[world];
+  const city = artwork.work;
+  const workshop = artwork.projects;
   // The opening view shows light previews; full islands wait for travel.
   const [warm, setWarm] = useState(false);
 
@@ -49,7 +50,7 @@ export default function LivingIsland({ world, preview, posters }: { world: "work
   }, [posters]);
 
   return <>
-    <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} workshop={world === "projects"}>
+    <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 110vw, 68vw" loading="eager"

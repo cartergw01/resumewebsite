@@ -1,5 +1,5 @@
 import styles from "@/components/WorkshopEntry.module.css";
-import { artworkTransform } from "./island-artwork";
+import { artworkTransform } from "./artwork-perspective";
 
 type Entry = {
   kind: "workshop" | "book";

@@ -263,6 +263,7 @@ def foliage(name, center, scale, rng, count=220):
 
 
 def foundation(seed):
+    before=set(bpy.context.scene.objects)
     rng=random.Random(seed)
     count=192; levels=64; verts=[]; rings=[]; faces=[]; materials=[]
     # Broken cliff contours replace the old smooth, periodically stacked rings.
@@ -288,7 +289,7 @@ def foundation(seed):
             materials.extend([mat,mat])
     # A tessellated soil cap with an exposed organic rim and a level inner plot.
     inner=[]
-    for radius in [.0,.18,.38,.60,.78,.9,1.0]:
+    for radius in [.0,.14,.28,.44,.58,.76,.90,1.0]:
         ring=[]
         for i in range(count):
             v=verts[rings[0][i]]*radius
@@ -330,6 +331,10 @@ def foundation(seed):
             curve('Cliff · exposed root',pts,.006,'wood')
             branch=[pts[2],point(a+.04,.10),point(a+.07,.15)]
             curve('Cliff · branching root',branch,.003,'wood')
+    # Give every world a broad, substantial landmass without enlarging its
+    # buildings or furniture. The inner plot keeps its previous physical size.
+    bpy.context.view_layer.update()
+    transform_objects(set(bpy.context.scene.objects)-before,scale=(1.35,1.35,1.18))
 
 
 def tree(x,y,scale=1):

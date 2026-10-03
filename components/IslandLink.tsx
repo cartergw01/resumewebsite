@@ -6,12 +6,9 @@ import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
 import { tipSide } from "@/lib/island-overview";
-import { islandLandmarks } from "@/lib/island-artwork";
+import type { IslandLandmark } from "@/lib/island-artwork";
 
-const landmarks: Record<string, { x: number; y: number; name: string }> = islandLandmarks;
-
-function landmarkArrow(title: string) {
-  const focus = landmarks[title];
+function landmarkArrow(title: string, focus: IslandLandmark) {
   const x = focus.x * 1200, y = focus.y * 800;
   const [start, first, last] = title === "Work"
     ? [[250, 665], [560, 755], [x + 140, y + 150]]
@@ -23,10 +20,9 @@ function landmarkArrow(title: string) {
   return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
 }
 
-function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string) {
+function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark) {
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
   const image = visual.querySelector("img");
-  const focus = landmarks[title] ?? { x: 0.5, y: 0.5, name: title };
   const width = visual.offsetWidth;
   const height = visual.offsetHeight;
   // An island still loading falls back to its declared (or box) proportions.
@@ -56,7 +52,7 @@ function landmarkApproach(visual: HTMLElement, link: HTMLElement, title: string)
   return { x, y, scale, origin: `${focusX}px ${focusY}px`, name: focus.name };
 }
 
-export default function IslandLink({ href, title, prompt, children, workshop = false, book = false }: { href: string; title: string; prompt: string; children: ReactNode; workshop?: boolean; book?: boolean }) {
+export default function IslandLink({ href, title, prompt, landmark, children, workshop = false, book = false }: { href: string; title: string; prompt: string; landmark: IslandLandmark; children: ReactNode; workshop?: boolean; book?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -75,7 +71,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
     if (stage.dataset.entering) return;
 
     router.prefetch(href);
-    const { x, y, scale, origin, name } = landmarkApproach(visual, link, title);
+    const { x, y, scale, origin, name } = landmarkApproach(visual, link, landmark);
     const initial = getComputedStyle(visual);
     const initialTransform = initial.transform;
     const initialOrigin = initial.transformOrigin;
@@ -148,7 +144,7 @@ export default function IslandLink({ href, title, prompt, children, workshop = f
       <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>{prompt}</span>
         <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
-          <path d={landmarkArrow(title)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={landmarkArrow(title, landmark)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
     </Link>

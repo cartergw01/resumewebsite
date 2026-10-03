@@ -4,12 +4,12 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
-import { artworkOutline, islandArtwork } from "@/lib/island-artwork";
+import { artworkOutline } from "@/lib/artwork-perspective";
+import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import styles from "./IslandHome.module.css";
 
-export default function WritingIsland({ essay, titles }: { essay: EssayPreview; titles: string[] }) {
-  const island = islandArtwork.writing;
+export default function WritingIsland({ artwork: island, landmark, essay, titles }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; titles: string[] }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
   const [still, setStill] = useState(true);
@@ -63,7 +63,7 @@ export default function WritingIsland({ essay, titles }: { essay: EssayPreview; 
 
   return (
     <>
-      <IslandLink href="/writing" title="Writing" prompt="read my writing" book>
+      <IslandLink href="/writing" title="Writing" prompt="read my writing" landmark={landmark} book>
         <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
           {warm ? <Image
             src={island.src} alt="" width={island.width} height={island.height}
