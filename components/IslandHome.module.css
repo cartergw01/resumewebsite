@@ -535,3 +535,7 @@
   .overviewIsland:focus-visible .overviewLabel { visibility: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .tipStar, .tipLeader, .tipText, .islandTip[data-visible="true"] * { transition: none !important; } }
+
+/* Entry owns attention until the camera reaches the interior. */
+:global(html[data-work-transition="entering"]) .islandTip { opacity: 0 !important; visibility: hidden; }
+:global(html[data-work-transition="entering"]) .home :global(.site-nav) { opacity: 0; pointer-events: none; }

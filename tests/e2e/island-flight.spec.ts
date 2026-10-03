@@ -78,12 +78,10 @@ test("island settles before its lights, heading, and annotation arrive", async (
   }
 });
 
-test("entry centers each landmark, including when clicked during flight", async ({ page }) => {
+test("book and workshop entry centers their landmarks", async ({ page }) => {
   for (const [world, name, midFlight] of [
-    ["work", "Taipei tower", false],
     ["writing", "open book", false],
     ["projects", "workshop screen", false],
-    ["work", "Taipei tower", true],
   ] as const) {
     const fx = artwork[world].landmark[0] / artwork[world].width;
     const fy = artwork[world].landmark[1] / artwork[world].height;

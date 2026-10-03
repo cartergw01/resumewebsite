@@ -82,8 +82,10 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
-    // Find the landmark first, then accelerate toward it with the rocket.
-    const zoom = visual.animate([
+    const entryWindow = city ? visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]") : null;
+    const workEntry = entryWindow ? beginWorkEntry(entryWindow, visual) : null;
+    // Work borrows its real camera; the book and workshop keep their approach.
+    const zoom = workEntry?.animation ?? visual.animate([
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin, offset: 0, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
       { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(${city ? 1.12 : 1.32})`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin, offset: 1 },
@@ -93,21 +95,21 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     let recoveryTimer = 0;
     let screenTimer = 0;
     let handedOff = false;
-    let cancelScreen: (() => void) | null = null;
+    let cancelScreen: (() => void) | null = workEntry?.dispose ?? null;
     let cancelled = false;
-    if (workshop || book || city) {
+    if (workshop || book) {
       screenTimer = window.setTimeout(() => {
         const screen = visual.querySelector<SVGGraphicsElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
-        const window = visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]");
-        if (!cancelled && window) cancelScreen = beginWorkEntry(window);
-      }, city ? 350 : 200);
+      }, 200);
     }
     const reset = () => {
       cancelled = true;
       window.removeEventListener("keydown", escape);
+      window.removeEventListener("resize", interrupted);
+      window.removeEventListener("popstate", interrupted);
       motion.removeEventListener("change", skipMotion);
       zoom.cancel();
       cancelAnimationFrame(arrivalFrame);
@@ -129,7 +131,10 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       reset();
       router.push(href);
     }
+    function interrupted() { if (!handedOff) reset(); else cancelScreen?.(); }
     window.addEventListener("keydown", escape);
+    window.addEventListener("resize", interrupted);
+    window.addEventListener("popstate", interrupted);
     motion.addEventListener("change", skipMotion);
     // Recover the homepage if a destination fails to mount, allowing a retry.
     recoveryTimer = window.setTimeout(() => { cancelScreen?.(); reset(); }, 8_000);

@@ -642,7 +642,10 @@ def taipei101(x,y):
     ANCHORS['landmark']=(x,y,3.34);ANCHORS['tower']=(x,y,4.43)
     # The Work arrival travels through a real patch of the south-facing glazing.
     # Keep its corners and the eight cornices tied to the render camera.
-    ANCHORS['entryWindow']=[(x-.075,y-.253,3.445),(x+.075,y-.253,3.445),(x-.075,y-.242,3.265),(x+.075,y-.242,3.265)]
+    bottom=3.212+.323*4.12/8;top=3.212+.323*4.87/8
+    def facade(z):return y-(.432+.084*((z-3.212)/.323))/2-.002
+    def bay(z,u):return x+(.432+.084*((z-3.212)/.323))*.8*(u/24-.5)
+    ANCHORS['entryWindow']=[(bay(top,14.04),facade(top),top),(bay(top,15.96),facade(top),top),(bay(bottom,14.04),facade(bottom),bottom),(bay(bottom,15.96),facade(bottom),bottom)]
     ANCHORS['towerSteps']=[(x,y-(.516/2),1.19+i*.337+.323) for i in range(8)]
 
 

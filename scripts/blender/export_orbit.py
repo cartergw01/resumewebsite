@@ -132,5 +132,5 @@ manifest_path=ROOT/'lib'/'island-orbit-assets.json'
 manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
 crop=opts.crop or manifest.get(opts.world,{}).get('crop')
 if not crop: raise ValueError('Supply --crop X Y WIDTH HEIGHT from prepare_islands.mjs')
-manifest[opts.world]={'src':'/blender/'+name,'camera':camera_data,'crop':crop}
+manifest[opts.world]={**manifest.get(opts.world,{}),'src':'/blender/'+name,'camera':camera_data,'crop':crop}
 manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')

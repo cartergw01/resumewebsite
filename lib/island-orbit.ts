@@ -1,4 +1,6 @@
 import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
+import { flyThroughWindow, makeLitWindow } from "./work-window-camera";
+import type { ScreenMatrix } from "./island-orbit-bridge";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -8,6 +10,7 @@ export type OrbitAsset = {
   src: string;
   camera: { position: number[]; up: number[]; direction: number[]; fov: number };
   crop: number[];
+  entryWindow3D?: number[][];
 };
 export type OrbitProjection = Record<string, number[][]>;
 
@@ -81,6 +84,9 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
           ?? raycaster.ray.at(initial.radius, new Vector3());
       });
     }
+    if (asset.entryWindow3D) worldPoints.entryWindow = asset.entryWindow3D.map(point => new Vector3().fromArray(point));
+    const litWindow = worldPoints.entryWindow ? makeLitWindow(worldPoints.entryWindow) : null;
+    if (litWindow) gltf.scene.add(litWindow.group);
     // The workshop keeps its real project preview attached to the screen.
     // Ray-cast corners let it turn with the monitor and become the entry surface.
     if (screenImage && worldPoints.screen) {
@@ -96,10 +102,12 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         gltf.scene.add(preview);
       }
     }
+    let inFlight = false;
+    let disposePending = false;
     let yaw = 0;
     let pitch = 0;
     const render = () => {
-      if (disposed) return;
+      if (disposed || inFlight) return;
       const orbit = new Spherical(initial.radius, initial.phi + pitch, initial.theta + yaw);
       camera.position.copy(target).add(new Vector3().setFromSpherical(orbit));
       camera.lookAt(target);
@@ -113,6 +121,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       project(projection);
     };
     const resize = () => {
+      if (inFlight || disposed) return;
       const bounds = canvas.parentElement!.getBoundingClientRect();
       const width = Math.min(canvas.parentElement!.clientWidth || bounds.width, (canvas.parentElement!.clientHeight || bounds.height) * 1.5);
       renderer.setSize(Math.max(1, Math.round(width)), Math.max(1, Math.round(width / 1.5)), false);
@@ -120,7 +129,26 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       canvas.style.height = `${width / 1.5}px`;
       render();
     };
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      gltf.scene.traverse(object => {
+        if (!(object instanceof Mesh)) return;
+        object.geometry.dispose();
+        for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+          for (const value of Object.values(material)) if (value instanceof Texture) value.dispose();
+          material.dispose();
+        }
+      });
+      key.shadow.map?.dispose();
+      environment.dispose();
+      draco.dispose();
+      renderer.dispose();
+    };
     resize();
+    // Finish compiling the tower shaders while its poster is still visible;
+    // the first camera move should not have to wait for GPU compilation.
+    if (litWindow) await renderer.compileAsync(scene, camera);
     return {
       resize,
       rotate(dx: number, dy: number) {
@@ -131,21 +159,14 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         render();
       },
       reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; render(); },
-      dispose() {
-        disposed = true;
-        gltf.scene.traverse(object => {
-          if (!(object instanceof Mesh)) return;
-          object.geometry.dispose();
-          for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-            for (const value of Object.values(material)) if (value instanceof Texture) value.dispose();
-            material.dispose();
-          }
+      beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
+        inFlight = true;
+        return flyThroughWindow(renderer, scene, camera, litWindow, host, matrix, () => {
+          inFlight = false;
+          if (disposePending) dispose(); else resize();
         });
-        key.shadow.map?.dispose();
-        environment.dispose();
-        draco.dispose();
-        renderer.dispose();
-      },
+      } : undefined,
+      dispose() { if (inFlight) disposePending = true; else dispose(); },
     };
   } catch (error) {
     environment.dispose();

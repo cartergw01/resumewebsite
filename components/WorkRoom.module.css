@@ -1,4 +1,4 @@
-/* Work: one calm reading flow on the site's starfield. The shared header, then
+/* Work: a quiet interior reached through the Taipei window. The shared header, then
    sections (Now, Previously, On the side, About me) that share one shape. */
 .page {
   --ink: #070b10;
@@ -13,6 +13,7 @@
   color: var(--paper);
   background: var(--ink);
 }
+.page > [data-galaxy-background] { opacity: .18; }
 /* A slow, compositor-only drift so the stars always feel alive, even while
    the video loads. It respects reduced motion. */
 .page > [data-galaxy-background] [data-galaxy-camera] {

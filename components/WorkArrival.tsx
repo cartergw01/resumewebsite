@@ -9,8 +9,7 @@ export default function WorkArrival() {
   const ref = useRef<HTMLSpanElement>(null);
   useEffect(() => {
     const content = ref.current?.closest<HTMLElement>("[data-work-arrival]");
-    const light = ref.current?.querySelector<SVGCircleElement>("[data-work-spark-target]");
-    if (content && light) arriveAtWork(light, content);
+    if (content) arriveAtWork(content);
   }, []);
   return <span ref={ref} className={styles.placeHost}><TaipeiMark /></span>;
 }

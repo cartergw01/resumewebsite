@@ -169,12 +169,24 @@ surfaces and carries the same perspective into the destination transition.
 work in both Chromium and WebKit. Entry animations use the corresponding CSS
 projective matrix. The regression test checks all four corners of a tilted plane.
 
-Work's entry lights the tower tiers, carries a window from its south facade,
-and lands a small spark on the destination's Taipei mark. Its window shows the
-same opening components used by `/work`, so the content stays aligned during
-the handoff. `lib/work-entry.ts` owns the short-lived overlay; reduced motion,
-Escape, resizing and back navigation clear it. No extra image or video is
-loaded for this transition.
+Work's entry uses `lib/work-window-camera.ts` to borrow the active island's
+renderer and move its camera through one illuminated south-facing office window.
+The starting projection includes the island's current orbit and CSS placement.
+The camera approaches the facade and its metal frame passes outside the viewport.
+`lib/work-entry.ts` clips the actual opening components from `/work` to the
+window's projected corners; text stays in its final layout throughout the reveal.
+There is no separate floating pane, tier-light sequence or spark docking.
+
+`lib/island-orbit-assets.json` stores the window's four world-space corners in
+Three coordinates (Blender X, Z, -Y). `lib/blender-islands.json` stores their
+1200×800 projection for the still. Update both when changing the tower/window;
+the rebuild formula is in `taipei101` in `build_islands.py`. The exporter preserves
+these entry coordinates when refreshing a model. No additional model is loaded
+for the entry. If the existing GLB is unavailable, the still and opening zoom
+together. Reduced motion skips the approach; Escape, resize, and back cancel it.
+The renderer survives route unmount just until the matching page content mounts,
+then releases its GPU resources. `tests/e2e/work-entry.spec.ts` checks orbit
+alignment, viewport coverage, content continuity, fallback and interruption.
 
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or
 save-data preferences. The still remains the playback fallback. The background
