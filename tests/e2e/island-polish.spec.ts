@@ -104,3 +104,28 @@ test("destination navigation stays readable on scroll and the matching island re
     await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
   }
 });
+
+
+test("arrival invites entering before hover and recedes after discovery", async ({ page }, testInfo) => {
+  await page.goto("/2.0#work");
+  for (const world of ["Work", "Writing", "Projects"]) {
+    const id = world.toLowerCase();
+    await page.getByRole("button", { name: `Show ${world} island` }).click();
+    await expect(page).toHaveURL(new RegExp(`#${id}$`));
+    const island = page.locator(`#${id} [data-island-link]`);
+    const cue = island.locator(":scope > span:last-child");
+    await expect(cue).toHaveCSS("opacity", "1");
+    await expect(cue.locator("span")).toBeInViewport();
+    if (testInfo.project.name === "desktop") {
+      await island.hover();
+      await expect(cue).toHaveCSS("opacity", "0");
+      await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-engaged", "true");
+      await page.mouse.move(4, 4);
+      await expect(cue).toHaveCSS("opacity", "0");
+      await page.keyboard.press("Tab");
+      await island.focus();
+      await expect(cue).toHaveCSS("opacity", "1");
+      await page.getByRole("button", { name: `Show ${world} island` }).focus();
+    }
+  }
+});

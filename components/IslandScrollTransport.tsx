@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import GalaxyBackground from "./GalaxyBackground";
 import JourneyStars from "./JourneyStars";
+import { rememberIsland } from "@/lib/island-location";
 import styles from "./IslandHome.module.css";
 
 // Stops without a title (the opening and closing views) have no tab.
@@ -19,11 +20,16 @@ const arrivalLights: Record<string, readonly (readonly [string, number, number])
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
   const trackRef = useRef<HTMLElement>(null);
+  const [ready, setReady] = useState(false);
   const jumpRef = useRef<(index: number) => void>(() => {});
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+    // The world hash owns restoration. Safari otherwise reapplies the old
+    // pixel offset after our camera jump when returning from an overview link.
+    const previousRestoration = history.scrollRestoration;
+    history.scrollRestoration = "manual";
     const stage = track.querySelector<HTMLElement>("[data-island-stage]")!;
     const scenes = Array.from(track.querySelectorAll<HTMLElement>("[data-island-scene]"));
     const art = scenes.map((scene) => scene.querySelector<HTMLElement>("[data-scene-art]")!);
@@ -47,6 +53,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let starRestTimer = 0;
     let cameraProgress: number | null = null;
     let previousFrame = 0;
+    let entryPending = false;
+    let entryRecovery = 0;
     // Where the opening view's Work island sits in its art box (percent), read
     // from layout so each breakpoint's arrangement drives the first zoom.
     let introFocus = { x: 50, y: 50, size: 100 };
@@ -142,9 +150,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       stage.style.setProperty("--flight-bank", `${-arc * 10 * Math.cos(mix * Math.PI)}deg`);
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
-      const place = Math.min(progress * duration, scenes.length - 1);
-      const stop = Math.min(Math.floor(place), scenes.length - 2);
-      const starX = starStops[stop] + (starStops[stop + 1] - starStops[stop]) * clamp(place - stop);
+      const stops = worlds.map((_, index) => stopProgress(index));
+      const stop = Math.max(0, stops.findIndex((position) => position > progress) - 1);
+      const segment = progress >= 1 ? stops.length - 2 : stop;
+      const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
+      const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
       comet.style.setProperty("--comet-x", `${starX.toFixed(2)}px`);
       if (!motion.matches && previousStarX !== null && Math.abs(starX - previousStarX) > 0.1) {
         comet.dataset.direction = starX > previousStarX ? "forward" : "backward";
@@ -172,15 +182,18 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           const selected = buttonScene[tab] === current;
           if (selected) button.setAttribute("aria-current", "step");
           else button.removeAttribute("aria-current");
-          button.setAttribute("aria-label", selected
-            ? `Show ${title} island, selected. Activate again to open ${title}`
-            : `Show ${title} island`);
+          button.setAttribute("aria-label", `Show ${title} island`);
         });
         const upcoming = worlds[current + 1];
         nextLabel.textContent = current === scenes.length - 1 ? "back to the start" : "scroll down";
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the start"
           : upcoming.title ? `Scroll to the ${upcoming.title} island` : "Scroll to the end");
         next.dataset.last = String(current === scenes.length - 1);
+      }
+      // Wait for a settled shot; passing a world mid-flight must not rewrite
+      // a destination hash or interfere with browser history restoration.
+      if (!entryPending && !glideFrame && cameraProgress === progress && (crossing === 0 || crossing === 1)) {
+        rememberIsland(worlds[current].id);
       }
       if (cameraProgress !== progress) schedule();
     };
@@ -212,7 +225,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       // The opening and closing views have no tab: the star rests on the
       // track's start and end points instead, so home never reads as Work.
-      const centers = buttons.map((button) => button.offsetLeft + button.offsetWidth / 2);
+      const centers = buttons.map((button) => {
+        const star = button.querySelector<HTMLElement>("[data-scene-stop]")!;
+        return button.offsetLeft + star.offsetLeft + star.offsetWidth / 2;
+      });
       const [trackStart, trackEnd] = Array.from(sceneNav.querySelectorAll<HTMLElement>("[data-track-end]"))
         .map((end) => end.offsetLeft + end.offsetWidth / 2);
       starStops = worlds.map((_, index) => {
@@ -226,13 +242,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let glideFrame = 0;
     const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; };
     const jump = (index: number, instant = false) => {
-      warm();
+      entryPending = false;
+      window.clearTimeout(entryRecovery);
+      if (index > 0) warm();
       stopGlide();
       // Safari can retain a pending smooth scroll when a quick second tap
       // targets the current position. Cancel that flight before starting one.
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
       if (instant || motion.matches) {
         window.scrollTo({ top: start + stopProgress(index) * travel, behavior: "instant" });
+        schedule();
         return;
       }
       // Glide in progress units and re-aim every frame, so a resize or a
@@ -248,27 +267,35 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const eased = 1 - Math.pow(1 - t, 4);
         window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
-        if (t >= 1) window.dispatchEvent(new Event("scrollend"));
+        if (t >= 1) { schedule(); window.dispatchEvent(new Event("scrollend")); }
       };
       glideFrame = window.requestAnimationFrame(step);
     };
-    // A second tap on the selected island opens its page through the same
-    // landmark approach as clicking the island itself.
-    jumpRef.current = (index: number) => {
-      const link = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
-      if (index === activeIndex && link) link.click();
-      else jump(index);
-    };
+    // Scene controls always travel. Only islands and headings enter a page.
+    jumpRef.current = (index: number) => jump(index);
     const advance = () => jump(activeIndex === scenes.length - 1 ? 0 : activeIndex + 1);
     const followHash = () => {
       const hash = window.location.hash.slice(1);
-      const index = hash === "constellation" ? 0 : worlds.findIndex((world) => world.id === hash);
+      if (!hash && cameraProgress === null) return;
+      const index = !hash || hash === "constellation" ? 0 : worlds.findIndex((world) => world.id === hash);
       if (index >= 0) jump(index, true);
     };
     // A stop's heading enters its page exactly as its island does. This runs
     // on the window's capture phase, ahead of the rocket's generic link launch,
     // and re-dispatches the click on the island so both behave identically.
     const enterFromHeading = (event: MouseEvent) => {
+      const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a");
+      if (link && stage.contains(link) && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+        const destination = new URL(link.href);
+        if (destination.origin === location.origin && worlds.some(world => destination.pathname === `/${world.id}`)) {
+          // The overview uses a normal route transition. Hold this return
+          // address while the old scene is still mounted (notably on Safari).
+          entryPending = true;
+          window.clearTimeout(entryRecovery);
+          entryRecovery = window.setTimeout(() => { entryPending = false; schedule(); }, 8_000);
+          rememberIsland(destination.pathname.slice(1));
+        }
+      }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const island = heading.closest("[data-island-scene]")?.querySelector<HTMLAnchorElement>("[data-island-link]");
@@ -283,6 +310,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const target = event.type === "pointerout" || event.type === "focusout" ? (event as FocusEvent).relatedTarget : event.target;
       const engaged = target instanceof Element && Boolean(target.closest('[data-island-scene][data-active="true"] [data-island-link]'));
       if (stage.dataset.engaged !== String(engaged)) stage.dataset.engaged = String(engaged);
+      if (engaged && activeIndex >= 0) scenes[activeIndex].dataset.cueSeen = "true";
     };
 
     measure();
@@ -295,12 +323,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("resize", measure);
     window.addEventListener("pageshow", measure);
     window.addEventListener("hashchange", followHash);
+    window.addEventListener("popstate", followHash);
     motion.addEventListener("change", schedule);
     next.addEventListener("click", advance);
     window.addEventListener("click", enterFromHeading, true);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
-    // With a mouse, island prompts appear as a tooltip beside the cursor
-    // instead of permanent annotations; the whole island is the target.
+    // After the arrival cue is discovered, a mouse prompt follows the rocket;
+    // the whole island stays the target and keyboard focus keeps its cue.
     const tip = stage.querySelector<HTMLElement>("[data-island-tip]")!;
     const tipText = tip.querySelector<HTMLElement>("[data-tip-text]")!;
     const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
@@ -384,7 +413,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       settleTimer = window.setTimeout(settle, 120);
     };
     // A new wheel or touch takes over from any glide in progress.
-    const markIntent = () => { intentAt = performance.now(); settling = false; stopGlide(); };
+    const markIntent = () => {
+      intentAt = performance.now(); settling = false; stopGlide();
+      if (!stage.dataset.entering && document.documentElement.dataset.rocketTransition === "idle") {
+        entryPending = false; window.clearTimeout(entryRecovery);
+      }
+    };
     const onTouchStart = () => { touching = true; markIntent(); };
     const onTouchEnd = () => {
       touching = false;
@@ -406,6 +440,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
     // Keys move exactly one stop at a time.
     const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { entryPending = false; window.clearTimeout(entryRecovery); schedule(); }
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering) return;
       const target0 = event.target as Element | null;
       if (target0?.closest("input, textarea, select, [contenteditable]")) return;
@@ -428,8 +463,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("scroll", onGestureScroll, { passive: true });
     window.addEventListener("scrollend", onScrollEnd);
     window.addEventListener("keydown", onKey);
+    setReady(true);
 
     return () => {
+      history.scrollRestoration = previousRestoration;
       window.removeEventListener("wheel", markIntent);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchend", onTouchEnd);
@@ -447,6 +484,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("resize", measure);
       window.removeEventListener("pageshow", measure);
       window.removeEventListener("hashchange", followHash);
+      window.removeEventListener("popstate", followHash);
       motion.removeEventListener("change", schedule);
       next.removeEventListener("click", advance);
       window.removeEventListener("click", enterFromHeading, true);
@@ -456,6 +494,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("scroll", hideTip);
       window.cancelAnimationFrame(frame);
       window.clearTimeout(starRestTimer);
+      window.clearTimeout(entryRecovery);
       jumpRef.current = () => {};
     };
   }, [worlds]);
@@ -473,7 +512,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         </span>
         {children}
         <div className={styles.controls}>
-          <button type="button" className={styles.scrollHint} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
+          <button type="button" className={styles.scrollHint} disabled={!ready} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
             <span data-next-label>scroll down</span>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
@@ -485,12 +524,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
                 type="button"
                 key={world.id}
                 data-scene-button
+                disabled={!ready}
                 data-scene-index={index}
                 aria-label={`Show ${world.title} island`}
                 onClick={() => jumpRef.current(index)}
               >
+                <span className={styles.chapterStar} data-scene-stop aria-hidden="true" />
                 <span className={styles.chapterLabel}>{world.title}</span>
-                <span className={styles.chapterStar} aria-hidden="true" />
               </button>
             ) : null)}
             <span className={styles.trackEnd} data-track-end="end" aria-hidden="true" />

@@ -82,7 +82,7 @@ test("entry centers each landmark, including when clicked during flight", async 
   for (const [world, name, midFlight] of [
     ["work", "Taipei tower", false],
     ["writing", "open book", false],
-    ["projects", "workshop laptop", false],
+    ["projects", "workshop screen", false],
     ["work", "Taipei tower", true],
   ] as const) {
     const fx = artwork[world].landmark[0] / artwork[world].width;

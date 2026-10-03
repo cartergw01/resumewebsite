@@ -262,6 +262,14 @@ def foliage(name, center, scale, rng, count=220):
     return obj
 
 
+def terrain_height(x,y,seed):
+    """The inhabited plot is level; the outer land rises into broken shoulders."""
+    radius=math.sqrt((x/5.535)**2+(y/3.9825)**2)
+    edge=max(0,min(1,(radius-.66)/.25))
+    broad=noise.noise_vector(Vector((x*.65,y*.65,seed)),noise_basis='PERLIN_ORIGINAL').x
+    return edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
+
+
 def foundation(seed):
     before=set(bpy.context.scene.objects)
     rng=random.Random(seed)
@@ -274,8 +282,10 @@ def foundation(seed):
         coarse=noise.noise_vector(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL').x
         grit=noise.noise_vector(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL').x
         radius=((1-t)**.72*.98+.02)*edge*(1+coarse*.16+grit*.027)
-        z=-3.05*t+(.045*grit+.07*coarse)*min(1,t*18)
-        return Vector((math.cos(a)*4.1*radius+.3*t,math.sin(a)*2.95*radius+.15*t,z))
+        x=math.cos(a)*4.1*radius+.3*t;y=math.sin(a)*2.95*radius+.15*t
+        rise=terrain_height(x*1.35,y*1.35,seed)/1.18
+        z=-3.05*t+(.045*grit+.07*coarse)*min(1,t*18)+rise*(1-t)**3
+        return Vector((x,y,z))
     for k in range(levels+1):
         ring=[]
         for i in range(count):
@@ -293,7 +303,8 @@ def foundation(seed):
         ring=[]
         for i in range(count):
             v=verts[rings[0][i]]*radius
-            v.z=0 if radius==1 else .014+max(0,radius-.7)*noise.noise_vector(Vector((v.x*8,v.y*8,seed))).x*.075
+            v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18
+            if radius!=1:v.z+=.014+max(0,radius-.7)*noise.noise_vector(Vector((v.x*8,v.y*8,seed))).x*.075
             ring.append(len(verts));verts.append(v)
         inner.append(ring)
     for k in range(len(inner)-1):
@@ -310,7 +321,8 @@ def foundation(seed):
         poly.use_smooth=poly.index>=levels*count*2
     # Low groundcover, grass, gravel and roots sit in the soil around the edge.
     for i in range(64):
-        a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.90,.99);v.z=.03
+        a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.87,.98)
+        v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18+.03
         if i%3==0:
             foliage('Rim · low wild groundcover',v,(.19,.14,.085),rng,110)
         grass_verts=[];grass_faces=[]
@@ -318,7 +330,8 @@ def foundation(seed):
             x=v.x+rng.uniform(-.13,.13);y=v.y+rng.uniform(-.10,.10)
             h=rng.uniform(.035,.15);lean=rng.uniform(-.04,.04);w=rng.uniform(.002,.006)
             n=len(grass_verts)
-            grass_verts.extend([(x-w,y,.025),(x+w,y,.025),(x+lean,y+.025,h)])
+            z=terrain_height(x*1.35,y*1.35,seed)/1.18+.025
+            grass_verts.extend([(x-w,y,z),(x+w,y,z),(x+lean,y+.025,z+h)])
             grass_faces.append((n,n+1,n+2))
         mesh('Rim · fine wild grass',grass_verts,grass_faces,'moss' if i%2 else 'leaf2')
         for j in range(3):
@@ -335,6 +348,86 @@ def foundation(seed):
     # buildings or furniture. The inner plot keeps its previous physical size.
     bpy.context.view_layer.update()
     transform_objects(set(bpy.context.scene.objects)-before,scale=(1.35,1.35,1.18))
+
+
+def terrain_path(name,points,width,seed,mat='stone',step=.28):
+    """Individual worn slabs follow the ground; no floating flat walkway."""
+    rng=random.Random(seed)
+    for a,b in zip(points,points[1:]):
+        a,b=Vector(a),Vector(b);delta=b-a;count=max(1,round(delta.length/step))
+        angle=math.atan2(delta.y,delta.x)
+        for i in range(count):
+            p=a+delta*((i+.5)/count);z=terrain_height(p.x,p.y,seed)
+            box(name,(p.x,p.y,z+.041),(delta.length/count-.025,width*rng.uniform(.89,1.04),.065),mat,.018,angle+rng.uniform(-.035,.035))
+
+
+def landscape(world,seed):
+    rng=random.Random(seed+18)
+    # A few embedded mineral outcrops and dense planted pockets create scale.
+    for x,y in [(-4.35,.85),(3.95,1.87),(-2.85,-2.75),(2.65,-2.84),(4.55,-.55)]:
+        z=terrain_height(x,y,seed)
+        rock=sphere('Terrain · exposed bedrock',(x,y,z-.08),(.43,.31,.23),'rock2',2)
+        rock.rotation_euler.z=rng.uniform(-1,1)
+        for i in range(4):
+            p=(x+rng.uniform(-.42,.42),y+rng.uniform(-.30,.30),z+.02)
+            foliage('Terrain · sheltered planting',p,(.24,.19,.12),rng,130)
+    if world=='work':
+        # The original Xinyi streets now end in pedestrian places, not bare soil.
+        terrain_path('Xinyi · west promenade',[(-4.45,-1.08),(-3.35,-.95)],.32,seed,'paving',.15)
+        terrain_path('Xinyi · east promenade',[(3.25,-.95),(4.37,-.78)],.36,seed,'paving',.15)
+        terrain_path('Xinyi · plaza approach',[(3.16,.50),(3.90,.50),(4.10,-.72)],.35,seed,'paving',.15)
+        for row in range(7):
+            for col in range(6):
+                x=-4.05+col*.16;y=-.70+row*.17
+                box('Xinyi · civic plaza paver',(x,y,terrain_height(x,y,seed)+.035),(.15,.16,.04),'paving',.002)
+        for x,y in [(-4.25,-.65),(-4.22,.25),(3.86,-.5),(3.85,.95)]:
+            z=terrain_height(x,y,seed)
+            box('Xinyi · raised planter',(x,y,z+.05),(.28,.42,.10),'stone',.008)
+            created=capture(tree,x,y,.40)
+            transform_objects(created,offset=(0,0,z+.08))
+            box('Plaza · timber bench',(x+.22,y,z+.065),(.12,.30,.035),'wood',.003)
+        # Yellow taxis, scooter bays and a green cycle strip are characteristic
+        # street details, authored at the same scale as the surrounding city.
+        P['taxi']=material('Taipei taxi yellow',(.72,.43,.018),rough=.55)
+        for x in [-2.4,.3,2.45]:
+            box('Taipei · yellow taxi',(x,-1.01,.069),(.047,.021,.018),'taxi',.004)
+            box('Taxi · glazing',(x-.003,-1.01,.080),(.026,.016,.006),'glass',.001)
+        box('Xinyi · green cycle lane',(-1.11,-.94,.049),(4.00,.024,.002),'jade',0)
+        for x,y,title in [(-1.18,-1.08,'Xinyi Rd'),(1.68,1.30,'Songzhi Rd')]:
+            rod('Taipei · street sign post',(x,y,.05),(x,y,.18),.004,'steel',8)
+            box('Taipei · green road sign',(x,y,.18),(.17,.009,.044),'jade',.001)
+            lettering('Taipei · '+title,title,(x,y-.006,.18),.025)
+        for i in range(8):
+            x=-2.82+i*.053
+            rod('Scooter · front fork',(x,-1.19,.055),(x,-1.18,.079),.003,'steel',8)
+            box('Scooter · saddle',(x,-1.20,.079),(.015,.025,.009),'ink',.002)
+            box('Scooter · parking mark',(x,-1.21,.048),(.001,.06,.001),'paper',0)
+    elif world=='writing':
+        terrain_path('Garden · worn stepping stones',[(1.65,-3.28),(.75,-2.87),(-.10,-2.28)],.56,seed,'stone',.36)
+        terrain_path('Garden · reading walk',[(-3.02,-.92),(-3.65,-.50),(-3.67,.83)],.53,seed,'stone',.37)
+        # A low garden enclosure, bench and climbing plants shelter the study.
+        for y in [-.20,.24,.68,1.12,1.56]:
+            z=terrain_height(-4.0,y,seed)
+            box('Garden · dry-stone wall',(-4.0,y,z+.27),(.27,.43,.54),'stone',.035)
+        box('Garden · reading bench',(-3.66,.68,.46),(.50,1.15,.10),'wood',.016)
+        for y in [.23,1.13]:box('Garden · bench support',(-3.66,y,.24),(.35,.11,.43),'stone',.014)
+        for y in [-.3,1.50]:rod('Garden · trellis post',(-4.12,y,.05),(-4.12,y,1.73),.035,'wood')
+        for z in [.48,.80,1.12,1.44,1.72]:rod('Garden · open trellis',(-4.12,-.30,z),(-4.12,1.50,z),.015,'wood')
+        for i in range(16):
+            y=rng.uniform(-.3,1.5);z=rng.uniform(.3,1.72)
+            foliage('Garden · climbing leaves',(-4.09,y,z),(.20,.23,.18),rng,120)
+    else:
+        terrain_path('Workshop · worn yard paving',[(1.50,-3.24),(1.05,-2.62),(.30,-1.96)],.92,seed,'paving',.35)
+        for i in range(2):box('Workshop · stone threshold step',(.30,-2.15+i*.22,.045+i*.045),(1.35,.30,.09),'stone',.015)
+        for i in range(7):
+            box('Yard · reclaimed timber stack',(-3.82,-.48,.14+i*.061),(.40,1.88,.055),'floorwood',.004,rot=.08*(i%2))
+        for x in [-3.98,-3.65]:box('Yard · stack bearer',(x,-.48,.07),(.13,1.95,.10),'wood',.003)
+        box('Yard · material crate',(3.64,.45,.24),(.65,.85,.46),'wood',.008)
+        for x in [3.40,3.63,3.86]:box('Yard · crate slat',(x,.01,.26),(.16,.024,.42),'oak',.003)
+        for i in range(4):
+            box('Yard · aluminium offcut',(3.58+i*.07,.44,.75),(.022,.027,.94-i*.09),'steel',.001,rot=.05*i)
+        cylinder('Yard · cable reel',(3.62,-.83,.22),.27,.35,'wood',40,bevel=.01)
+        for z in [.065,.365]:cylinder('Reel · flange',(3.62,-.83,z),.33,.035,'oak',40,bevel=.006)
 
 
 def tree(x,y,scale=1):
@@ -499,7 +592,7 @@ def street(a,b,width):
 
 def city():
     P['glass']=material('Taipei · green architectural glazing',(.055,.12,.092),metal=.42,rough=.24)
-    foundation(31);rng=random.Random(263)
+    foundation(31);landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     # A compressed Xinyi composition. North is +Y; east is +X.
     # Xinyi Road, City Hall Road, Songzhi Road and Songshou Road frame the blocks.
@@ -694,32 +787,77 @@ def notebook(x,y,z):
     curve('Notebook · silk bookmark',[(x,y+.31,z+.04),(x+.002,y-.30,z+.04),(x+.014,y-.40,z-.005)],.0025,'redcloth')
 
 
+def image_panel(name, source, center, width, height):
+    """A matte physical print of Carter's existing site artwork, packed into .blend."""
+    image=bpy.data.images.load(str(ROOT/'public'/source),check_existing=True)
+    if not image.packed_file: image.pack()
+    mat=material(name+' · archival print',(.8,.8,.8),rough=.96)
+    tex=mat.node_tree.nodes.new('ShaderNodeTexImage');tex.image=image
+    mat.node_tree.links.new(tex.outputs['Color'],mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+    x,y,z=center
+    obj=mesh(name,[(x-width/2,y,z-height/2),(x+width/2,y,z-height/2),(x+width/2,y,z+height/2),(x-width/2,y,z+height/2)],[(0,1,2,3)],mat)
+    uv=obj.data.uv_layers.new(name='Print coordinates')
+    for loop,point in zip(uv.data,[(0,0),(1,0),(1,1),(0,1)]):loop.uv=point
+    return obj
+
+
+def lettering(name, body, loc, size, mat='paper', rotation=(math.pi/2,0,0)):
+    data=bpy.data.curves.new(name,'FONT');data.body=body;data.size=size;data.extrude=.0002
+    data.align_x='CENTER';data.align_y='CENTER';data.space_line=1.12
+    obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj)
+    obj.location=loc;obj.rotation_euler=rotation;data.materials.append(P[mat])
+    return obj
+
+
+def turn_group(name, objects, degrees, origin, anchor_keys=()):
+    # Parent space keeps the paper's keyed movement and lamp's light animation
+    # attached to the furniture, while projecting anchors through the same turn.
+    from mathutils import Matrix
+    matrix=Matrix.Translation(Vector(origin)) @ Matrix.Rotation(math.radians(degrees),4,'Z') @ Matrix.Translation(-Vector(origin))
+    parent=bpy.data.objects.new(name,None);bpy.context.collection.objects.link(parent)
+    parent.matrix_world=matrix
+    for obj in objects: obj.parent=parent
+    for key in anchor_keys:
+        value=ANCHORS[key]
+        ANCHORS[key]=[tuple(matrix@Vector(v)) for v in value] if isinstance(value,list) else tuple(matrix@Vector(value))
+
+
 def writing():
-    foundation(73);floorboards()
-    # An open architectural section: plaster, a large window and built-in joinery.
-    box('Study · plaster rear wall',(-.18,1.98,2.11),(6.1,.09,3.90),'plaster',.003)
-    box('Study · left return',(-3.19,1.1,2.11),(.09,1.82,3.9),'plaster',.003)
-    # Framed window to the left of the shelves; glass catches the cool sky.
-    box('Study · window recess',(-1.96,1.914,2.46),(1.72,.065,2.22),'ink',.002)
-    box('Study · window glass',(-1.96,1.874,2.46),(1.58,.011,2.10),'glass',.001)
-    for xx in [-2.79,-1.96,-1.13]:box('Window · painted timber mullion',(xx,1.85,2.46),(.027,.07,2.24),'teal',.002)
-    for zz in [1.35,2.46,3.57]:box('Window · horizontal rail',(-1.96,1.85,zz),(1.72,.07,.027),'teal',.002)
+    foundation(73);landscape('writing',73);floorboards()
+    # A low garden wall and an open frame replace the enclosing room box.
+    box('Study · low limewashed garden wall',(-.18,1.98,.57),(6.1,.12,.82),'plaster',.009)
+    box('Study · low side return',(-3.19,1.1,.57),(.12,1.82,.82),'plaster',.009)
+    box('Study · stone coping',(-.18,1.98,1.00),(6.16,.20,.055),'stone',.007)
+    # A sheltered window seat: slender frame, trees visible around it.
+    for xx in [-2.79,-1.13]:box('Window · structural oak post',(xx,1.89,1.54),(.065,.09,2.75),'oak',.003)
+    box('Study · window glass',(-1.96,1.90,2.10),(1.58,.011,1.43),'glass',.001)
+    box('Window · central mullion',(-1.96,1.85,2.10),(.026,.07,1.47),'teal',.002)
+    for zz in [1.36,2.10,2.84]:box('Window · horizontal rail',(-1.96,1.85,zz),(1.72,.07,.027),'teal',.002)
     box('Window · oak sill',(-1.96,1.77,1.32),(1.89,.29,.05),'oak',.003)
-    # Built-in bookshelves with breathing space and books at varied angles.
+    box('Window · narrow rain canopy',(-1.96,1.72,2.95),(2.06,.54,.055),'teal',.004)
+    # Open, lower shelves let the book keep the foreground and sky stay visible.
     rng=random.Random(940)
-    for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,2.12),(.046,.46,3.82),'wood',.003)
-    for z in [.20,.92,1.65,2.39,3.12,4.00]:
+    for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,1.49),(.046,.46,2.60),'wood',.003)
+    for z in [.20,1.04,1.90,2.80]:
         box('Study · bookcase shelf',(1,1.60,z),(3.22,.55,.040),'wood',.002)
-        if z>3.9:continue
+        if z>2.7:continue
         for start,end in [(-.53,.90),(1.08,2.53)]:
             x=start
             while x<end-.15:
-                if rng.random()<.12:x+=.30;continue
+                if rng.random()<.16:x+=.30;continue
                 w=rng.uniform(.048,.11);h=rng.uniform(.36,.55)
                 created=capture(shelf_book,x+w/2,1.59,z+.022,w,h,rng.choice(['linen','leather','redcloth','teal','oak']))
-                # Tiny lean and uneven depth keep the shelf from looking tiled.
                 for obj in created:obj.location.y+=rng.uniform(-.008,.008)
                 x+=w+.011
+    # These are Carter's published essays, presented as bound journals—not
+    # invented reading-list entries. Their existing covers are used verbatim.
+    journals=[('the-cost-of-keeping-up','The Cost of Keeping Up',-.24),('slop-and-spiral','Slop and Spiral',.47),('we-all-have-superpowers','We All Have Superpowers',1.42)]
+    for slug,title,x in journals:
+        box('Journal · '+title,(x,1.29,2.20),(.46,.065,.58),'linen',.006)
+        image_panel('Journal cover · '+title,'essay-covers/'+slug+'.webp',(x,1.252,2.20),.44,.56)
+        box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
+        lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
+    furniture=set(bpy.context.scene.objects)
     # Desk height 74cm, top 3cm; proportions use 2 scene units per metre.
     for x in [-1.46,1.66]:
         for y in [-1.34,-.07]:
@@ -729,7 +867,11 @@ def writing():
     for i in range(5):box('Desk · solid walnut top',(.1,-1.39+i*.32,1.58),(3.56,.315,.060),'wood',.005)
     box('Desk · inset drawer',(.05,-1.417,1.43),(1.16,.04,.13),'wood',.002)
     rod('Desk · recessed drawer pull',(-.10,-1.443,1.45),(.20,-1.443,1.45),.008,'brass')
-    notebook(.16,-.80,1.614)
+    capture(notebook,.16,-.80,1.614,scale=(1.22,1.22,1.22),origin=(.16,-.80,1.614))
+    for key in ['spread','page','landmark']:
+        value=ANCHORS[key]
+        convert=lambda v:tuple(Vector((.16,-.80,1.614))+(Vector(v)-Vector((.16,-.80,1.614)))*1.22)
+        ANCHORS[key]=[convert(v) for v in value] if isinstance(value,list) else convert(value)
     practical=desk_lamp(-1.17,-.14,1.614,.55)
     for f,e in [(1,13),(25,14.3),(49,13)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
@@ -756,6 +898,8 @@ def writing():
         for f,dz in [(1,0),(25,.006+j*.002),(49,0)]:leaf.location.z=dz;leaf.keyframe_insert(data_path='location',frame=f)
         ANIMATED.append(leaf)
     chair(-.95,-2.0)
+    turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
+    light('Study · paper warmth',(.2,-1.15,2.75),(1,.78,.51),8,1.1,(.1,-.8,1.65))
     plant(-2.65,.57,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
     box('Study · wool rug',(.10,-.61,.161),(4.31,3.21,.010),'linen',.008)
@@ -772,22 +916,28 @@ def hammer(x,y,z):
 
 
 def workshop():
-    foundation(107);floorboards()
+    foundation(107);landscape('projects',107);floorboards()
     # A practical studio wall, with a small tool rail rather than a giant toy pegboard.
-    box('Workshop · painted masonry wall',(0,1.96,2.12),(6.26,.10,3.94),'plaster',.003)
-    for zz in [.16,4.04]:box('Workshop · wall trim',(0,1.889,zz),(6.24,.045,.06),'teal',.002)
-    box('Workshop · perforated steel panel',(-1.22,1.864,2.80),(2.80,.028,1.33),'teal',.002)
+    box('Workshop · limewashed tool wall',(-1.45,1.96,1.58),(3.36,.10,2.84),'plaster',.003)
+    box('Workshop · wall coping',(-1.45,1.96,3.02),(3.45,.19,.07),'stone',.004)
+    box('Workshop · perforated steel panel',(-1.22,1.864,2.18),(2.80,.028,1.33),'teal',.002)
     vs=[];fs=[]
     for row in range(18):
         for col in range(39):
-            x=-2.55+col*.070;z=2.19+row*.071;n=len(vs)
+            x=-2.55+col*.070;z=1.57+row*.071;n=len(vs)
             vs.extend([(x-.005,1.847,z-.005),(x+.005,1.847,z-.005),(x+.005,1.847,z+.005),(x-.005,1.847,z+.005)])
             fs.append((n,n+1,n+2,n+3))
     mesh('Tool panel · fine perforations',vs,fs,'ink')
-    for i,x in enumerate([-2.2,-1.72]):capture(hammer,0,0,0,scale=(.65,.65,.65),offset=(x,1.79,2.44))
+    for i,x in enumerate([-2.2,-1.72]):capture(hammer,0,0,0,scale=(.65,.65,.65),offset=(x,1.79,1.82))
     for i,x in enumerate([-.98,-.80,-.62]):
-        rod('Driver · shaft',(x,1.80,2.47),(x,1.80,2.72),.008,'steel')
-        rod('Driver · rubber handle',(x,1.80,2.72),(x,1.80,2.89),.022,'ink' if i%2 else 'clay')
+        rod('Driver · shaft',(x,1.80,1.85),(x,1.80,2.10),.008,'steel')
+        rod('Driver · rubber handle',(x,1.80,2.10),(x,1.80,2.27),.022,'ink' if i%2 else 'clay')
+    # Real project references are pinned above the tools, like working prints.
+    for x,source,title in [(-2.25,'taipei-flix.webp','TaipeiFlix'),(-1.36,'taipei-run.jpg','Taipei Run')]:
+        box('Project reference · '+title,(x,1.813,2.55),(.76,.017,.48),'paper',.002)
+        image_panel('Project print · '+title,'project-shots/'+source,(x,1.800,2.55),.71,.43)
+        pin=cylinder('Project pin',(x,1.78,2.79),.016,.008,'brass',16);pin.rotation_euler.x=math.pi/2
+    furniture=set(bpy.context.scene.objects)
     # Bench dimensions: 2.35m wide, 80cm deep, 86cm working height.
     for x in [-2.17,2.17]:
         for y in [-.60,.72]:box('Bench · welded steel leg',(x,y,.95),(.085,.085,1.56),'teal',.004)
@@ -801,20 +951,22 @@ def workshop():
         box('Bench · painted drawer',(-1.51,-.56,z),(1.03,.70,.20),'teal',.006)
         rod('Bench · drawer handle',(-1.72,-.928,z+.045),(-1.30,-.928,z+.045),.010,'steel')
     for i in range(9):cylinder('Bench · dog hole',(-2.04+i*.44,-.69,1.792),.012,.002,'ink',16,bevel=0)
-    # Laptop scale and hinge angle approximate a 16-inch machine.
-    sx,sy,sz=1.12,.30,1.809
-    box('Laptop · aluminium deck',(sx,sy-.23,sz),(.73,.50,.022),'steel',.008)
+    # A 27-inch studio monitor gives the screen a clear silhouette above the
+    # tools. A separate keyboard and trackpad preserve credible desk proportions.
+    sx,sy,sz=.98,.30,1.809
+    box('Workstation · aluminium keyboard',(sx,sy-.42,sz),(.86,.32,.022),'steel',.008)
     for row in range(5):
-        for col in range(12):box('Laptop · key',(sx-.312+col*.056,sy-.24+row*.042,sz+.014),(.047,.031,.003),'ink',.003)
-    box('Laptop · trackpad',(sx,sy-.401,sz+.013),(.26,.119,.003),'glass3',.003)
-    # Screen tilt is modelled, and all four corners are exported for perspective.
-    topy=sy+.105;bottomy=sy-.006
-    screen=[(sx-.327,topy,sz+.461),(sx+.327,topy,sz+.461),(sx-.327,bottomy,sz+.033),(sx+.327,bottomy,sz+.033)]
-    housing=box('Laptop · display housing',(sx,sy+.066,sz+.248),(.738,.017,.479),'teal',.007)
-    housing.rotation_euler.x=math.radians(-14.5)
-    mesh('Laptop · screen glass',[screen[0],screen[1],screen[3],screen[2]],[(0,1,2,3)],'screen')
-    rod('Laptop · hinge',(sx-.30,sy,sz+.028),(sx+.30,sy,sz+.028),.012,'steel',20)
-    ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.045,sz+.25);ANCHORS['screenGlow']=(sx,sy-.34,sz+.02)
+        for col in range(14):box('Workstation · key',(sx-.38+col*.058,sy-.54+row*.047,sz+.014),(.048,.034,.003),'ink',.003)
+    box('Workstation · trackpad',(sx+.68,sy-.43,sz),(.25,.30,.016),'steel',.006)
+    box('Monitor · weighted foot',(sx,sy+.04,sz),(.46,.36,.025),'steel',.007)
+    box('Monitor · slender stand',(sx,sy+.18,sz+.26),(.075,.052,.48),'steel',.006)
+    bottom=sz+.37;top=bottom+.72
+    screen=[(sx-.60,sy+.11,top),(sx+.60,sy+.11,top),(sx-.60,sy+.06,bottom),(sx+.60,sy+.06,bottom)]
+    housing=box('Monitor · thin display housing',(sx,sy+.105,(bottom+top)/2),(1.25,.036,.77),'teal',.008)
+    housing.rotation_euler.x=math.radians(-4)
+    mesh('Monitor · screen glass',[screen[0],screen[1],screen[3],screen[2]],[(0,1,2,3)],'screen')
+    ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.085,(bottom+top)/2);ANCHORS['screenGlow']=(sx,sy-.22,sz+.02)
+    light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.64,.79,1),3,.7,(sx,sy-.50,sz))
     # A partially assembled electronics instrument, with an open aluminium case.
     box('Workshop · antistatic cutting mat',(-.69,-.11,1.799),(1.52,1.08,.006),'jade',.003)
     for i in range(16):box('Cutting mat · fine grid',(-1.40+i*.095,-.11,1.803),(.0015,.995,.001),'leaf2',0)
@@ -846,8 +998,11 @@ def workshop():
     rod('Iron · steel tip',(-1.79,-.40,1.823),(-1.77,-.56,1.823),.005,'steel')
     curve('Iron · flexible cable',[(-1.82,-.17,1.823),(-2.04,-.18,1.81),(-2.15,.20,1.81),(-1.96,.36,1.81),(-1.80,.35,1.89)],.005,'ink')
     practical=desk_lamp(-1.55,.77,1.792,.51)
+    turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
+    rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
-    for x in [.48,2.68]:box('Storage · shelf upright',(x,1.60,2.98),(.037,.037,1.70),'steel',.002)
+    for x in [.48,2.68]:box('Storage · shelf upright',(x,1.60,2.0),(.045,.055,3.68),'steel',.002)
+    for x in [.48,2.68]:box('Storage · floor foot',(x,1.60,.18),(.23,.48,.05),'teal',.003)
     for z in [2.21,2.98,3.79]:box('Storage · steel shelf',(1.58,1.61,z),(2.25,.49,.028),'steel',.002)
     for row in range(3):
         for col in range(5):
@@ -858,6 +1013,8 @@ def workshop():
     for i in range(4):
         box('Storage · labelled carton',(.75+i*.49,1.61,3.19),(.44,.43,.38),'wood',.003)
         box('Carton · label',(.75+i*.49,1.39,3.19),(.14,.002,.08),'paper',0)
+    bpy.context.view_layer.update()
+    transform_objects(set(bpy.context.scene.objects)-rear_storage,scale=(1,1,.72),origin=(0,0,.16))
     for x in [-.45,.60,1.55]:box('Bench · equipment case',(x,.10,.71),(.77,.82,.38),'teal',.014)
     # A low stool with metal legs and a modest padded seat.
     for xx in [-.27,.27]:
@@ -865,9 +1022,9 @@ def workshop():
     cylinder('Stool · padded seat',(2.75,-.78,1.10),.37,.085,'leather',64,bevel=.020)
     torus('Stool · foot ring',(2.75,-.78,.43),.33,.012,'steel')
     # Under-shelf task strip provides a soft local pool of light.
-    box('Workshop · practical LED strip',(1.56,1.44,2.17),(2.04,.025,.015),'light',.003)
-    ANCHORS['bulbs']=[(1.10,1.44,2.17),(2.0,1.44,2.17)]
-    light('Workshop · task strip',(1.56,1.35,2.14),(1,.79,.58),12,1.2,(1.1,0,1.7))
+    box('Workshop · practical LED strip',(1.56,1.44,1.61),(2.04,.025,.015),'light',.003)
+    ANCHORS['bulbs']=[(1.10,1.44,1.61),(2.0,1.44,1.61)]
+    light('Workshop · task strip',(1.56,1.35,1.58),(1,.79,.58),9,1.0,(1.1,.6,1.1))
     plant(-2.98,.95,.16,.64)
 
 
@@ -931,10 +1088,11 @@ def camera_and_lights(scene):
     distance=max((xmax-xmin),1.5*(ymax-ymin))/.83/(36/70)
     camera.location=target+direction*(distance+3)
     # Broad daylight keeps matte timber and stone clear; practicals add warmth.
-    light('Sky · north window',(-7,-4,11),(.82,.87,1),1150,9,(0,0,.7))
+    light('Sky · north window',(-7,-4,11),(.82,.87,1),1250,6,(0,0,.7))
     light('Dusk · horizon',(4,5,7),(1,.85,.65),850,7,(0,0,1))
     light('Front · reflected sky',(0,-8,3),(.82,.87,1),220,8,(0,0,.7))
     light('Cliff · ambient bounce',(-4,-3,-1),(.66,.69,.60),55,6,(0,0,-.8))
+    light('Cliff · cool edge',(5,3,1),(.53,.68,1),190,4,(0,0,-.8))
     bpy.context.view_layer.update()
     # Fit the perspective projection itself, including the nearest corners.
     for step in range(6):

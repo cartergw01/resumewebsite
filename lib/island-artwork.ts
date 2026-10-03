@@ -12,5 +12,5 @@ export type IslandLandmark = { x: number; y: number; name: string };
 export const islandLandmarks = {
   Work: { x: renders.work.landmark[0] / 1200, y: renders.work.landmark[1] / 800, name: "Taipei tower" },
   Writing: { x: renders.writing.landmark[0] / 1200, y: renders.writing.landmark[1] / 800, name: "open book" },
-  Projects: { x: renders.projects.landmark[0] / 1200, y: renders.projects.landmark[1] / 800, name: "workshop laptop" },
+  Projects: { x: renders.projects.landmark[0] / 1200, y: renders.projects.landmark[1] / 800, name: "workshop screen" },
 };

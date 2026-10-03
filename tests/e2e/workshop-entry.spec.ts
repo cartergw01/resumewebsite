@@ -40,7 +40,7 @@ test("the workshop screen fans out every project and deals each into its row", a
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   const carry = page.locator("body > [data-workshop-transition]");
   await expect(carry).toHaveAttribute("data-workshop-transition", "entering");
-  // A deck of every project, the laptop's own screen on top, all one size.
+  // A deck of every project, the monitor's own screen on top, all one size.
   const cards = carry.locator("[data-project-card]");
   await expect(cards).toHaveCount(8);
   await expect(carry.locator('[data-project-card="0"] img')).toHaveAttribute("src", src!);

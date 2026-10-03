@@ -9,16 +9,21 @@ scenes; no generated image backplates are used.
 
 - **Work:** a compressed Xinyi scene with Taipei 101, its adjoining mall, the
   World Trade Center courtyard, Grand Hyatt massing, Nan Shan's paired crown,
-  streets, low-rise frontage, roof equipment, street trees and vehicles.
+  streets, planted pedestrian plazas, sidewalks, low-rise frontage, roof equipment,
+  street trees, yellow taxis, scooter parking and Xinyi/Songzhi road signs.
   Taipei 101 uses eight equal eight-floor modules above a separate inward
   tapering base, smaller glazing, narrow mullions, corner details and a distinct
   observation crown and spire. One scene unit represents approximately 100m.
 - **Writing:** a study with slim walnut furniture, a usable upholstered chair,
-  built-in bookshelves, a framed window, normally proportioned notebook, mug,
+  open bookshelves, a sheltered reading garden, low stone walls, trellis,
+  a framed window, an open notebook, mug,
   spectacles, fountain pen and a task lamp. Two scene units represent one metre.
 - **Projects:** a working studio with a steel-framed bench, tool panel, labelled
   storage, an open electronics enclosure, circuit-board components, soldering
-  station, cables, caliper and laptop. It uses the same furniture scale.
+  station, cables, caliper and a 27-inch monitor. The workbench turns toward the
+  visitor; the lower tool wall and open storage leave the screen prominent.
+  Worn paving and steps lead past reclaimed lumber, offcuts and a cable reel.
+  It uses the same furniture scale.
 
 The sky shader provides reflections; broad, neutral daylight keeps the matte
 surfaces readable, with local lights illuminating the working surfaces. The
@@ -29,12 +34,20 @@ moss patches, embedded gravel, fine grass and exposed roots. Walnut, oak and
 reclaimed floorboards have directional grain and varying roughness. Lime plaster,
 flax cloth, worn leather and unglazed terracotta keep the interiors earthy;
 architectural glass and bare metal retain their distinct reflective finish.
-All materials are procedural and editable in the saved scenes.
+Surface materials are procedural and editable in the saved scenes. Physical
+prints use packed copies of Carter’s existing site assets: the workshop displays
+TaipeiFlix and Taipei Run screenshots; bound journals show the covers and titles
+of the latest three essays in `content/portfolio.ts`: “The Cost of Keeping Up,”
+“Slop and Spiral,” and “We All Have Superpowers.” Reading-list roundups are
+excluded, matching the Writing page’s essay grouping.
 
 Every foundation uses the same proportions: the terrain is 35% wider and deeper
 in plan, and the cliff is 18% taller than the original earthy version. Buildings
 and furniture retain their size. The extra land is soil and vegetation around
 the original central plot, so each scene has a substantial natural perimeter.
+Shared elevation noise raises the outer shoulders; paths, embedded bedrock and
+planting follow the same surface. A smaller broad key creates contact shadows,
+local warm lamps light the book and bench, and a cool rim separates the cliffs.
 
 ### Architectural reference sources
 
@@ -68,7 +81,7 @@ rebuilding, because the script replaces the three saved scenes.
 From the repository root, with Blender and FFmpeg installed:
 
 ```sh
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --threads 4 \
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --threads 6 \
   --python scripts/blender/build_islands.py -- \
   --world all --output .blender-build/final --width 1920 --samples 72 \
   --device CPU --animate

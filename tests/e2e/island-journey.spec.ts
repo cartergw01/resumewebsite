@@ -41,6 +41,7 @@ test("scroll advances and reverses three islands inside one viewport", async ({ 
   await expect(page.locator("[data-island-scene]")).toHaveCount(5);
 
   const ids = ["intro", "work", "writing", "projects", "hello"];
+  const historyLength = await page.evaluate(() => history.length);
   for (const id of ["intro", "work", "writing", "projects", "hello", "projects", "writing", "work", "intro"]) {
     await scrollScreens(page, stopScreens(ids.indexOf(id)));
     await expectScene(page, id);
@@ -48,7 +49,9 @@ test("scroll advances and reverses three islands inside one viewport", async ({ 
     const image = page.locator(`#${id} img`).first();
     await expect(image).toBeInViewport();
     await expect.poll(() => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+    await expect(page).toHaveURL(id === "intro" ? /\/2\.0$/ : new RegExp(`#${id}$`));
   }
+  expect(await page.evaluate(() => history.length)).toBe(historyLength);
   expect(errors).toEqual([]);
 });
 
@@ -63,7 +66,7 @@ test("shooting star follows the full page proportionally in both directions", as
         window.scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * fraction, behavior: "instant" });
       }, progress);
       await expect.poll(() => comet.evaluate((star, fraction) => {
-        const buttons = Array.from(document.querySelectorAll("[data-scene-button]"));
+        const buttons = Array.from(document.querySelectorAll("[data-scene-stop]"));
         const centers = buttons.map((button) => {
           const rect = button.getBoundingClientRect();
           return rect.left + rect.width / 2;
@@ -74,9 +77,10 @@ test("shooting star follows the full page proportionally in both directions", as
           return rect.left + rect.width / 2;
         });
         const stops = [ends[0], ...centers, ends[1]];
-        const place = Math.min(fraction * 4.5, 4);
-        const stop = Math.min(Math.floor(place), 3);
-        const expected = stops[stop] + (stops[stop + 1] - stops[stop]) * (place - stop);
+        const resting = [0, 1.11 / 4.5, 2.11 / 4.5, 3.11 / 4.5, 1];
+        const stop = fraction >= 1 ? 3 : Math.max(0, resting.findIndex(position => position > fraction) - 1);
+        const mix = (fraction - resting[stop]) / (resting[stop + 1] - resting[stop]);
+        const expected = stops[stop] + (stops[stop + 1] - stops[stop]) * mix;
         return Math.abs(star.getBoundingClientRect().left - expected);
       }, progress)).toBeLessThan(1);
     }
@@ -205,14 +209,18 @@ test("resize preserves the current island and compact viewports stay usable", as
   }
 });
 
-test("tapping the selected island tab opens its page", async ({ page }) => {
+test("scene controls only select worlds, including repeated activation", async ({ page }) => {
   await page.goto("/2.0#writing");
   await expectScene(page, "writing");
   const tab = page.getByRole("button", { name: "Show Writing island" });
-  await expect(tab).toHaveAttribute("aria-label", /Activate again to open Writing/);
+  await expect(tab).toHaveAttribute("aria-label", "Show Writing island");
   await expect(page.getByRole("button", { name: "Show Projects island" })).toHaveAttribute("aria-label", "Show Projects island");
   await tab.click();
-  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
+  await tab.click();
+  await expect(page).toHaveURL(/\/2\.0#writing$/);
+  await expectScene(page, "writing");
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
+  await page.getByRole("heading", { name: "Writing", exact: true }).getByRole("link").click();
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
 });
 
@@ -245,15 +253,19 @@ test("Escape backs out of an island approach and restores the page", async ({ pa
   await expectScene(page, "work");
 });
 
-test("skip link and the opening islands reach content directly", async ({ page }) => {
+test("skip link and the opening islands reach content directly", async ({ page, browserName }) => {
   await page.goto("/2.0");
-  await page.keyboard.press("Tab");
+  // WebKit follows the platform default: Option-Tab includes links.
+  await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   const skip = page.getByRole("link", { name: "Skip to content" });
   await expect(skip).toBeFocused();
   await expect(skip).toBeInViewport();
   // The opening islands open their pages directly.
   await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: "Enter Projects island" }).click();
   await expect(page).toHaveURL(/\/projects$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/2\.0#projects$/);
+  await expectScene(page, "projects");
 });
 
 test("each stop's heading enters its page like its island", async ({ page }) => {
@@ -284,4 +296,51 @@ test("a scroll gesture never rests between islands, and keys move one stop", asy
   await expectScene(page, "hello");
   await page.keyboard.press("Home");
   await expectScene(page, "intro");
+});
+
+
+test("settled worlds survive refresh, browser Back, and the islands return link", async ({ page }) => {
+  await page.goto("/2.0#work");
+  for (const world of ["Writing", "Projects", "Work"]) {
+    const id = world.toLowerCase();
+    await page.getByRole("button", { name: `Show ${world} island` }).click();
+    await expect(page).toHaveURL(new RegExp(`/2\\.0#${id}$`));
+    await expectScene(page, id);
+    await page.reload();
+    await expectScene(page, id);
+    await page.getByRole("link", { name: `Enter ${world} island` }).click();
+    await expect(page).toHaveURL(new RegExp(`/${id}$`));
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(`/2\\.0#${id}$`));
+    await expectScene(page, id);
+    await page.goForward();
+    await expect(page).toHaveURL(new RegExp(`/${id}$`));
+    await page.getByRole("link", { name: /Back to islands/i }).click();
+    await expectScene(page, id);
+  }
+  await page.getByRole("button", { name: "Scroll to the Writing island" }).click();
+  await expect(page).toHaveURL(/#writing$/);
+  await page.getByRole("button", { name: "Scroll to the Projects island" }).click();
+  await expect(page).toHaveURL(/#projects$/);
+  await page.getByRole("button", { name: "Scroll to the end" }).click();
+  await expect(page).toHaveURL(/#hello$/);
+  await page.getByRole("button", { name: "Back to the start" }).click();
+  await expect(page).toHaveURL(/\/2\.0$/);
+});
+
+test("navigation labels sit beside aligned star stops with comfortable targets", async ({ page }) => {
+  await page.goto("/2.0#work");
+  for (const world of ["Work", "Writing", "Projects"]) {
+    const button = page.getByRole("button", { name: `Show ${world} island` });
+    await button.click();
+    await expect(page).toHaveURL(new RegExp(`#${world.toLowerCase()}$`));
+    const target = await button.boundingBox();
+    expect(target!.width).toBeGreaterThanOrEqual(44);
+    expect(target!.height).toBeGreaterThanOrEqual(44);
+    const dot = button.locator("[data-scene-stop]");
+    await expect.poll(async () => {
+      const [star, stop] = await Promise.all([page.locator("[data-scene-comet]").boundingBox(), dot.boundingBox()]);
+      return Math.abs(star!.x - (stop!.x + stop!.width / 2));
+    }).toBeLessThan(1);
+  }
 });
