@@ -331,7 +331,7 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
   await expect(page).toHaveURL(/\/2\.0$/);
 });
 
-test("navigation labels sit beside aligned star stops with comfortable targets", async ({ page }) => {
+test("navigation labels sit above the curved light path with comfortable targets", async ({ page }) => {
   await page.goto("/2.0#work");
   for (const world of ["Work", "Writing", "Projects"]) {
     const button = page.getByRole("button", { name: `Show ${world} island` });
@@ -340,10 +340,51 @@ test("navigation labels sit beside aligned star stops with comfortable targets",
     const target = await button.boundingBox();
     expect(target!.width).toBeGreaterThanOrEqual(44);
     expect(target!.height).toBeGreaterThanOrEqual(44);
+    const label = (await button.locator("span").last().boundingBox())!;
     const dot = button.locator("[data-scene-stop]");
     await expect.poll(async () => {
       const [star, stop] = await Promise.all([page.locator("[data-scene-comet]").boundingBox(), dot.boundingBox()]);
       return Math.abs(star!.x - (stop!.x + stop!.width / 2));
     }).toBeLessThan(1);
+    const [star, stop] = await Promise.all([page.locator("[data-scene-comet]").boundingBox(), dot.boundingBox()]);
+    expect(Math.abs(star!.y - stop!.y)).toBeLessThan(1);
+    expect(label.y + label.height).toBeLessThan(star!.y - 5);
+    expect(Math.abs(label.x + label.width / 2 - star!.x)).toBeLessThan(1);
   }
+  expect(await page.locator("[data-track-end]").evaluateAll(ends => ends.every(end => getComputedStyle(end, "::after").content === "none"))).toBe(true);
+});
+
+test("the comet trail stretches with travel, settles, and reverses without moving the head on hover", async ({ page, isMobile }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "connection", { configurable: true, value: Object.assign(new EventTarget(), { saveData: true }) }));
+  await page.goto("/2.0#writing");
+  const comet = page.locator("[data-scene-comet]");
+  const tail = page.locator("[data-comet-tail]").last();
+  await expect(comet).toHaveAttribute("data-moving", "false");
+  const rest = (await tail.boundingBox())!.width;
+  // A quick scroll stretches the wake. The existing proportional-progress test
+  // separately checks that this extra motion never delays the actual head.
+  await page.evaluate(() => scrollBy({ top: innerHeight * .5, behavior: "instant" }));
+  await expect(comet).toHaveAttribute("data-direction", "forward");
+  await expect.poll(async () => (await tail.boundingBox())!.width, { intervals: [20, 40, 80] }).toBeGreaterThan(rest + 12);
+  await expect(comet).toHaveAttribute("data-moving", "false");
+  expect(Math.abs((await tail.boundingBox())!.width - rest)).toBeLessThan(1);
+  await page.evaluate(() => scrollBy({ top: -innerHeight * .5, behavior: "instant" }));
+  await expect(comet).toHaveAttribute("data-direction", "backward");
+  await expect(comet).toHaveAttribute("data-moving", "false");
+  const head = (await comet.boundingBox())!;
+  if (!isMobile) {
+    await page.getByRole("button", { name: "Show Projects island" }).hover();
+    expect((await comet.boundingBox())!.x).toBeCloseTo(head.x, 1);
+  }
+  await page.keyboard.press("Tab");
+  await page.getByRole("button", { name: "Show Projects island" }).focus();
+  expect(await page.getByRole("button", { name: "Show Projects island" }).evaluate(button => getComputedStyle(button).outlineStyle)).toBe("solid");
+  expect((await comet.boundingBox())!.x).toBeCloseTo(head.x, 1);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  // WebKit retains a hidden SVG child's last bounds; check the wake's display
+  // state directly instead of treating those stale bounds as visible pixels.
+  await expect(page.locator("[data-comet-light] > g")).toHaveCSS("display", "none");
+  await page.getByRole("button", { name: "Show Work island" }).click();
+  await expectScene(page, "work");
+  await expect(comet).toHaveAttribute("data-moving", "false");
 });

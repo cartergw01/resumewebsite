@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import GalaxyBackground from "./GalaxyBackground";
 import JourneyStars from "./JourneyStars";
 import { rememberIsland } from "@/lib/island-location";
+import { createCometNavigation } from "@/lib/comet-navigation";
 import styles from "./IslandHome.module.css";
 
 // Stops without a title (the opening and closing views) have no tab.
@@ -19,6 +20,7 @@ const arrivalLights: Record<string, readonly (readonly [string, number, number])
 };
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
+  const lightId = useId();
   const trackRef = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const jumpRef = useRef<(index: number) => void>(() => {});
@@ -38,13 +40,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const buttonScene = buttons.map((button) => Number(button.dataset.sceneIndex));
     const tabFor = (index: number) => buttons[buttonScene.indexOf(index)];
     const sceneNav = track.querySelector<HTMLElement>("[data-scene-nav]")!;
-    const comet = track.querySelector<HTMLElement>("[data-scene-comet]")!;
     const galaxy = stage.querySelector<HTMLElement>("[data-galaxy-camera]")!;
     const middleStars = stage.querySelector<HTMLElement>('[data-depth-stars="middle"]')!;
     const nearStars = stage.querySelector<HTMLElement>('[data-depth-stars="near"]')!;
     const next = track.querySelector<HTMLButtonElement>("[data-next-scene]")!;
     const nextLabel = next.querySelector<HTMLElement>("[data-next-label]")!;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const comet = createCometNavigation(sceneNav, motion);
     const duration = scenes.length - 1 + FINAL_HOLD;
     let frame = 0;
     let activeIndex = -1;
@@ -52,8 +54,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let start = 0;
     let measuredHeight = 0;
     let starStops: number[] = [];
-    let previousStarX: number | null = null;
-    let starRestTimer = 0;
     let cameraProgress: number | null = null;
     let previousFrame = 0;
     let entryPending = false;
@@ -165,14 +165,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const segment = progress >= 1 ? stops.length - 2 : stop;
       const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
       const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
-      comet.style.setProperty("--comet-x", `${starX.toFixed(2)}px`);
-      if (!motion.matches && previousStarX !== null && Math.abs(starX - previousStarX) > 0.1) {
-        comet.dataset.direction = starX > previousStarX ? "forward" : "backward";
-        comet.dataset.moving = "true";
-        window.clearTimeout(starRestTimer);
-        starRestTimer = window.setTimeout(() => { delete comet.dataset.moving; }, 180);
-      }
-      previousStarX = starX;
+      comet.place(starX, now);
+      comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) : undefined);
+      const boundary = progress < .001 ? "start" : progress > .999 ? "end" : "none";
+      if (sceneNav.dataset.boundary !== boundary) sceneNav.dataset.boundary = boundary;
 
       if (current !== activeIndex) {
         // Move focus out of a departing scene before marking it inert.
@@ -233,8 +229,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           size: focus.offsetWidth / art[0].offsetWidth * 100,
         };
       }
-      // The opening and closing views have no tab: the star rests on the
-      // track's start and end points instead, so home never reads as Work.
+      // Invisible endpoints keep the full-page progress mapping; each label
+      // is centred above its own position on the shared curve.
+      comet.measure();
       const centers = buttons.map((button) => {
         const star = button.querySelector<HTMLElement>("[data-scene-stop]")!;
         return button.offsetLeft + star.offsetLeft + star.offsetWidth / 2;
@@ -519,7 +516,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       stage.removeEventListener("pointerleave", hideTip);
       window.removeEventListener("scroll", hideTip);
       window.cancelAnimationFrame(frame);
-      window.clearTimeout(starRestTimer);
+      comet.dispose();
       window.clearTimeout(entryRecovery);
       jumpRef.current = () => {};
     };
@@ -544,6 +541,28 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
+            <svg className={styles.cometLight} data-comet-light viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id={`${lightId}-path`} x1="0" x2="1">
+                  <stop offset="0" stopColor="#a8cfff" stopOpacity="0" />
+                  <stop offset=".2" stopColor="#a8cfff" stopOpacity=".16" />
+                  <stop offset=".5" stopColor="#d8e9ff" stopOpacity=".22" />
+                  <stop offset=".8" stopColor="#a8cfff" stopOpacity=".16" />
+                  <stop offset="1" stopColor="#a8cfff" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id={`${lightId}-tail`} data-comet-gradient gradientUnits="userSpaceOnUse" x1="0" x2="84">
+                  <stop offset="0" stopColor="#719dce" stopOpacity="0" />
+                  <stop offset=".3" stopColor="#91bbee" stopOpacity=".18" />
+                  <stop offset=".72" stopColor="#bce2ff" stopOpacity=".75" />
+                  <stop offset="1" stopColor="#fff5db" />
+                </linearGradient>
+              </defs>
+              <path data-comet-path d="M0 46Q240 28 480 46" fill="none" stroke={`url(#${lightId}-path)`} strokeWidth=".8" />
+              <g className={styles.cometWake}>
+                <path data-comet-tail className={styles.cometBloom} fill={`url(#${lightId}-tail)`} />
+                <path data-comet-tail fill={`url(#${lightId}-tail)`} />
+              </g>
+            </svg>
             <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
             {worlds.map((world, index) => world.title ? (
               <button
@@ -561,9 +580,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             ) : null)}
             <span className={styles.trackEnd} data-track-end="end" aria-hidden="true" />
             <span className={styles.shootingStar} data-scene-comet aria-hidden="true">
-              <span className={styles.cometTrail}>
-                <span /><span /><span />
-              </span>
               <span className={styles.cometHead} />
             </span>
           </nav>
