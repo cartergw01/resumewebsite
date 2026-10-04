@@ -10,15 +10,15 @@ for (const width of [320, 390]) test(`navigation has distinct, comfortable tap t
       const { fontWeight, fontSize, fontFamily } = getComputedStyle(link);
       await document.fonts.load(`${fontWeight} ${fontSize} ${fontFamily}`);
     });
-    const result = await page.locator(".site-nav").evaluate(nav => {
+    const result = await page.locator(".site-nav").evaluate((nav, minimum) => {
       const rects = [...nav.querySelectorAll("a")].map(a => ({ name: a.getAttribute("aria-label") || a.textContent, rect: a.getBoundingClientRect() })).filter(a => a.rect.width && a.rect.height);
       return {
-        small: rects.filter(a => a.rect.height < 44 || a.rect.width < 24).map(a => a.name),
+        small: rects.filter(a => a.rect.height < 44 || a.rect.width < minimum).map(a => a.name),
         outside: rects.filter(a => a.rect.left < 0 || a.rect.right > innerWidth).map(a => a.name),
         overlaps: rects.flatMap((a, i) => rects.slice(i + 1).filter(b => Math.min(a.rect.right, b.rect.right) - Math.max(a.rect.left, b.rect.left) > 1).map(b => `${a.name}/${b.name}`)),
         overflow: document.documentElement.scrollWidth > innerWidth,
       };
-    });
+    }, route === "/" ? 24 : 44);
     expect(result, `${route} at ${width}px`).toEqual({ small: [], outside: [], overlaps: [], overflow: false });
   }
 });

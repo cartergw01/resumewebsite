@@ -1,0 +1,3 @@
+@media (max-width: 760px) {
+  .shot.shot img, :global(.project-row:hover) .shot.shot img { object-position: var(--preview-position); transform-origin: var(--preview-position); transform: scale(var(--preview-scale)); }
+}

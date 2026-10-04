@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
+import MobileContact from "@/components/MobileContact";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
@@ -51,6 +52,7 @@ export default function WritingPage() {
         </section>
 
         <SubstackSubscribe />
+        <MobileContact />
       </main>
     </div>
   );

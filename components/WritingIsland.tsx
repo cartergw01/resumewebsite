@@ -105,6 +105,9 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
               </PerspectiveArtwork>
             </g>
           </svg>
+          <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
+            <path data-touch-surface="spread" d={artworkOutline(island.spread)} />
+          </svg>
           {warm ? <IslandOrbit world="writing" asset={orbitAssets.writing} anchors={orbitAnchors} /> : null}
         </span>
       </IslandLink>

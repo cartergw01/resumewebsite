@@ -87,15 +87,23 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   const box = (await canvas.boundingBox())!;
   const x = 220, y = box.y + box.height * .5;
   const cdp = await context.newCDPSession(page);
+  const link = page.locator('#work [data-island-link]');
+  const hint = page.locator('#work [data-orbit-controls]');
+  await expect(hint).toContainText('tap to enter');
+  const [helpBox, navBox] = await Promise.all([hint.boundingBox(), page.locator('[data-scene-nav]').boundingBox()]);
+  expect(helpBox!.y + helpBox!.height).toBeLessThan(navBox!.y - 8);
   const swipe = async (dx: number, dy: number) => {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+    await expect(link).toHaveAttribute('data-touch-pressed', 'true');
     for (let i = 1; i <= 8; i++) await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x + dx*i/8, y: y + dy*i/8 }] });
     await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    await expect(link).not.toHaveAttribute('data-touch-pressed');
   };
   await swipe(-95, 0);
   await expect(canvas).toHaveAttribute("data-orbit-live", "true");
   expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeGreaterThan(.2);
   await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(hint.getByText('tap to enter', { exact: false })).toBeHidden();
   const scroll = await page.evaluate(() => scrollY);
   await swipe(0, -160);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(scroll + 80);

@@ -56,6 +56,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
           const path = surface.tagName === "path" ? surface : surface.querySelector("path");
           path?.setAttribute("d", artworkOutline(points[name]));
         }
+        if (points[name]) visual.querySelector(`[data-touch-surface="${name}"]`)?.setAttribute("d", artworkOutline(points[name]));
       }
     };
     const activate = () => {
@@ -133,6 +134,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     const rotate = (dx: number, dy: number) => {
       activate();
       engineRef.current?.rotate(dx, dy);
+      stage.dataset.orbitLearned = "true";
       setTurned(true);
     };
     const reset = () => {
@@ -222,8 +224,8 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
 
   return <>
     <canvas ref={canvasRef} className={styles.canvas} data-island-orbit={interactive ? world : undefined} data-entry-camera={interactive ? undefined : world} aria-hidden="true" />
-    {host && createPortal(<div className={styles.controls}>
-      <span aria-hidden="true">drag to look around</span>
+    {host && createPortal(<div className={styles.controls} data-orbit-controls>
+      <span className={styles.hint} aria-hidden="true"><span className={styles.touchHint}>tap to enter · </span>drag to turn</span>
       <span id={`${world}-orbit-instructions`} className={styles.instructions}>Drag to turn the island. On a keyboard, use the arrow keys to look around, R to reset, and Enter to visit {world}.</span>
       {turned && <button type="button" aria-label={`Reset ${world} island view`} onClick={event => { event.preventDefault(); event.stopPropagation(); resetRef.current(); }}>reset view</button>}
     </div>, host)}

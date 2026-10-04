@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
+import MobileContact from "@/components/MobileContact";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import ProjectShot from "@/components/ProjectShot";
 import worldStyles from "@/components/ProjectsWorld.module.css";
@@ -56,7 +57,7 @@ export default function ProjectsPage() {
                   style={{ animationDelay: `${0.08 + index * 0.045}s` }}
                   data-workshop-reveal
                 >
-                  <ProjectShot src={project.image} title={project.title} dock={index === 0} />
+                  <ProjectShot src={project.image} title={project.title} dock={index === 0} mobilePreview={project.mobilePreview} />
                   <span className="project-row-copy">
                     <strong>{project.title}</strong>
                     <span>{project.description}</span>
@@ -68,6 +69,7 @@ export default function ProjectsPage() {
 
           </section>
         </section>
+        <MobileContact />
       </main>
     </div>
   );

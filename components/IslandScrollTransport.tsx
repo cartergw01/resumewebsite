@@ -69,6 +69,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (stage.dataset.entering) return;
       const progress = clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
+      if (progress > .02 && !stage.dataset.explored) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
       const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 18);
       cameraProgress = cameraProgress === null || motion.matches || glideFrame
@@ -211,13 +212,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const stopProgress = (index: number) =>
       (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
     const measure = () => {
-      const progress = clamp((window.scrollY - start) / travel);
       const height = track.offsetHeight;
+      const resized = measuredHeight > 0 && measuredHeight !== height;
+      // A shorter viewport can clamp scrollY before resize runs. Preserve the
+      // last camera position instead of interpreting that clamp as travel.
+      const progress = resized && cameraProgress !== null ? cameraProgress : clamp((window.scrollY - start) / travel);
       start = track.getBoundingClientRect().top + window.scrollY;
       travel = Math.max(1, height - stage.offsetHeight);
       // Keep the same shot when rotating a phone or resizing the window.
       // Browser toolbar changes only resize the stage, leaving the svh track stable.
-      if (measuredHeight && measuredHeight !== height) {
+      if (resized) {
         window.scrollTo({ top: start + progress * travel, behavior: "instant" });
       }
       measuredHeight = height;

@@ -120,6 +120,9 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
           </g>
           <path className={motionStyles.screenRim} d={artworkOutline(workshop.screen)} fill="none" stroke="#ffe2ba" strokeWidth="0.6" />
         </svg> : null}
+        <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
+          <path data-touch-surface={world === "work" ? "entryWindow" : "screen"} d={artworkOutline(world === "work" ? city.entryWindow : workshop.screen)} />
+        </svg>
         {warm ? <IslandOrbit world={world} asset={orbitAssets[world]} anchors={orbitAnchors} /> : null}
       </span>
     </IslandLink>

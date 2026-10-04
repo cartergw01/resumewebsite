@@ -234,7 +234,20 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       void Promise.all(thumbnails.map(image => image.decode().catch(() => undefined)));
       const docks = cards.map(card => {
         const index = Number(card.dataset.projectCard);
-        const shot = (shots[index] ?? target).getBoundingClientRect();
+        const destination = shots[index] ?? target;
+        const shot = destination.getBoundingClientRect();
+        // The mobile crop eases in as its card lands, preserving the visual
+        // connection between the workshop screen and the readable preview.
+        const image = card.querySelector("img");
+        const preview = destination.querySelector("img");
+        if (image && preview && matchMedia("(max-width: 760px)").matches) {
+          const style = getComputedStyle(preview);
+          image.style.transformOrigin = style.objectPosition;
+          current.animations.push(image.animate([
+            { transform: "scale(1)", objectPosition: "50% 0%" },
+            { transform: style.transform, objectPosition: style.objectPosition },
+          ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, easing: "ease-out", fill: "forwards" }));
+        }
         return card.animate([
           { transform: getComputedStyle(card).transform },
           { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },

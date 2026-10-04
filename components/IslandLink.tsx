@@ -58,6 +58,7 @@ function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandL
 export default function IslandLink({ href, title, prompt, landmark, children, workshop = false, book = false, overview = false }: { href: string; title: string; prompt: string; landmark: IslandLandmark; children: ReactNode; workshop?: boolean; book?: boolean; overview?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => () => cleanupRef.current?.(), []);
 
@@ -164,6 +165,20 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       data-tip={prompt}
       data-tip-side={tipSide[title.toLowerCase() as keyof typeof tipSide]}
       aria-label={`${prompt}. Enter ${title} island`}
+      onPointerDown={event => {
+        if (event.pointerType !== "touch" || !event.isPrimary || event.currentTarget.closest<HTMLElement>("[data-island-stage]")?.dataset.entering) return;
+        touch.current = { x: event.clientX, y: event.clientY };
+        event.currentTarget.dataset.touchPressed = "true";
+      }}
+      onPointerMove={event => {
+        if (touch.current && Math.hypot(event.clientX - touch.current.x, event.clientY - touch.current.y) > 7) {
+          touch.current = null;
+          delete event.currentTarget.dataset.touchPressed;
+        }
+      }}
+      onPointerUp={event => { touch.current = null; delete event.currentTarget.dataset.touchPressed; }}
+      onPointerCancel={event => { touch.current = null; delete event.currentTarget.dataset.touchPressed; }}
+      onPointerLeave={event => { touch.current = null; delete event.currentTarget.dataset.touchPressed; }}
       onClick={enter}
     >
       {children}
