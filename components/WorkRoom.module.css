@@ -1,9 +1,8 @@
-/* Work: a quiet interior reached through the Taipei window. The shared header, then
-   sections (Now, Previously, On the side, About me) that share one shape. */
+/* Work: a quiet reading column reached through the Taipei window. */
 .page {
   --ink: #070b10;
   --paper: #fff3df;
-  --body: #e3dccf;
+  --body: #e9e3d8;
   --quiet: #c7bdac;
   --gold: #e6c794;
   --gold-dim: #b69b70;
@@ -13,17 +12,7 @@
   color: var(--paper);
   background: var(--ink);
 }
-.page > [data-galaxy-background] { opacity: .18; }
-/* A slow, compositor-only drift so the stars always feel alive, even while
-   the video loads. It respects reduced motion. */
-.page > [data-galaxy-background] [data-galaxy-camera] {
-  animation: work-star-drift 32s ease-in-out infinite alternate;
-  will-change: transform;
-}
-@keyframes work-star-drift {
-  from { transform: translate3d(1.5%, 1%, 0) scale(1.03); }
-  to { transform: translate3d(-3.5%, -2%, 0) scale(1.09); }
-}
+.page > [data-galaxy-background] { opacity: .1; }
 .main {
   position: relative;
   z-index: 1;
@@ -33,9 +22,15 @@
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
 .title { display: flex; align-items: center; gap: clamp(1.4rem, 3vw, 2.5rem); }
-/* One reading column on smaller screens; wide screens add a title column. */
-.desk { --label: 16rem; --gutter: clamp(3rem, 5vw, 5.5rem); max-width: 46rem; }
-.workHistory { display: grid; gap: clamp(4.5rem, 10svh, 6.5rem); min-width: 0; }
+/* Header, copy and photo share one measure. The generous desktop margins
+   hold section labels without pushing the reading column off-center. */
+.desk { --reading-width: 40rem; container: work-reading / inline-size; }
+.desk .pageHeader { width: min(100%, var(--reading-width)); margin-inline: auto; }
+.workHistory { display: grid; gap: clamp(4.5rem, 9vw, 6rem); min-width: 0; }
+.section { width: min(100%, var(--reading-width)); margin-inline: auto; }
+.body { min-width: 0; }
+.main p { overflow-wrap: break-word; }
+.main :is(h2, h3, h4) { text-wrap: balance; }
 
 /* Inline links in running text */
 .contributions a, .story a, .closing a, .more a { color: #ead6b8; text-decoration: underline; text-decoration-color: #e6c79466; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 200ms ease, text-decoration-color 200ms ease; }
@@ -49,31 +44,34 @@
 .current .logo { width: 0.85em; height: 0.85em; }
 .current a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
 .current a:hover { text-decoration-color: #efd2a299; }
-.tenure { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .15rem 1.5rem; }
-.tenure:first-of-type { margin-top: .5rem; }
-.tenure + .tenure { margin-top: .35rem; }
+.tenure { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem 1.25rem; }
+.tenure:first-of-type { margin-top: .65rem; }
+.tenure + .tenure { margin-top: .3rem; }
+.tenure .role { min-width: 9.25rem; }
 
-.mission { max-width: 40rem; margin: 1.5rem 0 0; color: #f1e9da; font-size: 1.1875rem; line-height: 1.65; }
-.contributions { display: grid; gap: 1.75rem; margin-top: 2rem; }
-.contributions strong { color: var(--paper); font-weight: 600; }
-.contributions p + p { margin-top: 0.75rem; }
-.contributions p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+.mission { margin: 2rem 0 0; color: #f1e9da; font-size: 1.25rem; line-height: 1.7; }
+.contributions { display: grid; gap: 2.5rem; margin-top: 2.75rem; }
+.contributions h4 { margin: 0 0 .65rem; color: var(--paper); font-size: 1.1875rem; font-weight: 600; line-height: 1.4; }
+.contributions p + p { margin-top: 1rem; }
+.contributions p { margin: 0; color: var(--body); font-size: 1.125rem; line-height: 1.8; }
 
 .photo { margin: 3.5rem 0 0; }
 .photo img { display: block; width: 100%; height: auto; }
 .photo figcaption { margin-top: 0.7rem; color: var(--quiet); font-size: 0.875rem; }
 
 /* Section titles and earlier roles */
-.label { width: fit-content; margin: 0 0 2rem; color: #f2e2c9; text-decoration: underline; text-decoration-color: #e6c79499; text-decoration-thickness: 1.5px; text-underline-offset: 0.22em; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.5rem); font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; }
-.experiences { display: grid; gap: 2rem; margin: 0; padding: 0; list-style: none; }
+.label { width: fit-content; margin: 0 0 1.25rem; color: var(--gold); font-size: .9375rem; font-weight: 600; line-height: 1.5; letter-spacing: .025em; }
+.experiences { display: grid; gap: 3rem; margin: 0; padding: 0; list-style: none; }
 .experience { min-width: 0; }
-.experienceHeading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0.2rem 1.5rem; }
-.experienceHeading h3 { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--paper); font-size: 1.25rem; font-weight: 600; line-height: 1.35; }
+.experienceHeading { display: grid; align-items: baseline; gap: .2rem; }
+.experienceHeading h3 { display: flex; align-items: center; gap: 0.7rem; margin: 0; color: var(--paper); font-size: 1.375rem; font-weight: 600; line-height: 1.4; }
 .experienceHeading p { margin: 0; }
-.date { color: var(--quiet); font-size: 0.875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.role { grid-column: 1 / -1; color: var(--quiet); font-size: 1rem; line-height: 1.6; }
+.date { color: var(--quiet); font-size: 0.875rem; font-variant-numeric: tabular-nums; line-height: 1.6; }
+.role { color: var(--body); font-size: 1rem; font-weight: 500; line-height: 1.6; }
 .more { margin: 0.6rem 0 0; font-size: 1rem; }
-.story { max-width: 40rem; margin: 0.7rem 0 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+.story { margin: 1.25rem 0 0; color: var(--body); font-size: 1.125rem; line-height: 1.8; }
+.story p { margin: 0; }
+.story p + p { margin-top: 1rem; }
 
 .closing { margin: 0; font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.65rem); line-height: 1.4; letter-spacing: -0.01em; }
 
@@ -81,15 +79,13 @@
 .facts { display: flex; flex-wrap: wrap; gap: 1.25rem 3rem; margin: 0 0 1.5rem; }
 .facts dt { margin-bottom: 0.25rem; color: var(--quiet); font-size: 0.875rem; }
 .facts dd { margin: 0; color: var(--paper); font-size: 1.125rem; font-weight: 500; }
-.about > p { max-width: 40rem; margin: 0; color: var(--body); font-size: 1.0625rem; line-height: 1.75; }
+.about > p { margin: 0; color: var(--body); font-size: 1.125rem; line-height: 1.8; }
 
-/* Wide screens: each section's title sits in a left column beside its content,
-   so the page uses the width while every line stays a comfortable length. */
-@media (min-width: 1080px) {
-  .desk { max-width: calc(var(--label) + var(--gutter) + 46rem); }
-  .section { display: grid; grid-template-columns: var(--label) minmax(0, 46rem); column-gap: var(--gutter); align-items: start; }
+/* Labels stay beside their own section while reading, then leave with it. */
+@container work-reading (min-width: 62rem) {
+  .section { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) minmax(0, var(--reading-width)) minmax(0, 1fr); column-gap: clamp(2rem, 3vw, 3rem); align-items: start; }
   .section > .body { grid-column: 2; }
-  .label { margin: 0; padding-top: 0.2rem; font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
+  .label { position: sticky; top: var(--nav-clearance); margin: .5rem 0 0; }
 }
 
 @media (max-width: 760px) {
@@ -97,13 +93,12 @@
   .workHistory { gap: 4rem; }
   .photo { margin-top: 2.75rem; }
   .facts { gap: 1rem 2rem; }
-  .experienceHeading { grid-template-columns: minmax(0, 1fr); }
   .tenure { display: grid; gap: .1rem; }
   .tenure + .tenure { margin-top: .6rem; }
-  .mission { font-size: 1.125rem; }
+  .mission { font-size: 1.1875rem; }
+  .contributions { gap: 2.25rem; margin-top: 2.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .contributions a, .story a, .closing a, .more a, .current a { transition: none; }
-  .page > [data-galaxy-background] [data-galaxy-camera] { animation: none; }
 }

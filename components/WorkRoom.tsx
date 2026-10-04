@@ -54,8 +54,8 @@ const highlights: { heading: string; story: ReactNode[] }[] = [
   {
     heading: "Community & content",
     story: [
-      <>I built <em><Out href="https://886studios.com/programs/launch-station">Launch Station</Out></em>, our residency for founders who move faster alongside ambitious peers, with 20+ founders. I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our <Out href="https://www.886studios.com/">website</Out>.</>,
-      <>I also write our <Out href="https://886studios.substack.com/">newsletter</Out>.</>,
+      <>I built <em><Out href="https://886studios.com/programs/launch-station">Launch Station</Out></em>, our residency for founders who move faster alongside ambitious peers, with 20+ founders.</>,
+      <>I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our <Out href="https://www.886studios.com/">website</Out>. I also write our <Out href="https://886studios.substack.com/">newsletter</Out>.</>,
     ],
   },
 ];
@@ -67,12 +67,12 @@ const shortTitles: Record<string, string> = {
   "Slug Fund Investment Group": "Vice President",
 };
 
-// One-line stories for earlier roles; the full bullet details live on /resume.
-function earlierStory(item: Earlier): ReactNode {
+// Short stories for earlier roles; the full bullet details live on /resume.
+function earlierStory(item: Earlier): ReactNode[] {
   switch (item.company) {
     case "Contrary Research": {
       const links = "links" in item && item.links ? item.links : [];
-      return (
+      return [
         <>
           I profiled and wrote deep dives on startups like{" "}
           {links.map((article, index) => (
@@ -83,14 +83,17 @@ function earlierStory(item: Earlier): ReactNode {
           ))}
           .
         </>
-      );
+      ];
     }
     case "Slug Fund Investment Group":
-      return "UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing. I went from equity analyst to head of the equity analyst team, then started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.";
+      return [
+        "UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing.",
+        "I went from equity analyst to head of the equity analyst team, then started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.",
+      ];
     case "Korobra Capital":
-      return "A fund I started in 2020 for family and friends. It's now $180K+, invested long term in AI, fintech, crypto, robotics, and more.";
+      return ["A fund I started in 2020 for family and friends. It's now $180K+, invested long term in AI, fintech, crypto, robotics, and more."];
     default:
-      return null;
+      return [];
   }
 }
 
@@ -99,10 +102,14 @@ function Experience({ item }: { item: Earlier }) {
     <li className={styles.experience}>
       <header className={styles.experienceHeading}>
         <h3><Logo company={item.company} size={26} />{item.company}</h3>
-        <p className={styles.date}>{item.dates}</p>
-        <p className={styles.role}>{shortTitles[item.company] ?? item.role}</p>
+        <div className={styles.tenure}>
+          <p className={styles.role}>{shortTitles[item.company] ?? item.role}</p>
+          <p className={styles.date}>{item.dates}</p>
+        </div>
       </header>
-      <p className={styles.story}>{earlierStory(item)}</p>
+      <div className={styles.story}>
+        {earlierStory(item).map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+      </div>
     </li>
   );
 }
@@ -133,7 +140,7 @@ const bioLead = workPageBio[2];
 
 function WorkHeader({ preview = false }: { preview?: boolean }) {
   return (
-    <header className={heading.header}>
+    <header className={`${heading.header} ${styles.pageHeader}`}>
       <div className={styles.title}>
         <h1 tabIndex={-1}>Work</h1>
         {!preview && <WorkArrival />}
@@ -166,14 +173,15 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
         <div className={styles.contributions}>
           {highlights.map((item) => (
             <div key={item.heading}>
+              <h4>{item.heading}</h4>
               {item.story.map((line, index) => (
-                <p key={index}>{index === 0 ? <><strong>{item.heading}.</strong>{" "}</> : null}{line}</p>
+                <p key={index}>{line}</p>
               ))}
             </div>
           ))}
         </div>
         {!preview && <figure className={styles.photo}>
-          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 761px) 736px, 100vw" quality={90} placeholder="blur" />
+          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={90} placeholder="blur" />
           <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
         </figure>}
       </div>
@@ -199,12 +207,12 @@ export function WorkWindowPreview() {
 export default function WorkRoom() {
   return (
     <>
-      <GalaxyBackground page />
+      <GalaxyBackground page playbackRate={0.55} />
       <main className={styles.main} data-work-desk>
         <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
           <WorkHeader />
 
-          {/* Every section is the same shape: a title on the left, its content on the right. */}
+          {/* A centered reading column; section labels sit in the desktop margin. */}
           <div className={styles.workHistory}>
             <CurrentWork />
 
