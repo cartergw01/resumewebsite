@@ -234,6 +234,7 @@
 .stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after, .stage[data-entering="work"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
+.stage[data-entering="work"] .islandLink:focus-visible { outline-color: transparent; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
 .stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }

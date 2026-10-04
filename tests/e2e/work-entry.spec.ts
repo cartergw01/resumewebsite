@@ -40,13 +40,28 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   });
   expect(error).toBeLessThan(3);
   let previousArea = 0;
-  for (const progress of [.4, .7, .99]) {
-    await carry.evaluate((element, progress) => { element.getAnimations()[0].currentTime = progress * 1650; }, progress);
+  let windowHeadingWidth = 0;
+  for (const progress of [.4, .75, .99]) {
+    await carry.evaluate((element, progress) => { const animation = element.getAnimations()[0]; animation.currentTime = progress * Number(animation.effect!.getTiming().duration); }, progress);
     await expect(carry).toHaveAttribute("data-work-progress", progress.toFixed(3));
     const points: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
     const area = Math.abs((points[1][0] - points[0][0]) * (points[2][1] - points[0][1]));
     expect(area).toBeGreaterThan(previousArea);
     previousArea = area;
+    if (progress === .75) {
+      // The whole heading is already visible inside the opening, scaled to
+      // that window rather than clipped out of a full-size page behind it.
+      const heading = (await carry.locator("h1").boundingBox())!;
+      windowHeadingWidth = heading.width;
+      const polygon = [points[0], points[1], points[3], points[2]];
+      for (const [x, y] of [[heading.x, heading.y], [heading.x + heading.width, heading.y], [heading.x, heading.y + heading.height], [heading.x + heading.width, heading.y + heading.height]]) {
+        const edges = polygon.map((a, i) => {
+          const b = polygon[(i + 1) % polygon.length];
+          return (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
+        });
+        expect(edges.every(value => value >= 0) || edges.every(value => value <= 0)).toBe(true);
+      }
+    }
   }
   const final: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
   expect(Math.min(...final.map(p=>p[0]))).toBeLessThan(0);
@@ -54,6 +69,7 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   expect(Math.min(...final.map(p=>p[1]))).toBeLessThan(0);
   expect(Math.max(...final.map(p=>p[1]))).toBeGreaterThan(page.viewportSize()!.height);
   const preview = await carry.locator("h1").boundingBox();
+  expect(windowHeadingWidth).toBeLessThan(preview!.width * .9);
   await carry.evaluate(element => element.getAnimations()[0].play());
   await expect(page).toHaveURL(/\/work$/);
   await expect(carry).toHaveCount(0);
@@ -62,6 +78,7 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   const destination = await heading.boundingBox();
   expect(Math.abs(preview!.x - destination!.x)).toBeLessThan(1);
   expect(Math.abs(preview!.y - destination!.y)).toBeLessThan(1);
+  expect(Math.abs(preview!.width - destination!.width)).toBeLessThan(1);
   await expect(page.getByRole("heading", { name: "886 Studios", exact: true })).toBeVisible();
   await expect(page.locator("html")).not.toHaveAttribute("data-work-transition");
   await page.goBack();
@@ -82,7 +99,7 @@ test("a missing 3D model uses the same lit window without blocking Work", async 
   const carry = page.locator("body > [data-work-transition]");
   await expect(carry).toHaveAttribute("data-work-camera", "still");
   await expect(carry.locator("svg image")).toHaveCount(1);
-  await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=1600; a.play(); });
+  await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=Number(a.effect!.getTiming().duration)*.98; a.play(); });
   await expect(page).toHaveURL(/\/work$/);
   await expect(carry).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Work", exact: true, level: 1 })).toBeFocused();

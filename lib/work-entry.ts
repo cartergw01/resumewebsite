@@ -1,5 +1,7 @@
 import { windowCameraFor, type ScreenMatrix, type WindowFlight } from "./island-orbit-bridge";
 import styles from "@/components/WorkEntry.module.css";
+import { artworkTransform } from "./artwork-perspective";
+import { WORK_ENTRY_DURATION, workApproach } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 const svgNS = "http://www.w3.org/2000/svg";
@@ -22,11 +24,11 @@ function stillCamera(visual: HTMLElement, host: HTMLElement, matrix: ScreenMatri
   const center = initial.reduce((a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4], [0, 0]);
   const width = Math.hypot(initial[1][0] - initial[0][0], initial[1][1] - initial[0][1]);
   const height = Math.hypot(initial[2][0] - initial[0][0], initial[2][1] - initial[0][1]);
-  const endScale = Math.max(innerWidth / width, innerHeight / height) * 2;
+  const endScale = Math.max(innerWidth / width, innerHeight / height) * 1.2;
   const visibility = visual.style.visibility;
   return {
     sample(progress) {
-      const t = smooth((progress - .08) / .92);
+      const t = workApproach(progress);
       const scale = Math.pow(endScale, t);
       const x = center[0] + (innerWidth / 2 - center[0]) * smooth(t * 2);
       const y = center[1] + (innerHeight / 2 - center[1]) * smooth(t * 2);
@@ -37,6 +39,29 @@ function stillCamera(visual: HTMLElement, host: HTMLElement, matrix: ScreenMatri
     },
     dispose() { visual.style.visibility = visibility; svg.remove(); },
   };
+}
+
+// The page lives inside the window, rather than being cut out of a full-size
+// page behind it. Preserve its aspect ratio and let its perspective gently
+// flatten only as the opening reaches the edges of the screen.
+function contentThroughWindow(points: number[][], width: number, height: number) {
+  const [a, b, c, d] = points;
+  const spanX = (Math.hypot(b[0] - a[0], b[1] - a[1]) + Math.hypot(d[0] - c[0], d[1] - c[1])) / 2;
+  const spanY = (Math.hypot(c[0] - a[0], c[1] - a[1]) + Math.hypot(d[0] - b[0], d[1] - b[1])) / 2;
+  const fit = Math.min(spanX / width, spanY / height);
+  // Ease the last quarter into its final size with zero closing velocity.
+  // A hard min(1, fit) would visibly stop the page while the camera still moves.
+  const settle = Math.max(0, Math.min(1, (fit - .75) / .25));
+  const scale = fit < .75 ? fit : .75 + .25 * (settle + settle * settle - settle * settle * settle);
+  const u = (1 - scale * width / spanX) / 2;
+  const v = (1 - scale * height / spanY) / 2;
+  const flatten = smooth((fit - .55) / .45);
+  const corners = [[u, v], [1 - u, v], [u, 1 - v], [1 - u, 1 - v]].map(([x, y], i) => {
+    const projected = [0, 1].map(axis => (a[axis] * (1 - x) + b[axis] * x) * (1 - y) + (c[axis] * (1 - x) + d[axis] * x) * y);
+    const flat = [(width - width * scale) / 2 + (i % 2) * width * scale, (height - height * scale) / 2 + Math.floor(i / 2) * height * scale];
+    return projected.map((value, axis) => value + (flat[axis] - value) * flatten);
+  });
+  return { transform: artworkTransform(corners, width, height), fit };
 }
 
 export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) {
@@ -52,6 +77,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   opening.className = styles.window; opening.dataset.cityWindow = "true";
   const preview = document.createElement("div");
   preview.className = styles.preview;
+  preview.dataset.workPreview = "true";
   const sourceContent = document.querySelector("[data-work-window-content]");
   if (sourceContent) preview.append(...Array.from(sourceContent.children, child => child.cloneNode(true)));
   const glass = document.createElement("div"); glass.className = styles.glazing;
@@ -63,7 +89,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   overlay.dataset.workCamera = camera ? "3d" : "still";
   // One clock drives the actual camera and the opening's projection. Keeping
   // it in the Web Animations timeline also respects document suspension.
-  const animation = overlay.animate([{ opacity: 1 }, { opacity: 1 }], { duration: 1650, fill: "forwards" });
+  const animation = overlay.animate([{ opacity: 1 }, { opacity: 1 }], { duration: WORK_ENTRY_DURATION, fill: "forwards" });
   let frame = 0, disposed = false;
   let finishAnimation: Animation | undefined;
   let lastProgress = -1;
@@ -74,14 +100,15 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
     opening.style.clipPath = `polygon(${[0, 1, 3, 2].map(i => `${points[i][0]}px ${points[i][1]}px`).join(",")})`;
     opening.dataset.corners = JSON.stringify(points);
     overlay.dataset.workProgress = progress.toFixed(3);
-    // The warm occupied office resolves into a readable interior as we reach
-    // the glass. Content remains at its destination size behind the opening.
-    glass.style.opacity = String(1 - smooth((progress - .5) / .25));
-    preview.style.opacity = String(smooth((progress - .46) / .22));
+    const content = contentThroughWindow(points, innerWidth, innerHeight);
+    preview.style.transform = content.transform;
+    // Reveal by the physical opening's size, so both the real camera and the
+    // lightweight fallback clear the glass when the contents are legible.
+    glass.style.opacity = String(1 - smooth((content.fit - .07) / .48));
   };
   const tick = () => {
     if (disposed) return;
-    sample(Math.min(1, Number(animation.currentTime ?? 0) / 1650));
+    sample(Math.min(1, Number(animation.currentTime ?? 0) / WORK_ENTRY_DURATION));
     if (animation.playState !== "finished") frame = requestAnimationFrame(tick);
   };
   const dispose = () => {

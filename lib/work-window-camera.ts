@@ -1,5 +1,6 @@
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer } from "three";
 import type { ScreenMatrix, WindowFlight } from "./island-orbit-bridge";
+import { workApproach } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 
@@ -18,7 +19,7 @@ export function makeLitWindow(corners: Vector3[]) {
   geometry.setIndex([0, 2, 1, 2, 3, 1]);
   const glass = new Mesh(geometry, new MeshBasicMaterial({ color: 0xffd69b, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 }));
   group.add(glass);
-  const frame = new MeshStandardMaterial({ color: 0x657270, metalness: .5, roughness: .5 });
+  const frame = new MeshStandardMaterial({ color: 0x61656a, metalness: .5, roughness: .5 });
   for (const [a, b] of [[0, 1], [1, 3], [3, 2], [2, 0]]) {
     const along = corners[b].clone().sub(corners[a]);
     const bar = new Mesh(new BoxGeometry(along.length() + .0007, .0007, .0014), frame);
@@ -59,7 +60,7 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   const tangent = Math.tan(camera.fov * Math.PI / 360);
   // Finish beyond the frame's visible edges, so the content has already
   // filled the viewport before Next mounts the destination.
-  const finishDistance = Math.min(window.height / (2 * tangent), window.width / (2 * tangent * W / H)) * .62;
+  const finishDistance = Math.min(window.height / (2 * tangent), window.width / (2 * tangent * W / H)) * .88;
   const look = new Matrix4(), orientation = new Quaternion();
   let disposed = false;
   host.prepend(canvas);
@@ -68,22 +69,23 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   renderer.setSize(W, H, false);
   return {
     sample(progress) {
-      const p = Math.max(0, Math.min(1, (progress - .1) / .9));
-      const travel = smooth(p);
+      const p = Math.max(0, Math.min(1, (progress - .025) / .975));
+      const travel = workApproach(progress);
       const distance = startDistance * Math.pow(finishDistance / startDistance, travel);
-      const heading = direction.clone().lerp(normal, smooth(p / .8)).normalize();
+      // Keep the facade's depth on approach, then meet the glass squarely.
+      const heading = direction.clone().lerp(normal, smooth((p - .12) / .78)).normalize();
       camera.position.copy(window.center).addScaledVector(heading, distance);
       look.lookAt(camera.position, window.center, window.up);
       orientation.setFromRotationMatrix(look);
-      camera.quaternion.copy(original.quaternion).slerp(orientation, smooth(p / .35));
+      camera.quaternion.copy(original.quaternion).slerp(orientation, smooth(p / .58));
       lens.near = Math.max(.0005, distance * .001);
       lens.updateProjectionMatrix();
-      const framing = smooth(p / .35);
+      const framing = smooth(p / .5);
       camera.projectionMatrix.fromArray(startProjection.elements.map((value, i) => value + (lens.projectionMatrix.elements[i] - value) * framing));
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
       camera.updateMatrixWorld(true);
-      canvas.style.opacity = String(alreadyLive ? 1 : smooth(progress / .1));
-      if (progress >= .1) parent.style.visibility = "hidden";
+      canvas.style.opacity = String(alreadyLive ? 1 : smooth(progress / .055));
+      if (progress >= .055) parent.style.visibility = "hidden";
       renderer.render(scene, camera);
       return window.corners.map(point => {
         const projected = point.clone().project(camera);
