@@ -3,7 +3,14 @@
 .canvas[data-entry-camera] { pointer-events: none; }
 .canvas[data-orbit-live="true"] { opacity: 1; }
 .canvas[data-orbit-dragging="true"] { cursor: grabbing; }
-.controls { position: absolute; bottom: -0.75rem; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 1.1rem; white-space: nowrap; color: #d7ccb8b3; font-size: 0.75rem; line-height: 1.4; }
+.controls { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: .75rem; max-width: calc(100vw - 3rem); min-height: 44px; white-space: nowrap; color: #eee2cc; font-size: 0.8125rem; line-height: 1.4; }
+.hint { display: inline-flex; align-items: center; gap: .5rem; }
+.mouseHint, .touchHint { font-weight: 600; }
+.gesture { flex: none; width: 24px; height: 24px; color: #dfc596; }
+.gesture path { opacity: .55; }
+.gesture circle { animation: look-around 2.2s ease-in-out 2; }
+@keyframes look-around { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 65% { transform: translateX(6px); } }
+:global([data-orbit-learned]) .gesture circle { animation: none; }
 .controls button { pointer-events: auto; min-height: 44px; padding: 0.35rem 0.5rem; border: 0; background: none; color: #e9d4b6; font: inherit; text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
 .controls button:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 3px; }
 .touchHint { display: none; }
@@ -11,11 +18,18 @@
 :global([data-island-stage][data-entering]) .controls { visibility: hidden; }
 .instructions { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (max-width: 760px) {
-  .controls { bottom: -2.75rem; min-height: 44px; font-size: .75rem; }
+  /* Sit below the contained 3:2 artwork, rather than the taller art wrapper.
+     The mobile art is one viewport plus 3rem wide. */
+  .controls { top: calc(50% + min(33.333vw + 1rem, 50%) + .75rem); bottom: auto; }
+}
+@media (pointer: coarse) {
   .touchHint { display: inline; }
-  :global([data-orbit-learned]) .hint { display: none; }
+  .mouseHint { display: none; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
   /* The short landscape frame has a free left column below the copy. */
-  .controls { bottom: 0; left: -70%; max-width: 67%; transform: none; font-size: .6875rem; }
+  .controls { top: auto; bottom: 0; left: -70%; max-width: 67%; transform: none; font-size: .6875rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gesture circle { animation: none; }
 }

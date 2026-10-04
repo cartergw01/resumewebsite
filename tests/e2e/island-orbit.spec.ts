@@ -89,7 +89,8 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   const cdp = await context.newCDPSession(page);
   const link = page.locator('#work [data-island-link]');
   const hint = page.locator('#work [data-orbit-controls]');
-  await expect(hint).toContainText('tap to enter');
+  await expect(hint.getByText('swipe', { exact: true })).toBeVisible();
+  await expect(page.locator('#work [data-orbit-hint]')).toBeVisible();
   const [helpBox, navBox] = await Promise.all([hint.boundingBox(), page.locator('[data-scene-nav]').boundingBox()]);
   expect(helpBox!.y + helpBox!.height).toBeLessThan(navBox!.y - 8);
   const swipe = async (dx: number, dy: number) => {
@@ -103,7 +104,8 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   await expect(canvas).toHaveAttribute("data-orbit-live", "true");
   expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeGreaterThan(.2);
   await expect(page).toHaveURL(/\/2\.0#work$/);
-  await expect(hint.getByText('tap to enter', { exact: false })).toBeHidden();
+  await expect(page.locator('#work [data-orbit-hint]')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset work island view' })).toBeVisible();
   const scroll = await page.evaluate(() => scrollY);
   await swipe(0, -160);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(scroll + 80);

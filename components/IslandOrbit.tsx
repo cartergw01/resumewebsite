@@ -225,8 +225,14 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
   return <>
     <canvas ref={canvasRef} className={styles.canvas} data-island-orbit={interactive ? world : undefined} data-entry-camera={interactive ? undefined : world} aria-hidden="true" />
     {host && createPortal(<div className={styles.controls} data-orbit-controls>
-      <span className={styles.hint} aria-hidden="true"><span className={styles.touchHint}>tap to enter · </span>drag to turn</span>
-      <span id={`${world}-orbit-instructions`} className={styles.instructions}>Drag to turn the island. On a keyboard, use the arrow keys to look around, R to reset, and Enter to visit {world}.</span>
+      <span className={styles.hint} data-orbit-hint aria-hidden="true">
+        <svg className={styles.gesture} viewBox="0 0 32 24" fill="none" aria-hidden="true">
+          <path d="m7 8-4 4 4 4m18-8 4 4-4 4M3 12h26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="16" cy="12" r="3" fill="currentColor" />
+        </svg>
+        <span><span className={styles.mouseHint}>drag</span><span className={styles.touchHint}>swipe</span> to look around</span>
+      </span>
+      <span id={`${world}-orbit-instructions`} className={styles.instructions}>Drag to look around the island. On a touchscreen, swipe left or right to turn it, swipe up or down to scroll, and tap to visit {world}. On a keyboard, use the arrow keys to look around, R to reset, and Enter to visit {world}.</span>
       {turned && <button type="button" aria-label={`Reset ${world} island view`} onClick={event => { event.preventDefault(); event.stopPropagation(); resetRef.current(); }}>reset view</button>}
     </div>, host)}
   </>;
