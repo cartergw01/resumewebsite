@@ -1,7 +1,7 @@
 import { windowCameraFor, type ScreenMatrix, type WindowFlight } from "./island-orbit-bridge";
 import styles from "@/components/WorkEntry.module.css";
 import { artworkTransform } from "./artwork-perspective";
-import { workApproach, workApproachArc } from "./work-entry-motion";
+import { workApproach, workAlignment } from "./work-entry-motion";
 import { ENTRY_APPROACH_DURATION, ENTRY_ARRIVAL_DURATION } from "./island-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
@@ -25,45 +25,61 @@ function stillCamera(visual: HTMLElement, host: HTMLElement, matrix: ScreenMatri
   const center = initial.reduce((a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4], [0, 0]);
   const width = Math.hypot(initial[1][0] - initial[0][0], initial[1][1] - initial[0][1]);
   const height = Math.hypot(initial[2][0] - initial[0][0], initial[2][1] - initial[0][1]);
+  const placement = new DOMMatrix([matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f]);
+  // Align the two window edges with a small affine correction. A perspective
+  // warp solved from this tiny pane would severely distort the wider island.
+  const upright = new DOMMatrix([
+    (initial[1][0] - initial[0][0]) / width, (initial[1][1] - initial[0][1]) / width,
+    (initial[2][0] - initial[0][0]) / height, (initial[2][1] - initial[0][1]) / height,
+    0, 0,
+  ]).inverse();
   const endScale = Math.max(innerWidth / width, innerHeight / height) * 1.2;
   const visibility = visual.style.visibility;
   return {
     sample(progress) {
       const t = workApproach(progress);
-      const arc = workApproachArc(progress);
+      const alignment = workAlignment(progress);
       const scale = Math.pow(endScale, t);
-      const x = center[0] + (innerWidth / 2 - center[0]) * smooth(t * 2) + innerWidth * .045 * arc;
-      const y = center[1] + (innerHeight / 2 - center[1]) * smooth(t * 2) - innerHeight * .035 * arc;
-      const dx = x - center[0] * scale, dy = y - center[1] * scale;
-      image.setAttribute("transform", `matrix(${matrix.a * scale} ${matrix.b * scale} ${matrix.c * scale} ${matrix.d * scale} ${matrix.e * scale + dx} ${matrix.f * scale + dy})`);
+      const x = center[0] + (innerWidth / 2 - center[0]) * smooth(t * 2);
+      const y = center[1] + (innerHeight / 2 - center[1]) * smooth(t * 2);
+      // Straighten the facade and opening together, preserving their connection
+      // instead of enlarging the poster's original slant all the way to arrival.
+      const correction = new DOMMatrix([
+        1 + (upright.a - 1) * alignment, upright.b * alignment,
+        upright.c * alignment, 1 + (upright.d - 1) * alignment, 0, 0,
+      ]);
+      const transform = new DOMMatrix().translate(x, y).scale(scale).multiply(correction).translate(-center[0], -center[1]);
+      const posterTransform = transform.multiply(placement);
+      image.setAttribute("transform", posterTransform.toString());
       visual.style.visibility = "hidden";
-      return initial.map(([a, b]) => [a * scale + dx, b * scale + dy]);
+      return initial.map(([a, b]) => {
+        const point = transform.transformPoint(new DOMPoint(a, b));
+        return [point.x, point.y];
+      });
     },
     dispose() { visual.style.visibility = visibility; svg.remove(); },
   };
 }
 
-// The page lives inside the window, rather than being cut out of a full-size
-// page behind it. Preserve its aspect ratio and let its perspective gently
-// flatten only as the opening reaches the edges of the screen.
+// Keep the page upright inside the opening. Fit a level rectangle inside all
+// four edges, so the facade's perspective never skews readable type.
 function contentThroughWindow(points: number[][], width: number, height: number) {
-  const [a, b, c, d] = points;
-  const spanX = (Math.hypot(b[0] - a[0], b[1] - a[1]) + Math.hypot(d[0] - c[0], d[1] - c[1])) / 2;
-  const spanY = (Math.hypot(c[0] - a[0], c[1] - a[1]) + Math.hypot(d[0] - b[0], d[1] - b[1])) / 2;
-  const fit = Math.min(spanX / width, spanY / height);
+  const center = points.reduce((sum, point) => [sum[0] + point[0] / 4, sum[1] + point[1] / 4], [0, 0]);
+  const polygon = [points[0], points[1], points[3], points[2]];
+  const fit = Math.min(...polygon.map((a, i) => {
+    const b = polygon[(i + 1) % polygon.length];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const distance = Math.abs(dx * (center[1] - a[1]) - dy * (center[0] - a[0]));
+    return distance / (Math.abs(dx) * height / 2 + Math.abs(dy) * width / 2);
+  }));
   // Ease the last quarter into its final size with zero closing velocity.
   // A hard min(1, fit) would visibly stop the page while the camera still moves.
   const settle = Math.max(0, Math.min(1, (fit - .75) / .25));
   const scale = fit < .75 ? fit : .75 + .25 * (settle + settle * settle - settle * settle * settle);
-  const u = (1 - scale * width / spanX) / 2;
-  const v = (1 - scale * height / spanY) / 2;
-  const flatten = smooth((fit - .55) / .45);
-  const corners = [[u, v], [1 - u, v], [u, 1 - v], [1 - u, 1 - v]].map(([x, y], i) => {
-    const projected = [0, 1].map(axis => (a[axis] * (1 - x) + b[axis] * x) * (1 - y) + (c[axis] * (1 - x) + d[axis] * x) * y);
-    const flat = [(width - width * scale) / 2 + (i % 2) * width * scale, (height - height * scale) / 2 + Math.floor(i / 2) * height * scale];
-    return projected.map((value, axis) => value + (flat[axis] - value) * flatten);
-  });
-  return { transform: artworkTransform(corners, width, height), fit };
+  const settleCenter = smooth((fit - .55) / .45);
+  const x = center[0] + (width / 2 - center[0]) * settleCenter - width * scale / 2;
+  const y = center[1] + (height / 2 - center[1]) * settleCenter - height * scale / 2;
+  return { transform: `matrix(${scale},0,0,${scale},${x},${y})`, fit };
 }
 
 export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) {

@@ -49,6 +49,12 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
     expect(area).toBeGreaterThan(previousArea);
     previousArea = area;
     if (progress === .75) {
+      // Readable Work content stays level even when entry starts after orbiting.
+      const pose = await carry.locator("[data-work-preview]").evaluate(node => {
+        const matrix = new DOMMatrix(getComputedStyle(node).transform);
+        return { flat: matrix.is2D, skewX: matrix.c, skewY: matrix.b };
+      });
+      expect(pose).toEqual({ flat: true, skewX: 0, skewY: 0 });
       // The whole heading is already visible inside the opening, scaled to
       // that window rather than clipped out of a full-size page behind it.
       const heading = (await carry.locator("h1").boundingBox())!;
@@ -99,6 +105,17 @@ test("a missing 3D model uses the same lit window without blocking Work", async 
   const carry = page.locator("body > [data-work-transition]");
   await expect(carry).toHaveAttribute("data-work-camera", "still");
   await expect(carry.locator("svg image")).toHaveCount(1);
+  await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=Number(a.effect!.getTiming().duration)*.75; });
+  await expect(carry).toHaveAttribute("data-work-progress", "0.750");
+  const points: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
+  // The poster and opening square up together before the readable close-up.
+  expect(Math.abs(points[0][1] - points[1][1])).toBeLessThan(.1);
+  expect(Math.abs(points[0][0] - points[2][0])).toBeLessThan(.1);
+  const pose = await carry.locator("[data-work-preview]").evaluate(node => {
+    const matrix = new DOMMatrix(getComputedStyle(node).transform);
+    return { flat: matrix.is2D, skewX: matrix.c, skewY: matrix.b };
+  });
+  expect(pose).toEqual({ flat: true, skewX: 0, skewY: 0 });
   await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=Number(a.effect!.getTiming().duration)*.98; a.play(); });
   await expect(page).toHaveURL(/\/work$/);
   await expect(carry).toHaveCount(0);

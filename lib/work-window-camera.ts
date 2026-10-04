@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer } from "three";
 import type { ScreenMatrix, WindowFlight } from "./island-orbit-bridge";
-import { workApproach, workApproachArc } from "./work-entry-motion";
+import { workApproach, workAlignment } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 
@@ -57,9 +57,7 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   const direction = offset.normalize();
   const normal = window.normal.clone();
   if (normal.dot(direction) < 0) normal.negate();
-  const right = window.up.clone().cross(normal).normalize();
-  const approachSide = direction.dot(right) < 0 ? -1 : 1;
-  const heading = new Vector3(), flightUp = new Vector3();
+  const heading = new Vector3();
   const tangent = Math.tan(camera.fov * Math.PI / 360);
   // Finish beyond the frame's visible edges, so the content has already
   // filled the viewport before Next mounts the destination.
@@ -72,23 +70,19 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   renderer.setSize(W, H, false);
   return {
     sample(progress) {
-      const p = Math.max(0, Math.min(1, (progress - .025) / .975));
       const travel = workApproach(progress);
-      const arc = workApproachArc(progress);
+      const alignment = workAlignment(progress);
       const distance = startDistance * Math.pow(finishDistance / startDistance, travel);
-      // Sweep slightly around the approach side of the tower. The actual city
-      // supplies the parallax; the curve resolves before we cross the window.
-      heading.copy(direction).lerp(normal, smooth((p - .12) / .78))
-        .addScaledVector(right, approachSide * .18 * arc)
-        .addScaledVector(window.up, .035 * arc).normalize();
+      // Resolve the island's viewing angle at a distance, then travel directly
+      // toward the pane with a level camera and no sideways bank.
+      heading.copy(direction).lerp(normal, alignment).normalize();
       camera.position.copy(window.center).addScaledVector(heading, distance);
-      flightUp.copy(window.up).applyAxisAngle(heading, approachSide * .018 * arc);
-      look.lookAt(camera.position, window.center, flightUp);
+      look.lookAt(camera.position, window.center, window.up);
       orientation.setFromRotationMatrix(look);
-      camera.quaternion.copy(original.quaternion).slerp(orientation, smooth(p / .58));
+      camera.quaternion.copy(original.quaternion).slerp(orientation, alignment);
       lens.near = Math.max(.0005, distance * .001);
       lens.updateProjectionMatrix();
-      const framing = smooth(p / .5);
+      const framing = alignment;
       camera.projectionMatrix.fromArray(startProjection.elements.map((value, i) => value + (lens.projectionMatrix.elements[i] - value) * framing));
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
       camera.updateMatrixWorld(true);
