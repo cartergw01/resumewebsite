@@ -9,10 +9,15 @@ test("mobile islands and map labels keep clear of navigation at different height
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:667,height:375}]) {
     await page.setViewportSize(viewport);
     await expect(page.locator('main[data-scene]')).toHaveAttribute('data-scene', 'projects');
+    await expect(page.locator('#projects [data-orbit-controls]')).toHaveCount(0);
+    await page.locator('#projects [data-island-link]').focus();
+    await page.keyboard.press('ArrowRight');
     await expect.poll(async () => {
       const [hint, nav] = await Promise.all([page.locator('#projects [data-orbit-controls]').boundingBox(), page.locator('[data-scene-nav]').boundingBox()]);
       return Math.max(nav!.y - (hint!.y + hint!.height), nav!.x - (hint!.x + hint!.width));
     }).toBeGreaterThan(8);
+    await page.keyboard.press('r');
+    await expect(page.locator('#projects [data-orbit-controls]')).toHaveCount(0);
     await expect(page.locator('[data-next-scene]')).toBeHidden();
   }
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932}]) {

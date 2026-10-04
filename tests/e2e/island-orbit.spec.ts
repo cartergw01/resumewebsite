@@ -88,9 +88,9 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   const x = 220, y = box.y + box.height * .5;
   const cdp = await context.newCDPSession(page);
   const link = page.locator('#work [data-island-link]');
-  const hint = page.locator('#work [data-orbit-controls]');
-  await expect(hint.getByText('swipe', { exact: true })).toBeVisible();
-  await expect(page.locator('#work [data-orbit-hint]')).toBeVisible();
+  const hint = link.locator('[data-orbit-prompt]');
+  await expect(hint.getByText('swipe to look around', { exact: true })).toBeVisible();
+  await expect(page.locator('#work [data-orbit-controls]')).toHaveCount(0);
   const [helpBox, navBox] = await Promise.all([hint.boundingBox(), page.locator('[data-scene-nav]').boundingBox()]);
   expect(helpBox!.y + helpBox!.height).toBeLessThan(navBox!.y - 8);
   const swipe = async (dx: number, dy: number) => {
@@ -104,12 +104,35 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   await expect(canvas).toHaveAttribute("data-orbit-live", "true");
   expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeGreaterThan(.2);
   await expect(page).toHaveURL(/\/2\.0#work$/);
-  await expect(page.locator('#work [data-orbit-hint]')).toBeVisible();
+  await expect(hint).toBeHidden();
   await expect(page.getByRole('button', { name: 'Reset work island view' })).toBeVisible();
   const scroll = await page.evaluate(() => scrollY);
   await swipe(0, -160);
   await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(scroll + 80);
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
+});
+
+test("rotation help borrows the existing annotation once and leaves no extra row", async ({ page, isMobile }) => {
+  test.setTimeout(90_000);
+  await ready(page, "work");
+  const link = page.locator('#work [data-island-link]');
+  const cue = link.locator('[data-island-cue]');
+  const destination = cue.getByText('learn about my work', { exact: true });
+  await expect(destination).toBeVisible();
+  await expect(page.locator('[data-orbit-controls]')).toHaveCount(0);
+  await expect(link).toHaveAttribute('data-orbit-hint', 'true');
+  await expect(cue.getByText(isMobile ? 'swipe to look around' : 'drag to look around', { exact: true })).toBeVisible();
+  await expect(destination).toBeHidden();
+  await expect(cue.locator('svg')).toBeHidden();
+  await expect(link).not.toHaveAttribute('data-orbit-hint', 'true', { timeout: 6000 });
+  await expect(destination).toBeVisible();
+  await expect(cue.locator('svg')).toBeVisible();
+  await page.getByRole('button', { name: 'Show Writing island' }).click();
+  await expect(page.locator('[data-island-orbit="writing"]')).toHaveAttribute('data-orbit-ready', 'true', { timeout: 60_000 });
+  // Observe beyond the hint delay: changing worlds must not repeat onboarding.
+  await page.waitForTimeout(1800);
+  await expect(page.locator('[data-orbit-hint]')).toHaveCount(0);
+  await expect(page.locator('[data-orbit-controls]')).toHaveCount(0);
 });
 
 test("losing the graphics context restores the poster and its original entry corners", async ({ page }) => {

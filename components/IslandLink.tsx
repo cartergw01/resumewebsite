@@ -183,7 +183,10 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     >
       {children}
       {overview ? <span className={styles.overviewLabel}>{title}</span> : <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
-        <span>{prompt}</span>
+        <span>
+          <span className={styles.entryPrompt}>{prompt}</span>
+          <span className={styles.orbitPrompt} data-orbit-prompt aria-hidden="true"><span className={styles.mousePrompt}>drag to look around</span><span className={styles.touchPrompt}>swipe to look around</span></span>
+        </span>
         <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
           <path d={landmarkArrow(title, landmark)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

@@ -143,6 +143,15 @@
 .scene[data-cue-seen="true"] { --cue-rest: 0; }
 .islandLink:focus-visible .landmarkCue { opacity: var(--cue-opacity, 1); }
 .landmarkCue > span { position: absolute; white-space: nowrap; }
+.orbitPrompt, .touchPrompt { display: none; }
+.islandLink[data-orbit-hint] .entryPrompt { display: none; }
+.islandLink[data-orbit-hint] .orbitPrompt { display: inline; }
+.islandLink[data-orbit-hint] .landmarkCue { opacity: var(--cue-opacity, 1); }
+.islandLink[data-orbit-hint] .landmarkCue svg { visibility: hidden; }
+@media (pointer: coarse) {
+  .mousePrompt { display: none; }
+  .touchPrompt { display: inline; }
+}
 .landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
 .landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
 .cityCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
