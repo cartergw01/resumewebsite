@@ -3,10 +3,6 @@
 .glazing { position: absolute; inset: 0; background: linear-gradient(125deg, #f4dcb1, #dbb57a 60%, #b59770); }
 .preview { position: absolute; inset: 0; overflow: hidden; transform-origin: 0 0; will-change: transform; }
 .still { position: absolute; inset: 0; width: 100%; height: 100%; }
-.place { display: inline-flex; align-items: center; gap: 0.65rem; width: fit-content; color: #d5c6ac; font-size: 0.75rem; letter-spacing: 0.12em; }
-.placeHost { display: contents; }
-.place svg { width: 17px; height: 38px; overflow: visible; color: #c2c3bd; }
-.place circle { fill: #ffe1a7; }
 :global(html[data-work-transition="entering"]) .arrival { visibility: hidden; }
 :global(html[data-work-transition="arriving"]) .arrival { pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {

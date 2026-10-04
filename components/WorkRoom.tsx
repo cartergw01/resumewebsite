@@ -7,7 +7,6 @@ import { workPageBio, workPageExperience } from "@/content/portfolio";
 import batchPhoto from "@/public/ikigai-batch.jpg";
 import IslandLine from "./IslandLine";
 import WorkArrival from "./WorkArrival";
-import TaipeiMark from "./TaipeiMark";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
 import styles from "./WorkRoom.module.css";
@@ -137,7 +136,7 @@ function WorkHeader({ preview = false }: { preview?: boolean }) {
     <header className={heading.header}>
       <div className={styles.title}>
         <h1 tabIndex={-1}>Work</h1>
-        {preview ? <TaipeiMark /> : <WorkArrival />}
+        {!preview && <WorkArrival />}
       </div>
       <p><IslandLine id="work" /></p>
     </header>
