@@ -196,23 +196,20 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
   current.frames.push(requestAnimationFrame(() => {
     current.frames.push(requestAnimationFrame(() => {
       if (entry !== current || !target.isConnected) return;
-      const from = getComputedStyle(current.screen).transform;
       if (kind === "book") {
-        // The pages swing open like doors onto the whole archive at once.
+        // Keep the spread flat as its pages part onto the whole archive.
         document.documentElement.dataset[attribute] = "revealing";
         const open = { duration: ENTRY_ARRIVAL_DURATION, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
         const [left, right] = Array.from(current.screen.children) as HTMLElement[];
-        // Each page fades as it turns edge-on, so no sliver lingers at the hinge.
-        const swing = (angle: number) => [
-          { transform: "rotateY(0deg)", opacity: 1 },
-          { transform: `rotateY(${angle * 0.75}deg)`, opacity: 1, offset: 0.7 },
-          { transform: `rotateY(${angle}deg)`, opacity: 0 },
+        const part = (direction: number) => [
+          { transform: "translateX(0%)", opacity: 1 },
+          { transform: `translateX(${direction * 72}%)`, opacity: 1, offset: 0.7 },
+          { transform: `translateX(${direction * 102}%)`, opacity: 0 },
         ];
-        const dock = right.animate(swing(-104), open);
+        const dock = right.animate(part(1), open);
         current.animations.push(
           dock,
-          left.animate(swing(104), open),
-          current.screen.animate([{ transform: from }, { transform: "scale(1.08)" }], open),
+          left.animate(part(-1), open),
           current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-out", fill: "forwards" }),
         );
         void dock.finished.then(() => {
