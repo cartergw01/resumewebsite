@@ -94,6 +94,9 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   // One clock drives the actual camera and the opening's projection. Keeping
   // it in the Web Animations timeline also respects document suspension.
   const animation = overlay.animate([{ opacity: 1 }, { opacity: 1 }], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
+  // Start the clock now. Waiting for the compositor's first full-size 3D frame
+  // can otherwise add a cold-GPU delay that the book and screen don't have.
+  animation.startTime = document.timeline.currentTime;
   let frame = 0, disposed = false;
   let finishAnimation: Animation | undefined;
   let lastProgress = -1;
