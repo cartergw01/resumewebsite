@@ -12,6 +12,7 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
   let previousX: number | null = null, previousTime = 0, lastMovement = 0;
   let frame = 0, paintedAt = 0, speed = 0, targetSpeed = 0;
   let arrival: HTMLButtonElement | null = null;
+  let reduced = motion.matches;
 
   const paint = (now: number) => {
     frame = 0;
@@ -40,7 +41,8 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
     gradient.setAttribute("y1", String(curveY(start, width)));
     gradient.setAttribute("y2", String(curveY(x, width)));
     head.style.setProperty("--comet-energy", energy.toFixed(3));
-    head.dataset.moving = String(speed > .005);
+    const moving = String(speed > .005);
+    if (head.dataset.moving !== moving) head.dataset.moving = moving;
     if (!motion.matches && (speed > 0 || target > 0)) frame = requestAnimationFrame(paint);
   };
 
@@ -57,6 +59,10 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
       speed = targetSpeed = 0;
     },
     place(nextX: number, now: number) {
+      // Camera settling can outlast the scroll. The tail already owns its
+      // decay loop; don't rebuild its SVG again for an unchanged position.
+      if (nextX === x && previousX !== null && reduced === motion.matches) return;
+      reduced = motion.matches;
       x = nextX;
       head.style.setProperty("--comet-x", `${x.toFixed(2)}px`);
       head.style.setProperty("--comet-y", `${curveY(x, width).toFixed(2)}px`);
@@ -65,7 +71,8 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
         targetSpeed = Math.min(2.4, Math.abs(x - previousX) / Math.max(12, Math.min(64, now - previousTime)));
         lastMovement = now;
       }
-      head.dataset.direction = direction === 1 ? "forward" : "backward";
+      const heading = direction === 1 ? "forward" : "backward";
+      if (head.dataset.direction !== heading) head.dataset.direction = heading;
       previousX = x;
       previousTime = now;
       cancelAnimationFrame(frame);

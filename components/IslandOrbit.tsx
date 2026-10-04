@@ -42,7 +42,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       if (idleLoad !== undefined) window.cancelIdleCallback(idleLoad);
       idleLoad = undefined;
     };
-    const canLoad = () => interested && (interactive || !motion.matches) && !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.navigating && !stage.dataset.entering;
+    const canLoad = () => interested && (interactive || !motion.matches) && !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.scrolling && !stage.dataset.navigating && !stage.dataset.entering;
     const clearHint = () => {
       clearTimeout(hintDelay);
       clearTimeout(hintTimer);
@@ -142,7 +142,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       if (!canLoad()) {
         clearHint();
         cancelScheduledLoad();
-        if (document.hidden || connection?.saveData || stage.dataset.travelling === "true" || stage.dataset.navigating || stage.dataset.entering) loadController?.abort();
+        if (document.hidden || connection?.saveData || stage.dataset.travelling === "true" || stage.dataset.scrolling || stage.dataset.navigating || stage.dataset.entering) loadController?.abort();
         return;
       }
       if (engineRef.current) { suggestRotation(); return; }
@@ -213,7 +213,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     };
     const observer = new MutationObserver(() => void sync());
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering", "data-navigating"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-scrolling", "data-entering", "data-navigating"] });
     const resize = new ResizeObserver(() => engineRef.current?.resize());
     resize.observe(visual);
     link.addEventListener("pointerenter", prepareEntry);

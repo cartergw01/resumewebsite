@@ -12,6 +12,15 @@ type World = { id: string; title?: string };
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 const ease = (value: number) => value * value * (3 - 2 * value);
 const phase = (value: number, start: number, end: number) => ease(clamp((value - start) / (end - start)));
+// Skip unchanged inline styles without asking the browser for computed layout.
+function scenePainter(node: HTMLElement) {
+  const previous = new Map<string, string>();
+  return (property: string, value: string) => {
+    if (previous.get(property) === value) return;
+    previous.set(property, value);
+    node.style.setProperty(property, value);
+  };
+}
 // Each island holds before the camera crosses to the next one.
 const FINAL_HOLD = 0.5;
 const arrivalLights: Record<string, readonly (readonly [string, number, number])[]> = {
@@ -46,6 +55,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const next = track.querySelector<HTMLButtonElement>("[data-next-scene]")!;
     const nextLabel = next.querySelector<HTMLElement>("[data-next-label]")!;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const touchScroll = window.matchMedia("(pointer: coarse)");
+    const paintScene = scenes.map(scenePainter);
+    const paintArt = art.map(scenePainter);
+    const paintCopy = copy.map(scenePainter);
+    const paintGalaxy = scenePainter(galaxy);
+    const paintMiddleStars = scenePainter(middleStars);
+    const paintNearStars = scenePainter(nearStars);
     const comet = createCometNavigation(sceneNav, motion);
     const duration = scenes.length - 1 + FINAL_HOLD;
     let frame = 0;
@@ -64,15 +80,17 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
 
     // Off-screen islands load on the first sign of travel, not on first paint.
     const warm = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
-    const render = (now: number) => {
+    const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
       const progress = clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 18);
-      cameraProgress = cameraProgress === null || motion.matches || glideFrame
+      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 18);
+      // Touch momentum and our navigation glide already supply smooth positions.
+      // Follow them in this frame instead of adding a second easing layer.
+      cameraProgress = cameraProgress === null || motion.matches || touchScroll.matches || direct
         ? progress
         : cameraProgress + (progress - cameraProgress) * smoothing;
       if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
@@ -104,8 +122,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const outgoing = index === from;
         const visible = motion.matches ? index === current
           : outgoing ? crossing < 0.88 : index === from + 1 && crossing > 0.12;
-        scene.style.opacity = visible ? "1" : "0";
-        scene.style.visibility = visible ? "visible" : "hidden";
+        paintScene[index]("opacity", visible ? "1" : "0");
+        paintScene[index]("visibility", visible ? "visible" : "hidden");
         if (!visible) return;
         // A reversible camera path: pull away before travelling, then approach
         // a solid, dim silhouette. Arrival finishes before light and copy return.
@@ -116,49 +134,52 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         // Islands stay large enough to read as places, never specks.
         const scale = outgoing ? 1 - 0.35 * retreat - 0.2 * passage : 0.45 + 0.55 * approach;
         const bank = outgoing ? -arc * 3 * passage : arc * 3 * distance;
-        art[index].style.transform = motion.matches ? "none"
+        let transform = motion.matches ? "none"
           : `translate3d(${x}%, ${y}%, 0) rotate(${bank}deg) scale(${scale})`;
-        art[index].style.opacity = motion.matches || outgoing ? "1" : reveal.toFixed(4);
-        art[index].style.transformOrigin = "";
+        let opacity = motion.matches || outgoing ? "1" : reveal.toFixed(4);
+        let origin = "";
         if (from === 0 && !motion.matches && index <= 1) {
           const size = introFocus.size / 100;
           if (index === 0) {
-            art[0].style.transformOrigin = `${introFocus.x}% ${introFocus.y}%`;
-            art[0].style.transform = `translate3d(${(50 - introFocus.x) * zoom}%, ${(50 - introFocus.y) * zoom}%, 0) scale(${1 + (1 / size - 1) * zoom})`;
-            art[0].style.opacity = (1 - phase(crossing, 0.62, 0.86)).toFixed(4);
+            origin = `${introFocus.x}% ${introFocus.y}%`;
+            transform = `translate3d(${(50 - introFocus.x) * zoom}%, ${(50 - introFocus.y) * zoom}%, 0) scale(${1 + (1 / size - 1) * zoom})`;
+            opacity = (1 - phase(crossing, 0.62, 0.86)).toFixed(4);
           } else {
-            art[1].style.transformOrigin = "50% 50%";
-            art[1].style.transform = `translate3d(${(introFocus.x - 50) * (1 - zoom)}%, ${(introFocus.y - 50) * (1 - zoom)}%, 0) scale(${size + (1 - size) * zoom})`;
-            art[1].style.opacity = phase(crossing, 0.3, 0.6).toFixed(4);
+            origin = "50% 50%";
+            transform = `translate3d(${(introFocus.x - 50) * (1 - zoom)}%, ${(introFocus.y - 50) * (1 - zoom)}%, 0) scale(${size + (1 - size) * zoom})`;
+            opacity = phase(crossing, 0.3, 0.6).toFixed(4);
           }
         }
+        paintArt[index]("transform", transform);
+        paintArt[index]("opacity", opacity);
+        paintArt[index]("transform-origin", origin);
         const copyOpacity = motion.matches ? 1 : outgoing
           ? 1 - phase(crossing, 0, 0.18) : arrivalCopy;
-        copy[index].style.transform = motion.matches ? "none"
-          : `translate3d(0, ${(outgoing ? -12 : 16) * (1 - copyOpacity)}px, 0)`;
-        copy[index].style.opacity = copyOpacity.toFixed(4);
-        art[index].style.setProperty("--cue-opacity", (motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue).toFixed(4));
+        paintCopy[index]("transform", motion.matches ? "none"
+          : `translate3d(0, ${(outgoing ? -12 : 16) * (1 - copyOpacity)}px, 0)`);
+        paintCopy[index]("opacity", copyOpacity.toFixed(4));
+        paintArt[index]("--cue-opacity", (motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue).toFixed(4));
         const arrivingLight = from === 0 ? 0.85 + 0.15 * arrivalLight : 0.34 + 0.16 * approach + 0.5 * arrivalLight;
-        art[index].style.setProperty("--island-light", (motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight).toFixed(4));
-        art[index].style.setProperty("--island-lights", (motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight).toFixed(4));
+        paintArt[index]("--island-light", (motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight).toFixed(4));
+        paintArt[index]("--island-lights", (motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight).toFixed(4));
         // Distinct, reversible welcomes: city blocks first, then the tower;
         // the reading lamp precedes warm paper; the workshop screen wakes last.
         for (const [name, first, last] of arrivalLights[worlds[index].id] ?? []) {
-          art[index].style.setProperty(`--${name}`, (motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last)).toFixed(4));
+          paintArt[index](`--${name}`, (motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last)).toFixed(4));
         }
-        if (worlds[index].id === "projects") art[index].style.setProperty("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
+        if (worlds[index].id === "projects") paintArt[index]("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
       });
       stage.dataset.cameraProgress = String(cameraProgress);
       // Animate the three camera layers directly. Inherited variables on the
       // entire stage forced style recalculation through every hidden island.
       const path = from + passage, bend = arc * Math.sin(mix * Math.PI);
       const speed = motion.matches ? 0 : flight * (from === 0 ? .35 : 1);
-      galaxy.style.transform = motion.matches ? "none" : `translate3d(${path * -3.5}%, ${bend * -1.5}%, 0) scale(${1.04 - speed * .02})`;
-      middleStars.style.transform = `translate3d(${path * -9}%, ${bend * -4}%, 0)`;
-      middleStars.style.opacity = String(.24 + speed * .26);
-      nearStars.style.transform = `translate3d(${path * -15}%, ${bend * -9}%, 0) rotate(${-arc * 10 * Math.cos(mix * Math.PI)}deg)`;
-      nearStars.style.opacity = (speed * .65).toFixed(4);
-      nearStars.style.setProperty("--flight", String(speed));
+      paintGalaxy("transform", motion.matches ? "none" : `translate3d(${path * -3.5}%, ${bend * -1.5}%, 0) scale(${1.04 - speed * .02})`);
+      paintMiddleStars("transform", `translate3d(${path * -9}%, ${bend * -4}%, 0)`);
+      paintMiddleStars("opacity", String(.24 + speed * .26));
+      paintNearStars("transform", `translate3d(${path * -15}%, ${bend * -9}%, 0) rotate(${-arc * 10 * Math.cos(mix * Math.PI)}deg)`);
+      paintNearStars("opacity", (speed * .65).toFixed(4));
+      paintNearStars("--flight", String(speed));
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
       const stops = worlds.map((_, index) => stopProgress(index));
@@ -206,7 +227,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
 
     const schedule = () => {
-      if (!frame) frame = window.requestAnimationFrame(render);
+      if (!frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
     // Each stop rests just inside its hold, after its arrival has settled.
     const stopProgress = (index: number) =>
@@ -279,7 +300,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const eased = 1 - Math.pow(1 - t, 4);
         window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
-        if (t >= 1) { delete stage.dataset.navigating; schedule(); window.dispatchEvent(new Event("scrollend")); }
+        // Scroll, island camera and comet share this display frame. Waiting for
+        // the scroll event here left the art a frame behind the navigation.
+        cancelAnimationFrame(frame);
+        render(now, true);
+        if (t >= 1) { delete stage.dataset.navigating; window.dispatchEvent(new Event("scrollend")); }
       };
       glideFrame = window.requestAnimationFrame(step);
     };
@@ -396,6 +421,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let settling = false;
     let settleTimer = 0;
     let settleRelease = 0;
+    let scrollIdleTimer = 0;
     let direction = 1;
     let lastScrollY = window.scrollY;
     const place = () => clamp((window.scrollY - start) / travel) * duration;
@@ -426,6 +452,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       glideTo(ahead < 0 ? scenes.length - 1 : ahead);
     };
     const onGestureScroll = () => {
+      // Even a hold is still part of a scroll gesture. Keep optional model
+      // decoding out of it, then let it resume once momentum is quiet.
+      if (stage.dataset.scrolling !== "true") stage.dataset.scrolling = "true";
+      window.clearTimeout(scrollIdleTimer);
+      scrollIdleTimer = window.setTimeout(() => { delete stage.dataset.scrolling; }, 180);
       // The glide's own steps are not gestures and never set direction.
       if (glideFrame) { lastScrollY = window.scrollY; return; }
       if (window.scrollY !== lastScrollY) direction = window.scrollY > lastScrollY ? 1 : -1;
@@ -502,6 +533,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("keydown", onKey);
       window.clearTimeout(settleTimer);
       window.clearTimeout(settleRelease);
+      window.clearTimeout(scrollIdleTimer);
+      delete stage.dataset.scrolling;
       stopGlide();
       intents.forEach(type => window.removeEventListener(type, warm));
       sceneNav.removeEventListener("focusin", warm);

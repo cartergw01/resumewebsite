@@ -316,11 +316,12 @@ export function RocketCursor() {
 
     // cursorEnabled drives the pointer-following rocket. In tap mode it stays
     // false (no persistent rocket); the one-shot launch still works via clicks.
+    let activePointerType = "mouse";
     let cursorEnabled: boolean = !prefersReduced && cursorQuery.matches;
 
     const syncCursorCapability = () => {
       const wasCursorEnabled = cursorEnabled;
-      cursorEnabled = !prefersReduced && cursorQuery.matches;
+      cursorEnabled = !prefersReduced && cursorQuery.matches && activePointerType !== "touch";
       document.body.classList.toggle("rocket-cursor-active", cursorEnabled);
       if (!cursorEnabled && transitionPhase !== "launching") {
         rocket.style.opacity = "0";
@@ -714,9 +715,15 @@ export function RocketCursor() {
     // waiting for the coalesced pointermove cadence; pointermove remains the
     // universal fallback and owns the cheaper hover-state lookup.
     const onPointerPosition = (e: PointerEvent) => {
-      if (!cursorEnabled) return;
       if (e.isPrimary === false) return;
       if (e.pointerType === "touch") return;
+      // A trackpad-equipped iPad can alternate between a finger and a mouse.
+      // Capability alone must not leave a pointer behind after a touch gesture.
+      if (activePointerType !== e.pointerType) {
+        activePointerType = e.pointerType;
+        syncCursorCapability();
+      }
+      if (!cursorEnabled) return;
       const coalesced = e.getCoalescedEvents?.() ?? [];
       const latest = coalesced.at(-1) ?? e;
       const wasOutside = !pointerInside || (transitionPhase === "idle" && rocket.style.opacity === "0");
@@ -789,6 +796,11 @@ export function RocketCursor() {
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if (e.isPrimary === false) return;
+      if (activePointerType !== e.pointerType) {
+        if (e.pointerType === "touch") onMouseLeave();
+        activePointerType = e.pointerType;
+        syncCursorCapability();
+      }
 
       lastPointerPoint = {
         x: e.clientX,
@@ -946,8 +958,7 @@ export function RocketCursor() {
     document.addEventListener("click", onSubpageClick);
 
     // ── Animation loop ────────────────────────────────────────────────────────
-    const draw = () => {
-      const now = performance.now();
+    const draw = (now: number) => {
       const frameStep = lastFrameMs === 0
         ? 1
         : Math.min(Math.max((now - lastFrameMs) / FRAME_MS, 0), MAX_FRAME_STEP);
@@ -1025,9 +1036,9 @@ export function RocketCursor() {
         speed = Math.sqrt(smoothVelX * smoothVelX + smoothVelY * smoothVelY);
 
         if (speed > 0.25) {
-          const raw = Math.atan2(smoothVelX, -smoothVelY) * (180 / Math.PI);
-          const tiltBlend = Math.min(speed / 8, 1);
-          targetAngle = Math.max(-MAX_TILT_DEG, Math.min(MAX_TILT_DEG, raw)) * tiltBlend;
+          // Bank continuously with lateral movement. An atan2 heading jumped
+          // between opposite limits around straight-down pointer motion.
+          targetAngle = MAX_TILT_DEG * Math.tanh(smoothVelX / 8);
         } else {
           targetAngle *= Math.pow(0.80, frameStep);
         }
