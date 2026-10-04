@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./IslandHome.module.css";
 
-export default function GalaxyBackground({ page = false }: { page?: boolean }) {
+export default function GalaxyBackground({ page = false, playbackRate = 1 }: { page?: boolean; playbackRate?: number }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -23,7 +23,7 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
     const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering;
     const sync = () => {
       // Keep the real video running while reading, with more energy in flight.
-      const rate = !page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1;
+      const rate = (!page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1) * playbackRate;
       // Loading or switching the portrait source restores the default rate.
       video.defaultPlaybackRate = rate;
       video.playbackRate = rate;
@@ -66,7 +66,7 @@ export default function GalaxyBackground({ page = false }: { page?: boolean }) {
       document.removeEventListener("visibilitychange", sync);
       video.pause();
     };
-  }, [page]);
+  }, [page, playbackRate]);
 
   return (
     <>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import MobileContact from "@/components/MobileContact";
+import GalaxyBackground from "@/components/GalaxyBackground";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
@@ -22,7 +23,7 @@ const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best 
 
 export default function WritingPage() {
   return (
-    <div className={`cosmic-subpage subpage-writing subpage-topic topic-page ${styles.page}`} data-rocket-launch-zone>
+    <div className={`cosmic-subpage subpage-writing subpage-topic topic-page ${styles.page}`} data-rocket-launch-zone data-island-page>
       <script
         {...jsonLdScript([
           webPageJsonLd("writing", "CollectionPage"),
@@ -34,6 +35,8 @@ export default function WritingPage() {
         ])}
       />
       <SiteNav active="writing" />
+      <GalaxyBackground page playbackRate={0.6} />
+      <div className={styles.lamplight} data-reading-light aria-hidden="true" />
 
       <main className="subpage-main topic-main">
         <header className={heading.header} data-book-reveal>

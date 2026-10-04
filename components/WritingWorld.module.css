@@ -1,5 +1,21 @@
-.page.page { background: radial-gradient(ellipse at 70% 18%, #b9894210, transparent 55%), #050810; }
+.page.page { background: #030611; isolation: isolate; }
 .page.page::before, .page.page::after { content: none; }
+/* The same sky as the other worlds, kept quiet behind the archive. */
+.page > [data-galaxy-background] { opacity: .13; }
+.lamplight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: min(38rem, 90svh);
+  pointer-events: none;
+  background: radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 65%);
+  opacity: .4;
+  transition: opacity 600ms var(--cw-ease);
+}
+/* Carry the notebook's left-page lamplight into the heading as it opens. */
+:global(html[data-book-transition="entering"]) .lamplight,
+:global(html[data-book-transition="arriving"]) .lamplight { opacity: .85; }
 /* The shared subpage column, with the archive flush under the header. */
 .page.page :global(.subpage-main) { width: var(--subpage-column); padding-top: var(--subpage-top); }
 .page.page :global(.writing-archive) { margin-top: 0; padding-left: 0; }
@@ -7,5 +23,5 @@
 :global(html[data-book-transition="entering"]) .page [data-book-reveal],
 :global(html[data-book-transition="arriving"]) .page [data-book-reveal] { opacity: 0; translate: 0 10px; }
 @media (prefers-reduced-motion: reduce) {
-  .page [data-book-reveal] { transition: none; }
+  .page [data-book-reveal], .lamplight { transition: none; }
 }
