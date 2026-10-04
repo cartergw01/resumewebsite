@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer } from "three";
 import type { ScreenMatrix, WindowFlight } from "./island-orbit-bridge";
-import { workApproach } from "./work-entry-motion";
+import { workApproach, workApproachArc } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 
@@ -57,6 +57,9 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   const direction = offset.normalize();
   const normal = window.normal.clone();
   if (normal.dot(direction) < 0) normal.negate();
+  const right = window.up.clone().cross(normal).normalize();
+  const approachSide = direction.dot(right) < 0 ? -1 : 1;
+  const heading = new Vector3(), flightUp = new Vector3();
   const tangent = Math.tan(camera.fov * Math.PI / 360);
   // Finish beyond the frame's visible edges, so the content has already
   // filled the viewport before Next mounts the destination.
@@ -71,11 +74,16 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
     sample(progress) {
       const p = Math.max(0, Math.min(1, (progress - .025) / .975));
       const travel = workApproach(progress);
+      const arc = workApproachArc(progress);
       const distance = startDistance * Math.pow(finishDistance / startDistance, travel);
-      // Keep the facade's depth on approach, then meet the glass squarely.
-      const heading = direction.clone().lerp(normal, smooth((p - .12) / .78)).normalize();
+      // Sweep slightly around the approach side of the tower. The actual city
+      // supplies the parallax; the curve resolves before we cross the window.
+      heading.copy(direction).lerp(normal, smooth((p - .12) / .78))
+        .addScaledVector(right, approachSide * .18 * arc)
+        .addScaledVector(window.up, .035 * arc).normalize();
       camera.position.copy(window.center).addScaledVector(heading, distance);
-      look.lookAt(camera.position, window.center, window.up);
+      flightUp.copy(window.up).applyAxisAngle(heading, approachSide * .018 * arc);
+      look.lookAt(camera.position, window.center, flightUp);
       orientation.setFromRotationMatrix(look);
       camera.quaternion.copy(original.quaternion).slerp(orientation, smooth(p / .58));
       lens.near = Math.max(.0005, distance * .001);

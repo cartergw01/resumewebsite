@@ -1,7 +1,7 @@
 import { windowCameraFor, type ScreenMatrix, type WindowFlight } from "./island-orbit-bridge";
 import styles from "@/components/WorkEntry.module.css";
 import { artworkTransform } from "./artwork-perspective";
-import { WORK_ENTRY_DURATION, workApproach } from "./work-entry-motion";
+import { WORK_ENTRY_DURATION, workApproach, workApproachArc } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 const svgNS = "http://www.w3.org/2000/svg";
@@ -29,9 +29,10 @@ function stillCamera(visual: HTMLElement, host: HTMLElement, matrix: ScreenMatri
   return {
     sample(progress) {
       const t = workApproach(progress);
+      const arc = workApproachArc(progress);
       const scale = Math.pow(endScale, t);
-      const x = center[0] + (innerWidth / 2 - center[0]) * smooth(t * 2);
-      const y = center[1] + (innerHeight / 2 - center[1]) * smooth(t * 2);
+      const x = center[0] + (innerWidth / 2 - center[0]) * smooth(t * 2) + innerWidth * .045 * arc;
+      const y = center[1] + (innerHeight / 2 - center[1]) * smooth(t * 2) - innerHeight * .035 * arc;
       const dx = x - center[0] * scale, dy = y - center[1] * scale;
       image.setAttribute("transform", `matrix(${matrix.a * scale} ${matrix.b * scale} ${matrix.c * scale} ${matrix.d * scale} ${matrix.e * scale + dx} ${matrix.f * scale + dy})`);
       visual.style.visibility = "hidden";
@@ -81,6 +82,8 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   const sourceContent = document.querySelector("[data-work-window-content]");
   if (sourceContent) preview.append(...Array.from(sourceContent.children, child => child.cloneNode(true)));
   const glass = document.createElement("div"); glass.className = styles.glazing;
+  const reflection = document.createElement("div"); reflection.className = styles.reflection;
+  glass.append(reflection);
   opening.append(preview, glass); overlay.append(opening);
   document.body.append(overlay);
   document.documentElement.dataset.workTransition = "entering";
@@ -102,6 +105,10 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
     overlay.dataset.workProgress = progress.toFixed(3);
     const content = contentThroughWindow(points, innerWidth, innerHeight);
     preview.style.transform = content.transform;
+    // The reflection belongs to the pane, including its perspective after an
+    // orbit. It slips across the glass as the camera squares up to the facade.
+    glass.style.transform = artworkTransform(points, 1000, 1000);
+    reflection.style.transform = `translate3d(${38 - smooth((progress - .35) / .4) * 78}%,0,0)`;
     // Reveal by the physical opening's size, so both the real camera and the
     // lightweight fallback clear the glass when the contents are legible.
     glass.style.opacity = String(1 - smooth((content.fit - .07) / .48));
