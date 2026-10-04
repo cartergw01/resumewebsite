@@ -6,6 +6,7 @@ import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
 import { beginWorkEntry } from "@/lib/work-entry";
+import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY } from "@/lib/island-entry-motion";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
@@ -80,6 +81,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     const initialOrigin = initial.transformOrigin;
     visual.dataset.entryLandmark = name;
     link.dataset.entering = "true";
+    stage.style.setProperty("--entry-approach-duration", `${ENTRY_APPROACH_DURATION}ms`);
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
@@ -90,7 +92,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin, offset: 0, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
       { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(${city ? 1.12 : 1.32})`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin, offset: 1 },
-    ], { duration: city ? 650 : 600, fill: "forwards" });
+    ], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
@@ -104,7 +106,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
-      }, 60);
+      }, ENTRY_LIFT_DELAY);
     }
     const reset = () => {
       cancelled = true;
@@ -118,6 +120,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       clearTimeout(screenTimer);
       if (!handedOff) cancelScreen?.();
       delete stage.dataset.entering;
+      stage.style.removeProperty("--entry-approach-duration");
       delete visual.dataset.entryLandmark;
       delete link.dataset.entering;
       stage.removeAttribute("aria-busy");

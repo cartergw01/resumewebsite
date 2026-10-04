@@ -213,7 +213,7 @@
 .stage[data-travelling="true"] .overviewVisual, .stage[data-entering] .overviewVisual { animation-play-state: paused; }
 .stage[data-entering] .overviewVisual { transition: none; will-change: transform; }
 .stage[data-entering] .overviewIsland:not([data-entering]),
-.stage[data-entering] .overviewLabel { animation: entry-copy 120ms ease-out forwards; pointer-events: none; }
+.stage[data-entering] .overviewLabel { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
 .overviewIsland[data-entering] { z-index: 3; filter: none; outline-color: transparent; transition: none; }
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
@@ -243,8 +243,8 @@
 .stage[data-entering="work"] .islandLink:focus-visible { outline-color: transparent; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
-.stage[data-entering] .controls { animation: entry-copy 120ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space 600ms ease-in forwards; }
+.stage[data-entering] .controls { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
+.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 1800ms) ease-in forwards; }
 .stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0 !important; }
 .stage[data-entering] .island { transition: none; filter: brightness(1) drop-shadow(0 32px 36px #0005); will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }

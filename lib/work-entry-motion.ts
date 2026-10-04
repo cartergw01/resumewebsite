@@ -1,5 +1,3 @@
-export const WORK_ENTRY_DURATION = 1100;
-
 // A little time for the window to respond, then one continuous approach.
 // Zero velocity and acceleration at both ends keep the handoff from jolting.
 export function workApproach(progress: number) {

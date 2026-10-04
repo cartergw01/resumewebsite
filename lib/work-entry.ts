@@ -1,7 +1,8 @@
 import { windowCameraFor, type ScreenMatrix, type WindowFlight } from "./island-orbit-bridge";
 import styles from "@/components/WorkEntry.module.css";
 import { artworkTransform } from "./artwork-perspective";
-import { WORK_ENTRY_DURATION, workApproach, workApproachArc } from "./work-entry-motion";
+import { workApproach, workApproachArc } from "./work-entry-motion";
+import { ENTRY_APPROACH_DURATION, ENTRY_ARRIVAL_DURATION } from "./island-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 const svgNS = "http://www.w3.org/2000/svg";
@@ -92,7 +93,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   overlay.dataset.workCamera = camera ? "3d" : "still";
   // One clock drives the actual camera and the opening's projection. Keeping
   // it in the Web Animations timeline also respects document suspension.
-  const animation = overlay.animate([{ opacity: 1 }, { opacity: 1 }], { duration: WORK_ENTRY_DURATION, fill: "forwards" });
+  const animation = overlay.animate([{ opacity: 1 }, { opacity: 1 }], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
   let frame = 0, disposed = false;
   let finishAnimation: Animation | undefined;
   let lastProgress = -1;
@@ -115,7 +116,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   };
   const tick = () => {
     if (disposed) return;
-    sample(Math.min(1, Number(animation.currentTime ?? 0) / WORK_ENTRY_DURATION));
+    sample(Math.min(1, Number(animation.currentTime ?? 0) / ENTRY_APPROACH_DURATION));
     if (animation.playState !== "finished") frame = requestAnimationFrame(tick);
   };
   const dispose = () => {
@@ -140,7 +141,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   // Arrival replaces only the pixels already visible through the window.
   current.reveal = () => {
     if (disposed) return;
-    finishAnimation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, fill: "forwards" });
+    finishAnimation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-in-out", fill: "forwards" });
     void finishAnimation.finished.then(dispose).catch(() => {});
   };
   return { animation, dispose };
