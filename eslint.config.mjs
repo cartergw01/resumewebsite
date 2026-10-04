@@ -13,6 +13,7 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
+      ".next-*/**",
       ".claude/**",
       "node_modules/**",
       "public/draco/**", // Vendored upstream decoder; keep its source unchanged.

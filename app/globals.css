@@ -479,7 +479,7 @@ select {
 .site-nav-social {
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  height: 44px;
   padding: 0 4px;
   pointer-events: auto;
   white-space: nowrap;
@@ -498,7 +498,7 @@ select {
   margin-left: -12px;
   pointer-events: auto;
 }
-.site-nav-return svg { transition: transform 200ms var(--cw-ease); }
+.site-nav-return svg { flex-shrink: 0; transition: transform 200ms var(--cw-ease); }
 .site-nav-return:hover svg, .site-nav-return:focus-visible svg { transform: translateX(-3px); }
 
 .site-nav-social {
@@ -510,7 +510,7 @@ select {
 .site-nav a {
   display: inline-flex;
   align-items: center;
-  height: 32px;
+  height: 44px;
   padding: 0 12px;
   border-radius: 999px;
   color: rgba(255, 247, 234, 0.72);
@@ -543,6 +543,8 @@ select {
 }
 
 .site-nav-social a svg {
+  width: 18px;
+  height: 18px;
   transition: transform 200ms var(--cw-ease), filter 200ms var(--cw-ease);
 }
 
@@ -2070,10 +2072,10 @@ select {
   column-gap: clamp(1.25rem, 2.6vw, 2.6rem);
   align-items: start;
   border-bottom: 1px solid rgba(244, 210, 163, 0.13);
-  border-radius: 6px;
+  border-radius: 0;
   outline: 0;
   outline-offset: 0.35rem;
-  padding: clamp(0.95rem, 1.75vw, 1.25rem) clamp(0rem, 0.6vw, 0.35rem);
+  padding: clamp(1.15rem, 2vw, 1.5rem) 0;
   color: inherit;
   isolation: isolate;
   text-decoration: none;
@@ -2087,7 +2089,6 @@ select {
 .archive-row:hover .archive-action {
   border-color: rgb(var(--cta-line) / 0.62);
   color: var(--cw-paper);
-  letter-spacing: calc(var(--tracking-caps) + 0.02em);
 }
 
 .archive-row:focus-visible {
@@ -2179,7 +2180,7 @@ select {
   position: relative;
   z-index: 0;
   display: grid;
-  grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(280px, 0.62fr) minmax(0, 1fr) auto;
   gap: clamp(1rem, 3vw, 2.4rem);
   align-items: center;
   border-bottom: 1px solid rgb(var(--topic-accent) / 0.14);
@@ -2220,7 +2221,6 @@ select {
 .project-row:hover em {
   border-color: rgb(var(--cta-line) / 0.62);
   color: var(--cw-paper);
-  letter-spacing: calc(var(--tracking-caps) + 0.02em);
 }
 
 .project-row:focus-visible {
@@ -2267,8 +2267,8 @@ select {
 .workshop-line strong {
   color: var(--cw-paper);
   font-family: var(--font-display);
-  font-size: clamp(2.05rem, 3.65vw, 3.45rem);
-  line-height: 0.94;
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  line-height: 1.12;
   overflow-wrap: break-word;
   text-wrap: balance;
 }
@@ -2509,13 +2509,13 @@ select {
 
   .site-nav-primary {
     grid-column: 1;
-    height: 40px;
+    height: 44px;
     padding: 0 2px;
   }
 
   .site-nav-social {
     grid-column: 3;
-    height: 40px;
+    height: 44px;
     padding: 0 2px;
   }
 
@@ -2523,33 +2523,21 @@ select {
   .site-nav[data-destination-nav] { grid-template-columns: auto auto 1fr auto; }
   .site-nav[data-destination-nav] .site-nav-primary { grid-column: 2; }
   .site-nav[data-destination-nav] .site-nav-social { grid-column: 4; }
-  .site-nav a.site-nav-return { margin-left: -8px; padding: 0 8px; }
+  .site-nav a.site-nav-return { min-width: 32px; margin-left: -8px; padding: 0 8px; }
   /* The arrow already goes home, so phones drop Home to give the routes room. */
   .site-nav[data-destination-nav] .site-nav-home { display: none; }
   .site-nav-return-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   .site-nav a {
     position: relative;
-    height: 32px;
+    height: 44px;
     padding: 0 9px;
     font-size: clamp(0.75rem, 2.8vw, 0.875rem);
-  }
-
-  .site-nav a::before {
-    content: "";
-    position: absolute;
-    inset: -6px -3px;
-    border-radius: inherit;
   }
 
   .site-nav-social a {
     min-width: 30px;
     padding: 0 7px;
-  }
-
-  /* Widen the invisible tap area so each icon gets a full 44px target. */
-  .site-nav-social a::before {
-    inset: -6px -7px;
   }
 
   .cosmic-hero {
@@ -2677,37 +2665,37 @@ select {
     font-size: clamp(1.85rem, 8.5vw, 2.65rem);
   }
 
-  /* Projects page: full-width stacked, short fixed-height screenshot */
+  /* Keep screenshots proportional and descriptions comfortable to read. */
   .subpage-projects .project-row {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
-    padding: clamp(1rem, 3vw, 1.35rem) 0;
+    gap: 1rem;
+    padding: 1.5rem 0;
   }
 
   .subpage-projects .project-shot {
-    height: 168px;
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 1.6;
     border-radius: 6px;
   }
 
   .subpage-projects .project-row-copy {
-    gap: 0.35rem;
+    gap: 0.55rem;
   }
 
   .subpage-projects .project-row-copy strong {
-    font-size: clamp(1.25rem, 5.5vw, 1.55rem);
-    line-height: 1.05;
+    font-size: clamp(1.5rem, 6vw, 1.75rem);
+    line-height: 1.12;
   }
 
   .subpage-projects .project-row-copy > span {
-    font-size: 0.84rem;
-    line-height: 1.46;
+    font-size: 1rem;
+    line-height: 1.6;
     max-width: none;
   }
 
   .subpage-projects .project-row > em {
     justify-self: end;
-    font-size: 0.66rem;
+    font-size: 0.75rem;
   }
 
   .writing-archive {
@@ -2721,11 +2709,11 @@ select {
   }
 
   .archive-row {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
     column-gap: 0.75rem;
     row-gap: 0.5rem;
-    padding: clamp(0.9rem, 3.7vw, 1.12rem) 0;
+    padding: 1.4rem 0;
   }
 
   .archive-main strong {
@@ -2733,7 +2721,7 @@ select {
   }
 
   .archive-main {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 2;
   }
 
@@ -2745,15 +2733,14 @@ select {
     text-align: left;
   }
 
-  /* View CTA drops to its own row at the bottom-right, below the title —
-     matches the projects page layout */
+  /* Date and action share a quiet line above the full-width essay title. */
   .archive-action {
-    grid-column: 1;
-    grid-row: 3;
+    grid-column: 2;
+    grid-row: 1;
     justify-self: end;
-    align-self: end;
+    align-self: center;
     translate: 0 0;
-    font-size: 0.66rem;
+    font-size: 0.75rem;
   }
 
   .research-panel {
@@ -2888,18 +2875,18 @@ select {
   }
 
   .site-nav a {
-    padding: 0 6px;
-    font-size: 0.75rem;
+    padding: 0 7px;
+    font-size: 0.8125rem;
   }
 
   .site-nav-social a {
-    min-width: 30px;
-    padding: 0 4px;
+    min-width: 32px;
+    padding: 0 6px;
   }
 
   .site-nav-social a svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
   }
 
   .subpage-main {
@@ -2930,9 +2917,7 @@ select {
 
   .hero-copy p,
   .world-copy p,
-  .subpage-hero p,
-  .archive-main span,
-  .project-row-copy > span {
+  .subpage-hero p {
     max-width: min(29ch, 100%);
   }
 
@@ -2987,9 +2972,10 @@ select {
 }
 
 @media (max-width: 360px) {
-  .site-nav {
+  .site-nav, .site-nav[data-destination-nav] {
     width: calc(100% - 0.75rem);
   }
+  .site-nav a.site-nav-return { margin-left: 0; }
 
   .site-nav-primary {
     gap: 0;
@@ -2997,17 +2983,17 @@ select {
 
   .site-nav-primary a {
     padding-inline: 4px;
-    font-size: clamp(0.68rem, 3.6vw, 0.74rem);
+    font-size: 0.75rem;
   }
 
   .site-nav-social a {
-    min-width: 24px;
-    padding-inline: 2px;
+    min-width: 28px;
+    padding-inline: 4px;
   }
 
   .site-nav-social a svg {
-    width: 13px;
-    height: 13px;
+    width: 16px;
+    height: 16px;
   }
 
   .hero-copy {

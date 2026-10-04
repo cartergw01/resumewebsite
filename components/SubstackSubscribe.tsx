@@ -44,13 +44,13 @@ export function SubstackSubscribe() {
           <p className="fa-tagline">essays on tech, culture, and human nature.</p>
 
           {status === "sent" ? (
-            <p className="fa-thanks">
-              Check Substack — confirm your email there to subscribe. ✦
+            <p className="fa-thanks" role="status">
+              Continue on Substack to finish subscribing.
             </p>
           ) : (
             <>
               <p className="fa-cta">Subscribe to keep up to date on new essays.</p>
-              <form className="fa-form" onSubmit={handleSubmit} noValidate>
+              <form className="fa-form" onSubmit={handleSubmit}>
                 <label className="sr-only" htmlFor={id}>Email address</label>
                 <input
                   id={id}

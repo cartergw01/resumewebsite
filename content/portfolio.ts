@@ -9,14 +9,14 @@ import workPlayCover from "@/public/essay-covers/work-as-play.webp";
 import weBallCover from "@/public/essay-covers/fuck-it-we-ball.webp";
 import reading2023Cover from "@/public/essay-covers/the-best-things-i-read-in-2023.webp";
 import ignoranceCover from "@/public/essay-covers/an-ode-to-ignorance.webp";
-import taipeiFlixImage from "@/public/project-shots/taipei-flix.webp";
-import studiosImage from "@/public/project-shots/886studios.webp";
-import taipeiRunImage from "@/public/project-shots/taipei-run.jpg";
-import stockerImage from "@/public/project-shots/stocker.jpg";
-import taipeiGuideImage from "@/public/project-shots/taipei-guide.webp";
-import pokerImage from "@/public/project-shots/poker-odds.webp";
-import timerImage from "@/public/project-shots/ikigai-timer.jpg";
-import sleepImage from "@/public/project-shots/night-night-ko.jpg";
+import taipeiFlixImage from "@/public/project-shots/optimized/taipei-flix.webp";
+import studiosImage from "@/public/project-shots/optimized/886studios.webp";
+import taipeiRunImage from "@/public/project-shots/optimized/taipei-run.webp";
+import stockerImage from "@/public/project-shots/optimized/stocker.webp";
+import taipeiGuideImage from "@/public/project-shots/optimized/taipei-guide.webp";
+import pokerImage from "@/public/project-shots/optimized/poker-odds.webp";
+import timerImage from "@/public/project-shots/optimized/ikigai-timer.webp";
+import sleepImage from "@/public/project-shots/optimized/night-night-ko.webp";
 
 export const workRoles = [
   {

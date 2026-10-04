@@ -27,8 +27,19 @@ for (const world of ["work", "writing", "projects"]) test(`dragging ${world} tur
     await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
     await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
+    // Record the transient launch in-page. On software GPUs a camera frame
+    // can block the test driver until the entire transition has completed.
+    await page.evaluate(() => {
+      const probe = window as Window & { sawOrbitLaunch?: boolean };
+      probe.sawOrbitLaunch = false;
+      const rocket = document.querySelector<HTMLElement>('[data-testid="rocket-cursor"]')!;
+      const observer = new MutationObserver(() => {
+        if (rocket.dataset.transitionPhase === "launching") { probe.sawOrbitLaunch = true; observer.disconnect(); }
+      });
+      observer.observe(rocket, { attributes: true, attributeFilter: ["data-transition-phase"] });
+    });
     await page.mouse.click(x - 95, y + 12);
-    await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+    await expect.poll(() => page.evaluate(() => (window as Window & { sawOrbitLaunch?: boolean }).sawOrbitLaunch)).toBe(true);
     await expect(page).toHaveURL(new RegExp(`/${world}$`));
     await expect(page.getByRole("heading", { name: new RegExp(`^${world}$`, "i"), level: 1 })).toBeVisible();
     await expect(page.locator("[data-island-stage]")).toHaveCount(0);

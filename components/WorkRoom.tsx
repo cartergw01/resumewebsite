@@ -154,10 +154,14 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
             <Logo company={current.company} size={36} />
             <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
           </h3>
-          <p className={styles.date}>{current.dates}</p>
-          <p className={styles.role}>{current.role}</p>
-          <p className={`${styles.role} ${styles.pastRole}`}>Venture Fellow</p>
-          <p className={styles.date}>June 2024 - September 2024</p>
+          <div className={styles.tenure}>
+            <p className={styles.role}>{current.role}</p>
+            <p className={styles.date}>{current.dates}</p>
+          </div>
+          <div className={styles.tenure}>
+            <p className={styles.role}>Venture Fellow</p>
+            <p className={styles.date}>June 2024 - September 2024</p>
+          </div>
         </header>
         <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
         <div className={styles.contributions}>

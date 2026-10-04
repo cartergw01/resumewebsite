@@ -29,6 +29,16 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
     let loadController: AbortController | null = null;
     let failed = false;
     let live = false;
+    let loadTimer: ReturnType<typeof setTimeout> | undefined;
+    let idleLoad: number | undefined;
+    const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    const cancelScheduledLoad = () => {
+      clearTimeout(loadTimer);
+      loadTimer = undefined;
+      if (idleLoad !== undefined) window.cancelIdleCallback(idleLoad);
+      idleLoad = undefined;
+    };
+    const canLoad = () => !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
     let drag: { id: number; x: number; y: number; lastX: number; lastY: number; moved: boolean; touch: boolean } | null = null;
     let suppressClick = false;
     const title = world[0].toUpperCase() + world.slice(1);
@@ -65,6 +75,7 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       setTurned(false);
     };
     const unload = () => {
+      cancelScheduledLoad();
       loadController?.abort();
       unregisterCamera?.();
       restore();
@@ -74,22 +85,16 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       link.removeAttribute("aria-describedby");
       setHost(null);
     };
-    const sync = async () => {
-      if (scene.dataset.active !== "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering) {
-        if (engineRef.current) unload();
-        else loadController?.abort();
-      }
-      if (loading || failed || disposed || engineRef.current || scene.dataset.active !== "true" || stage.dataset.travelling === "true" || stage.dataset.entering) return;
-      const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-      if (connection?.saveData) return;
+    const load = async () => {
+      if (loading || failed || engineRef.current || !canLoad()) return;
       loading = true;
       const controller = new AbortController();
       loadController = controller;
       try {
         const { createIslandOrbit } = await import("@/lib/island-orbit");
-        if (disposed) return;
+        if (disposed || controller.signal.aborted) return;
         const engine = await createIslandOrbit(canvas, asset, anchors, project, visual.querySelector<HTMLElement>("[data-workshop-screen]")?.dataset.src, controller.signal);
-        if (disposed || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
+        if (disposed || controller.signal.aborted || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
         engineRef.current = engine;
         if (engine.beginWindowFlight) unregisterCamera = registerWindowCamera(visual, engine.beginWindowFlight);
         canvas.dataset.orbitReady = "true";
@@ -101,6 +106,25 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
         if (loadController === controller) loadController = null;
         if (controller.signal.aborted && !disposed) void sync();
       }
+    };
+    const sync = () => {
+      if (scene.dataset.active !== "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering) {
+        if (engineRef.current) unload();
+        else loadController?.abort();
+      }
+      if (!canLoad()) {
+        cancelScheduledLoad();
+        if (document.hidden || connection?.saveData) loadController?.abort();
+        return;
+      }
+      if (loading || failed || engineRef.current || loadTimer !== undefined || idleLoad !== undefined) return;
+      // Let arrival paint before decoding a model. Fast passes through a world
+      // and background tabs should not start megabytes of optional 3D work.
+      loadTimer = setTimeout(() => {
+        loadTimer = undefined;
+        if ("requestIdleCallback" in window) idleLoad = window.requestIdleCallback(() => { idleLoad = undefined; void load(); }, { timeout: 800 });
+        else void load();
+      }, 180);
     };
     const rotate = (dx: number, dy: number) => {
       activate();
@@ -167,6 +191,8 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
     canvas.addEventListener("webglcontextlost", lost);
     window.addEventListener("click", click, true);
     link.addEventListener("keydown", key);
+    document.addEventListener("visibilitychange", sync);
+    connection?.addEventListener("change", sync);
     void sync();
     return () => {
       disposed = true;
@@ -179,6 +205,8 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       canvas.removeEventListener("webglcontextlost", lost);
       window.removeEventListener("click", click, true);
       link.removeEventListener("keydown", key);
+      document.removeEventListener("visibilitychange", sync);
+      connection?.removeEventListener("change", sync);
       unload();
     };
   }, [asset, anchors, world]);

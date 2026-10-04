@@ -19,8 +19,11 @@ test("hovering keeps the cursor attached without repainting the effects canvas",
   for (const route of ["/", "/2.0#work", "/work", "/writing", "/projects"]) {
     await page.goto(route);
     await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
+    // This measures steady pointer movement, after optional model decoding
+    // and shader preparation have finished on the island route.
+    if (route.startsWith("/2.0")) await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
     const link = route.startsWith("/2.0")
-      ? page.getByRole("link", { name: "Enter Work island" })
+      ? page.getByRole("link", { name: /Enter Work island/ })
       : page.getByLabel("Primary navigation").getByRole("link").first();
     await link.hover();
     const canvas = page.getByTestId("rocket-effects-canvas");
@@ -94,4 +97,32 @@ test("Work background pauses for reduced motion and resumes without losing the r
     clientX: 300, clientY: 200,
   })));
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+});
+
+
+test("a burst of orbit input submits one GPU frame and preserves the final angle", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "One instrumented GPU sample is sufficient.");
+  test.setTimeout(90_000);
+  await page.addInitScript(() => {
+    const probe = window as Window & { orbitDraws?: number };
+    probe.orbitDraws = 0;
+    const clear = WebGL2RenderingContext.prototype.clear;
+    WebGL2RenderingContext.prototype.clear = function (mask) {
+      if ((this.canvas as HTMLCanvasElement).dataset.islandOrbit) probe.orbitDraws!++;
+      return clear.call(this, mask);
+    };
+  });
+  await page.goto("/2.0#work");
+  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
+  const result = await page.locator("#work [data-island-link]").evaluate(async link => {
+    const probe = window as Window & { orbitDraws?: number };
+    probe.orbitDraws = 0;
+    for (let i = 0; i < 19; i++) link.dispatchEvent(new KeyboardEvent("keydown", { key: i % 2 ? "ArrowLeft" : "ArrowRight", bubbles: true, cancelable: true }));
+    const synchronous = probe.orbitDraws;
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return { synchronous, frames: probe.orbitDraws, yaw: Number(link.querySelector<HTMLElement>("[data-island-orbit]")!.dataset.orbitYaw) };
+  });
+  expect(result.synchronous).toBe(0);
+  expect(result.frames).toBe(1);
+  expect(result.yaw).toBeCloseTo(.1);
 });

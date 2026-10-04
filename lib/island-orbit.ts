@@ -106,13 +106,12 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     let disposePending = false;
     let yaw = 0;
     let pitch = 0;
-    const render = () => {
-      if (disposed || inFlight) return;
+    let renderFrame = 0;
+    const updatePose = () => {
       const orbit = new Spherical(initial.radius, initial.phi + pitch, initial.theta + yaw);
       camera.position.copy(target).add(new Vector3().setFromSpherical(orbit));
       camera.lookAt(target);
       camera.updateMatrixWorld(true);
-      renderer.render(scene, camera);
       const projection: OrbitProjection = {};
       for (const [name, points] of Object.entries(worldPoints)) projection[name] = points.map(point => {
         const screen = point.clone().project(camera);
@@ -120,6 +119,17 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       });
       project(projection);
     };
+    const render = () => {
+      if (disposed || inFlight) return;
+      updatePose();
+      renderer.render(scene, camera);
+    };
+    // Pointer devices can deliver several events in one display frame. Keep
+    // every movement, but submit only the latest camera position to the GPU.
+    const scheduleRender = () => {
+      if (!renderFrame && !disposed && !inFlight) renderFrame = requestAnimationFrame(() => { renderFrame = 0; render(); });
+    };
+    const flushRender = () => { cancelAnimationFrame(renderFrame); renderFrame = 0; render(); };
     const resize = () => {
       if (inFlight || disposed) return;
       const bounds = canvas.parentElement!.getBoundingClientRect();
@@ -132,6 +142,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     const dispose = () => {
       if (disposed) return;
       disposed = true;
+      cancelAnimationFrame(renderFrame);
       gltf.scene.traverse(object => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();
@@ -156,10 +167,15 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         pitch = Math.max(-0.13, Math.min(0.13, pitch + dy));
         canvas.dataset.orbitYaw = yaw.toFixed(4);
         canvas.dataset.orbitPitch = pitch.toFixed(4);
-        render();
+        scheduleRender();
       },
-      reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; render(); },
+      reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
       beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
+        // Carry the latest input into the flight without drawing a redundant
+        // island frame just before the full-viewport camera takes over.
+        cancelAnimationFrame(renderFrame);
+        renderFrame = 0;
+        updatePose();
         inFlight = true;
         return flyThroughWindow(renderer, scene, camera, litWindow, host, matrix, () => {
           inFlight = false;

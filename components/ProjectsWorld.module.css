@@ -1,5 +1,6 @@
 .page.page { background: #030611; --topic-accent: 217 183 134; --topic-warm: 244 210 163; }
 .page.page::before, .page.page::after { content: none; }
+.page > [data-galaxy-background] { opacity: .4; }
 .main.main { width: var(--subpage-column); padding-top: var(--subpage-top); }
 .page :global(.project-list) { border-top-color: #eddbbf30; }
 .page :global(.project-row) { border-bottom-color: #eddbbf24; }

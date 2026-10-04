@@ -33,25 +33,40 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
     if (!visual || !scene || !stage) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
-    let postersLoaded = false;
+    let posterIndex = 0;
+    let posterTimer: ReturnType<typeof setTimeout> | undefined;
+    let pendingPoster: HTMLImageElement | undefined;
+    const canPreload = () => !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
+    const preloadNext = () => {
+      if (!posters || posterIndex >= posters.length || posterTimer || pendingPoster || !canPreload()) return;
+      posterTimer = setTimeout(() => {
+        posterTimer = undefined;
+        if (!canPreload()) return;
+        const image = new window.Image();
+        pendingPoster = image;
+        image.decoding = "async";
+        image.fetchPriority = "low";
+        image.onload = image.onerror = () => { pendingPoster = undefined; preloadNext(); };
+        image.src = posters[posterIndex++];
+      }, 180);
+    };
     const sync = () => {
       if (stage.dataset.warm === "true") setWarm(true);
-      if (!postersLoaded && posters && scene.dataset.active === "true") {
-        postersLoaded = true;
-        for (const src of posters) { const image = document.createElement("img"); image.decoding = "async"; image.src = src; }
-      }
+      preloadNext();
       const allowed = !motion.matches && !connection?.saveData;
       visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-warm"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-warm", "data-travelling"] });
     motion.addEventListener("change", sync);
     connection?.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     sync();
     return () => {
       observer.disconnect();
+      clearTimeout(posterTimer);
+      if (pendingPoster) pendingPoster.onload = pendingPoster.onerror = null;
       motion.removeEventListener("change", sync);
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);

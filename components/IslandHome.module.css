@@ -1,6 +1,6 @@
 .home { color: var(--cw-paper); background: #030611; }
 .home :global(.site-nav-social svg) { width: 18px; height: 18px; }
-@media (max-width: 760px) { .home :global(.site-nav-social svg) { width: 15px; height: 15px; } }
+@media (max-width: 760px) { .home :global(.site-nav-social svg) { width: 16px; height: 16px; } }
 /* Five stops: 100svh of stage plus about 88svh per crossing. */
 .track { position: relative; height: 496svh; }
 .stage {
@@ -181,7 +181,7 @@
    keeps the art box's proportions because the first journey zooms from it. */
 .overviewIsland[data-overview-island="work"] { left: 0%; top: 8%; width: 44.2%; height: 44.2%; }
 .overviewIsland[data-overview-island="writing"] { left: 32%; top: 53%; width: 42.3%; height: 42.3%; }
-.overviewIsland[data-overview-island="projects"] { left: 57%; top: 18%; width: 42.3%; height: 42.3%; }
+.overviewIsland[data-overview-island="projects"] { left: 50%; top: 18%; width: 42.3%; height: 42.3%; }
 @media (max-width: 760px) {
   /* Phones zig-zag down the tall art box (left, right, left) so each island
      can be far larger than a third of the screen's width. */

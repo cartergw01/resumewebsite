@@ -49,7 +49,9 @@
 .current .logo { width: 0.85em; height: 0.85em; }
 .current a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
 .current a:hover { text-decoration-color: #efd2a299; }
-.experienceHeading .pastRole { grid-column: 1; }
+.tenure { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .15rem 1.5rem; }
+.tenure:first-of-type { margin-top: .5rem; }
+.tenure + .tenure { margin-top: .35rem; }
 
 .mission { max-width: 40rem; margin: 1.5rem 0 0; color: #f1e9da; font-size: 1.1875rem; line-height: 1.65; }
 .contributions { display: grid; gap: 1.75rem; margin-top: 2rem; }
@@ -96,6 +98,9 @@
   .photo { margin-top: 2.75rem; }
   .facts { gap: 1rem 2rem; }
   .experienceHeading { grid-template-columns: minmax(0, 1fr); }
+  .tenure { display: grid; gap: .1rem; }
+  .tenure + .tenure { margin-top: .6rem; }
+  .mission { font-size: 1.125rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
