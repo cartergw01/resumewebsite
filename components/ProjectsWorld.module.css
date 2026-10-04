@@ -7,7 +7,7 @@
 .page :global(.project-shot) { border-color: #eddbbf29; background: #030611; }
 .page :global(.project-row-copy > span) { color: #fff7ead1; }
 /* Rows fade in where they are, so dealt cards stop exactly where they land. */
-.page [data-workshop-reveal] { animation: none; transition: opacity 360ms ease; }
+.page [data-workshop-reveal] { animation: none; transition: opacity 180ms ease; }
 :global(html[data-workshop-transition="entering"]) .page [data-workshop-reveal],
 :global(html[data-workshop-transition="arriving"]) .page [data-workshop-reveal] { opacity: 0; }
 :global(html[data-workshop-transition]:not([data-workshop-transition="landed"])) .page [data-project-shot] { visibility: hidden; }

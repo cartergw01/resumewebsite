@@ -3,7 +3,7 @@
 /* The shared subpage column, with the archive flush under the header. */
 .page.page :global(.subpage-main) { width: var(--subpage-column); padding-top: var(--subpage-top); }
 .page.page :global(.writing-archive) { margin-top: 0; padding-left: 0; }
-.page [data-book-reveal] { transition: opacity 360ms ease, translate 480ms var(--cw-ease); }
+.page [data-book-reveal] { transition: opacity 180ms ease, translate 240ms var(--cw-ease); }
 :global(html[data-book-transition="entering"]) .page [data-book-reveal],
 :global(html[data-book-transition="arriving"]) .page [data-book-reveal] { opacity: 0; translate: 0 10px; }
 @media (prefers-reduced-motion: reduce) {

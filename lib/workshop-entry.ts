@@ -137,8 +137,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     current.animations.push(screen.animate([
       { transform: startTransform },
       { transform: "matrix(1,0,0,1,0,0)" },
-    ], { duration: 1200, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
-    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 1200, easing: "ease-in", fill: "forwards" }));
+    ], { duration: 540, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
+    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 540, easing: "ease-in", fill: "forwards" }));
     return current.dispose;
   }
   // The deck rises off the laptop to the centre, then fans into an arc of
@@ -161,9 +161,9 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       { transform: startTransform, offset: 0, easing: "cubic-bezier(0.22, 0.65, 0.24, 1)" },
       { transform: cardPose(centerX, centerY, width, 0), offset: 0.5, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
       { transform: cardPose(x, y, width, angle), offset: 1 },
-    ], { duration: 1200, fill: "forwards" }));
+    ], { duration: 540, fill: "forwards" }));
   }
-  current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 800, easing: "ease-in-out", fill: "forwards" }));
+  current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 440, easing: "ease-in-out", fill: "forwards" }));
   return current.dispose;
 }
 
@@ -181,10 +181,10 @@ function arriveAtEntry(target: HTMLElement, kind: Entry["kind"]) {
   if (!current || current.kind !== kind || current.overlay.dataset[attribute] !== "entering") return;
   current.overlay.dataset[attribute] = "arriving";
   document.documentElement.dataset[attribute] = "arriving";
-  // Let the notebook land or the fan finish opening, and hold a beat on it,
-  // before the pages open or the cards are dealt.
+  // Continue directly from the approach into the reveal, without a hold
+  // that makes an already-loaded destination feel unresponsive.
   const settled = Promise.all(current.animations.map(animation => animation.finished));
-  void settled.then(() => new Promise(resolve => setTimeout(resolve, 280))).then(() => {
+  void settled.then(() => {
     if (entry !== current) return;
     arrive(current, target, kind, attribute);
   }).catch(() => { /* A back gesture or reduced-motion change ends the journey. */ });
@@ -199,7 +199,7 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       if (kind === "book") {
         // The pages swing open like doors onto the whole archive at once.
         document.documentElement.dataset[attribute] = "revealing";
-        const open = { duration: 1300, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
+        const open = { duration: 300, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
         const [left, right] = Array.from(current.screen.children) as HTMLElement[];
         // Each page fades as it turns edge-on, so no sliver lingers at the hinge.
         const swing = (angle: number) => [
@@ -212,7 +212,7 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
           dock,
           left.animate(swing(104), open),
           current.screen.animate([{ transform: from }, { transform: "scale(1.08)" }], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-out", fill: "forwards" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: "ease-out", fill: "forwards" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;
@@ -235,15 +235,15 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
         return card.animate([
           { transform: getComputedStyle(card).transform },
           { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },
-        ], { duration: 900, delay: index * 40, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+        ], { duration: 300, delay: index * 16, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
       });
-      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 1000, easing: "ease-out", fill: "forwards" }));
+      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, easing: "ease-out", fill: "forwards" }));
       void Promise.all(docks.map(dock => dock.finished)).then(() => {
         if (entry !== current) return;
         // Show the real thumbnails under the landed cards, then fade the
         // cards away, so the hand-off is a crossfade rather than a swap.
         document.documentElement.dataset[attribute] = "landed";
-        const fade = current.screen.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: "ease-out", fill: "forwards" });
+        const fade = current.screen.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, easing: "ease-out", fill: "forwards" });
         current.animations.push(fade);
         return fade.finished;
       }).then(() => {

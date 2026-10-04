@@ -1,4 +1,4 @@
-export const WORK_ENTRY_DURATION = 1800;
+export const WORK_ENTRY_DURATION = 800;
 
 // A little time for the window to respond, then one continuous approach.
 // Zero velocity and acceleration at both ends keep the handoff from jolting.

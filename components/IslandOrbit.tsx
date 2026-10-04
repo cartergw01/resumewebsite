@@ -38,7 +38,7 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       if (idleLoad !== undefined) window.cancelIdleCallback(idleLoad);
       idleLoad = undefined;
     };
-    const canLoad = () => !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
+    const canLoad = () => !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.navigating && !stage.dataset.entering;
     let drag: { id: number; x: number; y: number; lastX: number; lastY: number; moved: boolean; touch: boolean } | null = null;
     let suppressClick = false;
     const title = world[0].toUpperCase() + world.slice(1);
@@ -114,7 +114,7 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       }
       if (!canLoad()) {
         cancelScheduledLoad();
-        if (document.hidden || connection?.saveData) loadController?.abort();
+        if (document.hidden || connection?.saveData || stage.dataset.travelling === "true" || stage.dataset.navigating || stage.dataset.entering) loadController?.abort();
         return;
       }
       if (loading || failed || engineRef.current || loadTimer !== undefined || idleLoad !== undefined) return;
@@ -181,7 +181,7 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
     };
     const observer = new MutationObserver(() => void sync());
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering", "data-navigating"] });
     const resize = new ResizeObserver(() => engineRef.current?.resize());
     resize.observe(visual);
     link.addEventListener("pointerdown", down);

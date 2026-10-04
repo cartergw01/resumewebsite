@@ -39,6 +39,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const tabFor = (index: number) => buttons[buttonScene.indexOf(index)];
     const sceneNav = track.querySelector<HTMLElement>("[data-scene-nav]")!;
     const comet = track.querySelector<HTMLElement>("[data-scene-comet]")!;
+    const galaxy = stage.querySelector<HTMLElement>("[data-galaxy-camera]")!;
+    const middleStars = stage.querySelector<HTMLElement>('[data-depth-stars="middle"]')!;
+    const nearStars = stage.querySelector<HTMLElement>('[data-depth-stars="near"]')!;
     const next = track.querySelector<HTMLButtonElement>("[data-next-scene]")!;
     const nextLabel = next.querySelector<HTMLElement>("[data-next-label]")!;
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -67,8 +70,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const progress = clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 28);
-      cameraProgress = cameraProgress === null || motion.matches
+      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 32) / 18);
+      cameraProgress = cameraProgress === null || motion.matches || glideFrame
         ? progress
         : cameraProgress + (progress - cameraProgress) * smoothing;
       if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
@@ -102,6 +105,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           : outgoing ? crossing < 0.88 : index === from + 1 && crossing > 0.12;
         scene.style.opacity = visible ? "1" : "0";
         scene.style.visibility = visible ? "visible" : "hidden";
+        if (!visible) return;
         // A reversible camera path: pull away before travelling, then approach
         // a solid, dim silhouette. Arrival finishes before light and copy return.
         const distance = 1 - approach;
@@ -143,11 +147,17 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         if (worlds[index].id === "projects") art[index].style.setProperty("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
       });
-      stage.style.setProperty("--camera-progress", cameraProgress.toFixed(4));
-      stage.style.setProperty("--camera-path", (from + passage).toFixed(4));
-      stage.style.setProperty("--camera-arc", (arc * Math.sin(mix * Math.PI)).toFixed(4));
-      stage.style.setProperty("--flight", motion.matches ? "0" : (flight * (from === 0 ? 0.35 : 1)).toFixed(4));
-      stage.style.setProperty("--flight-bank", `${-arc * 10 * Math.cos(mix * Math.PI)}deg`);
+      stage.dataset.cameraProgress = String(cameraProgress);
+      // Animate the three camera layers directly. Inherited variables on the
+      // entire stage forced style recalculation through every hidden island.
+      const path = from + passage, bend = arc * Math.sin(mix * Math.PI);
+      const speed = motion.matches ? 0 : flight * (from === 0 ? .35 : 1);
+      galaxy.style.transform = motion.matches ? "none" : `translate3d(${path * -3.5}%, ${bend * -1.5}%, 0) scale(${1.04 - speed * .02})`;
+      middleStars.style.transform = `translate3d(${path * -9}%, ${bend * -4}%, 0)`;
+      middleStars.style.opacity = String(.24 + speed * .26);
+      nearStars.style.transform = `translate3d(${path * -15}%, ${bend * -9}%, 0) rotate(${-arc * 10 * Math.cos(mix * Math.PI)}deg)`;
+      nearStars.style.opacity = (speed * .65).toFixed(4);
+      nearStars.style.setProperty("--flight", String(speed));
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
       const stops = worlds.map((_, index) => stopProgress(index));
@@ -192,7 +202,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       // Wait for a settled shot; passing a world mid-flight must not rewrite
       // a destination hash or interfere with browser history restoration.
-      if (!entryPending && !glideFrame && cameraProgress === progress && (crossing === 0 || crossing === 1)) {
+      if (!entryPending && !glideFrame && cameraProgress === progress && (motion.matches || crossing === 0 || crossing === 1)) {
         rememberIsland(worlds[current].id);
       }
       if (cameraProgress !== progress) schedule();
@@ -240,7 +250,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Glides are driven here rather than by the browser's smooth scroll, so
     // every flight starts instantly and eases in over a consistent length.
     let glideFrame = 0;
-    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; };
+    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; };
     const jump = (index: number, instant = false) => {
       entryPending = false;
       window.clearTimeout(entryRecovery);
@@ -258,8 +268,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // phone rotation mid-flight still lands exactly on the stop.
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
-      const length = Math.min(900, 420 + Math.abs(to - from) * duration * 220);
+      const length = Math.min(480, 260 + Math.abs(to - from) * duration * 80);
       const began = performance.now();
+      stage.dataset.navigating = "true";
       const step = (now: number) => {
         // A frame's timestamp can precede the call that started the glide.
         const t = clamp((now - began) / length);
@@ -267,9 +278,15 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const eased = 1 - Math.pow(1 - t, 4);
         window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
-        if (t >= 1) { schedule(); window.dispatchEvent(new Event("scrollend")); }
+        if (t >= 1) { delete stage.dataset.navigating; schedule(); window.dispatchEvent(new Event("scrollend")); }
       };
       glideFrame = window.requestAnimationFrame(step);
+    };
+    const onMotionChange = () => {
+      // A new reduced-motion preference must also finish the scroll driver,
+      // otherwise its pending frames can overwrite the visitor's next scroll.
+      if (motion.matches) { stopGlide(); cameraProgress = null; }
+      schedule();
     };
     // Scene controls always travel. Only islands and headings enter a page.
     jumpRef.current = (index: number) => jump(index);
@@ -324,7 +341,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("pageshow", measure);
     window.addEventListener("hashchange", followHash);
     window.addEventListener("popstate", followHash);
-    motion.addEventListener("change", schedule);
+    motion.addEventListener("change", onMotionChange);
     next.addEventListener("click", advance);
     window.addEventListener("click", enterFromHeading, true);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
@@ -485,7 +502,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("pageshow", measure);
       window.removeEventListener("hashchange", followHash);
       window.removeEventListener("popstate", followHash);
-      motion.removeEventListener("change", schedule);
+      motion.removeEventListener("change", onMotionChange);
       next.removeEventListener("click", advance);
       window.removeEventListener("click", enterFromHeading, true);
       ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));

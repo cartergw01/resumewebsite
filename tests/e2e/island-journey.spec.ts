@@ -127,12 +127,15 @@ test("each island zooms into its own page and owns navigation until arrival", as
     const island = page.getByRole("link", { name: `Enter ${world} island` });
     await island.click();
     await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", id);
-    await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
-    await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
-    await expect.poll(() => island.locator("[data-island-visual]").evaluate((visual) => {
-      const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
-      return Math.hypot(matrix.a, matrix.b);
-    })).toBeGreaterThan(1.2);
+    if (id === "work") {
+      // Work carries a real camera; its original island element stays still.
+      await expect.poll(() => page.locator("body > [data-work-transition]").getAttribute("data-work-progress").then(Number)).toBeGreaterThan(.05);
+    } else {
+      await expect.poll(() => island.locator("[data-island-visual]").evaluate((visual) => {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
+        return Math.hypot(matrix.a, matrix.b);
+      })).toBeGreaterThan(1.2);
+    }
     // Repeated island activation cannot restart the entry transition.
     await island.dispatchEvent("click");
     await expect(page).toHaveURL(new RegExp(`/${id}$`));

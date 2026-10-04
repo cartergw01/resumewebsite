@@ -10,6 +10,26 @@ test("the book opens the complete Writing archive without featuring an essay", a
   // The island's open notebook lifts off as a blank ruled spread and fills the view.
   const carry = page.locator("body > [data-book-transition]");
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
+  // The faster handoff no longer holds on "arriving" for a polling interval.
+  // Record that the very same notebook crosses the route boundary.
+  await carry.evaluate(node => {
+    const recordFrame = () => {
+      if (!node.isConnected) return;
+      const box = node.querySelector('[data-notebook-page="right"]')!.getBoundingClientRect();
+      if (Math.round(box.right) >= innerWidth - 1 && Math.round(box.bottom) >= innerHeight - 1) {
+        (window as Window & { bookFilledViewport?: boolean }).bookFilledViewport = true;
+      }
+      requestAnimationFrame(recordFrame);
+    };
+    requestAnimationFrame(recordFrame);
+    const observer = new MutationObserver(() => {
+      if ((node as HTMLElement).dataset.bookTransition === "arriving") {
+        (window as Window & { bookArrivalMatched?: boolean }).bookArrivalMatched = node.isConnected && location.pathname === "/writing";
+        observer.disconnect();
+      }
+    });
+    observer.observe(node, { attributes: true, attributeFilter: ["data-book-transition"] });
+  });
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
   // Every essay title is written in, all at the same size.
@@ -17,14 +37,9 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await expect(written).toHaveCount(11);
   await expect(written.first()).toHaveText("The Cost of Keeping Up");
   expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
-  await expect.poll(() => carry.locator('[data-notebook-page="right"]').evaluate((leaf) => {
-    const box = leaf.getBoundingClientRect();
-    return Math.round(box.right) >= innerWidth - 1 && Math.round(box.bottom) >= innerHeight - 1;
-  })).toBe(true);
-  await carry.evaluate(node => node.setAttribute("data-same-page", "true"));
+  await expect.poll(() => page.evaluate(() => (window as Window & { bookFilledViewport?: boolean }).bookFilledViewport)).toBe(true);
   await expect(page).toHaveURL(/\/writing$/);
-  await expect(carry).toHaveAttribute("data-book-transition", "arriving");
-  await expect(carry).toHaveAttribute("data-same-page", "true");
+  await expect.poll(() => page.evaluate(() => (window as Window & { bookArrivalMatched?: boolean }).bookArrivalMatched)).toBe(true);
   await expect(carry).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeFocused();
   await expect(page.getByRole("region", { name: "Featured essay" })).toHaveCount(0);

@@ -1,7 +1,7 @@
 .artwork { position: relative; display: block; }
 .screenResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.screenPreview { opacity: var(--workshop-screen, 0.3); transition: opacity 280ms ease; }
-.screenSpill, .screenRim { opacity: 0; transition: opacity 360ms ease; }
+.screenPreview { opacity: var(--workshop-screen, 0.3); transition: opacity 160ms ease; }
+.screenSpill, .screenRim { opacity: 0; transition: opacity 180ms ease; }
 :global([data-island-link]:focus-visible) .screenPreview,
 :global([data-entering="projects"]) .screenPreview { opacity: 1; }
 :global([data-island-link]:focus-visible) .screenSpill,
@@ -14,13 +14,13 @@
   :global([data-island-link]:hover) .screenRim { opacity: 0.9; }
 }
 .image, .details { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.details { opacity: calc(var(--island-lights, 1) * 0.4); transition: opacity 280ms ease; }
+.details { opacity: calc(var(--island-lights, 1) * 0.4); transition: opacity 160ms ease; }
 :global([data-island-link]:focus-visible) .details { opacity: var(--island-lights, 1); }
 @media (hover: hover) and (pointer: fine) { :global([data-island-link]:hover) .details { opacity: var(--island-lights, 1); } }
 .cityDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .cityBlocks { opacity: calc(var(--city-windows, 1) * 0.65); }
 .towerWelcome { opacity: var(--city-tower, 1); }
-.entryWindow { opacity: .85; transition: opacity 250ms ease; }
+.entryWindow { opacity: .85; transition: opacity 160ms ease; }
 :global([data-entering="work"]) .entryWindow { opacity: 1; }
 .citySign { opacity: calc(0.45 + var(--city-tower, 1) * 0.55); }
 .windows { animation: windows 7s ease-in-out infinite; }

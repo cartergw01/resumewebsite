@@ -133,7 +133,7 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   // Arrival replaces only the pixels already visible through the window.
   current.reveal = () => {
     if (disposed) return;
-    finishAnimation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" });
+    finishAnimation = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 100, fill: "forwards" });
     void finishAnimation.finished.then(dispose).catch(() => {});
   };
   return { animation, dispose };

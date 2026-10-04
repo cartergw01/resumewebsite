@@ -135,7 +135,7 @@
   opacity: calc(var(--cue-opacity, 1) * var(--cue-rest, 1));
   pointer-events: none;
   text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
-  transition: color 220ms ease, transform 450ms var(--cw-ease), opacity 350ms ease;
+  transition: color 220ms ease, transform 180ms var(--cw-ease), opacity 180ms ease;
 }
 .scene[data-cue-seen="true"] { --cue-rest: 0; }
 .islandLink:focus-visible .landmarkCue { opacity: var(--cue-opacity, 1); }
@@ -161,7 +161,7 @@
   object-fit: contain;
   user-select: none;
   filter: brightness(var(--island-light, 1)) drop-shadow(0 32px 36px #0005);
-  transition: transform 450ms var(--cw-ease);
+  transition: transform 180ms var(--cw-ease);
 }
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
@@ -190,7 +190,7 @@
   .overviewIsland[data-overview-island="projects"] { left: 10%; top: 57%; width: 48%; height: 48%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
-.overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 450ms var(--cw-ease); }
+.overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 180ms var(--cw-ease); }
 /* A shared slow drift, offset per island; Work holds still because the
    camera's first zoom targets its exact position. */
 .overviewIsland:not([data-overview-island="work"]) .overviewImage { animation: overview-bob 9s ease-in-out infinite; }
@@ -216,7 +216,7 @@
 .writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
 .writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
 .bookDetails, .bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.pageLight, .pageEdges { opacity: 0; transition: opacity 350ms ease, transform 500ms var(--cw-ease); }
+.pageLight, .pageEdges { opacity: 0; transition: opacity 160ms ease, transform 180ms var(--cw-ease); }
 .islandLink:focus-visible .pageLight, .stage[data-entering="writing"] .pageLight { opacity: 0.65; }
 .islandLink:focus-visible .pageEdges, .stage[data-entering="writing"] .pageEdges { opacity: 0.85; transform: translateY(-2px); }
 @media (hover: hover) and (pointer: fine) {
@@ -237,9 +237,9 @@
 .stage[data-entering="work"] .islandLink:focus-visible { outline-color: transparent; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
-.stage[data-entering] .controls { animation: entry-copy 220ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space 1000ms ease-in forwards; }
-.stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0; }
+.stage[data-entering] .controls { animation: entry-copy 120ms ease-out forwards; pointer-events: none; }
+.stage[data-entering] .galaxy { animation: entry-space 600ms ease-in forwards; }
+.stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0 !important; }
 .stage[data-entering] .island { transition: none; filter: brightness(1) drop-shadow(0 32px 36px #0005); will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }
 @keyframes entry-space { to { opacity: 0; transform: scale(1.4); } }

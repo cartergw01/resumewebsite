@@ -168,12 +168,10 @@ async function expectReadableLaunch(
 }
 
 async function expectRocketBecameVisible(page: Page) {
-  const maxOpacity = await page.evaluate(() => {
+  await expect.poll(() => page.evaluate(() => {
     const probeWindow = window as RocketTestWindow;
     return probeWindow.__rocketProbeMax ?? 0;
-  });
-
-  expect(maxOpacity).toBeGreaterThan(0.5);
+  })).toBeGreaterThan(0.5);
 }
 
 async function expectRocketReachedBalancedScale(page: Page) {
@@ -277,13 +275,11 @@ test("desktop rocket launches during internal nav and lands cleanly", async ({ p
   await startRocketLaunchProbe(page);
   await startRocketReturnProbe(page, clickPoint, "/work");
   await page.mouse.click(clickPoint.x, clickPoint.y);
-  await page.waitForTimeout(300);
-
-  await expect(page).toHaveURL("/writing");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expect(page).toHaveURL("/work");
+  // Navigation and the rocket run together; the page never waits for takeoff.
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
-  await expectReadableLaunch(page, { minMs: 480, maxMs: 900 });
+  await expectReadableLaunch(page, { minMs: 230, maxMs: 650 });
 
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
@@ -363,11 +359,8 @@ test("rapid repeat navigation cannot bypass or replace the active launch", async
     projectsBox!.x + projectsBox!.width / 2,
     projectsBox!.y + projectsBox!.height / 2,
   );
-  await page.waitForTimeout(260);
-
-  await expect(page).toHaveURL("/writing");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
-  await expectReadableLaunch(page, { minMs: 480, maxMs: 900 });
+  await expect(page).toHaveURL("/work");
+  await expectReadableLaunch(page, { minMs: 230, maxMs: 650 });
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page).not.toHaveURL("/projects");
 
@@ -431,8 +424,6 @@ test("desktop launch behavior is shared across every internal route", async ({ p
     expect(box).not.toBeNull();
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height / 2);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
-    await page.waitForTimeout(220);
-    await expect(page).toHaveURL(transition.from);
     await expect(page).toHaveURL(transition.to, { timeout: 15_000 });
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle", {
       timeout: 5_000,
@@ -458,15 +449,13 @@ test("mobile tap mode launches without a persistent cursor", async ({ page }, te
   await startTransitionProbe(page);
   await startRocketLaunchProbe(page);
   await workLink.tap();
-  await page.waitForTimeout(260);
-
-  await expect(page).toHaveURL("/writing");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expect(page).toHaveURL("/work");
   await expectRocketBecameVisible(page);
   await expectRocketReachedBalancedScale(page);
-  await expectReadableLaunch(page, { minMs: 420, maxMs: 850 });
+  await expectReadableLaunch(page, { minMs: 210, maxMs: 650 });
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByLabel("Primary navigation").getByRole("link", { name: "Work" })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
   await expectRocketEffectsCleared(page);
   await expectCanvasBackedToRenderedSize(page, "rocket-effects-canvas");
   await expect(page.locator("[data-background-visual]")).toHaveAttribute("data-video-ready", "true");
@@ -486,10 +475,7 @@ test("mobile repeat taps cannot bypass the active launch", async ({ page }, test
   await nav.getByRole("link", { name: "Work" }).tap();
   await page.waitForTimeout(45);
   await nav.getByRole("link", { name: "Projects" }).tap();
-  await page.waitForTimeout(220);
 
-  await expect(page).toHaveURL("/writing");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page).not.toHaveURL("/projects");
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");

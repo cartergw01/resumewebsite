@@ -11,6 +11,7 @@ export type OrbitAsset = {
   camera: { position: number[]; up: number[]; direction: number[]; fov: number };
   crop: number[];
   entryWindow3D?: number[][];
+  surfaceAnchors?: { signature: string; points: OrbitProjection };
 };
 export type OrbitProjection = Record<string, number[][]>;
 
@@ -73,16 +74,25 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     camera.setViewOffset(1200, 800, asset.crop[0], asset.crop[1], asset.crop[2], asset.crop[3]);
     camera.updateMatrixWorld(true);
     const initial = new Spherical().setFromVector3(camera.position.clone().sub(target));
-    const raycaster = new Raycaster();
     const worldPoints: Record<string, Vector3[]> = {};
-    // Recover the real surface under each rendered anchor, once. Its position
-    // then follows the orbit, including the page-entry window and annotations.
-    for (const [name, points] of Object.entries(anchors)) {
-      worldPoints[name] = points.map(([x, y]) => {
-        raycaster.setFromCamera(new Vector2(x / 600 - 1, 1 - y / 400), camera);
-        return raycaster.intersectObject(gltf.scene, true)[0]?.point.clone()
-          ?? raycaster.ray.at(initial.radius, new Vector3());
-      });
+    const signature = JSON.stringify([asset.src, asset.camera, asset.crop, anchors, asset.entryWindow3D]);
+    if (asset.surfaceAnchors?.signature === signature) {
+      // Bake these exact intersections once, instead of scanning up to 1.6M
+      // triangles on the visitor's main thread each time a world loads.
+      for (const [name, points] of Object.entries(asset.surfaceAnchors.points)) worldPoints[name] = points.map(point => new Vector3().fromArray(point));
+    } else {
+      // Edited models remain usable until their anchors are baked again.
+      const raycaster = new Raycaster();
+      for (const [name, points] of Object.entries(anchors)) {
+        worldPoints[name] = [];
+        for (const [x, y] of points) {
+          await new Promise<void>(resolve => setTimeout(resolve, 0));
+          signal?.throwIfAborted();
+          raycaster.setFromCamera(new Vector2(x / 600 - 1, 1 - y / 400), camera);
+          worldPoints[name].push(raycaster.intersectObject(gltf.scene, true)[0]?.point.clone()
+            ?? raycaster.ray.at(initial.radius, new Vector3()));
+        }
+      }
     }
     if (asset.entryWindow3D) worldPoints.entryWindow = asset.entryWindow3D.map(point => new Vector3().fromArray(point));
     const litWindow = worldPoints.entryWindow ? makeLitWindow(worldPoints.entryWindow) : null;
@@ -156,10 +166,12 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       draco.dispose();
       renderer.dispose();
     };
+    // Compile before the first draw on every world. Doing this after resize()
+    // already forced synchronous shader compilation during that first render.
+    if (signal?.aborted) { dispose(); signal.throwIfAborted(); }
+    await renderer.compileAsync(scene, camera);
+    if (signal?.aborted) { dispose(); signal.throwIfAborted(); }
     resize();
-    // Finish compiling the tower shaders while its poster is still visible;
-    // the first camera move should not have to wait for GPU compilation.
-    if (litWindow) await renderer.compileAsync(scene, camera);
     return {
       resize,
       rotate(dx: number, dy: number) {
@@ -185,9 +197,11 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       dispose() { if (inFlight) disposePending = true; else dispose(); },
     };
   } catch (error) {
-    environment.dispose();
-    draco.dispose();
-    renderer.dispose();
+    if (!disposed) {
+      environment.dispose();
+      draco.dispose();
+      renderer.dispose();
+    }
     throw error;
   }
 }

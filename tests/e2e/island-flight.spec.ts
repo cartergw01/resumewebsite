@@ -7,9 +7,9 @@ async function cross(page: Page, journey: number, progress: number) {
     scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * position, behavior: "instant" });
   }, { journey, progress });
   await expect.poll(() => page.locator("[data-island-stage]").evaluate((stage) => {
-    const actual = Number((stage as HTMLElement).style.getPropertyValue("--camera-progress"));
+    const actual = Number((stage as HTMLElement).dataset.cameraProgress);
     return Math.abs(actual - scrollY / (document.documentElement.scrollHeight - innerHeight));
-  })).toBeLessThan(0.0002);
+  })).toBeLessThan(0.000002);
 }
 
 async function pose(page: Page, world: string) {

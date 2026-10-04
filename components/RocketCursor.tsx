@@ -46,10 +46,10 @@ const ROCKET_PIVOT_X   = 9;
 const ROCKET_PIVOT_Y   = 4;
 const ROCKET_EXHAUST_Y = 29.5;
 const ROCKET_ENGINE_HALF_WIDTH = 3.8;
-const LAUNCH_DURATION  = 500;
-const TOUCH_LAUNCH_DURATION = 440;
+const LAUNCH_DURATION  = 240;
+const TOUCH_LAUNCH_DURATION = 220;
 const LAUNCH_IGNITION_FRACTION = 0.30;
-const WARP_IN_DURATION = 240;   // ms
+const WARP_IN_DURATION = 140;   // ms
 const WARP_IN_SCALE_START = 0.84;
 const LAUNCH_TRAVEL_EXTRA = 180;
 // The rocket grows less on takeoff; the plume's width follows its scale.
@@ -268,6 +268,7 @@ export function RocketCursor() {
   const rocketRef = useRef<HTMLDivElement>(null);   // tilt / scale / effects — updated in rAF
   const router = useRouter();
   const pathname = usePathname();
+  const committedPathRef = useRef(pathname);
   const routerRef = useRef(router);
   const routeCommitHandlerRef = useRef<((pathname: string) => void) | null>(null);
   routerRef.current = router;
@@ -276,6 +277,7 @@ export function RocketCursor() {
   // Keeping this signal separate from the long-lived animation effect lets the
   // arrival begin on the destination rather than racing `router.push`.
   useEffect(() => {
+    committedPathRef.current = pathname;
     routeCommitHandlerRef.current?.(pathname);
   }, [pathname]);
 
@@ -685,25 +687,23 @@ export function RocketCursor() {
               setTransitionPhase("idle");
             }
 
-            routerRef.current.push(href, { scroll: false });
-            // Hash destinations own their scroll position (including the
-            // island return links). A delayed reset would overwrite arrival.
-            if (!new URL(href, window.location.href).hash) {
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-                });
-              });
-            }
+            // The route starts with the click, alongside the launch. If it
+            // already committed, finish the rocket's arrival now; otherwise
+            // the route effect will pick it up when the destination is ready.
+            routeCommitHandlerRef.current?.(committedPathRef.current);
           }
         } else {
           setTransitionPhase("idle");
         }
 
-        // Tap mode has no post-effect: the destination begins on a clean frame.
-        // Decorative non-navigation launches can still finish before this reset.
+        // Tap mode leaves no persistent cursor once the short launch finishes.
+        // Internal navigation has already begun alongside the effect.
       };
       finishActiveLaunch = finishLaunch;
+
+      if (href && !isExternal) {
+        routerRef.current.push(href, { scroll: !new URL(href, window.location.href).hash });
+      }
 
       return true;
     };
@@ -988,9 +988,9 @@ export function RocketCursor() {
         jetpackVelY    = 0;
 
         if (rawT >= 1 && !launchCompletionFrameId) {
-          // Navigation advances only from the frame loop. Waiting for the next
-          // rAF proves this completed launch style had a paint opportunity and
-          // removes the timeout/rAF race that could strand navigation forever.
+          // Finish from the frame loop so the final takeoff can paint before
+          // the cursor returns or an external link opens. Internal links have
+          // already started navigating and never wait behind this effect.
           launchCompletionFrameId = requestAnimationFrame(() => {
             launchCompletionFrameId = 0;
             finishActiveLaunch();
