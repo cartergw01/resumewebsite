@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { overviewOrder } from "@/lib/island-overview";
 import { islandArtwork as islands, islandLandmarks } from "@/lib/island-artwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
@@ -12,6 +12,9 @@ import styles from "./IslandHome.module.css";
 // Distant islands use the same entry controller and landmark geometry as the
 // individual stops. The Work camera warms only on pointer or keyboard intent.
 export default function IslandOverview({ variant }: { variant: "intro" | "outro" }) {
+  // A distant monitor needs only a thumbnail. The full project image stays
+  // deferred until the visitor enters or travels to the workshop.
+  const screenPreview = getImageProps({ src: projects[0].image, alt: "", width: 96, height: 60 }).props.src;
   return (
     <nav className={`${styles.overview} ${styles[variant]}`} aria-label="Islands" data-overview={variant}>
       {overviewOrder.map((id) => {
@@ -35,7 +38,7 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
                 {id === "writing" ? <path data-book-spread data-corners={JSON.stringify(islands.writing.spread)} data-titles={JSON.stringify(essays.map(essay => essay.title))} d={artworkOutline(islands.writing.spread)} fill="none" /> : null}
                 {id === "projects" ? <g data-workshop-screen data-corners={JSON.stringify(islands.projects.screen)} data-src={projects[0]?.image} data-posters={JSON.stringify(projects.map(project => project.image))}>
                   <PerspectiveArtwork corners={islands.projects.screen} width={320} height={200}>
-                    <image href={projects[0]?.image} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
+                    <image href={screenPreview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
                   </PerspectiveArtwork>
                 </g> : null}
               </svg>

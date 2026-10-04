@@ -24,4 +24,3 @@ export function artworkOutline(corners: number[][]) {
   const c = corners[3] ?? [b[0] + d[0] - a[0], b[1] + d[1] - a[1]];
   return `M${a.join(" ")}L${b.join(" ")}L${c.join(" ")}L${d.join(" ")}Z`;
 }
-

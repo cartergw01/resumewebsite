@@ -77,7 +77,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
   }, [destination]);
 
   return (
-    <header className="site-nav" data-destination-nav={destination || undefined} data-scrolled={scrolled}>
+    <header className="site-nav" data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled}>
       {/* Every subpage returns to its island from the same upper-left spot. */}
       {destination && (
         <Link href={`/2.0#${active === "resume" ? "work" : active}`} scroll={false} className="site-nav-return" aria-label="Back to islands">

@@ -3581,3 +3581,29 @@ html[data-theme="dark"] a {
   }
 
 }
+
+/* Keep /resume's existing navigation unchanged while the 2.0 routes evolve. */
+.site-nav[data-resume-nav] { width: var(--subpage-column); }
+.site-nav[data-resume-nav] .site-nav-primary,
+.site-nav[data-resume-nav] .site-nav-social { height: 40px; }
+.site-nav[data-resume-nav] a { height: 32px; }
+.site-nav[data-resume-nav] .site-nav-return svg { flex-shrink: 1; }
+.site-nav[data-resume-nav] .site-nav-social a svg { width: 14px; height: 14px; }
+@media (min-width: 521px) {
+  .site-nav[data-resume-nav] .site-nav-social a svg[width="15"] { width: 15px; height: 15px; }
+}
+@media (max-width: 760px) {
+  .site-nav[data-resume-nav] a.site-nav-return { min-width: auto; margin-left: -8px; }
+  .site-nav[data-resume-nav] a::before { content: ""; position: absolute; inset: -6px -3px; border-radius: inherit; }
+  .site-nav[data-resume-nav] .site-nav-social a::before { inset: -6px -7px; }
+}
+@media (max-width: 520px) {
+  .site-nav[data-resume-nav] a { padding: 0 6px; font-size: 0.75rem; }
+  .site-nav[data-resume-nav] .site-nav-social a { min-width: 30px; padding: 0 4px; }
+  .site-nav[data-resume-nav] a.site-nav-return { padding: 0 8px; }
+}
+@media (max-width: 360px) {
+  .site-nav[data-resume-nav] .site-nav-primary a { padding-inline: 4px; font-size: clamp(0.68rem, 3.6vw, 0.74rem); }
+  .site-nav[data-resume-nav] .site-nav-social a { min-width: 24px; padding-inline: 2px; }
+  .site-nav[data-resume-nav] .site-nav-social a svg { width: 13px; height: 13px; }
+}

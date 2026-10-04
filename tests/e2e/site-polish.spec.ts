@@ -2,10 +2,10 @@ import { expect, test } from "@playwright/test";
 
 for (const width of [320, 390]) test(`navigation has distinct, comfortable tap targets at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 844 });
-  for (const route of ["/", "/2.0", "/work", "/writing", "/projects", "/resume"]) {
+  // /resume intentionally retains its production navigation and touch padding.
+  for (const route of ["/", "/2.0", "/work", "/writing", "/projects"]) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
-    // Wait for the navigation's font; unrelated off-screen font/layout work
-    // on the long resume page must not hold up this target-size measurement.
+    // Wait for the navigation's font without blocking on unrelated off-screen fonts.
     await page.locator(".site-nav a").first().evaluate(async link => {
       const { fontWeight, fontSize, fontFamily } = getComputedStyle(link);
       await document.fonts.load(`${fontWeight} ${fontSize} ${fontFamily}`);
