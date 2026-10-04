@@ -190,25 +190,31 @@
   .overviewIsland[data-overview-island="projects"] { left: 10%; top: 57%; width: 48%; height: 48%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
-.overviewImage { width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; transition: transform 180ms var(--cw-ease); }
+.overviewVisual { position: relative; display: block; width: 100%; height: 100%; min-height: 0; transition: transform 180ms var(--cw-ease); }
+.overviewImage { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.overviewDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 /* A shared slow drift, offset per island; Work holds still because the
    camera's first zoom targets its exact position. */
-.overviewIsland:not([data-overview-island="work"]) .overviewImage { animation: overview-bob 9s ease-in-out infinite; }
-.overviewIsland[data-overview-island="projects"] .overviewImage { animation-delay: -4.5s; }
+.overviewIsland:not([data-overview-island="work"]) .overviewVisual { animation: overview-bob 9s ease-in-out infinite; }
+.overviewIsland[data-overview-island="projects"] .overviewVisual { animation-delay: -4.5s; }
 .overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: clamp(0.9375rem, 1.1vw, 1.125rem); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
 /* Labels leave with the other annotations as soon as the camera moves. */
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
 .overviewIsland .overviewLabel { bottom: 4%; }
 .overviewIsland:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 0.25rem; border-radius: 1rem; }
 .overviewIsland:focus-visible { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
-.overviewIsland:focus-visible .overviewImage { transform: translateY(-6px) scale(1.03); }
+.overviewIsland:focus-visible .overviewVisual { transform: translateY(-6px) scale(1.03); }
 .overviewIsland:focus-visible .overviewLabel { color: #fff1d7; }
 @media (hover: hover) and (pointer: fine) {
   .overviewIsland:hover { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
-  .overviewIsland:hover .overviewImage { transform: translateY(-6px) scale(1.03); }
+  .overviewIsland:hover .overviewVisual { transform: translateY(-6px) scale(1.03); }
   .overviewIsland:hover .overviewLabel { color: #fff1d7; }
 }
-.stage[data-travelling="true"] .overviewImage { animation-play-state: paused; }
+.stage[data-travelling="true"] .overviewVisual, .stage[data-entering] .overviewVisual { animation-play-state: paused; }
+.stage[data-entering] .overviewVisual { transition: none; will-change: transform; }
+.stage[data-entering] .overviewIsland:not([data-entering]),
+.stage[data-entering] .overviewLabel { animation: entry-copy 120ms ease-out forwards; pointer-events: none; }
+.overviewIsland[data-entering] { z-index: 3; filter: none; outline-color: transparent; transition: none; }
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
 .writingPoster, .writingVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
@@ -421,7 +427,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .flightStars, .middleStars { display: none; }
-  .overviewImage { animation: none !important; transition: none; }
+  .overviewVisual { animation: none !important; transition: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .landmarkCue { transition: none; }

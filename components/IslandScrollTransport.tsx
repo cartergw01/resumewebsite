@@ -305,8 +305,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (link && stage.contains(link) && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
         const destination = new URL(link.href);
         if (destination.origin === location.origin && worlds.some(world => destination.pathname === `/${world.id}`)) {
-          // The overview uses a normal route transition. Hold this return
-          // address while the old scene is still mounted (notably on Safari).
+          // Hold the destination's return address while its source scene is
+          // still mounted, including entries from the opening/closing views.
           entryPending = true;
           window.clearTimeout(entryRecovery);
           entryRecovery = window.setTimeout(() => { entryPending = false; schedule(); }, 8_000);
@@ -315,11 +315,18 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const island = heading.closest("[data-island-scene]")?.querySelector<HTMLAnchorElement>("[data-island-link]");
+      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("[data-island-link]") ?? [])
+        .find(candidate => candidate.pathname === heading.pathname);
       if (!island) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       island.click();
+    };
+    const cancelEntry = () => {
+      entryPending = false;
+      window.clearTimeout(entryRecovery);
+      if (activeIndex >= 0) rememberIsland(worlds[activeIndex].id);
+      schedule();
     };
     const engage = (event: Event) => {
       const pointer = event as PointerEvent;
@@ -344,6 +351,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     motion.addEventListener("change", onMotionChange);
     next.addEventListener("click", advance);
     window.addEventListener("click", enterFromHeading, true);
+    stage.addEventListener("island-entry-cancel", cancelEntry);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
     // After the arrival cue is discovered, a mouse prompt follows the rocket;
     // the whole island stays the target and keyboard focus keeps its cue.
@@ -505,6 +513,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       motion.removeEventListener("change", onMotionChange);
       next.removeEventListener("click", advance);
       window.removeEventListener("click", enterFromHeading, true);
+      stage.removeEventListener("island-entry-cancel", cancelEntry);
       ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.removeEventListener(type, engage));
       stage.removeEventListener("pointermove", moveTip);
       stage.removeEventListener("pointerleave", hideTip);

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test("workshop screen and book pages respond locally to keyboard focus and hover", async ({ page }, testInfo) => {
   await page.goto("/2.0#projects");
-  const screen = page.locator("[data-workshop-screen]");
+  const screen = page.locator("#projects [data-workshop-screen]");
   const workshop = page.locator("#projects [data-island-link]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   await expect(screen).toHaveCSS("opacity", "0.3");
@@ -34,7 +34,7 @@ test("the workshop screen fans out every project and deals each into its row", a
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/2.0#projects");
-  const source = page.locator("[data-workshop-screen]");
+  const source = page.locator("#projects [data-workshop-screen]");
   const src = await source.getAttribute("data-src");
   await page.locator("#projects [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");

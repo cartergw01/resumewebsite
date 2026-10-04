@@ -1403,6 +1403,10 @@ export function RocketCursor() {
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
+    // Cancelling an island entrance also releases its visual-only rocket
+    // launch, so an immediate second click can start a fresh journey.
+    const cancelIslandLaunch = () => { if (transitionPhase === "launching") finishActiveLaunch(); };
+    document.addEventListener("island-entry-cancel", cancelIslandLaunch);
 
     return () => {
       cancelAnimationFrame(animId);
@@ -1428,6 +1432,7 @@ export function RocketCursor() {
       document.removeEventListener("click",         onNavClick, true);
       document.removeEventListener("click",         onSubpageClick);
       document.removeEventListener("visibilitychange", onVisibility);
+      document.removeEventListener("island-entry-cancel", cancelIslandLaunch);
       if (routeCommitHandlerRef.current === onRouteCommit) {
         routeCommitHandlerRef.current = null;
       }

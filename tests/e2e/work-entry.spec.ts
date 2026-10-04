@@ -32,7 +32,7 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   await expect(carry.locator("canvas[data-window-camera]")).toHaveCount(1);
   // Its first projected opening exactly matches the window on the turned tower.
   const error = await page.evaluate(() => {
-    const source = document.querySelector<SVGGraphicsElement>("[data-city-entry-window]")!;
+    const source = document.querySelector<SVGGraphicsElement>("#work [data-city-entry-window]")!;
     const matrix = source.getScreenCTM()!;
     const actual: number[][] = JSON.parse(document.querySelector<HTMLElement>("[data-city-window]")!.dataset.corners!);
     const expected: number[][] = JSON.parse(source.dataset.corners!);

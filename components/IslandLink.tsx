@@ -54,7 +54,7 @@ function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandL
   return { x, y, scale, origin: `${focusX}px ${focusY}px`, name: focus.name };
 }
 
-export default function IslandLink({ href, title, prompt, landmark, children, workshop = false, book = false }: { href: string; title: string; prompt: string; landmark: IslandLandmark; children: ReactNode; workshop?: boolean; book?: boolean }) {
+export default function IslandLink({ href, title, prompt, landmark, children, workshop = false, book = false, overview = false }: { href: string; title: string; prompt: string; landmark: IslandLandmark; children: ReactNode; workshop?: boolean; book?: boolean; overview?: boolean }) {
   const router = useRouter();
   const cleanupRef = useRef<(() => void) | null>(null);
 
@@ -79,6 +79,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     const initialTransform = initial.transform;
     const initialOrigin = initial.transformOrigin;
     visual.dataset.entryLandmark = name;
+    link.dataset.entering = "true";
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
@@ -118,8 +119,10 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       if (!handedOff) cancelScreen?.();
       delete stage.dataset.entering;
       delete visual.dataset.entryLandmark;
+      delete link.dataset.entering;
       stage.removeAttribute("aria-busy");
       cleanupRef.current = null;
+      if (!handedOff) stage.dispatchEvent(new Event("island-entry-cancel", { bubbles: true }));
       window.dispatchEvent(new Event("scroll"));
     };
     cleanupRef.current = reset;
@@ -149,8 +152,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
   return (
     <Link
       href={href}
-      className={styles.islandLink}
+      className={overview ? styles.overviewIsland : styles.islandLink}
       data-island-link
+      data-overview-island={overview ? title.toLowerCase() : undefined}
       draggable={false}
       data-workshop={workshop || undefined}
       data-world={title.toLowerCase()}
@@ -160,12 +164,12 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       onClick={enter}
     >
       {children}
-      <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
+      {overview ? <span className={styles.overviewLabel}>{title}</span> : <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>{prompt}</span>
         <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
           <path d={landmarkArrow(title, landmark)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-      </span>
+      </span>}
     </Link>
   );
 }

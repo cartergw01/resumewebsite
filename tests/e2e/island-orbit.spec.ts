@@ -52,7 +52,7 @@ test("keyboard rotation is bounded; reset restores the original view and Enter w
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   const canvas = await ready(page, "projects");
-  const original = await page.locator("[data-workshop-screen]").getAttribute("data-corners");
+  const original = await page.locator("#projects [data-workshop-screen]").getAttribute("data-corners");
   await page.locator("#projects [data-island-link]").focus();
   for (let i = 0; i < 10; i++) await page.keyboard.press("ArrowRight");
   expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeCloseTo(.65);
@@ -60,7 +60,7 @@ test("keyboard rotation is bounded; reset restores the original view and Enter w
   expect(Number(await canvas.getAttribute("data-orbit-pitch"))).toBeLessThan(0);
   await page.keyboard.press("r");
   await expect(canvas).not.toHaveAttribute("data-orbit-live");
-  await expect(page.locator("[data-workshop-screen]")).toHaveAttribute("data-corners", original!);
+  await expect(page.locator("#projects [data-workshop-screen]")).toHaveAttribute("data-corners", original!);
   await page.keyboard.press("ArrowLeft");
   await page.getByRole("button", { name: "Reset projects island view" }).click();
   await expect(canvas).not.toHaveAttribute("data-orbit-live");
@@ -105,7 +105,7 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
 test("losing the graphics context restores the poster and its original entry corners", async ({ page }) => {
   test.setTimeout(90_000);
   const canvas = await ready(page, "projects");
-  const surface = page.locator("[data-workshop-screen]");
+  const surface = page.locator("#projects [data-workshop-screen]");
   const original = await surface.getAttribute("data-corners");
   const link = page.locator("#projects [data-island-link]");
   await link.focus();

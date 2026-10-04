@@ -10,7 +10,7 @@ import styles from "./IslandOrbit.module.css";
 
 type Engine = Awaited<ReturnType<typeof createIslandOrbit>>;
 
-export default function IslandOrbit({ world, asset, anchors }: { world: string; asset: OrbitAsset; anchors: OrbitProjection }) {
+export default function IslandOrbit({ world, asset, anchors, interactive = true }: { world: string; asset: OrbitAsset; anchors: OrbitProjection; interactive?: boolean }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const [host, setHost] = useState<HTMLElement | null>(null);
@@ -29,16 +29,18 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
     let loadController: AbortController | null = null;
     let failed = false;
     let live = false;
+    let interested = interactive;
     let loadTimer: ReturnType<typeof setTimeout> | undefined;
     let idleLoad: number | undefined;
     const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
+    const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const cancelScheduledLoad = () => {
       clearTimeout(loadTimer);
       loadTimer = undefined;
       if (idleLoad !== undefined) window.cancelIdleCallback(idleLoad);
       idleLoad = undefined;
     };
-    const canLoad = () => !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.navigating && !stage.dataset.entering;
+    const canLoad = () => interested && (interactive || !motion.matches) && !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.navigating && !stage.dataset.entering;
     let drag: { id: number; x: number; y: number; lastX: number; lastY: number; moved: boolean; touch: boolean } | null = null;
     let suppressClick = false;
     const title = world[0].toUpperCase() + world.slice(1);
@@ -98,8 +100,10 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
         engineRef.current = engine;
         if (engine.beginWindowFlight) unregisterCamera = registerWindowCamera(visual, engine.beginWindowFlight);
         canvas.dataset.orbitReady = "true";
-        link.setAttribute("aria-describedby", `${world}-orbit-instructions`);
-        setHost(canvas.closest<HTMLElement>("[data-scene-art]"));
+        if (interactive) {
+          link.setAttribute("aria-describedby", `${world}-orbit-instructions`);
+          setHost(canvas.closest<HTMLElement>("[data-scene-art]"));
+        }
       } catch { failed = !controller.signal.aborted; /* Keep the original render and entry links usable. */ }
       finally {
         loading = false;
@@ -136,8 +140,9 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       engineRef.current?.reset();
     };
     resetRef.current = reset;
+    const prepareEntry = () => { interested = true; sync(); };
     const down = (event: PointerEvent) => {
-      if (event.button !== 0 || !event.isPrimary || stage.dataset.entering) return;
+      if (!interactive || event.button !== 0 || !event.isPrimary || stage.dataset.entering) return;
       suppressClick = false;
       drag = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, moved: false, touch: event.pointerType === "touch" };
     };
@@ -169,7 +174,7 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       event.stopImmediatePropagation();
     };
     const key = (event: KeyboardEvent) => {
-      if (event.target !== link || !engineRef.current || stage.dataset.entering || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (!interactive || event.target !== link || !engineRef.current || stage.dataset.entering || event.metaKey || event.ctrlKey || event.altKey) return;
       const moves: Record<string, [number, number]> = { ArrowLeft: [-0.1, 0], ArrowRight: [0.1, 0], ArrowUp: [0, -0.035], ArrowDown: [0, 0.035] };
       if (moves[event.key]) { event.preventDefault(); event.stopPropagation(); rotate(...moves[event.key]); }
       else if (event.key.toLowerCase() === "r") { event.preventDefault(); reset(); }
@@ -184,6 +189,8 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering", "data-navigating"] });
     const resize = new ResizeObserver(() => engineRef.current?.resize());
     resize.observe(visual);
+    link.addEventListener("pointerenter", prepareEntry);
+    link.addEventListener("focusin", prepareEntry);
     link.addEventListener("pointerdown", down);
     link.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -198,6 +205,8 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       disposed = true;
       observer.disconnect();
       resize.disconnect();
+      link.removeEventListener("pointerenter", prepareEntry);
+      link.removeEventListener("focusin", prepareEntry);
       link.removeEventListener("pointerdown", down);
       link.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
@@ -209,10 +218,10 @@ export default function IslandOrbit({ world, asset, anchors }: { world: string; 
       connection?.removeEventListener("change", sync);
       unload();
     };
-  }, [asset, anchors, world]);
+  }, [asset, anchors, interactive, world]);
 
   return <>
-    <canvas ref={canvasRef} className={styles.canvas} data-island-orbit={world} aria-hidden="true" />
+    <canvas ref={canvasRef} className={styles.canvas} data-island-orbit={interactive ? world : undefined} data-entry-camera={interactive ? undefined : world} aria-hidden="true" />
     {host && createPortal(<div className={styles.controls}>
       <span aria-hidden="true">drag to look around</span>
       <span id={`${world}-orbit-instructions`} className={styles.instructions}>Drag to turn the island. On a keyboard, use the arrow keys to look around, R to reset, and Enter to visit {world}.</span>

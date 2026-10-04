@@ -49,7 +49,7 @@ test("data saver keeps the workshop usable without preloading models or the whol
   await expect(page.locator("#projects [data-island-visual] > img")).toBeVisible();
   await page.waitForTimeout(1200);
   expect(downloads.filter(url => url.endsWith(".glb"))).toEqual([]);
-  const posters = await page.locator("[data-workshop-screen]").getAttribute("data-posters");
+  const posters = await page.locator("#projects [data-workshop-screen]").getAttribute("data-posters");
   const otherImages: string[] = JSON.parse(posters!).slice(1);
   expect(downloads.filter(url => otherImages.some(src => url.includes(src)))).toEqual([]);
   await page.emulateMedia({ reducedMotion: "reduce" });

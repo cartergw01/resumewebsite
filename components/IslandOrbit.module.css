@@ -1,5 +1,6 @@
 .canvas { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 2; opacity: 0; pointer-events: none; touch-action: pan-y pinch-zoom; filter: var(--island-grade); }
 .canvas[data-orbit-ready="true"] { pointer-events: auto; cursor: grab; }
+.canvas[data-entry-camera] { pointer-events: none; }
 .canvas[data-orbit-live="true"] { opacity: 1; }
 .canvas[data-orbit-dragging="true"] { cursor: grabbing; }
 .controls { position: absolute; bottom: -0.75rem; left: 50%; transform: translateX(-50%); z-index: 3; display: flex; align-items: center; gap: 1.1rem; white-space: nowrap; color: #d7ccb8b3; font-size: 0.75rem; line-height: 1.4; }
