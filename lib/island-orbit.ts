@@ -53,7 +53,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
           material.polygonOffsetFactor = -2;
           material.polygonOffsetUnits = -4;
           // Cycles lets windows and lamps bloom; match their night glow here.
-          material.emissiveIntensity *= 2.4;
+          material.emissiveIntensity *= 1.6;
         }
       }
     });

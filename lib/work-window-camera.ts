@@ -1,6 +1,6 @@
 import { BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, Quaternion, Scene, Vector3, WebGLRenderer } from "three";
 import type { ScreenMatrix, WindowFlight } from "./island-orbit-bridge";
-import { workApproach, workAlignment } from "./work-entry-motion";
+import { workApproach, workAlignment, workLens, WORK_LENS_WIDEN } from "./work-entry-motion";
 
 const smooth = (t: number) => { const x = Math.max(0, Math.min(1, t)); return x * x * (3 - 2 * x); };
 
@@ -58,7 +58,7 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
   const normal = window.normal.clone();
   if (normal.dot(direction) < 0) normal.negate();
   const heading = new Vector3();
-  const tangent = Math.tan(camera.fov * Math.PI / 360);
+  const tangent = Math.tan(Math.min(150, camera.fov * WORK_LENS_WIDEN) * Math.PI / 360);
   // Finish beyond the frame's visible edges, so the content has already
   // filled the viewport before Next mounts the destination.
   const finishDistance = Math.min(window.height / (2 * tangent), window.width / (2 * tangent * W / H)) * .88;
@@ -81,6 +81,7 @@ export function flyThroughWindow(renderer: WebGLRenderer, scene: Scene, camera: 
       orientation.setFromRotationMatrix(look);
       camera.quaternion.copy(original.quaternion).slerp(orientation, alignment);
       lens.near = Math.max(.0005, distance * .001);
+      lens.fov = Math.min(150, camera.fov * workLens(progress));
       lens.updateProjectionMatrix();
       const framing = alignment;
       camera.projectionMatrix.fromArray(startProjection.elements.map((value, i) => value + (lens.projectionMatrix.elements[i] - value) * framing));

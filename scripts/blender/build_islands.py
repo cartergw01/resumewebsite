@@ -329,7 +329,9 @@ def terrain_height(x,y,seed):
     radius=math.sqrt((x/5.535)**2+(y/3.9825)**2)
     edge=max(0,min(1,(radius-.66)/.25))
     broad=noise.noise_vector(Vector((x*.65,y*.65,seed)),noise_basis='PERLIN_ORIGINAL').x
-    return edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
+    # The city's district is built out to its edge, so its shoulders stay low.
+    rise=.22 if seed==31 else 1
+    return rise*edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
 
 
 # Each island has its own plan instead of one shared oval. (squareness,
@@ -703,6 +705,9 @@ def taipei101(x,y):
             poly=chamfered_square(.522)
             aa,bb=poly[side],poly[(side+1)%8]
             rod('101 · restrained projecting cornice',(x+aa[0],y+aa[1],z+.326),(x+bb[0],y+bb[1],z+.326),.005,'jade',6)
+            # Each tier's eave is uplit gold at night, so the pagoda reads.
+            glow=chamfered_square(.528);ga,gb=glow[side],glow[(side+1)%8]
+            rod('101 · gold tier light',(x+ga[0],y+ga[1],z+.320),(x+gb[0],y+gb[1],z+.320),.0022,'tierglow',4)
         for sx,sy in [(-1,-1),(1,-1),(1,1),(-1,1)]:
             # Corner scrolls, kept much smaller than the curtain-wall module.
             curve('101 · corner ruyi',[(x+sx*.225,y+sy*.225,z+.30),(x+sx*.261,y+sy*.261,z+.322),(x+sx*.258,y+sy*.258,z+.35)],.0045,'jade')
@@ -904,6 +909,85 @@ def urban_extension():
         sphere('Promenade · warm light',(x+.07,y,z+.069),(.006,.006,.004),'light',1)
 
 
+def elephant_mountain(cx,cy,rx,ry,height):
+    """Xiangshan, the forested ridge south-east of Taipei 101, with a trail."""
+    rng=random.Random(4410);verts=[];faces=[];rings=14;seg=48
+    def h(u):return height*(1-u**2)**1.4
+    for k in range(rings+1):
+        u=k/rings
+        for i in range(seg):
+            a=i*math.tau/seg;wob=1+.10*math.sin(a*3+1.3)+.05*math.sin(a*7)
+            ridge=.18*math.cos(a-.6)*(1-u)
+            verts.append((cx+math.cos(a)*rx*u*wob,cy+math.sin(a)*ry*u*wob,max(.02,h(u)*(1+ridge)+.03*noise.noise(Vector((a*2,u*3,7))))))
+    verts.append((cx,cy,h(0)*1.12))
+    for k in range(rings):
+        for i in range(seg):
+            j=(i+1)%seg;faces.append((k*seg+i,k*seg+j,(k+1)*seg+j,(k+1)*seg+i))
+    hill=mesh('Xiangshan · forested ridge',verts,faces,'moss')
+    for f in hill.data.polygons:f.use_smooth=True
+    # Dense subtropical canopy, thinning toward the bare summit rocks.
+    for i in range(70):
+        u=math.sqrt(rng.random())*.95;a=rng.uniform(0,math.tau)
+        x=cx+math.cos(a)*rx*u;y=cy+math.sin(a)*ry*u
+        tree(x,y,rng.uniform(.16,.26),h(u)-.01)
+    for i in range(5):
+        a=rng.uniform(0,math.tau);u=rng.uniform(.05,.25)
+        sphere('Xiangshan · summit boulder',(cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u)+.01),(.05,.04,.03),'rock2',1)
+    # The lit stair trail hikers climb for the view of 101.
+    pts=[];P.setdefault('trail',material('Xiangshan · lamplit stair trail',(1,.72,.40),emission=2.2))
+    for k in range(22):
+        u=1-k/22*.92;a=-2.2+k*.11
+        pts.append((cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u)+.012))
+    for a,b in zip(pts,pts[1:]):rod('Xiangshan · trail lamps',a,b,.0035,'trail',6)
+
+
+def densify_city():
+    """Build out every empty patch of the district: mid-rise frontage, a few
+    residential towers and pocket parks, never on top of what's there."""
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    ground=bpy.data.objects['Island · eroded basalt escarpment']
+    terrain=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
+    inverse=ground.matrix_world.inverted();rng=random.Random(2026)
+    elephant_mountain(4.05,-2.55,1.15,.82,.62)
+    bpy.context.view_layer.update()
+    depsgraph=bpy.context.evaluated_depsgraph_get();scene=bpy.context.scene
+    def surface(x,y):
+        hit=terrain.ray_cast(inverse@Vector((x,y,10)),Vector((0,0,-1)))[0]
+        if hit is None:return None
+        z=(ground.matrix_world@hit).z
+        return z if z>-.025 else None
+    def free(x,y,w,d):
+        for dx,dy in [(0,0),(-.5,-.5),(.5,-.5),(.5,.5),(-.5,.5),(0,-.5),(0,.5),(-.5,0),(.5,0)]:
+            ok,loc,_,_,obj,_=scene.ray_cast(depsgraph,Vector((x+dx*w,y+dy*d,8)),Vector((0,0,-1)))
+            if not ok or obj.name!=ground.name:return False
+        return True
+    i=0;step=.40
+    for gy in range(-9,10):
+        for gx in range(-13,14):
+            x=gx*step+rng.uniform(-.05,.05);y=gy*step+rng.uniform(-.05,.05)
+            w=rng.uniform(.24,.34);d=rng.uniform(.24,.34)
+            if not free(x,y,w+.05,d+.05):continue
+            corners=[surface(x+dx*w/2,y+dy*d/2) for dx,dy in [(-1,-1),(1,-1),(1,1),(-1,1)]]
+            if any(z is None for z in corners):continue
+            low,high=min(corners),max(corners)
+            if high-low>.12:continue
+            base=high+.028;roll=rng.random();edge=math.hypot(x/5.2,y/3.7)
+            # Keep a green margin between the city and the cliff edge.
+            if any(surface(x+dx*(w/2+.22),y+dy*(d/2+.22)) is None for dx,dy in [(-1,-1),(1,-1),(1,1),(-1,1),(0,-1.3),(0,1.3),(-1.3,0),(1.3,0)]):continue
+            if roll<.08:
+                # An occasional pocket park: trees straight in the ground.
+                for k in range(rng.randint(3,5)):tree(x+rng.uniform(-w,w)*.4,y+rng.uniform(-d,d)*.4,rng.uniform(.13,.2),low)
+            elif roll<.32 and edge<.75:
+                box('Residential tower · podium',(x,y,(low+base)/2),(w+.03,d+.03,base-low),'paving',.001)
+                rectilinear_block('Residential tower',x,y,w*.8,d*.8,rng.uniform(.75,1.15),3100+i,rng.choice([0,3]),base=base)
+            else:
+                box('Neighborhood · terraced plot',(x,y,(low+base)/2),(w+.03,d+.03,base-low),'paving',.001)
+                city_frontage('Neighborhood · infill frontage',x,y,w,d,rng.uniform(.22,.58),3000+i,base)
+            i+=1
+    print(f'CITY: infilled {i} plots',flush=True)
+
+
 def city():
     P['glass']=material('Taipei · green architectural glazing',(.055,.12,.092),metal=.42,rough=.24)
     P['city-tile']=textured('City · warm ceramic tile',(.23,.20,.16),(.39,.35,.28),'plaster',rough=.82)
@@ -914,6 +998,9 @@ def city():
     P['shoplight']=material('City · lit arcade shopfront',(1,.72,.42),emission=1.6)
     P['homelight']=material('City · lamplit apartment',(.95,.62,.32),emission=.9)
     P['streetlight']=material('City · sodium street lamp',(1,.70,.38),emission=6)
+    P['tierglow']=material('Taipei 101 · gold tier lighting',(1,.78,.42),emission=5)
+    P['headlight']=material('Traffic · headlight trail',(1,.93,.80),emission=4)
+    P['taillight']=material('Traffic · taillight trail',(1,.10,.06),emission=4)
     foundation(31,'district');landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     ground.data.materials[2]=textured('Xinyi · park meadow',(.035,.051,.018),(.115,.135,.048),'moss',rough=.98)
@@ -986,6 +1073,18 @@ def city():
         x=-3.05+i*.16
         tree(x,-1.14,.14+rng.random()*.03)
         if i%2==0:tree(x,1.20,.15)
+    # Long-exposure traffic: white headlights one way, red tail lights the
+    # other, broken into the gaps between junctions.
+    trng=random.Random(5101)
+    for (a,b,fixed,axis) in [(-3.2,3.2,-.95,'x'),(-2.3,2.1,-1.05,'y'),(-2.3,2.1,1.55,'y'),(-3.2,3.2,1.35,'x')]:
+        for lane,mat in [(-.045,'headlight'),(.045,'taillight')]:
+            t=a+trng.uniform(0,.3)
+            while t<b-.1:
+                ln=trng.uniform(.14,.42)
+                c=t+ln/2
+                if axis=='x':box('Traffic · light trail',(c,fixed+lane,.0505),(ln,.006,.003),mat,0)
+                else:box('Traffic · light trail',(fixed+lane,c,.0505),(.006,ln,.003),mat,0)
+                t+=ln+trng.uniform(.18,.55)
     for i in range(23):
         x=rng.uniform(-3.0,3.0);y=-.95+rng.choice([-.07,.07])
         box('Street · car',(x,y,.069),(.045,.018,.017),rng.choice(['paper','teal','glass2']),.004)
@@ -997,6 +1096,7 @@ def city():
         rod('Streetlamp',(x,-.77,.04),(x,-.77,.14),.0014,'steel',8)
         box('Streetlamp head',(x,-.78,.143),(.025,.008,.004),'light',.001)
     urban_extension()
+    densify_city()
     for x,y in [(-1.08,-.90),(1.53,-.94),(2.65,1.34)]:
         light('City · warm intersection',(x,y,.30),(1,.64,.30),2.4,.25,(x,y,.05))
 
@@ -1230,6 +1330,30 @@ def writing():
     for k in range(4):box('Diploma · printed line',(-3.091,dy-.03,dz+.09-k*.045),(.002,.26-k*.035,.008),'ink',0)
     # The window is glazed into the opening and looks out on the night.
     box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'nightglass',.001)
+    # The night outside: a low moon and a few stars in the panes.
+    P['moonglow']=material('Window · moon',(.95,.92,.82),emission=2.5)
+    moon=cylinder('Window · moon',(-1.55,1.976,2.55),.11,.002,'moonglow',40,bevel=0);moon.rotation_euler.x=math.pi/2
+    for sx2,sz2 in [(-2.55,2.70),(-2.30,2.42),(-2.62,2.18),(-1.30,2.25),(-2.12,2.80),(-1.75,1.72)]:
+        box('Window · star',(sx2,1.977,sz2),(.012,.001,.012),'moonglow',0)
+    # Linen drapes on a brass rod frame the window.
+    rod('Window · curtain rod',(-3.02,1.86,3.02),(-.90,1.86,3.02),.012,'brass',12)
+    for x0 in [-3.00,-1.24]:
+        verts=[];faces=[];cols=14
+        for c in range(cols+1):
+            xx=x0+.30*c/cols;yy=1.84-.03*math.sin(c/cols*math.pi*4)
+            verts+= [(xx,yy,1.28),(xx,yy,3.0)]
+        for c in range(cols):faces.append((c*2,c*2+2,c*2+3,c*2+1))
+        drape=mesh('Window · linen drape',verts,faces,'linen')
+        for f in drape.data.polygons:f.use_smooth=True
+        drape.modifiers.new('Cloth thickness','SOLIDIFY').thickness=.008
+    # An office clock above the bookshelf.
+    clock=cylinder('Office clock · face',(1.0,1.90,3.13),.14,.03,'paper',48,bevel=.004);clock.rotation_euler.x=math.pi/2
+    torus('Office clock · walnut rim',(1.0,1.885,3.13),.14,.012,'wood',(math.pi/2,0,0))
+    rod('Clock · hour hand',(1.0,1.882,3.13),(1.05,1.882,3.18),.005,'ink',6)
+    rod('Clock · minute hand',(1.0,1.881,3.13),(.94,1.881,3.235),.0035,'ink',6)
+    for k in range(12):
+        a=k*math.tau/12
+        box('Clock · hour mark',(1.0+math.cos(a)*.115,1.883,3.13+math.sin(a)*.115),(.012,.002,.012),'ink',0)
     box('Window · central mullion',(-1.96,1.95,2.11),(.026,.05,1.58),'teal',.002)
     for zz in [1.33,2.11,2.89]:box('Window · horizontal rail',(-1.96,1.95,zz),(1.66,.05,.027),'teal',.002)
     for xx in [-2.79,-1.13]:box('Window · reveal',(xx,1.95,2.11),(.03,.06,1.58),'teal',.002)
@@ -1546,6 +1670,16 @@ def workshop():
     curve('Workshop · bulb flex',[(-.55,front[0]+.05,front[1]-.09),(-.50,front[0]-.05,front[1]-.4),(-.48,front[0]-.10,front[1]-.78)],.006,'ink')
     sphere('Workshop · bare bulb',(-.48,front[0]-.10,front[1]-.86),(.045,.045,.06),'light',2)
     light('Workshop · bare bulb light',(-.48,front[0]-.18,front[1]-.92),(1,.70,.42),26,.05)
+    # A string of festoon bulbs swagged along the roof beam.
+    P['festoon']=material('Festoon · warm bulb',(1,.74,.44),emission=6)
+    hangs=[-3.0,-1.0,.95,2.82];fy=front[0]+.0;fz=front[1]-.10
+    for a,b in zip(hangs,hangs[1:]):
+        pts=[(a+(b-a)*t/8,fy,fz-.16*math.sin(math.pi*t/8)) for t in range(9)]
+        curve('Festoon · cable',pts,.004,'ink')
+        for t in [1,3,5,7]:
+            px2,_,pz2=pts[t]
+            sphere('Festoon · bulb',(px2,fy,pz2-.05),(.028,.028,.036),'festoon',2)
+    for xx in [-2.0,0,1.9]:light('Festoon · glow',(xx,fy-.15,fz-.25),(1,.72,.42),6,.3)
     # A small purple-and-gold pennant for the Lakers, pinned by the prints.
     P['lakers_purple']=material('Felt pennant · purple',(.14,.045,.24),rough=.95)
     P['lakers_gold']=material('Felt pennant · gold',(.62,.40,.07),rough=.95)
@@ -1617,6 +1751,25 @@ def workshop():
     box('Floor · cardboard box',(2.24,1.10,.151+.38+.13),(.42,.36,.26),'cardboard',.006,rot=-.12)
     box('Box · packing tape',(2.20,1.08,.151+.382),(.58,.06,.004),'linen',0,rot=.08)
     flap=box('Box · open flap',(2.24,.90,.151+.66),(.40,.012,.16),'cardboard',.002,rot=-.12);flap.rotation_euler.x=.7
+    # A small telescope on its tripod in the yard, aimed up past the roof.
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    ground=bpy.data.objects['Island · eroded basalt escarpment']
+    gtree=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
+    tx,ty=-2.85,-2.35
+    hit=gtree.ray_cast(ground.matrix_world.inverted()@Vector((tx,ty,10)),Vector((0,0,-1)))[0]
+    tz=(ground.matrix_world@hit).z if hit is not None else .1
+    apex=Vector((tx,ty,tz+.78))
+    for k in range(3):
+        a=k*math.tau/3+.4
+        rod('Telescope · tripod leg',(tx+math.cos(a)*.30,ty+math.sin(a)*.30,tz),tuple(apex),.012,'wood',8)
+    cylinder('Telescope · mount',tuple(apex+Vector((0,0,.04))),.035,.08,'ink',16,bevel=.004)
+    aim=Vector((.45,.55,.70)).normalized()
+    base_pt=apex+Vector((0,0,.10))-aim*.30;tip=apex+Vector((0,0,.10))+aim*.42
+    rod('Telescope · white tube',tuple(base_pt),tuple(tip),.055,'paper',24)
+    rod('Telescope · dew shield',tuple(tip),tuple(tip+aim*.10),.062,'ink',24)
+    rod('Telescope · eyepiece',tuple(base_pt+aim*.08),tuple(base_pt+aim*.08+Vector((0,0,.09))),.014,'ink',12)
+    rod('Telescope · finder',tuple(base_pt+aim*.25+Vector((0,0,.07))),tuple(base_pt+aim*.48+Vector((0,0,.07))),.012,'steel',12)
     # A low stool with metal legs and a modest padded seat.
     for xx in [-.27,.27]:
         for yy in [-.27,.27]:rod('Stool · splayed steel leg',(2.75+xx*1.25,-.78+yy*1.25,.16),(2.75+xx,-.78+yy,1.08),.021,'teal',20)

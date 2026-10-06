@@ -37,6 +37,18 @@ scenes; no generated image backplates are used.
   workbench turns toward the visitor. Worn paving leads past reclaimed lumber
   and offcuts. It uses the same furniture scale.
 
+### Night details
+
+A few deliberate touches per island, not clutter: Taipei 101's eaves are uplit
+gold tier by tier; Xinyi Road and the avenues carry long-exposure headlight and
+tail-light streaks; Xiangshan (Elephant Mountain) rises in the south-east
+corner with its lamplit stair trail; the rest of the district is built out to
+a green margin with mid-rise infill, a few residential towers and pocket
+parks (`densify_city`, which only builds where a ray finds bare ground). The
+study's window holds a low moon and a few stars between linen drapes, with an
+office clock above the shelves. The shed has festoon bulbs swagged along its
+roof beam and a telescope on a tripod in the yard.
+
 ### Personal details
 
 Only facts already on the site, or details Carter asked for, are used: his bike

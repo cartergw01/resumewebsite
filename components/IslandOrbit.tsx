@@ -151,12 +151,13 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       // Let arrival paint before decoding a model. Fast passes through a world
       // and background tabs should not start megabytes of optional 3D work,
       // and its decode must not land on the next scroll; hovering or focusing
-      // the island still loads it at once.
+      // the island still loads it at once. Work's entry flies the real model,
+      // so it loads promptly once the camera has landed there.
       loadTimer = setTimeout(() => {
         loadTimer = undefined;
         if ("requestIdleCallback" in window) idleLoad = window.requestIdleCallback(() => { idleLoad = undefined; void load(); }, { timeout: 2000 });
         else void load();
-      }, prepared ? 0 : 900);
+      }, prepared ? 0 : world === "work" ? 250 : 900);
     };
     const rotate = (dx: number, dy: number) => {
       clearHint();

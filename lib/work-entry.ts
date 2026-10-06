@@ -101,7 +101,8 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   const glass = document.createElement("div"); glass.className = styles.glazing;
   const reflection = document.createElement("div"); reflection.className = styles.reflection;
   glass.append(reflection);
-  opening.append(preview, glass); overlay.append(opening);
+  const flare = document.createElement("div"); flare.className = styles.flare;
+  opening.append(preview, glass); overlay.append(opening, flare);
   document.body.append(overlay);
   document.documentElement.dataset.workTransition = "entering";
   const camera = windowCameraFor(visual);
@@ -132,6 +133,11 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
     // Reveal by the physical opening's size, so both the real camera and the
     // lightweight fallback clear the glass when the contents are legible.
     glass.style.opacity = String(1 - smooth((content.fit - .07) / .48));
+    // A warm wash peaks as the camera passes through the pane, then clears.
+    const center = points.reduce((sum, point) => [sum[0] + point[0] / 4, sum[1] + point[1] / 4], [0, 0]);
+    flare.style.setProperty("--flare-x", `${center[0]}px`);
+    flare.style.setProperty("--flare-y", `${center[1]}px`);
+    flare.style.opacity = (.85 * smooth((content.fit - .06) / .2) * (1 - smooth((content.fit - .34) / .4))).toFixed(3);
   };
   const tick = () => {
     if (disposed) return;
