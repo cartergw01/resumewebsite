@@ -1,4 +1,4 @@
-import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
+import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, PointLight, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
 import { flyThroughWindow, makeLitWindow } from "./work-window-camera";
 import type { ScreenMatrix } from "./island-orbit-bridge";
 import { addIslandGrain } from "./island-orbit-materials";
@@ -12,6 +12,8 @@ export type OrbitAsset = {
   crop: number[];
   entryWindow3D?: number[][];
   surfaceAnchors?: { signature: string; points: OrbitProjection };
+  // Warm lamps, screens and task lights from the Blender scene (Three coordinates).
+  practicals?: { position: number[]; color: number[]; watts: number }[];
 };
 export type OrbitProjection = Record<string, number[][]>;
 
@@ -20,7 +22,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
   renderer.setClearColor(new Color(0), 0);
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
   renderer.toneMapping = AgXToneMapping;
-  renderer.toneMappingExposure = 0.85;
+  renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
   renderer.shadowMap.autoUpdate = false;
@@ -42,16 +44,29 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       object.castShadow = true;
       object.receiveShadow = true;
       for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-        if (material instanceof MeshStandardMaterial) addIslandGrain(material);
+        if (!(material instanceof MeshStandardMaterial)) continue;
+        addIslandGrain(material);
+        // Lit windows and lamps sit a hair in front of their facades; at this
+        // distance the depth buffer can't separate them, so pull them forward.
+        if (material.emissive.getHex() !== 0 && material.emissiveIntensity > 0) {
+          material.polygonOffset = true;
+          material.polygonOffsetFactor = -2;
+          material.polygonOffsetUnits = -4;
+          // Cycles lets windows and lamps bloom; match their night glow here.
+          material.emissiveIntensity *= 2.4;
+        }
       }
     });
     const scene = new Scene();
     scene.add(gltf.scene);
+    // The same night as the Cycles renders: navy ambience, a cool moon from
+    // behind on the left, a blue rim, a low bounce under the cliff, and the
+    // scene's own warm lamps.
     scene.environment = environment.texture;
-    scene.environmentIntensity = 0.3;
-    scene.add(new HemisphereLight(0xdde8ff, 0x514328, 0.4));
-    const key = new DirectionalLight(0xffefd8, 2.7);
-    key.position.set(-7, 11, 4);
+    scene.environmentIntensity = 0.1;
+    scene.add(new HemisphereLight(0x5d73b0, 0x15151c, 0.7));
+    const key = new DirectionalLight(0xb8ccff, 2.4);
+    key.position.set(-6.6, 7, -7.4);
     key.castShadow = true;
     key.shadow.mapSize.set(2048, 2048);
     Object.assign(key.shadow.camera, { left: -11, right: 11, top: 13, bottom: -9, near: 0.1, far: 45 });
@@ -59,9 +74,20 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     key.shadow.normalBias = 0.018;
     key.shadow.camera.updateProjectionMatrix();
     scene.add(key);
-    const rim = new DirectionalLight(0xa2caff, 0.9);
-    rim.position.set(5, 4, -6);
+    const rim = new DirectionalLight(0x86a8ff, 1.3);
+    rim.position.set(3, 4.5, -9);
     scene.add(rim);
+    const bounce = new DirectionalLight(0x8ca4ff, 0.45);
+    bounce.position.set(1.5, -4.5, 9);
+    scene.add(bounce);
+    const fill = new DirectionalLight(0x9fb4ff, 0.35);
+    fill.position.set(-3, 6, 9);
+    scene.add(fill);
+    for (const practical of asset.practicals ?? []) {
+      const lamp = new PointLight(new Color().fromArray(practical.color), practical.watts * 0.12, 4.5, 2);
+      lamp.position.fromArray(practical.position);
+      scene.add(lamp);
+    }
     renderer.shadowMap.needsUpdate = true;
     scene.updateMatrixWorld(true);
     const camera = new PerspectiveCamera(asset.camera.fov, 1.5, 0.05, 150);

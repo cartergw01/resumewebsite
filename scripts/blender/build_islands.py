@@ -118,6 +118,30 @@ def textured(name, dark, pale, kind='stone', metal=0, rough=.85, grain=None):
     return mat
 
 
+def fade_with_depth(mat, top=0., bottom=-3.6, floor=.45):
+    """Darken a surface toward the island's underside, so the cliff recedes
+    into the night instead of reading as an evenly lit rock sample."""
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    bs = nodes.get('Principled BSDF')
+    source = bs.inputs['Base Color'].links[0].from_socket if bs.inputs['Base Color'].is_linked else None
+    geometry = nodes.new('ShaderNodeNewGeometry')
+    split = nodes.new('ShaderNodeSeparateXYZ')
+    links.new(geometry.outputs['Position'], split.inputs[0])
+    ramp = nodes.new('ShaderNodeMapRange')
+    ramp.inputs['From Min'].default_value = bottom; ramp.inputs['From Max'].default_value = top
+    ramp.inputs['To Min'].default_value = floor; ramp.inputs['To Max'].default_value = 1
+    links.new(split.outputs['Z'], ramp.inputs['Value'])
+    curve = nodes.new('ShaderNodeMath'); curve.operation = 'POWER'; curve.inputs[1].default_value = 1.25
+    links.new(ramp.outputs[0], curve.inputs[0])
+    mix = nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'
+    mix.inputs['Factor'].default_value = 1
+    if source: links.new(source, mix.inputs['A'])
+    else: mix.inputs['A'].default_value = bs.inputs['Base Color'].default_value
+    links.new(curve.outputs[0], mix.inputs['B'])
+    links.new(mix.outputs['Result'], bs.inputs['Base Color'])
+    return mat
+
+
 def palette():
     global P
     P = {
@@ -149,17 +173,20 @@ def palette():
         'clay': textured('Unglazed terracotta',(.19,.083,.047),(.37,.20,.11),'plaster',rough=.93),
         'leather': textured('Worn tanned leather',(.051,.028,.018),(.15,.09,.050),'fabric',rough=.76),
         'linen': textured('Natural flax cloth',(.20,.205,.165),(.34,.335,.265),'fabric',rough=.97),
+        'rug': textured('Hand-knotted madder wool',(.16,.045,.028),(.36,.15,.075),'fabric',rough=.98),
         'redcloth': textured('Faded rust book cloth',(.095,.049,.035),(.24,.13,.08),'fabric',rough=.96),
         'light': material('Warm practical lights',(1,.67,.30),emission=3),
-        'window': material('Warm occupied offices',(.83,.55,.26),emission=.65),
-        'window2': material('Cool occupied offices',(.54,.68,.72),emission=.42),
-        'window3': material('Dim occupied offices',(.43,.34,.21),emission=.28),
+        'window': material('Warm occupied offices',(.95,.64,.32),emission=1.2),
+        'window2': material('Cool occupied offices',(.62,.76,.86),emission=.9),
+        'window3': material('Dim occupied offices',(.55,.42,.26),emission=.45),
         'screen': material('Screen glass',(.025,.065,.08),emission=.35),
         'pane2': material('Slightly warmer reflective glass',(.046,.084,.078),metal=.34,rough=.19),
+        'nightglass': material('Window onto the night',(.012,.020,.050),metal=.2,rough=.08,emission=.35),
         'pane3': material('Slightly cooler reflective glass',(.042,.079,.091),metal=.38,rough=.15),
         'paving': textured('Urban pavers',(.085,.087,.082),(.16,.165,.157),rough=.77),
         'steel': material('Brushed aluminium',(.30,.33,.34),metal=.83,rough=.3),
     }
+    for key in ['rock','rock2','rock3','soil']: fade_with_depth(P[key])
     # Continuous patches follow the surface rather than the mesh's triangle grid.
     ground=textured('Earth · irregular moss and exposed humus',(.047,.032,.016),(.13,.145,.057),'soil',rough=.98)
     ramp=next(n for n in ground.node_tree.nodes if n.type=='VALTORGB')
@@ -341,8 +368,12 @@ def foundation(seed):
             j=(i+1)%count
             faces.extend([(rings[k][i],rings[k+1][i],rings[k][j]),(rings[k][j],rings[k+1][i],rings[k+1][j])])
             t=k/levels
-            mineral=noise.noise_vector(verts[rings[k][i]]*2.7+Vector((seed,0,0))).x
-            mat=2 if k<2 else (3 if mineral>.23 else (4 if mineral<-.40 else 0))
+            # Sediment reads as continuous horizontal beds (gently warped and
+            # broken by the faults), not a patchwork of per-facet mineral pockets.
+            v=verts[rings[k][i]]
+            warp=noise.noise_vector(Vector((v.x*.35,v.y*.35,seed))).x*.06+.025*math.sin(v.x*1.7+v.y)
+            bed=int(max(0,t+warp-.06)*11)
+            mat=2 if k<2 else (1 if k<4 else [0,3,0,0,4,3,0,4,0,4,4][min(10,bed)])
             materials.extend([mat,mat])
     # A tessellated soil cap with an exposed organic rim and a level inner plot.
     inner=[]
@@ -394,6 +425,20 @@ def foundation(seed):
             curve('Cliff · exposed root',pts,.006,'wood')
             branch=[pts[2],point(a+.04,.10),point(a+.07,.15)]
             curve('Cliff · branching root',branch,.003,'wood')
+    # Roots that have pushed through the soil hang free below the lip, a few
+    # long ones and more short ones, clustered where the cliff is deepest.
+    for i in range(16):
+        a=rng.uniform(-math.pi*.95,-math.pi*.05) if i<11 else rng.uniform(0,math.tau)
+        out=Vector((math.cos(a),math.sin(a),0))
+        top=point(a,.035)+out*.01
+        lip=point(a,.075)+out*.06
+        length=rng.uniform(.18,.40) if i%3 else rng.uniform(.55,.95)
+        sway=Vector((rng.uniform(-.05,.05),rng.uniform(-.05,.05),0))
+        pts=[top,lip,lip+out*.05+sway*.3+Vector((0,0,-length*.35)),lip+out*.07+sway*.7+Vector((0,0,-length*.7)),lip+out*.08+sway+Vector((0,0,-length))]
+        curve('Cliff · hanging root',pts,rng.uniform(.005,.011),'wood')
+        if length>.5:
+            fork=pts[2]
+            curve('Cliff · hanging root tendril',[fork,fork+out*.04+Vector((rng.uniform(-.06,.06),0,-.12)),fork+out*.05+Vector((rng.uniform(-.08,.08),0,-length*.45))],.0035,'wood')
     # Give every world a broad, substantial landmass without enlarging its
     # buildings or furniture. The inner plot keeps its previous physical size.
     bpy.context.view_layer.update()
@@ -551,6 +596,12 @@ def plant(x,y,z,scale=1):
 def window_grid(x,y,width,depth,height,seed,base=.10,spacing=.075):
     rng=random.Random(seed); verts=[]; faces=[]; mats=[]
     cols=max(3,int(width/spacing)); rows=max(3,int(height/.038))
+    # At night offices light by floor and by tenant, not window by window:
+    # floors run lit or dark together, and each building keeps one tone.
+    tone=0 if rng.random()<.68 else 1
+    floors=[];previous=False
+    for row in range(rows):
+        previous=rng.random()<(.74 if previous else .30);floors.append(previous)
     for side in ['front','right','back']:
         span=width if side!='right' else depth
         cols=max(3,int(span/spacing))
@@ -568,12 +619,13 @@ def window_grid(x,y,width,depth,height,seed,base=.10,spacing=.075):
                 else:
                     p=(x+width/2+.0015,y+u,h)
                     quad=[(p[0],p[1]-w,h-hh),(p[0],p[1]+w,h-hh),(p[0],p[1]+w,h+hh),(p[0],p[1]-w,h+hh)]
-                suite=(row//3,col//4)
-                if suite not in suites:suites[suite]=rng.random()<.23
-                lit=suites[suite] and rng.random()<.87
+                if row not in suites:
+                    start=rng.uniform(-.1,.45);suites[row]=(start,start+rng.uniform(.45,1.1))
+                a,b=suites[row];fraction=(col+.5)/cols
+                lit=floors[row] and a<=fraction<=b and rng.random()<.9
                 n=len(verts); verts.extend(quad); faces.append(tuple(range(n,n+4)))
-                mats.append(rng.choices([0,1,2],[5,2,3])[0] if lit else 3)
-                if lit and side=='front' and rng.random()<.014: WINDOWS.append(p)
+                mats.append((2 if rng.random()<.12 else tone) if lit else 3)
+                if lit and side=='front' and rng.random()<.02: WINDOWS.append(p)
     obj=mesh('Facade · individual office glazing',verts,faces,'window')
     for m in ['window2','window3','glass']: obj.data.materials.append(P[m])
     for poly,mat in zip(obj.data.polygons,mats): poly.material_index=mat
@@ -584,9 +636,13 @@ def chamfered_square(width,cut=.10):
     return [(-h+c,-h),(h-c,-h),(h,-h+c),(h,h-c),(h-c,h),(-h+c,h),(-h,h-c),(-h,-h+c)]
 
 
-def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',columns=24):
+def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',columns=24,force=()):
     """Glazing follows the actual sloping planes; fine mullions retain scale."""
     rng=random.Random(seed);lower=chamfered_square(width);upper=chamfered_square(topwidth)
+    tone=1 if rng.random()<.7 else 2
+    occupancy=[];previous=False
+    for row in range(floors):
+        previous=rng.random()<(.72 if previous else .32);occupancy.append(previous)
     verts=[(x+a,y+b,z) for a,b in lower]+[(x+a,y+b,z+height) for a,b in upper]
     mesh(name+' · core',verts,[tuple(reversed(range(8))),tuple(range(8,16))]+[(i,(i+1)%8,(i+1)%8+8,i+8) for i in range(8)],mat)
     vs=[];fs=[];ms=[]
@@ -597,14 +653,15 @@ def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',col
         cols=columns if side%2==0 else max(2,columns//5)
         def pt(u,v): return Vector((x,y,z))+(a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v+normal
         for row in range(floors):
-            # Occupied suites form clusters instead of a uniform checkerboard.
-            occupied=rng.random()<.37
+            # A lit floor is one tenant's run of bays, the same on every face.
+            start=rng.uniform(-.15,.4);end=start+rng.uniform(.5,1.2)
             for col in range(cols):
                 u0=(col+.065)/cols;u1=(col+.935)/cols
                 v0=(row+.12)/floors;v1=(row+.87)/floors
                 n=len(vs);vs.extend([pt(u0,v0),pt(u1,v0),pt(u1,v1),pt(u0,v1)]);fs.append((n,n+1,n+2,n+3))
-                if col%5==0:suite_lit=occupied and rng.random()<.40
-                ms.append(rng.choice([1,1,2,3]) if suite_lit and rng.random()<.9 else rng.choice([0,0,0,4,5]))
+                lit=occupancy[row] and start<=(col+.5)/cols<=end and rng.random()<.92
+                if (side,row,col) in force:lit=True
+                ms.append(((3 if rng.random()<.1 else tone) if (side,row,col) not in force else 1) if lit else rng.choice([0,0,0,4,5]))
                 if ms[-1]==1 and side==0 and rng.random()<.01: WINDOWS.append(tuple(pt((u0+u1)/2,(v0+v1)/2)))
         for col in range(cols+1):
             rod(name+' · narrow aluminium mullion',pt(col/cols,0),pt(col/cols,1),.0008,'steel',4)
@@ -620,7 +677,8 @@ def taipei101(x,y):
     curtain_tower('101 lower shaft',x,y,.07,.68,.43,1.12,26,81,columns=28)
     for i in range(8):
         z=1.19+i*.337
-        curtain_tower(f'101 module {i+1}',x,y,z,.432,.516,.323,8,101+i,columns=24)
+        # Module 7 holds the lit office window the Work entry flies through.
+        curtain_tower(f'101 module {i+1}',x,y,z,.432,.516,.323,8,101+i,columns=24,force={(0,4,14),(0,4,15)} if i==6 else ())
         for side in range(8):
             poly=chamfered_square(.522)
             aa,bb=poly[side],poly[(side+1)%8]
@@ -689,6 +747,12 @@ def street(a,b,width,base=0):
     for t in range(int(delta.length/.085)):
         p=Vector(a)+direction*(t*.085+.025)
         box('Street · lane marking',(p.x,p.y,base+.047),(.035,.004,.001),'paper',0,angle)
+    # Lamps at a regular spacing on both kerbs light the length of each street.
+    for t in range(1,int(delta.length/.30)):
+        for side in [-1,1]:
+            p=Vector(a)+direction*(t*.30)+normal*side*(width/2+.035)
+            rod('Street · lamp column',(p.x,p.y,base+.04),(p.x,p.y,base+.105),.0012,'steel',6)
+            box('Street · lamp head',(p.x,p.y,base+.107),(.012,.012,.004),'streetlight',0)
     for end in [.17,delta.length-.17]:
         p=Vector(a)+direction*end
         for i in range(8):
@@ -701,7 +765,8 @@ def city_frontage(name,x,y,w,d,h,seed,base=.055):
     rng=random.Random(seed)
     wall=rng.choice(['city-tile','city-plaster','city-grey','brick'])
     box(name+' · tiled apartment body',(x,y+.018,base+.036+(h-.072)/2),(w,d-.036,h-.072),wall,.002)
-    box(name+' · recessed shopfront',(x,y+.026,base+.028),(w*.92,d-.07,.056),'glass2',.001)
+    # Taipei's covered arcades glow at night; most shopfronts are still open.
+    box(name+' · recessed shopfront',(x,y+.026,base+.028),(w*.92,d-.07,.056),'shoplight' if rng.random()<.78 else 'glass2',.001)
     # A continuous covered pavement at the ground floor, with slender piers.
     for xx in [x-w*.46,x+w*.46]:
         box(name+' · arcade pier',(xx,y-d/2+.006,base+.040),(.013,.014,.080),wall,.001)
@@ -711,11 +776,11 @@ def city_frontage(name,x,y,w,d,h,seed,base=.055):
     vs=[];fs=[];mats=[]
     for row in range(rows):
         z=base+.11+row*(h-.12)/rows
-        occupied=rng.random()<.20
+        occupied=rng.random()<.42
         for col in range(cols):
             xx=x-w/2+(col+.5)*w/cols;ww=w/cols*.34;hh=.010
             n=len(vs);vs.extend([(xx-ww,y-d/2-.001,z-hh),(xx+ww,y-d/2-.001,z-hh),(xx+ww,y-d/2-.001,z+hh),(xx-ww,y-d/2-.001,z+hh)])
-            fs.append((n,n+1,n+2,n+3));mats.append(1 if occupied and col%3!=2 else 0)
+            fs.append((n,n+1,n+2,n+3));mats.append(1 if occupied and rng.random()<.7 else 0)
         if row%2==0 and seed%4!=0:
             box(name+' · balcony slab',(x,y-d/2-.014,z-.015),(w*.91,.044,.005),'concrete',.001)
             rod(name+' · balcony rail',(x-w*.43,y-d/2-.035,z+.003),(x+w*.43,y-d/2-.035,z+.003),.0017,'steel',6)
@@ -723,7 +788,7 @@ def city_frontage(name,x,y,w,d,h,seed,base=.055):
         if seed%4==1:
             for xx in [x-w*.32,x+w*.32]:
                 box(name+' · balcony dividing fin',(xx,y-d/2-.011,z),(.009,.05,.036),wall,.001)
-    glazing=mesh(name+' · recessed windows',vs,fs,'glass2');glazing.data.materials.append(P['window3'])
+    glazing=mesh(name+' · recessed windows',vs,fs,'glass2');glazing.data.materials.append(P['homelight'])
     for face,mat in zip(glazing.data.polygons,mats):face.material_index=mat
     # The side elevation has its own rhythm; roofs vary instead of repeating
     # the same three oversized mechanical boxes on every building.
@@ -826,6 +891,9 @@ def city():
     P['city-grey']=material('City · grey mineral facade',(.20,.23,.23),rough=.84)
     P['city-roof']=textured('City · aged flat roof',(.055,.065,.065),(.13,.14,.13),'plaster',rough=.94)
     P['city-rust']=material('City · weathered red sheet metal',(.16,.074,.043),metal=.12,rough=.77)
+    P['shoplight']=material('City · lit arcade shopfront',(1,.72,.42),emission=1.6)
+    P['homelight']=material('City · lamplit apartment',(.95,.62,.32),emission=.9)
+    P['streetlight']=material('City · sodium street lamp',(1,.70,.38),emission=6)
     foundation(31);landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     ground.data.materials[2]=textured('Xinyi · park meadow',(.035,.051,.018),(.115,.135,.048),'moss',rough=.98)
@@ -910,7 +978,7 @@ def city():
         box('Streetlamp head',(x,-.78,.143),(.025,.008,.004),'light',.001)
     urban_extension()
     for x,y in [(-1.08,-.90),(1.53,-.94),(2.65,1.34)]:
-        light('City · warm intersection',(x,y,.24),(1,.66,.32),.16,.08,(x,y,.05))
+        light('City · warm intersection',(x,y,.30),(1,.64,.30),2.4,.25,(x,y,.05))
 
 
 def torus(name,loc,major,minor,mat,rotation=(0,0,0)):
@@ -1052,11 +1120,11 @@ def woven_rug():
     for j in range(rows):
         for i in range(cols):
             a=j*(cols+1)+i;faces.append((a,a+1,a+cols+2,a+cols+1))
-    rug=mesh('Study · softly rumpled woven rug',verts,faces,'linen')
+    rug=mesh('Study · softly rumpled woven rug',verts,faces,'rug')
     for face in rug.data.polygons:face.use_smooth=True
     for i in range(215):
         x=-2.05+i*.02
-        curve('Rug · visible warp',[(x,-2.21+j*.20,.166+.002*math.sin(i+j)) for j in range(17)],.0018,'linen')
+        curve('Rug · visible warp',[(x,-2.21+j*.20,.166+.002*math.sin(i+j)) for j in range(17)],.0018,'rug')
     for side in [-1,1]:
         for i in range(115):
             y=-2.18+i*.027
@@ -1100,17 +1168,25 @@ def turn_group(name, objects, degrees, origin, anchor_keys=()):
 
 def writing():
     foundation(73);landscape('writing',73);floorboards()
-    # A low garden wall and an open frame replace the enclosing room box.
-    box('Study · low limewashed garden wall',(-.18,1.98,.57),(6.1,.12,.82),'plaster',.009)
-    box('Study · low side return',(-3.19,1.1,.57),(.12,1.82,.82),'plaster',.009)
-    box('Study · stone coping',(-.18,1.98,1.00),(6.16,.20,.055),'stone',.007)
-    # A sheltered window seat: slender frame, trees visible around it.
-    for xx in [-2.79,-1.13]:box('Window · structural oak post',(xx,1.89,1.54),(.065,.09,2.75),'oak',.003)
-    box('Study · window glass',(-1.96,1.90,2.10),(1.58,.011,1.43),'glass',.001)
-    box('Window · central mullion',(-1.96,1.85,2.10),(.026,.07,1.47),'teal',.002)
-    for zz in [1.36,2.10,2.84]:box('Window · horizontal rail',(-1.96,1.85,zz),(1.72,.07,.027),'teal',.002)
-    box('Window · oak sill',(-1.96,1.77,1.32),(1.89,.29,.05),'oak',.003)
-    box('Window · narrow rain canopy',(-1.96,1.72,2.95),(2.06,.54,.055),'teal',.004)
+    # A cutaway corner of a real room: two limewashed walls, cut like a doll's
+    # house, so the window and shelves are set into something, not freestanding.
+    top=3.42
+    def wall(name,x0,x1,z0,z1):
+        box(name,((x0+x1)/2,1.98,(z0+z1)/2),(x1-x0,.12,z1-z0),'plaster',.006)
+    wall('Study · back wall',-3.25,-2.79,.16,top)
+    wall('Study · back wall',-1.13,2.89,.16,top)
+    wall('Study · wall under the window',-2.79,-1.13,.16,1.32)
+    wall('Study · wall over the window',-2.79,-1.13,2.90,top)
+    box('Study · side wall',(-3.19,.93,(top+.16)/2),(.12,2.22,top-.16),'plaster',.006)
+    box('Study · back wall coping',(-.18,1.98,top+.03),(6.20,.16,.06),'stone',.006)
+    box('Study · side wall coping',(-3.19,.93,top+.03),(.16,2.26,.06),'stone',.006)
+    box('Study · skirting',(-.18,1.91,.22),(6.1,.025,.10),'wood',.002)
+    # The window is glazed into the opening and looks out on the night.
+    box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'nightglass',.001)
+    box('Window · central mullion',(-1.96,1.95,2.11),(.026,.05,1.58),'teal',.002)
+    for zz in [1.33,2.11,2.89]:box('Window · horizontal rail',(-1.96,1.95,zz),(1.66,.05,.027),'teal',.002)
+    for xx in [-2.79,-1.13]:box('Window · reveal',(xx,1.95,2.11),(.03,.06,1.58),'teal',.002)
+    box('Window · oak sill',(-1.96,1.84,1.30),(1.89,.24,.05),'oak',.003)
     # Open, lower shelves let the book keep the foreground and sky stay visible.
     rng=random.Random(940)
     for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,1.49),(.046,.46,2.60),'wood',.003)
@@ -1149,7 +1225,8 @@ def writing():
         convert=lambda v:tuple(Vector((.16,-.80,1.614))+(Vector(v)-Vector((.16,-.80,1.614)))*1.22)
         ANCHORS[key]=[convert(v) for v in value] if isinstance(value,list) else convert(value)
     practical=desk_lamp(-1.17,-.14,1.614,.55)
-    for f,e in [(1,13),(25,14.3),(49,13)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
+    practical.data.color=(1,.66,.36);practical.data.shadow_soft_size=.08
+    for f,e in [(1,58),(25,63),(49,58)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
     # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
@@ -1175,7 +1252,9 @@ def writing():
         ANIMATED.append(leaf)
     chair(-.95,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
-    light('Study · paper warmth',(.2,-1.15,2.75),(1,.78,.51),25,.8,(.1,-.8,1.65))
+    light('Study · paper warmth',(.2,-1.15,2.75),(1,.74,.46),40,.8,(.1,-.8,1.65))
+    # Lamplight spilling onto the floor and the lower shelves.
+    light('Study · lamplight on the room',(-.6,-.4,2.6),(1,.68,.40),60,2.2,(-.2,.4,.4))
     plant(-2.65,.57,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
     woven_rug()
@@ -1189,11 +1268,64 @@ def hammer(x,y,z):
     curve('Hammer · claw',[(x+.10,y,z+.53),(x+.18,y,z+.50),(x+.21,y,z+.46)],.018,'steel')
 
 
+def bike(x,y,angle):
+    """A plain steel city bike on its kickstand: 26-inch wheels, flat bar."""
+    before=set(bpy.context.scene.objects)
+    P.setdefault('bikeframe',material('Bike · enamelled steel frame',(.035,.075,.065),metal=.35,rough=.42))
+    r=.66;wb=2.08;z=r+.12
+    rear=Vector((-wb/2,0,z));front=Vector((wb/2,0,z))
+    for c in [rear,front]:
+        torus('Bike · tyre',tuple(c),r,.034,'ink',(math.pi/2,0,0))
+        torus('Bike · rim',tuple(c),r-.045,.012,'steel',(math.pi/2,0,0))
+        cylinder('Bike · hub',tuple(c),.035,.09,'steel',16,bevel=0).rotation_euler.x=math.pi/2
+        for k in range(18):
+            a=k*math.tau/18
+            rod('Bike · spoke',tuple(c+Vector((0,.02*(1 if k%2 else -1),0))),tuple(c+Vector((math.cos(a)*(r-.05),0,math.sin(a)*(r-.05)))),.0028,'steel',4)
+    bb=Vector((-.08,0,z-.16));seat=Vector((-.42,0,z+.86));head_top=Vector((.62,0,z+.78));head_bot=Vector((.70,0,z+.52))
+    for a,b in [(bb,seat),(seat+Vector((.04,0,-.1)),head_top),(bb,head_bot),(head_bot,head_top)]:rod('Bike · frame tube',tuple(a),tuple(b),.026,'bikeframe',16)
+    for side in [-.055,.055]:
+        o=Vector((0,side,0))
+        rod('Bike · chainstay',tuple(bb+o*.5),tuple(rear+o),.016,'bikeframe',12)
+        rod('Bike · seatstay',tuple(seat+Vector((.03,0,-.12))+o*.4),tuple(rear+o),.014,'bikeframe',12)
+        rod('Bike · fork blade',tuple(head_bot+o*.6),tuple(front+o+Vector((.05,0,0))),.016,'bikeframe',12)
+    rod('Bike · seat post',tuple(seat),tuple(seat+Vector((-.04,0,.16))),.017,'steel',12)
+    box('Bike · leather saddle',tuple(seat+Vector((-.06,0,.19))),(.27,.13,.05),'leather',.02)
+    stem=head_top+Vector((-.02,0,.16))
+    rod('Bike · stem',tuple(head_top),tuple(stem),.018,'steel',12)
+    rod('Bike · flat bar',tuple(stem+Vector((0,-.30,0))),tuple(stem+Vector((0,.30,0))),.014,'steel',12)
+    for side in [-1,1]:rod('Bike · grip',tuple(stem+Vector((0,side*.30,0))),tuple(stem+Vector((0,side*.22,0))),.022,'ink',12)
+    torus('Bike · chainring',tuple(bb+Vector((0,.07,0))),.11,.010,'steel',(math.pi/2,0,0))
+    torus('Bike · chain',tuple((bb+rear)/2+Vector((0,.07,0))),.0,.0,'ink') if False else None
+    curve('Bike · chain',[tuple(bb+Vector((0,.07,.11))),tuple(rear+Vector((0,.07,.05)))],.006,'ink')
+    curve('Bike · chain',[tuple(bb+Vector((0,.07,-.11))),tuple(rear+Vector((0,.07,-.05)))],.006,'ink')
+    for side,phase in [(-1,0),(1,math.pi)]:
+        crank=bb+Vector((math.cos(phase+.6)*.17,side*.11,math.sin(phase+.6)*.17))
+        rod('Bike · crank',tuple(bb+Vector((0,side*.09,0))),tuple(crank),.012,'steel',8)
+        box('Bike · pedal',tuple(crank+Vector((0,side*.06,0))),(.10,.09,.022),'ink',.004)
+    rod('Bike · kickstand',tuple(bb+Vector((-.1,-.06,0))),(bb.x-.3,-.32,.12),.011,'steel',8)
+    for c in [rear+Vector((-.05,0,.08)),front+Vector((.03,0,.08))]:
+        curve('Bike · mudguard',[tuple(c+Vector((math.cos(a)*(r+.06),0,math.sin(a)*(r+.06)))) for a in [math.pi*.15,math.pi*.5,math.pi*.85]],.012,'bikeframe')
+    parts=set(bpy.context.scene.objects)-before
+    from mathutils.bvhtree import BVHTree
+    bpy.context.view_layer.update()
+    ground=bpy.data.objects['Island · eroded basalt escarpment']
+    tree=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
+    inv=ground.matrix_world.inverted();heights=[]
+    for dx in [-wb/2,wb/2]:
+        px=x+math.cos(angle)*dx;py=y+math.sin(angle)*dx
+        hit=tree.ray_cast(inv@Vector((px,py,10)),Vector((0,0,-1)))[0]
+        if hit is not None:heights.append((ground.matrix_world@hit).z)
+    base=(max(heights) if heights else .12)-.12+.005
+    # Leaning slightly onto the kickstand, then turned and placed in the yard.
+    pivot=Vector((0,0,0))
+    for obj in parts:
+        obj.rotation_euler.rotate(__import__('mathutils').Euler((math.radians(-7),0,angle)))
+        obj.location=__import__('mathutils').Matrix.Rotation(angle,4,'Z')@__import__('mathutils').Matrix.Rotation(math.radians(-7),4,'X')@obj.location+Vector((x,y,.12+base))
+
+
 def workshop():
     foundation(107);landscape('projects',107);floorboards()
     # A practical studio wall, with a small tool rail rather than a giant toy pegboard.
-    box('Workshop · limewashed tool wall',(-1.45,1.96,1.58),(3.36,.10,2.84),'plaster',.003)
-    box('Workshop · wall coping',(-1.45,1.96,3.02),(3.45,.19,.07),'stone',.004)
     box('Workshop · perforated steel panel',(-1.22,1.864,2.18),(2.80,.028,1.33),'teal',.002)
     vs=[];fs=[]
     for row in range(18):
@@ -1290,6 +1422,16 @@ def workshop():
     box('Bench · cable connector',(.78,-.35,.575),(.055,.11,.050),'teal',.006)
     box('Bench · folded canvas tool roll',(1.50,.05,.60),(.65,.65,.15),'linen',.025,rot=.10)
     for x in [1.28,1.69]:box('Tool roll · leather strap',(x,.05,.68),(.045,.68,.014),'leather',.003,rot=.10)
+    # Carter plays poker and built a poker odds calculator: a short stack of
+    # chips and a pair of cards wait beside the keyboard.
+    chip_colors=['redcloth','paper','ink','redcloth','jade']
+    for sx2,sy2,count in [(1.86,-.50,9),(1.98,-.38,6),(1.74,-.33,4)]:
+        for k in range(count):
+            cylinder('Poker · clay chip',(sx2+.002*math.sin(k*2.3),sy2,1.795+k*.0105),.048,.0095,chip_colors[(k+count)%5],32,bevel=.0015)
+            torus('Poker · chip edge inlay',(sx2+.002*math.sin(k*2.3),sy2,1.795+k*.0105),.048,.0022,'paper')
+    for k,(cx,cy,rot) in enumerate([(1.50,-.56,.30),(1.57,-.53,.52)]):
+        box('Poker · face-down card',(cx,cy,1.792+k*.002),(.125,.175,.002),'paper',.001,rot=rot)
+        box('Poker · card back',(cx,cy,1.7935+k*.002),(.105,.155,.0006),'redcloth',0,rot=rot)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -1307,6 +1449,28 @@ def workshop():
         box('Carton · label',(.75+i*.49,1.39,3.19),(.14,.002,.08),'paper',0)
     bpy.context.view_layer.update()
     transform_objects(set(bpy.context.scene.objects)-rear_storage,scale=(1,1,.72),origin=(0,0,.16))
+    # The studio is a cutaway corner like the study: a full back wall the
+    # tools and storage hang on, and a side wall, both cut like a doll's house.
+    top=3.98
+    def wall(x0,x1,z0,z1):box('Workshop · back wall',((x0+x1)/2,1.99,(z0+z1)/2),(x1-x0,.12,z1-z0),'plaster',.006)
+    wall(-3.13,-1.80,.16,top);wall(-.70,2.95,.16,top);wall(-1.80,-.70,.16,3.04);wall(-1.80,-.70,3.66,top)
+    box('Workshop · side wall',(-3.19,.93,(top+.16)/2),(.12,2.24,top-.16),'plaster',.006)
+    box('Workshop · back wall coping',(-.09,1.99,top+.03),(6.16,.16,.06),'stone',.006)
+    box('Workshop · side wall coping',(-3.19,.93,top+.03),(.16,2.28,.06),'stone',.006)
+    box('Workshop · high window',( -1.25,1.985,3.35),(1.10,.011,.62),'nightglass',.001)
+    for xx in [-1.80,-.70]:box('High window · reveal',(xx,1.95,3.35),(.03,.06,.62),'teal',.002)
+    for zz in [3.04,3.66]:box('High window · frame',(-1.25,1.95,zz),(1.13,.06,.03),'teal',.002)
+    box('High window · mullion',(-1.25,1.95,3.35),(.025,.05,.62),'teal',.002)
+    # A small purple-and-gold pennant for the Lakers, pinned by the prints.
+    P['lakers_purple']=material('Felt pennant · purple',(.14,.045,.24),rough=.95)
+    P['lakers_gold']=material('Felt pennant · gold',(.62,.40,.07),rough=.95)
+    px,pz=-.48,3.40
+    mesh('Pennant · felt',[(px,1.918,pz),(px,1.918,pz-.30),(px+.62,1.918,pz-.17)],[(0,1,2)],'lakers_purple')
+    mesh('Pennant · gold stripe',[(px,1.916,pz),(px,1.916,pz-.075),(px+.55,1.916,pz-.155)],[(0,1,2)],'lakers_gold')
+    box('Pennant · sleeve',(px-.015,1.917,pz-.15),(.04,.006,.32),'lakers_gold',.002)
+    cylinder('Pennant · pin',(px-.015,1.905,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
+    # Carter's bike, on its stand in the yard; he gets around the city on it.
+    bike(3.95,1.42,math.radians(-8))
     # A low stool with metal legs and a modest padded seat.
     for xx in [-.27,.27]:
         for yy in [-.27,.27]:rod('Stool · splayed steel leg',(2.75+xx*1.25,-.78+yy*1.25,.16),(2.75+xx,-.78+yy,1.08),.021,'teal',20)
@@ -1315,7 +1479,9 @@ def workshop():
     # Under-shelf task strip provides a soft local pool of light.
     box('Workshop · practical LED strip',(1.56,1.44,1.61),(2.04,.025,.015),'light',.003)
     ANCHORS['bulbs']=[(1.10,1.44,1.61),(2.0,1.44,1.61)]
-    light('Workshop · task strip',(1.56,1.35,1.58),(1,.79,.58),9,1.0,(1.1,.6,1.1))
+    light('Workshop · task strip',(1.56,1.35,1.58),(1,.76,.52),26,1.0,(1.1,.6,1.1))
+    practical.data.color=(1,.66,.36);practical.data.energy=52;practical.data.shadow_soft_size=.08
+    light('Workshop · lamplight on the room',(-1.2,-.3,2.6),(1,.68,.40),55,2.2,(-.8,.6,.3))
     plant(-2.98,.95,.16,.64)
 
 
@@ -1334,16 +1500,16 @@ def setup(world, width, samples, engine, device):
     scene.render.film_transparent=True
     scene.render.fps=12
     scene.frame_start=1; scene.frame_end=48
-    scene.world=bpy.data.worlds.new('Studio ambience')
+    # The islands hang in the site's night sky (#030611), so the only ambient
+    # light is that deep navy; the moon and the islands' own lamps do the rest.
+    scene.world=bpy.data.worlds.new('Night sky ambience')
     scene.world.use_nodes=True
-    sky=scene.world.node_tree.nodes.new('ShaderNodeTexSky')
-    sky.sky_type='MULTIPLE_SCATTERING';sky.sun_elevation=math.radians(8);sky.sun_rotation=math.radians(135)
-    sky.sun_disc=False;sky.altitude=.15;sky.air_density=1.2;sky.aerosol_density=2
-    scene.world.node_tree.links.new(sky.outputs['Color'],scene.world.node_tree.nodes['Background'].inputs[0])
-    scene.world.node_tree.nodes['Background'].inputs[1].default_value=.17
+    background=scene.world.node_tree.nodes['Background']
+    background.inputs[0].default_value=(.010,.016,.040,1)
+    background.inputs[1].default_value=1
     scene.view_settings.view_transform='AgX'
     scene.view_settings.look='AgX - Medium High Contrast'
-    scene.view_settings.exposure=.25
+    scene.view_settings.exposure=.55
     if engine=='CYCLES':
         scene.cycles.samples=samples
         scene.cycles.use_denoising=True
@@ -1378,12 +1544,20 @@ def camera_and_lights(scene):
     target=rotation@Vector(((xmin+xmax)/2,(ymin+ymax)/2,0))
     distance=max((xmax-xmin),1.5*(ymax-ymin))/.83/(36/70)
     camera.location=target+direction*(distance+3)
-    # Broad daylight keeps matte timber and stone clear; practicals add warmth.
-    light('Sky · north window',(-7,-4,11),(.86,.90,1),1450,4.5,(0,0,.7))
-    light('Dusk · horizon',(4,5,7),(1,.81,.57),750,5,(0,0,1))
-    light('Front · reflected sky',(0,-8,3),(.82,.87,1),160,8,(0,0,.7))
-    light('Cliff · ambient bounce',(-4,-3,-1),(.66,.69,.60),35,6,(0,0,-.8))
-    light('Cliff · cool edge',(5,3,1),(.53,.68,1),230,3,(0,0,-.8))
+    # Night: a cool moon from high on the left models every form with crisp
+    # shadows; a blue rim from behind lifts the silhouette off the navy sky;
+    # warm practicals (lamps, screens, windows) carry the story.
+    moon=bpy.data.lights.new('Moon · cool key','SUN')
+    moon.color=(.72,.80,1);moon.energy=1.7;moon.angle=math.radians(1.2)
+    key=bpy.data.objects.new('Moon · cool key',moon);bpy.context.collection.objects.link(key)
+    key.rotation_euler=Vector((.55,-.62,-.58)).to_track_quat('-Z','Y').to_euler()
+    light('Moon · sky fill',(-3,-9,6),(.55,.66,1),60,10,(0,0,.6))
+    light('Rim · behind the island',(3,9,4.5),(.50,.66,1),1500,6,(0,0,.4))
+    light('Rim · left cliff edge',(-9,3,1),(.45,.60,1),700,5,(0,0,-1.2))
+    # The lip overhangs the cliff, so a low, cool bounce models its beds and
+    # roots the way a little moonlit cloud cover would.
+    light('Cliff · low moon bounce',(1.5,-9,-4.5),(.55,.66,1),520,9,(0,0,-1.6))
+    light('Cliff · right edge',(9,-2,-1),(.62,.70,1),450,5,(0,0,-1.4))
     bpy.context.view_layer.update()
     # Fit the perspective projection itself, including the nearest corners.
     for step in range(6):

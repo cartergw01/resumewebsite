@@ -32,6 +32,16 @@ camera_data = {'position':web_point(camera.location), 'up':web_point(camera.rota
                'direction':web_point(camera.rotation_euler.to_matrix() @ Vector((0,0,-1))),
                'fov':float(camera.data.angle_y*180/np.pi)}
 
+# The browser has no Cycles lamps, so carry the warm practicals (desk and
+# bench lamps, screens, task strips) across as point lights. The moon, rim
+# and cliff lights are the shared night rig, rebuilt in lib/island-orbit.ts.
+practicals=[]
+for obj in scene.objects:
+    if obj.type!='LIGHT' or obj.data.type not in {'POINT','AREA'}: continue
+    if obj.name.split(' ·')[0] in {'Moon','Rim','Cliff','City'}: continue
+    practicals.append({'position':web_point(obj.matrix_world.translation),
+                       'color':[round(c,3) for c in obj.data.color],'watts':round(obj.data.energy,2)})
+
 # A joined mesh still needs each object's original coordinates for procedural
 # stone and wood. Preserve them as an attribute before applying world transforms.
 depsgraph=bpy.context.evaluated_depsgraph_get()
@@ -132,5 +142,5 @@ manifest_path=ROOT/'lib'/'island-orbit-assets.json'
 manifest=json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
 crop=opts.crop or manifest.get(opts.world,{}).get('crop')
 if not crop: raise ValueError('Supply --crop X Y WIDTH HEIGHT from prepare_islands.mjs')
-manifest[opts.world]={**manifest.get(opts.world,{}),'src':'/blender/'+name,'camera':camera_data,'crop':crop}
+manifest[opts.world]={**manifest.get(opts.world,{}),'src':'/blender/'+name,'camera':camera_data,'crop':crop,'practicals':practicals}
 manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')

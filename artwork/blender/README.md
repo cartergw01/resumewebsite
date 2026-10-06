@@ -21,23 +21,44 @@ scenes; no generated image backplates are used.
   bridge the low-rise fabric and landmark towers. A planted promenade follows
   the front edge. These surrounding blocks are composed interpretations, not
   additional surveyed replicas of named buildings.
-- **Writing:** a study with slim walnut furniture, a usable upholstered chair,
-  open bookshelves, a sheltered reading garden, low stone walls, trellis,
-  a framed window, an open notebook, mug,
-  spectacles, fountain pen and a task lamp. Two scene units represent one metre.
-- **Projects:** a working studio with a steel-framed bench, tool panel, labelled
-  storage, an open electronics enclosure, circuit-board components, soldering
-  station, cables, caliper and a 27-inch monitor. The workbench turns toward the
-  visitor; the lower tool wall and open storage leave the screen prominent.
-  Worn paving and steps lead past reclaimed lumber, offcuts and a cable reel.
-  It uses the same furniture scale.
+- **Writing:** a cutaway corner of a study, two limewashed walls cut like a
+  doll's house, with the window glazed into the back wall and the bookshelf
+  standing against it. Slim walnut furniture, a usable upholstered chair, a
+  madder wool rug, an open notebook, mug, spectacles, fountain pen and a task
+  lamp; a reading garden and trellis sit outside the side wall. Two scene units
+  represent one metre.
+- **Projects:** a cutaway workshop corner (back wall with a high window, side
+  wall) with a steel-framed bench, tool panel, labelled storage, an open
+  electronics enclosure, soldering station, caliper and a 27-inch monitor. The
+  workbench turns toward the visitor. Worn paving leads past reclaimed lumber
+  and offcuts. It uses the same furniture scale.
 
-The sky shader provides reflections; broad, neutral daylight keeps the matte
-surfaces readable, with local lights illuminating the working surfaces. The
-camera uses perspective without miniature depth-of-field blur.
+### Personal details
 
-The shared foundation has chipped stone faces, an uneven soil rim, continuous
-moss patches, embedded gravel, fine grass and exposed roots. Walnut, oak and
+Only facts already on the site are used, never invented ones: Carter's bike
+stands in the workshop yard (he bikes around Taipei), poker chips and a pair of
+face-down cards sit by the keyboard (he plays poker and built a poker odds
+calculator), and a small purple-and-gold felt pennant hangs by the high window
+(he follows the Lakers; no logo or lettering). The essay journals and project
+prints below are his real covers and screenshots.
+
+### Night
+
+The islands hang in the site's night sky (#030611), so they are lit as night
+miniatures rather than daytime product shots. The world is a deep navy
+ambience. A cool moon from behind on the left models every form with crisp
+shadows; a blue rim lifts silhouettes off the sky; a low cool bounce models the
+cliff under its overhanging lip. The story lights are warm practicals: the desk
+and bench lamps pool on the work, the study window and workshop window show the
+night, and Xinyi glows from its arcades, street lamps and offices. Office
+windows light by floor and tenant, one tone per building, never as a random
+checkerboard; Taipei 101's entry window is always lit. The camera uses
+perspective without miniature depth-of-field blur.
+
+The shared foundation has chipped stone faces in continuous sedimentary beds
+(not per-facet mineral patches), a dark humus band under the grass lip, roots
+hanging free below the edge, embedded gravel and fine grass. Its colour falls
+off with depth so the underside recedes into the night. Walnut, oak and
 reclaimed floorboards have directional grain and varying roughness. Lime plaster,
 flax cloth, worn leather and unglazed terracotta keep the interiors earthy;
 architectural glass and bare metal retain their distinct reflective finish.
@@ -215,7 +236,9 @@ printed by `prepare_islands.mjs`; otherwise the current manifest crop is kept.
 Remove superseded GLBs after checking the new model in the browser.
 
 The exporter joins detailed geometry, bakes procedural base colors, preserves
-image planes and surface roughness, and uses Draco compression. Lighting and
+image planes and surface roughness, and uses Draco compression. It also records
+the scene's warm practical lamps as `practicals`, which `lib/island-orbit.ts`
+adds as point lights beside the same moon, rim and bounce rig. Lighting and
 fine wood/stone grain run in the browser; they approximate the offline Cycles
 render, so a live angle is not pixel-identical to the still. Models currently
 range from about 3–7 MiB. They load per active world, render only on input or
