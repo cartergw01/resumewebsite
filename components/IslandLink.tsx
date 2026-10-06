@@ -89,11 +89,12 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     const entryWindow = city ? visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]") : null;
     const workEntry = entryWindow ? beginWorkEntry(entryWindow, visual) : null;
     // Work borrows its real camera; the book and workshop keep their approach.
+    // One continuous move: it starts promptly, gathers speed and dives in,
+    // with no intermediate keyframe where the camera could stall.
     const zoom = workEntry?.animation ?? visual.animate([
-      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin, offset: 0, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" },
-      { transform: `translate3d(${x * 0.16}px, ${y * 0.16}px, 0) scale(${city ? 1.12 : 1.32})`, transformOrigin: origin, offset: 0.28, easing: "cubic-bezier(0.42, 0, 0.76, 0.5)" },
-      { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin, offset: 1 },
-    ], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
+      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
+      { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
+    ], { duration: ENTRY_APPROACH_DURATION, easing: "cubic-bezier(0.5, 0, 0.75, 0.9)", fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;

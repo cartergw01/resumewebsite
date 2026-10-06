@@ -332,19 +332,39 @@ def terrain_height(x,y,seed):
     return edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
 
 
-def foundation(seed):
+# Each island has its own plan instead of one shared oval. (squareness,
+# jitter range, lobes as (angle, width, reach)).
+PLANS={
+    # A broad, squarer district the city's grid actually fills.
+    'district':(3.4,(.95,1.02),[(math.radians(35),.5,.06),(math.radians(215),.5,.05)]),
+    # A soft, rounded garden plot with a bulge where the reading garden sits.
+    'garden':(2.0,(.94,1.02),[(math.radians(170),.55,.10),(math.radians(-60),.6,.05)]),
+    # A rough, broken lot: a jagged edge and a yard lobe where the bike stands.
+    'lot':(2.3,(.80,1.07),[(math.radians(28),.42,.16),(math.radians(-150),.35,.08)]),
+}
+
+
+def plan_radius(a,plan):
+    n,_,lobes=PLANS[plan]
+    square=(abs(math.cos(a))**n+abs(math.sin(a))**n)**(-1/n)
+    lobe=sum(reach*math.exp(-(math.atan2(math.sin(a-angle),math.cos(a-angle))/width)**2) for angle,width,reach in lobes)
+    return square*(1+lobe)
+
+
+def foundation(seed,plan='garden'):
     before=set(bpy.context.scene.objects)
     rng=random.Random(seed)
     count=192; levels=64; verts=[]; rings=[]; faces=[]; materials=[]
     # Broken cliff contours replace the old smooth, periodically stacked rings.
-    outline=[rng.uniform(.88,1.05) for _ in range(24)]
+    low,high=PLANS[plan][1]
+    outline=[rng.uniform(low,high) for _ in range(24 if plan!='lot' else 36)]
     # Different plans share the same sedimentary structure. Local faults cut
     # vertically through stepped ledges rather than smoothing into a bowl.
     faults=[(rng.uniform(0,math.tau),rng.uniform(.08,.18),rng.uniform(.06,.15)) for _ in range(11)]
     strata=[(0,1),(.10,.99),(.15,.86),(.29,.88),(.34,.72),(.48,.74),(.54,.56),(.70,.57),(.77,.35),(.90,.28),(1,.025)]
     def point(a,t):
-        phase=(a%math.tau)/math.tau*24;i=int(phase);f=phase-i
-        edge=outline[i%24]*(1-f)+outline[(i+1)%24]*f
+        k=len(outline);phase=(a%math.tau)/math.tau*k;i=int(phase);f=phase-i
+        edge=(outline[i%k]*(1-f)+outline[(i+1)%k]*f)*plan_radius(a,plan)
         coarse=noise.noise_vector(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL').x
         grit=noise.noise_vector(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL').x
         warped=max(0,min(1,t+(.075*math.sin(a*3+seed)+.032*math.sin(a*7))*math.sin(math.pi*t)))
@@ -894,7 +914,7 @@ def city():
     P['shoplight']=material('City · lit arcade shopfront',(1,.72,.42),emission=1.6)
     P['homelight']=material('City · lamplit apartment',(.95,.62,.32),emission=.9)
     P['streetlight']=material('City · sodium street lamp',(1,.70,.38),emission=6)
-    foundation(31);landscape('work',31);rng=random.Random(263)
+    foundation(31,'district');landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     ground.data.materials[2]=textured('Xinyi · park meadow',(.035,.051,.018),(.115,.135,.048),'moss',rough=.98)
     # A compressed Xinyi composition. North is +Y; east is +X.
@@ -1167,20 +1187,47 @@ def turn_group(name, objects, degrees, origin, anchor_keys=()):
 
 
 def writing():
-    foundation(73);landscape('writing',73);floorboards()
-    # A cutaway corner of a real room: two limewashed walls, cut like a doll's
-    # house, so the window and shelves are set into something, not freestanding.
-    top=3.42
+    foundation(73,'garden');landscape('writing',73);floorboards()
+    # A cutaway corner of a proper study-office: painted plaster above, green
+    # panelled wainscot below, a chair rail and crown moulding, cut like a
+    # doll's house so the window and shelves are set into real walls.
+    P['officewall']=textured('Study · eggshell paint',(.47,.44,.38),(.55,.52,.45),'plaster',rough=.7)
+    P['wainscot']=textured('Study · painted panelling',(.040,.075,.060),(.065,.105,.085),'plaster',rough=.55)
+    top=3.42;rail=1.24
     def wall(name,x0,x1,z0,z1):
-        box(name,((x0+x1)/2,1.98,(z0+z1)/2),(x1-x0,.12,z1-z0),'plaster',.006)
-    wall('Study · back wall',-3.25,-2.79,.16,top)
-    wall('Study · back wall',-1.13,2.89,.16,top)
-    wall('Study · wall under the window',-2.79,-1.13,.16,1.32)
+        box(name,((x0+x1)/2,1.98,(z0+z1)/2),(x1-x0,.12,z1-z0),'officewall',.004)
+    wall('Study · back wall',-3.25,-2.79,rail,top)
+    wall('Study · back wall',-1.13,2.89,rail,top)
+    wall('Study · wall under the window',-2.79,-1.13,rail,1.32)
     wall('Study · wall over the window',-2.79,-1.13,2.90,top)
-    box('Study · side wall',(-3.19,.93,(top+.16)/2),(.12,2.22,top-.16),'plaster',.006)
-    box('Study · back wall coping',(-.18,1.98,top+.03),(6.20,.16,.06),'stone',.006)
-    box('Study · side wall coping',(-3.19,.93,top+.03),(.16,2.26,.06),'stone',.006)
-    box('Study · skirting',(-.18,1.91,.22),(6.1,.025,.10),'wood',.002)
+    box('Study · side wall',(-3.19,.93,(top+rail)/2),(.12,2.22,top-rail),'officewall',.004)
+    box('Study · back wainscot',(-.18,1.98,(rail+.16)/2),(6.14,.13,rail-.16),'wainscot',.004)
+    box('Study · side wainscot',(-3.19,.93,(rail+.16)/2),(.13,2.22,rail-.16),'wainscot',.004)
+    # Raised panels, a chair rail, crown moulding and skirting, all square.
+    x=-3.10
+    while x<2.70:
+        for (z0,z1) in [(.34,1.10)]:
+            for a,b in [((x,z0),(x+.62,z0)),((x,z1),(x+.62,z1)),((x,z0),(x,z1)),((x+.62,z0),(x+.62,z1))]:
+                box('Wainscot · panel moulding',((a[0]+b[0])/2,1.912,(a[1]+b[1])/2),(abs(b[0]-a[0])+.022,.016,abs(b[1]-a[1])+.022),'wainscot',.003)
+        x+=.74
+    for y0 in [.0,.74,1.48]:
+        for a,b in [((y0,.34),(y0+.5,.34)),((y0,1.10),(y0+.5,1.10)),((y0,.34),(y0,1.10)),((y0+.5,.34),(y0+.5,1.10))]:
+            box('Wainscot · panel moulding',(-3.122,(a[0]+b[0])/2,(a[1]+b[1])/2),(.016,abs(b[0]-a[0])+.022,abs(b[1]-a[1])+.022),'wainscot',.003)
+    box('Study · chair rail',(-.18,1.905,rail),(6.14,.04,.05),'oak',.004)
+    box('Study · side chair rail',(-3.115,.93,rail),(.04,2.22,.05),'oak',.004)
+    box('Study · crown moulding',(-.18,1.90,top-.05),(6.14,.06,.08),'paper',.006)
+    box('Study · side crown moulding',(-3.11,.93,top-.05),(.06,2.22,.08),'paper',.006)
+    box('Study · back wall top',(-.18,1.98,top+.015),(6.20,.14,.03),'paper',.004)
+    box('Study · side wall top',(-3.19,.93,top+.015),(.14,2.26,.03),'paper',.004)
+    box('Study · skirting',(-.18,1.905,.22),(6.1,.03,.10),'oak',.002)
+    # Carter studied at UC Santa Cruz: his degree, framed above the desk.
+    # It hangs on the side wall, facing into the room.
+    dy,dz=.62,2.18
+    box('Diploma · walnut frame',(-3.115,dy,dz),(.03,.66,.50),'wood',.006)
+    box('Diploma · mat',(-3.098,dy,dz),(.006,.58,.42),'paper',.001)
+    box('Diploma · certificate',(-3.094,dy,dz),(.004,.44,.30),'page',.001)
+    cylinder('Diploma · gold seal',(-3.090,dy+.15,dz-.09),.035,.004,'brass',24,bevel=0).rotation_euler.y=math.pi/2
+    for k in range(4):box('Diploma · printed line',(-3.091,dy-.03,dz+.09-k*.045),(.002,.26-k*.035,.008),'ink',0)
     # The window is glazed into the opening and looks out on the night.
     box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'nightglass',.001)
     box('Window · central mullion',(-1.96,1.95,2.11),(.026,.05,1.58),'teal',.002)
@@ -1324,7 +1371,7 @@ def bike(x,y,angle):
 
 
 def workshop():
-    foundation(107);landscape('projects',107);floorboards()
+    foundation(107,'lot');landscape('projects',107);floorboards()
     # A practical studio wall, with a small tool rail rather than a giant toy pegboard.
     box('Workshop · perforated steel panel',(-1.22,1.864,2.18),(2.80,.028,1.33),'teal',.002)
     vs=[];fs=[]
@@ -1449,28 +1496,127 @@ def workshop():
         box('Carton · label',(.75+i*.49,1.39,3.19),(.14,.002,.08),'paper',0)
     bpy.context.view_layer.update()
     transform_objects(set(bpy.context.scene.objects)-rear_storage,scale=(1,1,.72),origin=(0,0,.16))
-    # The studio is a cutaway corner like the study: a full back wall the
-    # tools and storage hang on, and a side wall, both cut like a doll's house.
+    # Unlike the study's finished room, the workshop is an open lean-to shed:
+    # a bare timber stud frame with mismatched plywood on its lower half, two
+    # patched sheets above, open bays to the sky, no side wall, and a sloping
+    # corrugated roof on posts.
     top=3.98
-    def wall(x0,x1,z0,z1):box('Workshop · back wall',((x0+x1)/2,1.99,(z0+z1)/2),(x1-x0,.12,z1-z0),'plaster',.006)
-    wall(-3.13,-1.80,.16,top);wall(-.70,2.95,.16,top);wall(-1.80,-.70,.16,3.04);wall(-1.80,-.70,3.66,top)
-    box('Workshop · side wall',(-3.19,.93,(top+.16)/2),(.12,2.24,top-.16),'plaster',.006)
-    box('Workshop · back wall coping',(-.09,1.99,top+.03),(6.16,.16,.06),'stone',.006)
-    box('Workshop · side wall coping',(-3.19,.93,top+.03),(.16,2.28,.06),'stone',.006)
-    box('Workshop · high window',( -1.25,1.985,3.35),(1.10,.011,.62),'nightglass',.001)
-    for xx in [-1.80,-.70]:box('High window · reveal',(xx,1.95,3.35),(.03,.06,.62),'teal',.002)
-    for zz in [3.04,3.66]:box('High window · frame',(-1.25,1.95,zz),(1.13,.06,.03),'teal',.002)
-    box('High window · mullion',(-1.25,1.95,3.35),(.025,.05,.62),'teal',.002)
+    P['ply']=textured('Workshop · birch plywood sheet',(.30,.22,.13),(.44,.34,.21),'wood',rough=.85,grain=(.6,9,4))
+    P['ply2']=textured('Workshop · weathered plywood sheet',(.24,.17,.10),(.37,.27,.16),'wood',rough=.88,grain=(.6,9,4))
+    P['osb']=textured('Workshop · oriented strand board',(.26,.18,.09),(.48,.36,.19),'soil',rough=.92)
+    P['corrugated']=textured('Workshop · galvanised corrugated steel',(.16,.17,.17),(.30,.31,.30),'metal',metal=.55,rough=.5)
+    srng=random.Random(4107)
+    def sheet(x0,x1,z0,z1,mat):
+        y=2.035+srng.uniform(-.006,.006)
+        box('Workshop · screwed sheet',((x0+x1)/2,y,(z0+z1)/2),(x1-x0,.035,z1-z0),mat,.002).rotation_euler.y=srng.uniform(-.008,.008)
+        for xx in [x0+.05,(x0+x1)/2,x1-.05]:
+            for zz in [z0+.06,(z0+z1)/2,z1-.06]:
+                cylinder('Sheet · screw head',(xx,y-.02,zz),.009,.004,'steel',8,bevel=0).rotation_euler.x=math.pi/2
+    # Studs at 60cm centres, a sole plate, a top plate and noggins between.
+    x=-3.13
+    while x<=2.96:
+        box('Workshop · stud',(x,2.10,(top+.16)/2),(.075,.13,top-.16),'oak',.003);x+=.608
+    box('Workshop · sole plate',(-.09,2.10,.19),(6.16,.13,.06),'oak',.003)
+    box('Workshop · top plate',(-.09,2.10,top+.03),(6.16,.13,.06),'oak',.003)
+    for zz in [2.30,3.20]:box('Workshop · noggin',(-.09,2.10,zz),(6.08,.06,.075),'oak',.002)
+    x=-3.13;splits=[2.20,2.05,2.26,2.12,2.18];mats=['ply','osb','ply2','ply','osb']
+    for i in range(5):
+        w=min(1.216,2.95-x);sheet(x+.008,x+w-.008,.16,splits[i],mats[i]);x+=w
+    # Only two sheets have gone up above: one for the poster, one patch.
+    sheet(-3.12,-1.92,2.24,3.62,'ply2')
+    sheet(-.70,.55,2.20,3.50,'osb')
+    # A lean-to roof: rafters from the top plate down to a beam on two posts,
+    # galvanised sheet over them, ribs running down the slope.
+    back,front=(2.24,top+.16),(1.32,3.80)
+    for xx in [-3.05,2.86]:
+        box('Workshop · roof post',(xx,front[0]+.06,(front[1]+.16)/2),(.09,.09,front[1]-.16),'oak',.003)
+        box('Post · concrete pad',(xx,front[0]+.06,.17),(.20,.20,.06),'stone',.004)
+    box('Workshop · roof beam',(-.09,front[0]+.06,front[1]-.02),(6.10,.09,.12),'oak',.003)
+    x=-3.05
+    while x<=2.9:
+        rod('Workshop · rafter',(x,back[0],back[1]-.05),(x,front[0]-.06,front[1]-.04),.03,'oak',6);x+=.61
+    verts=[];faces=[];nx=240
+    for i in range(nx+1):
+        xx=-3.30+6.45*i/nx;rib=.024*math.sin(i/nx*6.45/.15*math.tau)
+        for (yy,zz) in [(back[0]+.10,back[1]+.03),(front[0]-.14,front[1]-.03)]:verts.append((xx,yy,zz+rib))
+    for i in range(nx):faces.append((i*2,i*2+2,i*2+3,i*2+1))
+    roof=mesh('Workshop · corrugated lean-to roof',verts,faces,'corrugated')
+    roof.modifiers.new('Sheet thickness','SOLIDIFY').thickness=.012
+    # A bare bulb hung from the beam on its own flex.
+    curve('Workshop · bulb flex',[(-.55,front[0]+.05,front[1]-.09),(-.50,front[0]-.05,front[1]-.4),(-.48,front[0]-.10,front[1]-.78)],.006,'ink')
+    sphere('Workshop · bare bulb',(-.48,front[0]-.10,front[1]-.86),(.045,.045,.06),'light',2)
+    light('Workshop · bare bulb light',(-.48,front[0]-.18,front[1]-.92),(1,.70,.42),26,.05)
     # A small purple-and-gold pennant for the Lakers, pinned by the prints.
     P['lakers_purple']=material('Felt pennant · purple',(.14,.045,.24),rough=.95)
     P['lakers_gold']=material('Felt pennant · gold',(.62,.40,.07),rough=.95)
     px,pz=-.48,3.40
-    mesh('Pennant · felt',[(px,1.918,pz),(px,1.918,pz-.30),(px+.62,1.918,pz-.17)],[(0,1,2)],'lakers_purple')
-    mesh('Pennant · gold stripe',[(px,1.916,pz),(px,1.916,pz-.075),(px+.55,1.916,pz-.155)],[(0,1,2)],'lakers_gold')
-    box('Pennant · sleeve',(px-.015,1.917,pz-.15),(.04,.006,.32),'lakers_gold',.002)
-    cylinder('Pennant · pin',(px-.015,1.905,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
+    mesh('Pennant · felt',[(px,2.012,pz),(px,2.012,pz-.30),(px+.62,2.012,pz-.17)],[(0,1,2)],'lakers_purple')
+    mesh('Pennant · gold stripe',[(px,2.010,pz),(px,2.010,pz-.075),(px+.55,2.010,pz-.155)],[(0,1,2)],'lakers_gold')
+    box('Pennant · sleeve',(px-.015,2.011,pz-.15),(.04,.006,.32),'lakers_gold',.002)
+    cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
     # Carter's bike, on its stand in the yard; he gets around the city on it.
     bike(3.95,1.42,math.radians(-8))
+    # Space things, taped and shelved: a planet poster, a model rocket and a
+    # moon lamp, the same sky the site floats in.
+    P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
+    P['planet']=textured('Poster · banded planet',(.36,.20,.09),(.62,.42,.22),'plaster',rough=.8)
+    P['moonlamp']=textured('Moon lamp · cratered shell',(.62,.60,.55),(.80,.78,.72),'stone',rough=.9)
+    P['moonlamp'].node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value=(1,.86,.66,1)
+    P['moonlamp'].node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value=.7
+    px,pz=-2.50,3.22
+    box('Poster · paper',(px,2.012,pz),(.56,.004,.70),'spaceposter',.001)
+    planet=cylinder('Poster · planet',(px+.04,2.009,pz+.04),.15,.002,'planet',48,bevel=0);planet.rotation_euler.x=math.pi/2
+    ring=torus('Poster · planet ring',(px+.04,2.008,pz+.04),.22,.008,'page',(math.pi/2,0,0));ring.scale=(1,.32,1);ring.rotation_euler=(math.pi/2,.32,0)
+    for k in range(26):
+        sx2=px+srng.uniform(-.25,.25);sz2=pz+srng.uniform(-.32,.32)
+        if math.hypot(sx2-px-.04,sz2-pz-.04)<.18:continue
+        box('Poster · star',(sx2,2.008,sz2),(.007,.001,.007),'paper',0)
+    box('Poster · title band',(px,2.009,pz-.29),(.44,.002,.03),'page',0)
+    for dx,dz in [(-.27,.34),(.27,.34),(-.27,-.34),(.27,-.34)]:
+        box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
+    # The storage rack is squashed to .72 height about z=.16 after it's built.
+    shelf=.16+(3.79-.16)*.72+.015
+    # Model rocket: white body, red fins, standing on the top shelf.
+    rx=2.38
+    cylinder('Model rocket · body',(rx,1.60,shelf+.24),.045,.40,'paper',24,bevel=.003)
+    cylinder('Model rocket · nose cone',(rx,1.60,shelf+.50),.045,.13,'paper',24,top=.002,bevel=0)
+    cylinder('Model rocket · stand',(rx,1.60,shelf+.012),.10,.024,'ink',24,bevel=.003)
+    for k in range(3):
+        a=k*math.tau/3
+        box('Model rocket · fin',(rx+math.cos(a)*.065,1.60+math.sin(a)*.065,shelf+.09),(.06,.008,.12),'redcloth',.002,rot=a)
+    box('Model rocket · window',(rx,1.554,shelf+.33),(.03,.004,.03),'nightglass',.001)
+    # A small moon lamp on a wooden cup, glowing faintly.
+    cylinder('Moon lamp · wooden base',(.90,1.60,shelf+.025),.06,.05,'oak',24,bevel=.004)
+    sphere('Moon lamp',(.90,1.60,shelf+.16),(.11,.11,.11),'moonlamp',3)
+    light('Moon lamp · glow',(.90,1.45,shelf+.18),(1,.86,.66),6,.12)
+    # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
+    cx,cy,cz=1.62,1.60,shelf
+    profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
+    tv=[(cx+u,cy+side*.085,cz+v) for side in [-1,1] for u,v in profile]
+    m=len(profile)
+    tf=[tuple(range(m)),tuple(reversed(range(m,2*m)))]+[(i,(i+1)%m,(i+1)%m+m,i+m) for i in range(m)]
+    mesh('Cybertruck model · stainless body',tv,tf,'steel')
+    box('Cybertruck model · light bar',(cx+.222,cy,cz+.083),(.004,.15,.008),'light',0)
+    for u in [-.14,.14]:
+        for side in [-1,1]:
+            cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
+    P['teslared']=material('Cap · red embroidered mark',(.55,.03,.03),rough=.8)
+    cap=sphere('Cap · black crown',(2.75,-.78,1.142),(.15,.15,.10),'ink',3)
+    box('Cap · brim',(2.75,-.94,1.15),(.20,.14,.012),'ink',.02)
+    box('Cap · mark',(2.75,-.905,1.21),(.06,.004,.012),'teslared',0).rotation_euler.x=-.6
+    box('Cap · mark',(2.75,-.904,1.19),(.012,.004,.045),'teslared',0).rotation_euler.x=-.6
+    # A basketball left on the deck.
+    P['basketball']=textured('Basketball · pebbled leather',(.36,.10,.025),(.52,.19,.05),'fabric',rough=.75)
+    bz=.151+.24
+    sphere('Basketball',(-2.22,-1.52,bz),(.24,.24,.24),'basketball',4)
+    for rot in [(0,0,0),(math.pi/2,0,0),(0,math.pi/2,0)]:
+        torus('Basketball · seam',(-2.22,-1.52,bz),.241,.006,'ink',rot)
+    # Cardboard boxes, one with its flaps open.
+    P['cardboard']=textured('Cardboard',(.30,.19,.09),(.42,.29,.15),'paper',rough=.92)
+    box('Floor · cardboard box',(2.20,1.08,.151+.19),(.58,.46,.38),'cardboard',.006,rot=.08)
+    box('Floor · cardboard box',(2.24,1.10,.151+.38+.13),(.42,.36,.26),'cardboard',.006,rot=-.12)
+    box('Box · packing tape',(2.20,1.08,.151+.382),(.58,.06,.004),'linen',0,rot=.08)
+    flap=box('Box · open flap',(2.24,.90,.151+.66),(.40,.012,.16),'cardboard',.002,rot=-.12);flap.rotation_euler.x=.7
     # A low stool with metal legs and a modest padded seat.
     for xx in [-.27,.27]:
         for yy in [-.27,.27]:rod('Stool · splayed steel leg',(2.75+xx*1.25,-.78+yy*1.25,.16),(2.75+xx,-.78+yy,1.08),.021,'teal',20)

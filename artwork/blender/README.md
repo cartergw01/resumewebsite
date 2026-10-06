@@ -21,25 +21,31 @@ scenes; no generated image backplates are used.
   bridge the low-rise fabric and landmark towers. A planted promenade follows
   the front edge. These surrounding blocks are composed interpretations, not
   additional surveyed replicas of named buildings.
-- **Writing:** a cutaway corner of a study, two limewashed walls cut like a
-  doll's house, with the window glazed into the back wall and the bookshelf
-  standing against it. Slim walnut furniture, a usable upholstered chair, a
+- **Writing:** a finished study-office, cut away like a doll's house: eggshell
+  walls over green panelled wainscot, a chair rail, crown moulding and
+  skirting, the window glazed into the back wall, the bookshelf against it and
+  Carter's UC Santa Cruz degree framed on the side wall. Slim walnut furniture, a usable upholstered chair, a
   madder wool rug, an open notebook, mug, spectacles, fountain pen and a task
   lamp; a reading garden and trellis sit outside the side wall. Two scene units
   represent one metre.
-- **Projects:** a cutaway workshop corner (back wall with a high window, side
-  wall) with a steel-framed bench, tool panel, labelled storage, an open
+- **Projects:** the opposite of the study, an open, hand-built lean-to shed: a
+  bare stud frame with mismatched plywood and OSB on its lower half, two
+  patched sheets above and open bays to the night, no side wall, a sloping
+  corrugated roof on two posts and a bare bulb on its flex. Inside, a
+  steel-framed bench, tool panel, labelled storage, an open
   electronics enclosure, soldering station, caliper and a 27-inch monitor. The
   workbench turns toward the visitor. Worn paving leads past reclaimed lumber
   and offcuts. It uses the same furniture scale.
 
 ### Personal details
 
-Only facts already on the site are used, never invented ones: Carter's bike
+Only facts already on the site, or details Carter asked for, are used: his bike
 stands in the workshop yard (he bikes around Taipei), poker chips and a pair of
 face-down cards sit by the keyboard (he plays poker and built a poker odds
-calculator), and a small purple-and-gold felt pennant hangs by the high window
-(he follows the Lakers; no logo or lettering). The essay journals and project
+calculator), a small purple-and-gold felt pennant (he follows the Lakers; no
+logo or lettering), a basketball on the deck, a stainless Cybertruck model and
+a black cap with a small red mark (Tesla merch), and space things: a taped
+planet poster, a model rocket and a moon lamp. The essay journals and project
 prints below are his real covers and screenshots.
 
 ### Night
@@ -49,7 +55,7 @@ miniatures rather than daytime product shots. The world is a deep navy
 ambience. A cool moon from behind on the left models every form with crisp
 shadows; a blue rim lifts silhouettes off the sky; a low cool bounce models the
 cliff under its overhanging lip. The story lights are warm practicals: the desk
-and bench lamps pool on the work, the study window and workshop window show the
+and bench lamps pool on the work, the study window and the workshop's open bays show the
 night, and Xinyi glows from its arcades, street lamps and offices. Office
 windows light by floor and tenant, one tone per building, never as a random
 checkerboard; Taipei 101's entry window is always lit. The camera uses
@@ -84,7 +90,10 @@ grain. The workshop replaces repeated empty bins with a compartmented parts
 tray, cable coil and canvas tool roll; one drawer is open and offcuts lie beside
 the timber stack. The three essay journals and the real project prints remain.
 
-Every foundation uses the same proportions: the terrain is 35% wider and deeper
+Each island has its own plan (`PLANS` in the build script): Work is a broad,
+squarer district its street grid fills; Writing is a soft, rounded garden plot;
+Projects is a rough, jagged lot with a yard lobe for the bike. Every
+foundation otherwise uses the same proportions: the terrain is 35% wider and deeper
 in plan, and the cliff is 18% taller than the original earthy version. Buildings
 and furniture retain their size. The interiors use the extra land for soil and
 vegetation around the central plot. Work extends its streets and building plots

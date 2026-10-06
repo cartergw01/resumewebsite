@@ -30,6 +30,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     let failed = false;
     let live = false;
     let interested = interactive;
+    let prepared = false;
     let loadTimer: ReturnType<typeof setTimeout> | undefined;
     let idleLoad: number | undefined;
     let hintDelay: ReturnType<typeof setTimeout> | undefined;
@@ -148,12 +149,14 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       if (engineRef.current) { suggestRotation(); return; }
       if (loading || failed || loadTimer !== undefined || idleLoad !== undefined) return;
       // Let arrival paint before decoding a model. Fast passes through a world
-      // and background tabs should not start megabytes of optional 3D work.
+      // and background tabs should not start megabytes of optional 3D work,
+      // and its decode must not land on the next scroll; hovering or focusing
+      // the island still loads it at once.
       loadTimer = setTimeout(() => {
         loadTimer = undefined;
-        if ("requestIdleCallback" in window) idleLoad = window.requestIdleCallback(() => { idleLoad = undefined; void load(); }, { timeout: 800 });
+        if ("requestIdleCallback" in window) idleLoad = window.requestIdleCallback(() => { idleLoad = undefined; void load(); }, { timeout: 2000 });
         else void load();
-      }, 180);
+      }, prepared ? 0 : 900);
     };
     const rotate = (dx: number, dy: number) => {
       clearHint();
@@ -167,7 +170,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       engineRef.current?.reset();
     };
     resetRef.current = reset;
-    const prepareEntry = () => { interested = true; sync(); };
+    const prepareEntry = () => { interested = true; prepared = true; sync(); };
     const down = (event: PointerEvent) => {
       if (!interactive || event.button !== 0 || !event.isPrimary || stage.dataset.entering) return;
       suppressClick = false;

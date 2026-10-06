@@ -74,15 +74,16 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
 });
 
 test("idle video stays alive and interaction increases its pace", async ({ page }) => {
-  await page.goto("/2.0#writing");
+  // Projects, not Writing: the sky holds its frame while Writing's loop plays.
+  await page.goto("/2.0#projects");
   const video = page.locator("[data-background-video]");
-  const book = page.locator("#writing [data-island-link]");
+  const book = page.locator("#projects [data-island-link]");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(0.55);
   const before = await video.evaluate((node: HTMLVideoElement) => node.currentTime);
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(before + 0.1);
   await book.focus();
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(1);
-  await page.getByRole("button", { name: "Show Writing island" }).focus();
+  await page.getByRole("button", { name: "Show Projects island" }).focus();
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(0.55);
   expect(await video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
 });

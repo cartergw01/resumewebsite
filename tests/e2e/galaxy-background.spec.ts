@@ -22,19 +22,25 @@ test("background video advances without scrolling, keeps playing across islands,
   await expect.poll(frame).not.toBe(initialFrame);
   expect(await page.evaluate(() => scrollY)).toBe(0);
 
-  // There is no manual pause control; the video keeps playing across islands.
+  // There is no manual pause control; the video keeps playing across islands,
+  // holding its frame only while the Writing island's own loop plays (two
+  // decoding videos drop Chromium to ~19fps).
   await expect(page.getByRole("button", { name: /background video/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Show Writing island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
-  expect(await video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-island-video", "playing");
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
+  await page.getByRole("button", { name: "Show Projects island" }).click();
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
   await video.evaluate((node: HTMLVideoElement) => { node.currentTime = 11.75; });
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await expect(visual).toHaveAttribute("data-video-ready", "true");
-  await page.getByRole("link", { name: "Enter Writing island" }).focus();
+  await page.getByRole("link", { name: "Enter Projects island" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
-  await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/projects$/, { timeout: 15_000 });
 });
 
 test("reduced motion uses a poster and follows preference changes", async ({ page }) => {

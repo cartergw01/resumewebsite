@@ -28,8 +28,10 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
     let disposed = false;
     let attempting = false;
     const visual = video.closest<HTMLElement>("[data-island-visual]")!;
+    // Decoding the transparent loop costs as much as the whole camera flight,
+    // so it holds its frame while travelling and plays once the camera lands.
     const shouldPlay = () => !visual.dataset.orbitLive && !motion.matches && !connection?.saveData
-      && scene.dataset.active === "true" && !stage.dataset.entering && !document.hidden;
+      && scene.dataset.active === "true" && !stage.dataset.entering && stage.dataset.travelling !== "true" && !document.hidden;
     const sync = () => {
       if (stage.dataset.warm === "true") setWarm(true);
       const rate = stage.dataset.travelling === "true" || stage.dataset.engaged === "true" ? 1 : 0.65;
@@ -48,6 +50,11 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
         }).finally(() => { attempting = false; });
       }
     };
+    const playing = () => { stage.dataset.islandVideo = "playing"; };
+    const stopped = () => { delete stage.dataset.islandVideo; };
+    video.addEventListener("playing", playing);
+    video.addEventListener("pause", stopped);
+    video.addEventListener("emptied", stopped);
     const observer = new MutationObserver(sync);
     observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
@@ -62,7 +69,11 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
       motion.removeEventListener("change", sync);
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
+      video.removeEventListener("playing", playing);
+      video.removeEventListener("pause", stopped);
+      video.removeEventListener("emptied", stopped);
       video.pause();
+      stopped();
     };
   }, []);
 
