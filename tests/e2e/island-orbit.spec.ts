@@ -74,7 +74,7 @@ test("a failed model leaves the original island and page navigation usable", asy
   await page.route("**/orbit-*.glb", route => route.abort());
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0#work");
-  await expect(page.locator("#work [data-island-visual] > img")).toBeVisible();
+  await expect(page.locator("#work [data-island-visual] > img:not([data-city-time])")).toBeVisible();
   await expect(page.locator("#work [data-island-orbit]")).not.toHaveAttribute("data-orbit-live");
   await page.locator("#work [data-island-link]").click();
   await expect(page).toHaveURL(/\/work$/);

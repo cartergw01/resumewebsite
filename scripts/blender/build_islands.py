@@ -941,6 +941,59 @@ def elephant_mountain(cx,cy,rx,ry,height):
     for a,b in zip(pts,pts[1:]):rod('Xiangshan · trail lamps',a,b,.0035,'trail',6)
 
 
+def night_extras(tx,ty):
+    """Night-only fun: fireworks over Xinyi and a lantern-strung night market.
+    Named 'Night · ' so the daytime render removes them."""
+    rng=random.Random(1231)
+    P['fwgold']=material('Night · firework gold',(1,.78,.36),emission=9)
+    P['fwpink']=material('Night · firework rose',(1,.42,.62),emission=9)
+    P['lantern']=material('Night · red lantern',(1,.16,.08),emission=5)
+    for (cx,cy,cz,r,n,mat) in [(tx-1.25,ty+.75,4.25,.62,34,'fwgold'),(tx+1.35,ty+1.15,3.55,.40,24,'fwpink')]:
+        for k in range(n):
+            a=k*math.tau/n+rng.uniform(-.05,.05);el=rng.uniform(-.9,.9)
+            d=Vector((math.cos(a)*math.cos(el),math.sin(a)*math.cos(el)*.6,math.sin(el))).normalized()
+            pts=[Vector((cx,cy,cz))+d*r*f+Vector((0,0,-.12*r*f*f)) for f in [.25,.55,.8,1.0]]
+            curve('Night · firework trail',[tuple(p) for p in pts],.0035,mat)
+            sphere('Night · firework spark',tuple(pts[-1]),(.012,.012,.012),mat,1)
+    # A lantern string zig-zags over a night-market street south of 101.
+    for y in [-1.30,-1.55,-1.80,-2.05]:
+        pts=[(1.55+.11*(-1 if i%2 else 1)*(1-abs(i-4)/4),y+.06*math.sin(i),.13-.025*math.sin(math.pi*i/8)) for i in range(9)]
+        pts=[(1.44+i*.0275,y,.135-.03*math.sin(math.pi*i/8)) for i in range(9)]
+        curve('Night · lantern string',pts,.0012,'ink')
+        for p in pts[1::2]:sphere('Night · red lantern',(p[0],p[1],p[2]-.008),(.007,.007,.009),'lantern',1)
+    for y in [-1.42,-1.67,-1.92]:
+        for side in [-1,1]:
+            box('Night · market stall awning',(1.55+side*.085,y,.072),(.05,.07,.006),'redcloth',.001)
+
+
+def day_extras(tx,ty):
+    """Daytime fun: a cloud belted around Taipei 101's middle (it often is),
+    two small clouds drifting past, and a few birds by the spire."""
+    rng=random.Random(9)
+    P['cloud']=material('Day · cloud',(.92,.93,.95),rough=1)
+    P['cloud'].node_tree.nodes['Principled BSDF'].inputs['Subsurface Weight'].default_value=.4
+    def puff(cx,cy,cz,rx,ry,n):
+        for k in range(n):
+            a=rng.uniform(0,math.tau);u=math.sqrt(rng.random())
+            r=rng.uniform(.06,.13)*(rx/.6)
+            # Flat-bottomed cumulus: puffs pile upward from a common base.
+            sphere('Day · cloud puff',(cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,cz+r*.35+rng.uniform(0,.06)*(1-u)),(r,r*.9,r*.7),'cloud',3)
+    # A ring of puffs around the tower's lower modules, open at the front so
+    # the lit window and the tower's silhouette stay readable.
+    for k in range(16):
+        a=k*math.tau/16
+        if -2.2<a-math.pi<-1.0:continue
+        r=rng.uniform(.10,.17)
+        sphere('Day · cloud belt',(tx+math.cos(a)*.42,ty+math.sin(a)*.34,2.05+rng.uniform(-.05,.06)),(r,r*.95,r*.6),'cloud',3)
+    puff(-3.7,1.4,1.75,.55,.30,22)
+    puff(3.5,-.2,2.35,.45,.25,16)
+    P['bird']=material('Day · bird',(.05,.05,.06),rough=.8)
+    for k in range(5):
+        bx=tx+.7+k*.13+rng.uniform(-.05,.05);by=ty-.2;bz=4.0+rng.uniform(-.15,.15)
+        rod('Day · bird wing',(bx-.035,by,bz+.012),(bx,by,bz),.0018,'bird',4)
+        rod('Day · bird wing',(bx,by,bz),(bx+.035,by,bz+.012),.0018,'bird',4)
+
+
 def densify_city():
     """Build out every empty patch of the district: mid-rise frontage, a few
     residential towers and pocket parks, never on top of what's there."""
@@ -1097,6 +1150,7 @@ def city():
         box('Streetlamp head',(x,-.78,.143),(.025,.008,.004),'light',.001)
     urban_extension()
     densify_city()
+    night_extras(tx,ty)
     for x,y in [(-1.08,-.90),(1.53,-.94),(2.65,1.34)]:
         light('City · warm intersection',(x,y,.30),(1,.64,.30),2.4,.25,(x,y,.05))
 
@@ -1874,6 +1928,35 @@ def camera_and_lights(scene):
     return camera
 
 
+def daylight(scene):
+    """Re-light a finished scene for a clear Taipei afternoon."""
+    background=scene.world.node_tree.nodes['Background']
+    background.inputs[0].default_value=(.36,.50,.74,1);background.inputs[1].default_value=.75
+    scene.view_settings.exposure=-.35
+    for obj in list(scene.objects):
+        if obj.type=='LIGHT' or obj.name.startswith(('Traffic · light trail','Night · ')):
+            bpy.data.objects.remove(obj,do_unlink=True)
+    sun=bpy.data.lights.new('Sun · afternoon','SUN');sun.color=(1,.95,.86);sun.energy=4.2;sun.angle=math.radians(1.5)
+    key=bpy.data.objects.new('Sun · afternoon',sun);bpy.context.collection.objects.link(key)
+    key.rotation_euler=Vector((.55,.62,-.62)).to_track_quat('-Z','Y').to_euler()
+    light('Sky · cool fill',(-4,-9,7),(.62,.74,1),260,10,(0,0,.5))
+    light('Cliff · ground bounce',(1.5,-9,-4.5),(.75,.72,.62),380,9,(0,0,-1.6))
+    # Lit glazing becomes daytime glass; lamps and trails switch off.
+    glass={'Warm occupied offices':(.07,.12,.12),'Cool occupied offices':(.09,.14,.15),'Dim occupied offices':(.08,.11,.11),
+           'City · lamplit apartment':(.10,.12,.13),'City · lit arcade shopfront':(.14,.13,.11)}
+    for mat in bpy.data.materials:
+        if not mat.use_nodes:continue
+        bs=mat.node_tree.nodes.get('Principled BSDF')
+        if not bs:continue
+        bs.inputs['Emission Strength'].default_value=0
+        if mat.name in glass:
+            bs.inputs['Base Color'].default_value=(*glass[mat.name],1)
+            bs.inputs['Metallic'].default_value=.45;bs.inputs['Roughness'].default_value=.18
+        elif mat.name.startswith(('City · sodium','Taipei 101 · gold','Xiangshan · lamplit','Warm practical')):
+            bs.inputs['Base Color'].default_value=(.32,.33,.32,1)
+    if scene.name.startswith('Work ·'):day_extras(.52,-.39)
+
+
 def projected(scene, point):
     v=world_to_camera_view(scene,scene.camera,Vector(point))
     return [round(v.x*1200,3),round((1-v.y)*800,3)]
@@ -1897,6 +1980,9 @@ def main():
     parser.add_argument('--engine',default='CYCLES')
     parser.add_argument('--device',choices=['CPU','METAL'],default='CPU')
     parser.add_argument('--animate',action='store_true')
+    # Work also has a daytime version, toggled on the site; same camera and
+    # geometry, so its interaction anchors are identical to the night render.
+    parser.add_argument('--time',choices=['night','day'],default='night')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True,exist_ok=True)
     sources=ROOT/'artwork'/'blender'
@@ -1906,10 +1992,11 @@ def main():
         scene=setup(world,args.width,args.samples,args.engine,args.device)
         {'work':city,'writing':writing,'projects':workshop}[world]()
         camera_and_lights(scene)
+        if args.time=='day':daylight(scene)
         scene.frame_set(1)
         export_anchors(scene,world,args.output/f'{world}.json')
         scene.render.filepath=str(args.output/f'{world}.png')
-        bpy.ops.wm.save_as_mainfile(filepath=str(sources/f'{world}.blend'),compress=True)
+        if args.time=='night':bpy.ops.wm.save_as_mainfile(filepath=str(sources/f'{world}.blend'),compress=True)
         bpy.ops.render.render(write_still=True)
         if args.animate and world=='writing':
             frames=args.output/'writing-frames'

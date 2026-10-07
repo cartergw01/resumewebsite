@@ -134,7 +134,7 @@ test("Escape cancels the camera, restores the island, and permits another entry"
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await expect(page).toHaveURL(/\/2\.0#work$/);
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
-  await expect(page.locator("#work [data-island-visual] > img")).toBeVisible();
+  await expect(page.locator("#work [data-island-visual] > img:not([data-city-time])")).toBeVisible();
   await heading.focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/work$/);

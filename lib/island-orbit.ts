@@ -39,6 +39,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     const bytes = await response.arrayBuffer();
     const gltf = await new GLTFLoader().setDRACOLoader(draco).parseAsync(bytes, "/blender/");
     signal?.throwIfAborted();
+    const glowing: { material: MeshStandardMaterial; night: number }[] = [];
     gltf.scene.traverse(object => {
       if (!(object instanceof Mesh)) return;
       object.castShadow = true;
@@ -54,6 +55,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
           material.polygonOffsetUnits = -4;
           // Cycles lets windows and lamps bloom; match their night glow here.
           material.emissiveIntensity *= 1.6;
+          glowing.push({ material, night: material.emissiveIntensity });
         }
       }
     });
@@ -64,7 +66,8 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     // scene's own warm lamps.
     scene.environment = environment.texture;
     scene.environmentIntensity = 0.1;
-    scene.add(new HemisphereLight(0x5d73b0, 0x15151c, 0.7));
+    const sky = new HemisphereLight(0x5d73b0, 0x15151c, 0.7);
+    scene.add(sky);
     const key = new DirectionalLight(0xb8ccff, 2.4);
     key.position.set(-6.6, 7, -7.4);
     key.castShadow = true;
@@ -83,11 +86,27 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     const fill = new DirectionalLight(0x9fb4ff, 0.35);
     fill.position.set(-3, 6, 9);
     scene.add(fill);
+    const lamps: PointLight[] = [];
     for (const practical of asset.practicals ?? []) {
       const lamp = new PointLight(new Color().fromArray(practical.color), practical.watts * 0.12, 4.5, 2);
       lamp.position.fromArray(practical.position);
       scene.add(lamp);
+      lamps.push(lamp);
     }
+    // Work's city also has a clear afternoon: a warm sun from the front left,
+    // a bright sky, and every lit window and lamp switched off.
+    const setDaylight = (day: boolean) => {
+      scene.environmentIntensity = day ? 0.28 : 0.1;
+      sky.color.set(day ? 0xb4cbf5 : 0x5d73b0); sky.groundColor.set(day ? 0x3e3a30 : 0x15151c); sky.intensity = day ? 1.0 : 0.7;
+      key.color.set(day ? 0xfff0da : 0xb8ccff); key.intensity = day ? 2.6 : 2.4;
+      key.position.set(day ? -6.6 : -6.6, day ? 7.4 : 7, day ? 7.4 : -7.4);
+      rim.intensity = day ? 0.35 : 1.3;
+      bounce.color.set(day ? 0xd9cdb5 : 0x8ca4ff); bounce.intensity = day ? 0.55 : 0.45;
+      fill.intensity = day ? 0.45 : 0.35;
+      for (const lamp of lamps) lamp.visible = !day;
+      for (const { material, night } of glowing) material.emissiveIntensity = day ? 0 : night;
+      renderer.shadowMap.needsUpdate = true;
+    };
     renderer.shadowMap.needsUpdate = true;
     scene.updateMatrixWorld(true);
     const camera = new PerspectiveCamera(asset.camera.fov, 1.5, 0.05, 150);
@@ -208,6 +227,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         scheduleRender();
       },
       reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
+      setDaylight(day: boolean) { setDaylight(day); flushRender(); },
       beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
         // Carry the latest input into the flight without drawing a redundant
         // island frame just before the full-viewport camera takes over.

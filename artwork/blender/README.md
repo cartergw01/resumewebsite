@@ -49,6 +49,30 @@ study's window holds a low moon and a few stars between linen drapes, with an
 office clock above the shelves. The shed has festoon bulbs swagged along its
 roof beam and a telescope on a tripod in the yard.
 
+### Taipei by day
+
+Work also has a clear-afternoon version, switched by the sun/moon toggle at
+the island's upper right (`components/CityTimeToggle.tsx`; the choice is kept
+per visitor in localStorage). `--time day` re-lights the finished night scene
+(`daylight` in the build script): a warm sun and blue sky, lit glazing turned
+back into glass, lamps, tier lights and traffic streaks off. The night-only
+fireworks over Xinyi and the lantern-strung night market (`night_extras`) are
+removed; the day adds a cloud belted around 101's middle, two drifting clouds
+and a few birds by the spire (`day_extras`). Camera and geometry are shared,
+so `scripts/blender/export_day.mjs` crops the day still with the night
+render's crop and both use one set of anchors. The browser model is the night
+scene without its night-only extras; `setDaylight` in `lib/island-orbit.ts`
+swaps its lighting.
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
+  --python scripts/blender/build_islands.py -- \
+  --world work --time day --output .blender-build/work-day --width 1920 --samples 72
+node scripts/blender/export_day.mjs .blender-build/work-day
+```
+
+Run it after the night Work export, which records the crop it reuses.
+
 ### Personal details
 
 Only facts already on the site, or details Carter asked for, are used: his bike

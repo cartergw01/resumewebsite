@@ -16,10 +16,11 @@ function stillCamera(visual: HTMLElement, host: HTMLElement, matrix: ScreenMatri
   svg.setAttribute("viewBox", `0 0 ${innerWidth} ${innerHeight}`);
   svg.classList.add(styles.still);
   const image = document.createElementNS(svgNS, "image");
-  const poster = visual.querySelector("img")!;
+  // The still follows the city's current time of day.
+  const poster = (document.documentElement.dataset.cityTime === "day" && visual.querySelector<HTMLImageElement>('img[data-city-time="day"]')) || visual.querySelector("img")!;
   image.setAttribute("href", poster.currentSrc || poster.src);
   image.setAttribute("width", "1200"); image.setAttribute("height", "800");
-  image.style.filter = getComputedStyle(visual.querySelector("img")!).filter;
+  image.style.filter = getComputedStyle(poster).filter;
   svg.append(image); host.prepend(svg);
   const initial = corners.map(([x, y]) => [matrix.a * x + matrix.c * y + matrix.e, matrix.b * x + matrix.d * y + matrix.f]);
   const center = initial.reduce((a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4], [0, 0]);

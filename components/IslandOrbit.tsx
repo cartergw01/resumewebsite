@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { OrbitAsset, OrbitProjection, createIslandOrbit } from "@/lib/island-orbit";
 import { registerWindowCamera } from "@/lib/island-orbit-bridge";
 import { artworkOutline } from "@/lib/artwork-perspective";
+import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { landmarkArrow } from "./IslandLink";
 import styles from "./IslandOrbit.module.css";
 
@@ -121,6 +122,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         const engine = await createIslandOrbit(canvas, asset, anchors, project, visual.querySelector<HTMLElement>("[data-workshop-screen]")?.dataset.src, controller.signal);
         if (disposed || controller.signal.aborted || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
         engineRef.current = engine;
+        if (world === "work") engine.setDaylight(currentCityTime() === "day");
         if (engine.beginWindowFlight) unregisterCamera = registerWindowCamera(visual, engine.beginWindowFlight);
         canvas.dataset.orbitReady = "true";
         if (interactive) {
@@ -220,6 +222,8 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-scrolling", "data-entering", "data-navigating"] });
     const resize = new ResizeObserver(() => engineRef.current?.resize());
     resize.observe(visual);
+    const relight = () => { if (world === "work") engineRef.current?.setDaylight(currentCityTime() === "day"); };
+    window.addEventListener(CITY_TIME_EVENT, relight);
     link.addEventListener("pointerenter", prepareEntry);
     link.addEventListener("focusin", prepareEntry);
     link.addEventListener("pointerdown", down);
@@ -236,6 +240,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       disposed = true;
       observer.disconnect();
       resize.disconnect();
+      window.removeEventListener(CITY_TIME_EVENT, relight);
       link.removeEventListener("pointerenter", prepareEntry);
       link.removeEventListener("focusin", prepareEntry);
       link.removeEventListener("pointerdown", down);

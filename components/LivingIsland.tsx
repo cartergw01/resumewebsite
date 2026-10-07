@@ -9,6 +9,7 @@ import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
+import CityTimeToggle from "./CityTimeToggle";
 import type { OrbitProjection } from "@/lib/island-orbit";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 
@@ -78,9 +79,12 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 110vw, 68vw" loading="eager"
-          unoptimized draggable={false} className={motionStyles.image} /> : null}
+          unoptimized draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
+        {world === "work" && warm && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
+          sizes="(max-width: 760px) 110vw, 68vw" loading="lazy" data-city-time="day"
+          unoptimized draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
         {world === "work" ? <>
-          <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
+          <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.windows} fill="#ffd69b">
               {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.65" />)}
             </g>
@@ -91,7 +95,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             </g> : null}
           </svg>
           <svg className={motionStyles.cityDetails} viewBox="0 0 1200 800" aria-hidden="true">
-            <g className={motionStyles.towerWelcome} fill="#dfecff">
+            <g className={`${motionStyles.towerWelcome} ${motionStyles.nightOnly}`} fill="#dfecff">
               <circle cx={city.tower[0]} cy={city.tower[1]} r="1.1" />
             </g>
             <g data-city-entry-window data-corners={JSON.stringify(city.entryWindow)}>
@@ -126,5 +130,6 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {warm ? <IslandOrbit world={world} asset={orbitAssets[world]} anchors={orbitAnchors} /> : null}
       </span>
     </IslandLink>
+    {world === "work" ? <CityTimeToggle /> : null}
   </>;
 }

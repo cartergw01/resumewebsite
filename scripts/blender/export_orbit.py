@@ -50,6 +50,9 @@ originals=[]
 image_parts=[]
 for obj in list(scene.objects):
     if obj.type not in {'MESH','CURVE','FONT'} or obj.hide_render: continue
+    # Night-only still details (fireworks, lanterns) stay out of the model,
+    # which the browser shows in both day and night.
+    if obj.name.startswith('Night · '): obj.hide_render=True; continue
     if obj.type=='MESH' and any(m and m.use_nodes and any(n.type=='TEX_IMAGE' for n in m.node_tree.nodes) for m in obj.data.materials):
         image_parts.append(obj)
         continue

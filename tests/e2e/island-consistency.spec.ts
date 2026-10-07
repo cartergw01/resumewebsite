@@ -25,7 +25,8 @@ test("island artwork stays consistent from overview through forward and reverse 
     await page.getByRole("button", { name: `Show ${name} island` }).click();
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     const visual = page.locator(`#${world} [data-island-visual]`);
-    const still = visual.locator("img");
+    // Work also carries a daytime still; the night render is the default view.
+    const still = visual.locator("img:not([data-city-time])");
     await expect(still).toHaveAttribute("src", sources.get(world)!);
     await expect.poll(() => still.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
     const overviewGrade = await page.locator(`#intro [data-overview-island="${world}"] img`).evaluate(node => getComputedStyle(node).filter);
