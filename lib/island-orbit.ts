@@ -102,6 +102,8 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       day: { env: .28, sky: new Color(0xb4cbf5), ground: new Color(0x3e3a30), skyI: 1, key: new Color(0xfff0da), keyI: 2.6, keyPos: new Vector3(-6.6, 7.4, 7.4), rim: .35, bounceC: new Color(0xd9cdb5), bounce: .55, fill: .45, lamps: 0, glow: 0, pane: new Color(0x6c8091) },
     };
     const lampPower = lamps.map(lamp => lamp.intensity);
+    // Halfway between night and day the sun sits low and warm: golden hour.
+    const golden = new Color(0xffa25c), dawnSky = new Color(0xe8a27c);
     // Lit panes glow from within at night (a darker surface under the glow
     // reads as a lamplit window, not a white tile) and are glass by day.
     const nightPane = new Color(0x4a3d30), daylightGlass = new Color(0x2c3f48);
@@ -111,7 +113,10 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       const n = rigs.night, d = rigs.day;
       scene.environmentIntensity = lerp(n.env, d.env);
       sky.color.copy(n.sky).lerp(d.sky, daylight); sky.groundColor.copy(n.ground).lerp(d.ground, daylight); sky.intensity = lerp(n.skyI, d.skyI);
-      key.color.copy(n.key).lerp(d.key, daylight); key.intensity = lerp(n.keyI, d.keyI); key.position.copy(n.keyPos).lerp(d.keyPos, daylight);
+      const low = Math.sin(Math.PI * daylight);
+      sky.color.lerp(dawnSky, .35 * low);
+      key.color.copy(n.key).lerp(d.key, daylight).lerp(golden, .65 * low); key.intensity = lerp(n.keyI, d.keyI) + .6 * low;
+      key.position.copy(n.keyPos).lerp(d.keyPos, daylight); key.position.y -= 5 * low;
       rim.intensity = lerp(n.rim, d.rim);
       bounce.color.copy(n.bounceC).lerp(d.bounceC, daylight); bounce.intensity = lerp(n.bounce, d.bounce);
       fill.intensity = lerp(n.fill, d.fill);
@@ -126,20 +131,20 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       if (pane instanceof Mesh && pane.material instanceof MeshBasicMaterial) pane.material.color.copy(n.pane).lerp(d.pane, daylight);
       renderer.shadowMap.needsUpdate = true;
     };
-    const setDaylight = (day: boolean, animate: boolean) => {
+    const setDaylight = (day: boolean, animate: boolean, duration = 1400) => new Promise<void>(resolve => {
       cancelAnimationFrame(tween);
       const from = daylight, to = day ? 1 : 0;
-      if (!animate || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { daylight = to; applyRig(); flushRender(); return; }
+      if (!animate || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { daylight = to; applyRig(); flushRender(); resolve(); return; }
       const start = performance.now();
       const step = (now: number) => {
-        if (disposed) return;
-        const k = Math.min(1, (now - start) / 1400);
+        if (disposed) { resolve(); return; }
+        const k = Math.min(1, (now - start) / duration);
         daylight = from + (to - from) * (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
         applyRig(); flushRender();
-        if (k < 1) tween = requestAnimationFrame(step);
+        if (k < 1) tween = requestAnimationFrame(step); else resolve();
       };
       tween = requestAnimationFrame(step);
-    };
+    });
     renderer.shadowMap.needsUpdate = true;
     scene.updateMatrixWorld(true);
     const camera = new PerspectiveCamera(asset.camera.fov, 1.5, 0.05, 150);
@@ -261,7 +266,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         scheduleRender();
       },
       reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
-      setDaylight(day: boolean, animate = true) { setDaylight(day, animate); },
+      setDaylight(day: boolean, animate = true, duration?: number) { return setDaylight(day, animate, duration); },
       beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
         // Carry the latest input into the flight without drawing a redundant
         // island frame just before the full-viewport camera takes over.

@@ -222,7 +222,23 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-scrolling", "data-entering", "data-navigating"] });
     const resize = new ResizeObserver(() => engineRef.current?.resize());
     resize.observe(visual);
-    const relight = () => { if (world === "work") engineRef.current?.setDaylight(currentCityTime() === "day"); };
+    // Toggling Taipei's time of day plays a live sun sweep on the real model
+    // (night, golden hour, day, or back), then hands back to the Cycles still.
+    let sweepTimer = 0;
+    const relight = () => {
+      const engine = engineRef.current;
+      if (world !== "work" || !engine) return;
+      const day = currentCityTime() === "day";
+      const sweep = !live && !motion.matches && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering && stage.dataset.travelling !== "true";
+      if (!sweep) { void engine.setDaylight(day, true); return; }
+      clearTimeout(sweepTimer);
+      canvas.dataset.timeSweep = "in";
+      void engine.setDaylight(day, true, 2200).then(() => {
+        if (canvas.dataset.timeSweep !== "in") return;
+        canvas.dataset.timeSweep = "out";
+        sweepTimer = window.setTimeout(() => { if (canvas.dataset.timeSweep === "out") delete canvas.dataset.timeSweep; }, 600);
+      });
+    };
     window.addEventListener(CITY_TIME_EVENT, relight);
     link.addEventListener("pointerenter", prepareEntry);
     link.addEventListener("focusin", prepareEntry);
@@ -241,6 +257,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       observer.disconnect();
       resize.disconnect();
       window.removeEventListener(CITY_TIME_EVENT, relight);
+      clearTimeout(sweepTimer);
       link.removeEventListener("pointerenter", prepareEntry);
       link.removeEventListener("focusin", prepareEntry);
       link.removeEventListener("pointerdown", down);

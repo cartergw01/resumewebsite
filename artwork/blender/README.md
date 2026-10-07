@@ -110,7 +110,9 @@ wide with 96 samples.
 
 The browser model is the night scene without its night-only extras;
 `setDaylight` in `lib/island-orbit.ts` blends its lights, lamp glow and pane
-colour between the two rigs over the same 1.4s.
+colour between the two rigs. When the toggle is pressed with the model loaded,
+the real model fades in over the still for a live 2.2s sun sweep (night, a low
+warm golden hour, then day, or back) and fades out onto the new still.
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
