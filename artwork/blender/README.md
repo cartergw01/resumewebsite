@@ -69,6 +69,26 @@ done
 node scripts/blender/export_depth.mjs .blender-build/depth
 ```
 
+### Live details
+
+`scripts/blender/export_life_anchors.py` projects extra points from each saved
+scene through its render camera and crop into `lib/blender-islands.json`
+(`life`): Taipei's traffic lanes (sampled along each avenue so traffic follows
+the perspective) and Taipei 101's face, the study lamp's light cone, and the
+shed's festoon bulbs, bare bulb and yard. `components/IslandLife.tsx` animates
+them on one small canvas at ~30fps, only while the island is settled: traffic
+(head/tail lights at night, cars by day), a lift riding up 101 at night, dust
+drifting in the lamplight, breathing festoon bulbs, a flickering bare bulb and
+fireflies. It follows the depth parallax so each detail stays on its surface.
+Fireworks over Xinyi (`components/CityFireworks.tsx`) are drawn live at night.
+
+```sh
+for w in work writing projects; do
+  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
+    --python scripts/blender/export_life_anchors.py -- --world $w
+done
+```
+
 ### Taipei by day
 
 Work also has a clear-afternoon version. A single round button at the

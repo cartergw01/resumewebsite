@@ -535,5 +535,6 @@
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */
 .parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); }
+.life { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .island[data-parallax="on"] > img { opacity: 0 !important; transition: none !important; }
 .island[data-orbit-live="true"] > .parallax { opacity: 0; }

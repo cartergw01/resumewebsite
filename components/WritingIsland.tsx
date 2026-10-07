@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
 import IslandOrbit from "./IslandOrbit";
 import ParallaxStill from "./ParallaxStill";
+import IslandLife, { type Life } from "./IslandLife";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
@@ -38,6 +39,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
             className={styles.writingPoster}
           /> : null}
           {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} className={styles.parallax} /> : null}
+          {warm && island.life ? <IslandLife world="writing" life={island.life as Life} className={styles.life} /> : null}
           <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response>
             <defs>
               <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">
