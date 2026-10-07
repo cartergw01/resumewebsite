@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
 import IslandOrbit from "./IslandOrbit";
+import ParallaxStill from "./ParallaxStill";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
@@ -13,87 +14,30 @@ import styles from "./IslandHome.module.css";
 
 export default function WritingIsland({ artwork: island, landmark, essay, titles }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; titles: string[] }) {
   const orbitAnchors = useMemo(() => ({ landmark: [island.landmark], spread: island.spread }), [island]);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [ready, setReady] = useState(false);
-  const [still, setStill] = useState(true);
+  const visualRef = useRef<HTMLSpanElement>(null);
   const [warm, setWarm] = useState(false);
 
+  // The full still loads on the first sign of travel, like the other islands.
   useEffect(() => {
-    const video = videoRef.current;
-    const scene = video?.closest<HTMLElement>("[data-island-scene]");
-    const stage = video?.closest<HTMLElement>("[data-island-stage]");
-    if (!video || !scene || !stage) return;
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const connection = (navigator as Navigator & { connection?: EventTarget & { saveData?: boolean } }).connection;
-    let disposed = false;
-    let attempting = false;
-    const visual = video.closest<HTMLElement>("[data-island-visual]")!;
-    // Decoding the transparent loop costs as much as the whole camera flight,
-    // so it holds its frame while travelling and plays once the camera lands.
-    const shouldPlay = () => !visual.dataset.orbitLive && !motion.matches && !connection?.saveData
-      && scene.dataset.active === "true" && !stage.dataset.entering && stage.dataset.travelling !== "true" && !document.hidden;
-    const sync = () => {
-      if (stage.dataset.warm === "true") setWarm(true);
-      const rate = stage.dataset.travelling === "true" || stage.dataset.engaged === "true" ? 1 : 0.65;
-      video.defaultPlaybackRate = rate;
-      video.playbackRate = rate;
-      setStill(motion.matches || Boolean(connection?.saveData));
-      if (!shouldPlay()) {
-        video.pause();
-      } else if (video.paused && !attempting) {
-        attempting = true;
-        video.muted = true;
-        void video.play().then(() => {
-          if (disposed || !shouldPlay()) video.pause();
-        }).catch(() => {
-          // The original artwork remains available if playback is blocked.
-        }).finally(() => { attempting = false; });
-      }
-    };
-    const playing = () => { stage.dataset.islandVideo = "playing"; };
-    const stopped = () => { delete stage.dataset.islandVideo; };
-    video.addEventListener("playing", playing);
-    video.addEventListener("pause", stopped);
-    video.addEventListener("emptied", stopped);
+    const stage = visualRef.current?.closest<HTMLElement>("[data-island-stage]");
+    if (!stage) return;
+    const sync = () => { if (stage.dataset.warm === "true") setWarm(true); };
     const observer = new MutationObserver(sync);
-    observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
-    observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-warm"] });
-    motion.addEventListener("change", sync);
-    connection?.addEventListener("change", sync);
-    document.addEventListener("visibilitychange", sync);
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-warm"] });
     sync();
-    return () => {
-      disposed = true;
-      observer.disconnect();
-      motion.removeEventListener("change", sync);
-      connection?.removeEventListener("change", sync);
-      document.removeEventListener("visibilitychange", sync);
-      video.removeEventListener("playing", playing);
-      video.removeEventListener("pause", stopped);
-      video.removeEventListener("emptied", stopped);
-      video.pause();
-      stopped();
-    };
+    return () => observer.disconnect();
   }, []);
 
   return (
     <>
       <IslandLink href="/writing" title="Writing" prompt="read my writing" landmark={landmark} book>
-        <span className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-video-ready={ready && !still}>
+        <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual>
           {warm ? <Image
             src={island.src} alt="" width={island.width} height={island.height}
             sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
             className={styles.writingPoster}
           /> : null}
-          <video
-            ref={videoRef} className={styles.writingVideo} muted loop playsInline preload="none"
-            aria-hidden="true" disablePictureInPicture
-            onPlaying={() => setReady(true)} onError={() => setReady(false)}
-          >
-            <source src={island.video.mov} type={'video/quicktime; codecs="hvc1"'} />
-            <source src={island.video.webm} type={'video/webm; codecs="vp9"'} />
-          </video>
+          {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} className={styles.parallax} /> : null}
           <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response>
             <defs>
               <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">

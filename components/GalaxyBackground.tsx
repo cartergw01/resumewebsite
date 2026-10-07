@@ -20,9 +20,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
     // No manual pause control: the video only stills for reduced motion,
     // data saver, a hidden tab, or while entering an island.
     const prefersStill = () => motion.matches || Boolean(connection?.saveData);
-    // Chromium drops to ~19fps decoding this and the Writing island's
-    // transparent loop together, so the sky holds its frame while that plays.
-    const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering && stage.dataset.islandVideo !== "playing";
+    const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering;
     const sync = () => {
       // Keep the real video running while reading, with more energy in flight.
       const rate = (!page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1) * playbackRate;
@@ -53,7 +51,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
       }).finally(() => { if (attempt === generation) attempting = false; });
     };
     const observer = new MutationObserver(sync);
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-island-video"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
     motion.addEventListener("change", sync);
     portrait.addEventListener("change", sync);
     connection?.addEventListener("change", sync);

@@ -18,8 +18,8 @@ test("island artwork stays consistent from overview through forward and reverse 
     })).toBe(source);
   }
 
-  // Revisiting a world must preserve its geometry and media, including after
-  // the Writing video starts and then switches to the reduced-motion still.
+  // Revisiting a world must preserve its geometry and media, and the depth
+  // parallax that draws the still carries the same grade.
   for (const world of [...worlds, "writing", "work"] as const) {
     const name = world[0].toUpperCase() + world.slice(1);
     await page.getByRole("button", { name: `Show ${name} island` }).click();
@@ -31,15 +31,7 @@ test("island artwork stays consistent from overview through forward and reverse 
     await expect.poll(() => still.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
     const overviewGrade = await page.locator(`#intro [data-overview-island="${world}"] img`).evaluate(node => getComputedStyle(node).filter);
     await expect(still).toHaveCSS("filter", overviewGrade);
-    if (world === "writing") {
-      await expect(visual).toHaveAttribute("data-video-ready", "true");
-      await expect(visual.locator("video")).toHaveCSS("filter", overviewGrade);
-      await page.emulateMedia({ reducedMotion: "reduce" });
-      await expect(visual).toHaveAttribute("data-video-ready", "false");
-      await expect(still).toHaveCSS("opacity", "1");
-      await expect(still).toHaveAttribute("src", sources.get(world)!);
-      await page.emulateMedia({ reducedMotion: "no-preference" });
-      await expect(visual).toHaveAttribute("data-video-ready", "true");
-    }
+    const parallax = visual.locator("canvas[data-parallax-still]");
+    if (await parallax.count()) await expect(parallax).toHaveCSS("filter", overviewGrade);
   }
 });

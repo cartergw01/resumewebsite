@@ -22,14 +22,11 @@ test("background video advances without scrolling, keeps playing across islands,
   await expect.poll(frame).not.toBe(initialFrame);
   expect(await page.evaluate(() => scrollY)).toBe(0);
 
-  // There is no manual pause control; the video keeps playing across islands,
-  // holding its frame only while the Writing island's own loop plays (two
-  // decoding videos drop Chromium to ~19fps).
+  // There is no manual pause control; the video keeps playing across islands.
   await expect(page.getByRole("button", { name: /background video/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Show Writing island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
-  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-island-video", "playing");
-  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
+  await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);

@@ -227,7 +227,8 @@
         313.079
       ]
     ],
-    "daySrc": "/blender/island-work-day-1033c638.webp"
+    "daySrc": "/blender/island-work-day-1033c638.webp",
+    "depthSrc": "/blender/depth-work-616830f8.webp"
   },
   "writing": {
     "width": 1200,
@@ -277,10 +278,7 @@
       466.808,
       258.456
     ],
-    "video": {
-      "mov": "/blender/writing-loop-7e65a72f.mov",
-      "webm": "/blender/writing-loop-7e65a72f.webm"
-    }
+    "depthSrc": "/blender/depth-writing-68393d88.webp"
   },
   "projects": {
     "width": 1200,
@@ -325,6 +323,7 @@
         726.065,
         329.775
       ]
-    ]
+    ],
+    "depthSrc": "/blender/depth-projects-3e3e904f.webp"
   }
 }

@@ -11,6 +11,7 @@ import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
 import CityFireworks from "./CityFireworks";
+import ParallaxStill from "./ParallaxStill";
 import type { OrbitProjection } from "@/lib/island-orbit";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 
@@ -84,6 +85,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {world === "work" && warm && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 110vw, 68vw" loading="lazy" data-city-time="day"
           unoptimized draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
+        {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
         {world === "work" ? <>
           <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.windows} fill="#ffd69b">

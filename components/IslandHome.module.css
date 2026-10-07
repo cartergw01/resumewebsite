@@ -232,14 +232,7 @@
 .overviewIsland[data-entering] { z-index: 3; filter: none; outline-color: transparent; transition: none; }
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
-.writingPoster, .writingVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.writingVideo { opacity: 0; }
-.writingMedia[data-video-ready="true"] .writingVideo { opacity: 1; }
-.writingMedia[data-video-ready="true"] .writingPoster { opacity: 0; }
-/* A transparent video layer costs half the frame budget once the camera moves
-   it, even paused. While travelling, the matching still stands in for it. */
-.stage[data-travelling="true"] .writingVideo { display: none; }
-.stage[data-travelling="true"] .writingMedia .writingPoster { opacity: 1; }
+.writingPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .bookDetails, .bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .pageLight, .pageEdges { opacity: 0; transition: opacity 160ms ease, transform 180ms var(--cw-ease); }
 .islandLink:focus-visible .pageLight, .stage[data-entering="writing"] .pageLight { opacity: 0.65; }
@@ -538,3 +531,9 @@
 /* On phones the art box overhangs each screen edge by 3rem. */
 @media (max-width: 760px) { .cityTime { top: 2%; right: calc(3rem + 1.25rem); width: 40px; height: 40px; } }
 @media (prefers-reduced-motion: reduce) { .cityTime, .cityTime svg { transition: none; } }
+
+/* Depth parallax (ParallaxStill) draws the still once it's ready; the images
+   stay underneath as its source and the fallback for transitions and 3D. */
+.parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); }
+.island[data-parallax="on"] > img { opacity: 0 !important; transition: none !important; }
+.island[data-orbit-live="true"] > .parallax { opacity: 0; }

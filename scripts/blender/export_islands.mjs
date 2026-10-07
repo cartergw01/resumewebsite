@@ -29,7 +29,10 @@ for (const world of worlds) {
 }
 // Fingerprint both loop formats together so a re-render cannot leave browsers
 // displaying an older scene over the new still and interaction coordinates.
-if (worlds.includes("writing")) {
+// The site no longer plays the Writing loop (depth parallax replaced it), but
+// the exporter still publishes one if a render provides it.
+const { existsSync } = await import("node:fs");
+if (worlds.includes("writing") && existsSync(path.join(input, "writing-loop.webm"))) {
   const loops = await Promise.all(["mov", "webm"].map(async (extension) => ({
     extension,
     buffer: await readFile(path.join(input, `writing-loop.${extension}`)),

@@ -49,6 +49,26 @@ study's window holds a low moon and a few stars between linen drapes, with an
 office clock above the shelves. The shed has festoon bulbs swagged along its
 roof beam and a telescope on a tripod in the yard.
 
+### Depth parallax
+
+Every island also gets a camera-depth map rendered from its saved scene
+(`scripts/blender/render_depth.py`, cropped like its still by
+`scripts/blender/export_depth.mjs`; about 25–35 KB each). On fine-pointer
+devices `components/ParallaxStill.tsx` redraws the still in WebGL2, shifted by
+that depth as the mouse moves, with the landmark's depth as the still point so
+annotations and entry surfaces stay aligned. It draws only while moving and
+falls back to the plain still on touch, reduced motion, or without WebGL2.
+This replaced the Writing island's transparent video loop, which cost more
+frame time than any camera flight.
+
+```sh
+for w in work writing projects; do
+  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
+    --python scripts/blender/render_depth.py -- --world $w --output .blender-build/depth --width 1440
+done
+node scripts/blender/export_depth.mjs .blender-build/depth
+```
+
 ### Taipei by day
 
 Work also has a clear-afternoon version. A single round button at the

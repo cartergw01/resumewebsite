@@ -12,7 +12,9 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
   await expect(page).toHaveURL(/\/2\.0#work$/);
   await expect(page.getByRole("button", { name: "Show Taipei at night" })).toHaveAttribute("data-time", "day");
-  await expect.poll(() => day.evaluate(node => getComputedStyle(node).opacity)).toBe("1");
+  // Either the day still is showing, or the depth-parallax canvas (which draws
+  // the day image itself) has taken over from the stills.
+  await expect.poll(() => day.evaluate(node => node.parentElement!.dataset.parallax === "on" || getComputedStyle(node).opacity === "1")).toBe(true);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
   await page.getByRole("link", { name: /Enter Work island/ }).click();
