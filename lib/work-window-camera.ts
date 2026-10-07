@@ -17,7 +17,9 @@ export function makeLitWindow(corners: Vector3[]) {
   const geometry = new BufferGeometry();
   geometry.setAttribute("position", new Float32BufferAttribute(corners.flatMap(point => point.toArray()), 3));
   geometry.setIndex([0, 2, 1, 2, 3, 1]);
-  const glass = new Mesh(geometry, new MeshBasicMaterial({ color: 0xffd69b, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 }));
+  // A lamplit pane at night, daylight glass by day (island-orbit blends it):
+  // tone mapped like the rest of the city, never a flat unlit flash.
+  const glass = new Mesh(geometry, new MeshBasicMaterial({ color: 0xd9a868, polygonOffset: true, polygonOffsetFactor: -5, polygonOffsetUnits: -5 }));
   group.add(glass);
   const frame = new MeshStandardMaterial({ color: 0x61656a, metalness: .5, roughness: .5 });
   for (const [a, b] of [[0, 1], [1, 3], [3, 2], [2, 0]]) {

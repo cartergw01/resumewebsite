@@ -122,7 +122,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         const engine = await createIslandOrbit(canvas, asset, anchors, project, visual.querySelector<HTMLElement>("[data-workshop-screen]")?.dataset.src, controller.signal);
         if (disposed || controller.signal.aborted || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
         engineRef.current = engine;
-        if (world === "work") engine.setDaylight(currentCityTime() === "day");
+        if (world === "work") engine.setDaylight(currentCityTime() === "day", false);
         if (engine.beginWindowFlight) unregisterCamera = registerWindowCamera(visual, engine.beginWindowFlight);
         canvas.dataset.orbitReady = "true";
         if (interactive) {

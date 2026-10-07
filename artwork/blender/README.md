@@ -51,27 +51,37 @@ roof beam and a telescope on a tripod in the yard.
 
 ### Taipei by day
 
-Work also has a clear-afternoon version, switched by the sun/moon toggle at
-the island's upper right (`components/CityTimeToggle.tsx`; the choice is kept
-per visitor in localStorage). `--time day` re-lights the finished night scene
-(`daylight` in the build script): a warm sun and blue sky, lit glazing turned
-back into glass, lamps, tier lights and traffic streaks off. The night-only
-fireworks over Xinyi and the lantern-strung night market (`night_extras`) are
-removed; the day adds a cloud belted around 101's middle, two drifting clouds
-and a few birds by the spire (`day_extras`). Camera and geometry are shared,
-so `scripts/blender/export_day.mjs` crops the day still with the night
-render's crop and both use one set of anchors. The browser model is the night
-scene without its night-only extras; `setDaylight` in `lib/island-orbit.ts`
-swaps its lighting.
+Work also has a clear-afternoon version. A single round button at the
+island's upper right offers the other time (a sun at night, a moon by day;
+`components/CityTimeToggle.tsx`, remembered per visitor in localStorage), and
+the stills crossfade over 1.4s. `--time day` opens the saved night
+`work.blend` and only relights it (`daylight` in the build script), so both
+versions share exactly the same geometry, camera and anchors: a physically
+based clear sky lights the scene and is what the glass reflects, a warm sun
+casts the shadows, lit glazing turns back into glass and lamps, tier lights,
+traffic streaks and the night-only fireworks and lantern market are removed.
+`scripts/blender/export_day.mjs` crops it with the night render's crop.
+
+Details that read in both: every building gets its own small shift in tone
+and rain streaks down its facade (`weathered`), Taipei's vertical blade shop
+signs (saturated by day, lit at night), and a small neighbourhood temple with
+a vermilion hall and an orange glazed swallowtail roof. Work renders at 2880px
+wide with 96 samples.
+
+The browser model is the night scene without its night-only extras;
+`setDaylight` in `lib/island-orbit.ts` blends its lights, lamp glow and pane
+colour between the two rigs over the same 1.4s.
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
   --python scripts/blender/build_islands.py -- \
-  --world work --time day --output .blender-build/work-day --width 1920 --samples 72
+  --world work --time night --output .blender-build/work-night --width 2880 --samples 96
+# prepare, export and export_orbit the night render as above, then:
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
+  --python scripts/blender/build_islands.py -- \
+  --world work --time day --output .blender-build/work-day --width 2880 --samples 96
 node scripts/blender/export_day.mjs .blender-build/work-day
 ```
-
-Run it after the night Work export, which records the crop it reuses.
 
 ### Personal details
 

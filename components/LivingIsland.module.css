@@ -15,13 +15,13 @@
 }
 .image, .details { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 /* Taipei by day crossfades over the night render; night-only lights fade out. */
-.dayImage { opacity: 0; transition: opacity 700ms ease; }
+.dayImage { opacity: 0; transition: opacity 1400ms cubic-bezier(.45, 0, .25, 1); }
 :global(html[data-city-time="day"]) .dayImage { opacity: 1; }
 /* The day render is transparent where the night one has fireworks, so the
    night still steps out once the day has fully faded in (and back at once). */
 .nightImage { transition: opacity 0s; }
-:global(html[data-city-time="day"]) .nightImage { opacity: 0; transition: opacity 0s 700ms; }
-.nightOnly { transition: opacity 500ms ease; }
+:global(html[data-city-time="day"]) .nightImage { opacity: 0; transition: opacity 0s 1400ms; }
+.nightOnly { transition: opacity 1000ms cubic-bezier(.45, 0, .25, 1); }
 :global(html[data-city-time="day"]) .nightOnly { opacity: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .dayImage, .nightOnly { transition: none; } }
 .details { opacity: calc(var(--island-lights, 1) * 0.4); transition: opacity 160ms ease; }

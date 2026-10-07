@@ -1,10 +1,14 @@
 .overlay { position: fixed; inset: 0; z-index: 90; overflow: hidden; pointer-events: none; }
 .window { position: absolute; inset: 0; background: #070b10; will-change: clip-path; }
-.glazing { position: absolute; left: 0; top: 0; width: 1000px; height: 1000px; overflow: hidden; transform-origin: 0 0; will-change: transform, opacity; background: linear-gradient(125deg, #efd7ac, #d8b780 62%, #b69b75); }
-.reflection { position: absolute; inset: 0; background: linear-gradient(113deg, transparent 31%, #c3d7e318 38%, #f4f2df66 43%, #ffffff36 45%, transparent 49%); will-change: transform; }
+.glazing { position: absolute; left: 0; top: 0; width: 1000px; height: 1000px; overflow: hidden; transform-origin: 0 0; will-change: transform, opacity; }
+.reflection { position: absolute; inset: 0; will-change: transform; }
+/* Night: a dim, lamplit office pane that clears as the camera passes. */
+.overlay[data-time="night"] .glazing { background: radial-gradient(ellipse at 50% 60%, #6a5233e6, #3b2d1fe6 70%); }
+.overlay[data-time="night"] .reflection { background: linear-gradient(113deg, transparent 34%, #ffd9a014 41%, #ffe7bf22 44%, transparent 49%); }
+/* Day: reflective blue-grey glazing with the sky sliding across it. */
+.overlay[data-time="day"] .glazing { background: linear-gradient(160deg, #a8bdcff0, #7890a3f0 55%, #5b6e7ef0); }
+.overlay[data-time="day"] .reflection { background: linear-gradient(113deg, transparent 30%, #ffffff1c 37%, #f4f8ff55 42%, #ffffff26 45%, transparent 50%); }
 .preview { position: absolute; inset: 0; overflow: hidden; transform-origin: 0 0; will-change: transform; }
-/* Passing the glass into a lit office: a brief warm wash centred on the pane. */
-.flare { position: absolute; inset: 0; opacity: 0; background: radial-gradient(circle at var(--flare-x, 50%) var(--flare-y, 50%), #ffe3b0cc, #ffcf8a55 22%, transparent 58%); will-change: opacity; }
 .still { position: absolute; inset: 0; width: 100%; height: 100%; }
 :global(html[data-work-transition="entering"]) .arrival { visibility: hidden; }
 :global(html[data-work-transition="arriving"]) .arrival { pointer-events: none; }

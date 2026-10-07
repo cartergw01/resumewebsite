@@ -53,8 +53,9 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
           material.polygonOffset = true;
           material.polygonOffsetFactor = -2;
           material.polygonOffsetUnits = -4;
-          // Cycles lets windows and lamps bloom; match their night glow here.
-          material.emissiveIntensity *= 1.6;
+          // Lit panes stay a warm amber: brighter, they wash out to white when
+          // the Work camera flies close to the facade.
+          material.emissiveIntensity *= .45;
           glowing.push({ material, night: material.emissiveIntensity });
         }
       }
@@ -94,18 +95,50 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       lamps.push(lamp);
     }
     // Work's city also has a clear afternoon: a warm sun from the front left,
-    // a bright sky, and every lit window and lamp switched off.
-    const setDaylight = (day: boolean) => {
-      scene.environmentIntensity = day ? 0.28 : 0.1;
-      sky.color.set(day ? 0xb4cbf5 : 0x5d73b0); sky.groundColor.set(day ? 0x3e3a30 : 0x15151c); sky.intensity = day ? 1.0 : 0.7;
-      key.color.set(day ? 0xfff0da : 0xb8ccff); key.intensity = day ? 2.6 : 2.4;
-      key.position.set(day ? -6.6 : -6.6, day ? 7.4 : 7, day ? 7.4 : -7.4);
-      rim.intensity = day ? 0.35 : 1.3;
-      bounce.color.set(day ? 0xd9cdb5 : 0x8ca4ff); bounce.intensity = day ? 0.55 : 0.45;
-      fill.intensity = day ? 0.45 : 0.35;
-      for (const lamp of lamps) lamp.visible = !day;
-      for (const { material, night } of glowing) material.emissiveIntensity = day ? 0 : night;
+    // a bright sky, and every lit window and lamp switched off. The two rigs
+    // blend, so switching relights the model gradually rather than snapping.
+    const rigs = {
+      night: { env: .1, sky: new Color(0x5d73b0), ground: new Color(0x15151c), skyI: .7, key: new Color(0xb8ccff), keyI: 2.4, keyPos: new Vector3(-6.6, 7, -7.4), rim: 1.3, bounceC: new Color(0x8ca4ff), bounce: .45, fill: .35, lamps: 1, glow: 1, pane: new Color(0xd9a868) },
+      day: { env: .28, sky: new Color(0xb4cbf5), ground: new Color(0x3e3a30), skyI: 1, key: new Color(0xfff0da), keyI: 2.6, keyPos: new Vector3(-6.6, 7.4, 7.4), rim: .35, bounceC: new Color(0xd9cdb5), bounce: .55, fill: .45, lamps: 0, glow: 0, pane: new Color(0x6c8091) },
+    };
+    const lampPower = lamps.map(lamp => lamp.intensity);
+    // Lit panes glow from within at night (a darker surface under the glow
+    // reads as a lamplit window, not a white tile) and are glass by day.
+    const nightPane = new Color(0x4a3d30), daylightGlass = new Color(0x2c3f48);
+    let daylight = 0, tween = 0;
+    const lerp = (a: number, b: number) => a + (b - a) * daylight;
+    const applyRig = () => {
+      const n = rigs.night, d = rigs.day;
+      scene.environmentIntensity = lerp(n.env, d.env);
+      sky.color.copy(n.sky).lerp(d.sky, daylight); sky.groundColor.copy(n.ground).lerp(d.ground, daylight); sky.intensity = lerp(n.skyI, d.skyI);
+      key.color.copy(n.key).lerp(d.key, daylight); key.intensity = lerp(n.keyI, d.keyI); key.position.copy(n.keyPos).lerp(d.keyPos, daylight);
+      rim.intensity = lerp(n.rim, d.rim);
+      bounce.color.copy(n.bounceC).lerp(d.bounceC, daylight); bounce.intensity = lerp(n.bounce, d.bounce);
+      fill.intensity = lerp(n.fill, d.fill);
+      lamps.forEach((lamp, i) => { lamp.intensity = lampPower[i] * (1 - daylight); });
+      // By day a lit pane is just glass: its baked warm colour is tinted down
+      // to the blue-green glazing of the daylight render.
+      for (const { material, night } of glowing) {
+        material.emissiveIntensity = night * (1 - daylight);
+        material.color.copy(nightPane).lerp(daylightGlass, daylight);
+      }
+      const pane = litWindow?.group.children[0];
+      if (pane instanceof Mesh && pane.material instanceof MeshBasicMaterial) pane.material.color.copy(n.pane).lerp(d.pane, daylight);
       renderer.shadowMap.needsUpdate = true;
+    };
+    const setDaylight = (day: boolean, animate: boolean) => {
+      cancelAnimationFrame(tween);
+      const from = daylight, to = day ? 1 : 0;
+      if (!animate || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { daylight = to; applyRig(); flushRender(); return; }
+      const start = performance.now();
+      const step = (now: number) => {
+        if (disposed) return;
+        const k = Math.min(1, (now - start) / 1400);
+        daylight = from + (to - from) * (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+        applyRig(); flushRender();
+        if (k < 1) tween = requestAnimationFrame(step);
+      };
+      tween = requestAnimationFrame(step);
     };
     renderer.shadowMap.needsUpdate = true;
     scene.updateMatrixWorld(true);
@@ -198,6 +231,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       if (disposed) return;
       disposed = true;
       cancelAnimationFrame(renderFrame);
+      cancelAnimationFrame(tween);
       gltf.scene.traverse(object => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();
@@ -227,7 +261,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         scheduleRender();
       },
       reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
-      setDaylight(day: boolean) { setDaylight(day); flushRender(); },
+      setDaylight(day: boolean, animate = true) { setDaylight(day, animate); },
       beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
         // Carry the latest input into the flight without drawing a redundant
         // island frame just before the full-viewport camera takes over.

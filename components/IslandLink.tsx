@@ -89,12 +89,12 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     const entryWindow = city ? visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]") : null;
     const workEntry = entryWindow ? beginWorkEntry(entryWindow, visual) : null;
     // Work borrows its real camera; the book and workshop keep their approach.
-    // One continuous move: it starts promptly, gathers speed and dives in,
-    // with no intermediate keyframe where the camera could stall.
+    // One continuous, eased move at the shared pace: it eases out of rest,
+    // glides in and settles, with no intermediate keyframe to stall on.
     const zoom = workEntry?.animation ?? visual.animate([
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
-    ], { duration: ENTRY_APPROACH_DURATION, easing: "cubic-bezier(0.5, 0, 0.75, 0.9)", fill: "forwards" });
+    ], { duration: ENTRY_APPROACH_DURATION, easing: "cubic-bezier(0.45, 0, 0.25, 1)", fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;

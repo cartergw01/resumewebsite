@@ -102,8 +102,8 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
   const glass = document.createElement("div"); glass.className = styles.glazing;
   const reflection = document.createElement("div"); reflection.className = styles.reflection;
   glass.append(reflection);
-  const flare = document.createElement("div"); flare.className = styles.flare;
-  opening.append(preview, glass); overlay.append(opening, flare);
+  opening.append(preview, glass); overlay.append(opening);
+  overlay.dataset.time = document.documentElement.dataset.cityTime === "day" ? "day" : "night";
   document.body.append(overlay);
   document.documentElement.dataset.workTransition = "entering";
   const camera = windowCameraFor(visual);
@@ -130,15 +130,11 @@ export function beginWorkEntry(source: SVGGraphicsElement, visual: HTMLElement) 
     // The reflection belongs to the pane, including its perspective after an
     // orbit. It slips across the glass as the camera squares up to the facade.
     glass.style.transform = artworkTransform(points, 1000, 1000);
-    reflection.style.transform = `translate3d(${38 - smooth((progress - .35) / .4) * 78}%,0,0)`;
+    reflection.style.transform = `translate3d(${38 - smooth((progress - .25) / .55) * 78}%,0,0)`;
     // Reveal by the physical opening's size, so both the real camera and the
     // lightweight fallback clear the glass when the contents are legible.
-    glass.style.opacity = String(1 - smooth((content.fit - .07) / .48));
-    // A warm wash peaks as the camera passes through the pane, then clears.
-    const center = points.reduce((sum, point) => [sum[0] + point[0] / 4, sum[1] + point[1] / 4], [0, 0]);
-    flare.style.setProperty("--flare-x", `${center[0]}px`);
-    flare.style.setProperty("--flare-y", `${center[1]}px`);
-    flare.style.opacity = (.85 * smooth((content.fit - .06) / .2) * (1 - smooth((content.fit - .34) / .4))).toFixed(3);
+    // The pane clears gradually as the opening grows, never in a flash.
+    glass.style.opacity = String(1 - smooth((content.fit - .05) / .6));
   };
   const tick = () => {
     if (disposed) return;

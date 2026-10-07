@@ -142,6 +142,38 @@ def fade_with_depth(mat, top=0., bottom=-3.6, floor=.45):
     return mat
 
 
+def weathered(mat, value=.16, hue=.03, streak=.20):
+    """No two buildings share an exact colour: each object gets its own small
+    shift in value and hue, and rain streaks darken the facade downward."""
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    bs = nodes.get('Principled BSDF')
+    source = bs.inputs['Base Color'].links[0].from_socket if bs.inputs['Base Color'].is_linked else None
+    info = nodes.new('ShaderNodeObjectInfo')
+    lift = nodes.new('ShaderNodeMapRange'); lift.inputs['To Min'].default_value = 1-value; lift.inputs['To Max'].default_value = 1+value
+    links.new(info.outputs['Random'], lift.inputs['Value'])
+    spread = nodes.new('ShaderNodeMath'); spread.operation = 'MULTIPLY'; spread.inputs[1].default_value = 7.13
+    links.new(info.outputs['Random'], spread.inputs[0])
+    frac = nodes.new('ShaderNodeMath'); frac.operation = 'FRACT'; links.new(spread.outputs[0], frac.inputs[0])
+    shift = nodes.new('ShaderNodeMapRange'); shift.inputs['To Min'].default_value = .5-hue; shift.inputs['To Max'].default_value = .5+hue
+    links.new(frac.outputs[0], shift.inputs['Value'])
+    tint = nodes.new('ShaderNodeHueSaturation')
+    links.new(shift.outputs[0], tint.inputs['Hue']); links.new(lift.outputs[0], tint.inputs['Value'])
+    if source: links.new(source, tint.inputs['Color'])
+    else: tint.inputs['Color'].default_value = bs.inputs['Base Color'].default_value
+    geometry = nodes.new('ShaderNodeNewGeometry')
+    stretch = nodes.new('ShaderNodeVectorMath'); stretch.operation = 'MULTIPLY'; stretch.inputs[1].default_value = (70, 70, 3)
+    links.new(geometry.outputs['Position'], stretch.inputs[0])
+    rain = nodes.new('ShaderNodeTexNoise'); rain.inputs['Scale'].default_value = 1; rain.inputs['Detail'].default_value = 3
+    links.new(stretch.outputs[0], rain.inputs['Vector'])
+    stain = nodes.new('ShaderNodeMapRange'); stain.inputs['From Min'].default_value = .45; stain.inputs['From Max'].default_value = .75
+    stain.inputs['To Min'].default_value = 1; stain.inputs['To Max'].default_value = 1-streak
+    links.new(rain.outputs['Fac'], stain.inputs['Value'])
+    mix = nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'; mix.inputs['Factor'].default_value = 1
+    links.new(tint.outputs[0], mix.inputs['A']); links.new(stain.outputs[0], mix.inputs['B'])
+    links.new(mix.outputs['Result'], bs.inputs['Base Color'])
+    return mat
+
+
 def palette():
     global P
     P = {
@@ -797,6 +829,10 @@ def city_frontage(name,x,y,w,d,h,seed,base=.055):
         box(name+' · arcade pier',(xx,y-d/2+.006,base+.040),(.013,.014,.080),wall,.001)
     box(name+' · arcade canopy',(x,y-d/2-.016,base+.084),(w+.008,.10,.012),'concrete',.001)
     box(name+' · shop fascia',(x,y-d/2-.065,base+.068),(w*.78,.005,.021),rng.choice(['jade','city-rust','teal']),.001)
+    # A blade sign stands out from the facade above the arcade.
+    if rng.random()<.6 and h>.2:
+        hs=rng.uniform(.06,min(.16,h-.14));sx=x+rng.choice([-1,1])*w*.40
+        box(name+' · vertical shop sign',(sx,y-d/2-.024,base+.10+hs/2),(.005,.038,hs),'sign-'+rng.choice(['red','blue','yellow','green','white','orange','red']),.001)
     rows=max(2,round((h-.09)/.037));cols=max(2,round(w/.055))
     vs=[];fs=[];mats=[]
     for row in range(rows):
@@ -966,32 +1002,23 @@ def night_extras(tx,ty):
             box('Night · market stall awning',(1.55+side*.085,y,.072),(.05,.07,.006),'redcloth',.001)
 
 
-def day_extras(tx,ty):
-    """Daytime fun: a cloud belted around Taipei 101's middle (it often is),
-    two small clouds drifting past, and a few birds by the spire."""
-    rng=random.Random(9)
-    P['cloud']=material('Day · cloud',(.92,.93,.95),rough=1)
-    P['cloud'].node_tree.nodes['Principled BSDF'].inputs['Subsurface Weight'].default_value=.4
-    def puff(cx,cy,cz,rx,ry,n):
-        for k in range(n):
-            a=rng.uniform(0,math.tau);u=math.sqrt(rng.random())
-            r=rng.uniform(.06,.13)*(rx/.6)
-            # Flat-bottomed cumulus: puffs pile upward from a common base.
-            sphere('Day · cloud puff',(cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,cz+r*.35+rng.uniform(0,.06)*(1-u)),(r,r*.9,r*.7),'cloud',3)
-    # A ring of puffs around the tower's lower modules, open at the front so
-    # the lit window and the tower's silhouette stay readable.
-    for k in range(16):
-        a=k*math.tau/16
-        if -2.2<a-math.pi<-1.0:continue
-        r=rng.uniform(.10,.17)
-        sphere('Day · cloud belt',(tx+math.cos(a)*.42,ty+math.sin(a)*.34,2.05+rng.uniform(-.05,.06)),(r,r*.95,r*.6),'cloud',3)
-    puff(-3.7,1.4,1.75,.55,.30,22)
-    puff(3.5,-.2,2.35,.45,.25,16)
-    P['bird']=material('Day · bird',(.05,.05,.06),rough=.8)
-    for k in range(5):
-        bx=tx+.7+k*.13+rng.uniform(-.05,.05);by=ty-.2;bz=4.0+rng.uniform(-.15,.15)
-        rod('Day · bird wing',(bx-.035,by,bz+.012),(bx,by,bz),.0018,'bird',4)
-        rod('Day · bird wing',(bx,by,bz),(bx+.035,by,bz+.012),.0018,'bird',4)
+def temple(x,y,z):
+    """A Taiwanese folk temple: stone platform, vermilion hall and columns,
+    an orange glazed roof with swallowtail ridge ends, red lanterns."""
+    box('Temple · stone platform',(x,y,z+.012),(.38,.32,.024),'stone',.002)
+    box('Temple · forecourt',(x,y-.12,z+.026),(.30,.10,.004),'paving',0)
+    box('Temple · hall',(x,y+.04,z+.024+.045),(.26,.17,.09),'temple-red',.002)
+    for k in range(4):
+        cylinder('Temple · red column',(x-.105+k*.07,y-.055,z+.024+.045),.007,.09,'temple-red',12,bevel=0)
+    box('Temple · gilded plaque',(x,y-.047,z+.10),(.06,.003,.018),'temple-gold',.001)
+    rz=z+.024+.09
+    verts=[(x-.17,y-.13,rz),(x+.17,y-.13,rz),(x+.17,y+.14,rz),(x-.17,y+.14,rz),(x-.12,y+.005,rz+.06),(x+.12,y+.005,rz+.06)]
+    mesh('Temple · glazed hip roof',verts,[(0,1,5,4),(1,2,5),(2,3,4,5),(3,0,4)],'temple-roof')
+    curve('Temple · swallowtail ridge',[(x-.19,y+.005,rz+.095),(x-.15,y+.005,rz+.066),(x,y+.005,rz+.064),(x+.15,y+.005,rz+.066),(x+.19,y+.005,rz+.095)],.006,'temple-roof')
+    for sx in [-1,1]:
+        curve('Temple · upturned eave',[(x+sx*.17,y-.13,rz),(x+sx*.19,y-.15,rz+.012),(x+sx*.205,y-.16,rz+.03)],.004,'temple-roof')
+        sphere('Temple · ridge pearl',(x,y+.005,rz+.072),(.008,.008,.008),'temple-gold',1)
+        sphere('Night · temple lantern',(x+sx*.06,y-.08,z+.10),(.009,.009,.012),'temple-lantern',1)
 
 
 def densify_city():
@@ -1005,6 +1032,7 @@ def densify_city():
     elephant_mountain(4.05,-2.55,1.15,.82,.62)
     bpy.context.view_layer.update()
     depsgraph=bpy.context.evaluated_depsgraph_get();scene=bpy.context.scene
+    placed_temple=False
     def surface(x,y):
         hit=terrain.ray_cast(inverse@Vector((x,y,10)),Vector((0,0,-1)))[0]
         if hit is None:return None
@@ -1015,6 +1043,13 @@ def densify_city():
             ok,loc,_,_,obj,_=scene.ray_cast(depsgraph,Vector((x+dx*w,y+dy*d,8)),Vector((0,0,-1)))
             if not ok or obj.name!=ground.name:return False
         return True
+    # A small neighbourhood temple, the kind tucked between Taipei's blocks.
+    for (x,y) in [(-2.15,-2.25),(-1.55,-2.30),(-.45,-2.40),(2.35,-2.10),(-2.85,-1.55),(-3.2,1.9)]:
+        if placed_temple or not free(x,y,.42,.36):continue
+        z=surface(x,y)
+        if z is None:continue
+        temple(x,y,z);placed_temple=True
+    bpy.context.view_layer.update();depsgraph=bpy.context.evaluated_depsgraph_get()
     i=0;step=.40
     for gy in range(-9,10):
         for gx in range(-13,14):
@@ -1054,6 +1089,15 @@ def city():
     P['tierglow']=material('Taipei 101 · gold tier lighting',(1,.78,.42),emission=5)
     P['headlight']=material('Traffic · headlight trail',(1,.93,.80),emission=4)
     P['taillight']=material('Traffic · taillight trail',(1,.10,.06),emission=4)
+    for key in ['city-tile','city-plaster','city-grey','brick','concrete','city-roof','stone']:weathered(P[key])
+    weathered(P['city-rust'],.1,.02,.12)
+    # Taipei's vertical shop signs: saturated by day, lit by night.
+    for name,color in [('red',(.62,.05,.04)),('blue',(.05,.18,.55)),('yellow',(.85,.62,.06)),('green',(.06,.40,.20)),('white',(.80,.80,.76)),('orange',(.85,.30,.05))]:
+        P['sign-'+name]=material('Sign · '+name,color,rough=.5,emission=2.2)
+    P['temple-red']=textured('Temple · vermilion lacquer',(.32,.04,.03),(.48,.08,.05),'plaster',rough=.55)
+    P['temple-roof']=material('Temple · glazed orange tile',(.62,.22,.05),rough=.32)
+    P['temple-gold']=material('Temple · gilded trim',(.75,.52,.14),metal=.8,rough=.35)
+    P['temple-lantern']=material('Night · temple lantern',(1,.18,.08),emission=4)
     foundation(31,'district');landscape('work',31);rng=random.Random(263)
     ground=bpy.data.objects['Island · eroded basalt escarpment'];ground.data.materials[1]=P['paving']
     ground.data.materials[2]=textured('Xinyi · park meadow',(.035,.051,.018),(.115,.135,.048),'moss',rough=.98)
@@ -1930,16 +1974,23 @@ def camera_and_lights(scene):
 
 def daylight(scene):
     """Re-light a finished scene for a clear Taipei afternoon."""
-    background=scene.world.node_tree.nodes['Background']
-    background.inputs[0].default_value=(.36,.50,.74,1);background.inputs[1].default_value=.75
-    scene.view_settings.exposure=-.35
+    # A physically based clear sky lights the scene and is what the glass
+    # reflects; the sun lamp carries the direct light and crisp shadows.
+    world=scene.world.node_tree;background=world.nodes['Background']
+    sky=world.nodes.new('ShaderNodeTexSky')
+    try: sky.sky_type='MULTIPLE_SCATTERING'
+    except Exception: pass
+    sky.sun_elevation=math.radians(37);sky.sun_rotation=math.radians(-132);sky.sun_disc=False
+    sky.altitude=200;sky.air_density=1.0;sky.aerosol_density=1.4
+    world.links.new(sky.outputs['Color'],background.inputs[0]);background.inputs[1].default_value=.32
+    scene.view_settings.exposure=-.2
     for obj in list(scene.objects):
         if obj.type=='LIGHT' or obj.name.startswith(('Traffic · light trail','Night · ')):
             bpy.data.objects.remove(obj,do_unlink=True)
     sun=bpy.data.lights.new('Sun · afternoon','SUN');sun.color=(1,.95,.86);sun.energy=4.2;sun.angle=math.radians(1.5)
     key=bpy.data.objects.new('Sun · afternoon',sun);bpy.context.collection.objects.link(key)
     key.rotation_euler=Vector((.55,.62,-.62)).to_track_quat('-Z','Y').to_euler()
-    light('Sky · cool fill',(-4,-9,7),(.62,.74,1),260,10,(0,0,.5))
+    light('Sky · cool fill',(-4,-9,7),(.62,.74,1),120,10,(0,0,.5))
     light('Cliff · ground bounce',(1.5,-9,-4.5),(.75,.72,.62),380,9,(0,0,-1.6))
     # Lit glazing becomes daytime glass; lamps and trails switch off.
     glass={'Warm occupied offices':(.07,.12,.12),'Cool occupied offices':(.09,.14,.15),'Dim occupied offices':(.08,.11,.11),
@@ -1954,7 +2005,6 @@ def daylight(scene):
             bs.inputs['Metallic'].default_value=.45;bs.inputs['Roughness'].default_value=.18
         elif mat.name.startswith(('City · sodium','Taipei 101 · gold','Xiangshan · lamplit','Warm practical')):
             bs.inputs['Base Color'].default_value=(.32,.33,.32,1)
-    if scene.name.startswith('Work ·'):day_extras(.52,-.39)
 
 
 def projected(scene, point):
@@ -1988,6 +2038,23 @@ def main():
     sources=ROOT/'artwork'/'blender'
     sources.mkdir(parents=True,exist_ok=True)
     for world in (['work','writing','projects'] if args.world=='all' else [args.world]):
+        if args.time=='day':
+            # Day relights the saved night scene itself, so both share exactly
+            # the same geometry, camera and therefore interaction anchors.
+            bpy.ops.wm.open_mainfile(filepath=str(sources/f'{world}.blend'))
+            scene=bpy.context.scene
+            scene.render.resolution_x=args.width;scene.render.resolution_y=round(args.width*2/3)
+            scene.cycles.samples=args.samples
+            if args.device=='METAL':
+                prefs=bpy.context.preferences.addons['cycles'].preferences
+                prefs.compute_device_type='METAL';prefs.get_devices()
+                for dev in prefs.devices: dev.use=dev.type=='METAL'
+                scene.cycles.device='GPU'
+            daylight(scene)
+            scene.render.filepath=str(args.output/f'{world}.png')
+            bpy.ops.render.render(write_still=True)
+            print(f'COMPLETED {world} day',flush=True)
+            continue
         ANCHORS.clear(); WINDOWS.clear(); ANIMATED.clear()
         scene=setup(world,args.width,args.samples,args.engine,args.device)
         {'work':city,'writing':writing,'projects':workshop}[world]()
