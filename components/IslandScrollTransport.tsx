@@ -6,6 +6,10 @@ import JourneyStars from "./JourneyStars";
 import { rememberIsland } from "@/lib/island-location";
 import { createCometNavigation } from "@/lib/comet-navigation";
 import styles from "./IslandHome.module.css";
+import type { FlightWorld } from "@/lib/island-flight";
+import flightAssets from "@/lib/island-flight-assets.json";
+import orbitAssets from "@/lib/island-orbit-assets.json";
+import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 
 // Stops without a title (the opening and closing views) have no tab.
 type World = { id: string; title?: string };
@@ -63,6 +67,22 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const paintMiddleStars = scenePainter(middleStars);
     const paintNearStars = scenePainter(nearStars);
     const comet = createCometNavigation(sceneNav, motion);
+    // Real 3D flights between islands, once the pre-lit flight models load.
+    const flightCanvas = stage.querySelector<HTMLCanvasElement>("[data-flight-canvas]")!;
+    let flightWorld: FlightWorld | null = null;
+    let flightShown = false;
+    const flightIds = new Set(Object.keys(flightAssets));
+    // An island still's on-screen box, from layout, ignoring the 2D camera's
+    // transforms: the 3D flight starts and ends on exactly this framing.
+    const stillRect = (index: number) => {
+      const visual = scenes[index].querySelector<HTMLElement>("[data-island-visual]");
+      if (!visual) return null;
+      let x = 0, y = 0, node: HTMLElement | null = visual;
+      while (node && node !== stage) { x += node.offsetLeft; y += node.offsetTop; node = node.offsetParent as HTMLElement | null; }
+      if (node !== stage) return null;
+      const base = stage.getBoundingClientRect();
+      return new DOMRect(base.left + x, base.top + y, visual.offsetWidth, visual.offsetHeight);
+    };
     const duration = scenes.length - 1 + FINAL_HOLD;
     let frame = 0;
     let activeIndex = -1;
@@ -118,6 +138,18 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // than across open space, so the two islands share one path.
       const zoom = from === 0 && !motion.matches ? phase(crossing, 0.05, 0.85) : 0;
 
+      // Between two islands, the real camera flies when its models are ready;
+      // the stills cross-dissolve into it and back out over the ends.
+      const flightOn = Boolean(flightWorld && !motion.matches && crossing > 0 && crossing < 1 && flightIds.has(worlds[from]?.id) && flightIds.has(worlds[from + 1]?.id));
+      let flightMix = flightOn ? Math.min(phase(crossing, 0, .1), 1 - phase(crossing, .9, 1)) : 0;
+      if (flightOn) {
+        const rect = stillRect(from);
+        if (rect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, rect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
+        else flightMix = 0;
+      }
+      if (!flightMix && flightShown) { flightCanvas.style.opacity = "0"; flightWorld?.clear(); flightShown = false; }
+      if (stage.dataset.flight !== (flightMix ? "3d" : "2d")) stage.dataset.flight = flightMix ? "3d" : "2d";
+
       scenes.forEach((scene, index) => {
         const outgoing = index === from;
         const visible = motion.matches ? index === current
@@ -151,6 +183,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           }
         }
         paintArt[index]("transform", transform);
+        if (flightMix && (index === from || index === from + 1)) opacity = (Number(opacity) * (1 - flightMix)).toFixed(4);
         paintArt[index]("opacity", opacity);
         paintArt[index]("transform-origin", origin);
         const copyOpacity = motion.matches ? 1 : outgoing
@@ -380,6 +413,32 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     next.addEventListener("click", advance);
     window.addEventListener("click", enterFromHeading, true);
     stage.addEventListener("island-entry-cancel", cancelEntry);
+    // The flight models load only on capable devices, after the page settles.
+    const flightAbort = new AbortController();
+    let flightTimer = 0;
+    const capable = () => {
+      const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean; effectiveType?: string } };
+      if (motion.matches || nav.connection?.saveData) return false;
+      if (nav.deviceMemory && nav.deviceMemory < 4) return false;
+      if (nav.connection?.effectiveType && !/4g/.test(nav.connection.effectiveType)) return false;
+      return Boolean(document.createElement("canvas").getContext("webgl2"));
+    };
+    if (capable()) flightTimer = window.setTimeout(() => {
+      const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
+        const islands = Object.entries(flightAssets).map(([id, asset]) => {
+          const orbit = orbitAssets[id as keyof typeof orbitAssets];
+          return { id, src: asset.src, daySrc: "daySrc" in asset ? asset.daySrc as string : undefined, camera: orbit.camera, crop: orbit.crop };
+        });
+        const world = await createFlightWorld(flightCanvas, islands, flightAbort.signal);
+        if (flightAbort.signal.aborted) { world.dispose(); return; }
+        world.setTime(currentCityTime());
+        flightWorld = world;
+        stage.dataset.flightReady = "true";
+      }).catch(() => { flightWorld = null; });
+      if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 4000 }); else start();
+    }, 2500);
+    const retime = () => flightWorld?.setTime(currentCityTime());
+    window.addEventListener(CITY_TIME_EVENT, retime);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
     // After the arrival cue is discovered, a mouse prompt follows the rocket;
     // the whole island stays the target and keyboard focus keeps its cue.
@@ -544,6 +603,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
       window.removeEventListener("pageshow", measure);
+      window.clearTimeout(flightTimer);
+      flightAbort.abort();
+      flightWorld?.dispose();
+      window.removeEventListener(CITY_TIME_EVENT, retime);
       window.removeEventListener("hashchange", followHash);
       window.removeEventListener("popstate", followHash);
       motion.removeEventListener("change", onMotionChange);
@@ -567,6 +630,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         <GalaxyBackground />
         <JourneyStars />
         <div className={styles.vignette} aria-hidden="true" />
+        <canvas className={styles.flightCanvas} data-flight-canvas aria-hidden="true" />
         <span className={styles.islandTip} data-island-tip aria-hidden="true">
           <span className={styles.tipStar} />
           <span className={styles.tipLeader} />

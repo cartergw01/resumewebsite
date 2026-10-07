@@ -69,6 +69,29 @@ done
 node scripts/blender/export_depth.mjs .blender-build/depth
 ```
 
+### Real camera flights
+
+Between Work, Writing and Projects the camera flies in 3D. Each island has a
+lightweight flight model (`scripts/blender/export_flight.py`): the saved scene
+joined, its full Cycles lighting (moon or sun, lamps, emission, bounce) baked
+into vertex colours, then decimated to ~70k faces and Draco-compressed
+(~1.5 MB each; Taipei's daytime bake is a separate file loaded only when day
+is chosen). The browser draws them unlit (`lib/island-flight.ts`): the islands
+sit apart in one space and the camera flies a curve from one island's render
+camera to the next, widening the lens mid-flight so both islands share the
+frame. Each end projects into the still's exact on-screen box, and the stills
+cross-dissolve into the flight over the first and last 10% of the crossing, so
+the hand-off is seamless. The models load after the page settles and only on
+capable devices (WebGL2, no data saver, ≥4 GB memory, 4G-class connection,
+motion allowed); otherwise, or until they arrive, the 2D flight is used.
+
+```sh
+for w in work writing projects; do
+  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
+    --python scripts/blender/export_flight.py -- --world $w
+done
+```
+
 ### Live details
 
 `scripts/blender/export_life_anchors.py` projects extra points from each saved
