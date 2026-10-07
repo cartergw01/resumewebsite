@@ -978,19 +978,10 @@ def elephant_mountain(cx,cy,rx,ry,height):
 
 
 def night_extras(tx,ty):
-    """Night-only fun: fireworks over Xinyi and a lantern-strung night market.
+    """Night-only fun: a lantern-strung night market.
     Named 'Night · ' so the daytime render removes them."""
     rng=random.Random(1231)
-    P['fwgold']=material('Night · firework gold',(1,.78,.36),emission=9)
-    P['fwpink']=material('Night · firework rose',(1,.42,.62),emission=9)
     P['lantern']=material('Night · red lantern',(1,.16,.08),emission=5)
-    for (cx,cy,cz,r,n,mat) in [(tx-1.25,ty+.75,4.25,.62,34,'fwgold'),(tx+1.35,ty+1.15,3.55,.40,24,'fwpink')]:
-        for k in range(n):
-            a=k*math.tau/n+rng.uniform(-.05,.05);el=rng.uniform(-.9,.9)
-            d=Vector((math.cos(a)*math.cos(el),math.sin(a)*math.cos(el)*.6,math.sin(el))).normalized()
-            pts=[Vector((cx,cy,cz))+d*r*f+Vector((0,0,-.12*r*f*f)) for f in [.25,.55,.8,1.0]]
-            curve('Night · firework trail',[tuple(p) for p in pts],.0035,mat)
-            sphere('Night · firework spark',tuple(pts[-1]),(.012,.012,.012),mat,1)
     # A lantern string zig-zags over a night-market street south of 101.
     for y in [-1.30,-1.55,-1.80,-2.05]:
         pts=[(1.55+.11*(-1 if i%2 else 1)*(1-abs(i-4)/4),y+.06*math.sin(i),.13-.025*math.sin(math.pi*i/8)) for i in range(9)]

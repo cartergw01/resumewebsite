@@ -10,6 +10,7 @@ import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
+import CityFireworks from "./CityFireworks";
 import type { OrbitProjection } from "@/lib/island-orbit";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 
@@ -102,6 +103,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
               <path className={motionStyles.entryWindow} d={artworkOutline(city.entryWindow)} fill="#eacd96" />
             </g>
           </svg>
+          {warm ? <CityFireworks tower={city.tower} className={`${motionStyles.fireworks} ${motionStyles.nightOnly}`} /> : null}
         </> : <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
           <g className={motionStyles.lamp} fill="#ffd38b">
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />

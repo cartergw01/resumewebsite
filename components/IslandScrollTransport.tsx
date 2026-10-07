@@ -87,7 +87,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 18);
+      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 32);
       // Touch momentum and our navigation glide already supply smooth positions.
       // Follow them in this frame instead of adding a second easing layer.
       cameraProgress = cameraProgress === null || motion.matches || touchScroll.matches || direct
@@ -290,14 +290,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // phone rotation mid-flight still lands exactly on the stop.
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
-      const length = Math.min(480, 260 + Math.abs(to - from) * duration * 80);
+      const length = Math.min(1250, 600 + Math.abs(to - from) * duration * 300);
       const began = performance.now();
       stage.dataset.navigating = "true";
       const step = (now: number) => {
         // A frame's timestamp can precede the call that started the glide.
         const t = clamp((now - began) / length);
-        // Ease out: the camera answers immediately, then glides into the stop.
-        const eased = 1 - Math.pow(1 - t, 4);
+        // Ease in and out around the middle, so the crossing between islands
+        // happens mid-glide rather than in a rush at the start followed by a
+        // long crawl into the stop.
+        const eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
         window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
         // Scroll, island camera and comet share this display frame. Waiting for

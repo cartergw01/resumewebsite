@@ -59,7 +59,7 @@ the stills crossfade over 1.4s. `--time day` opens the saved night
 versions share exactly the same geometry, camera and anchors: a physically
 based clear sky lights the scene and is what the glass reflects, a warm sun
 casts the shadows, lit glazing turns back into glass and lamps, tier lights,
-traffic streaks and the night-only fireworks and lantern market are removed.
+traffic streaks and the night-only lantern market are removed.
 `scripts/blender/export_day.mjs` crops it with the night render's crop.
 
 Details that read in both: every building gets its own small shift in tone

@@ -28,6 +28,9 @@
 :global([data-island-link]:focus-visible) .details { opacity: var(--island-lights, 1); }
 @media (hover: hover) and (pointer: fine) { :global([data-island-link]:hover) .details { opacity: var(--island-lights, 1); } }
 .cityDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+/* Live fireworks over Xinyi (night only); hidden whenever the 3D view takes over. */
+.fireworks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+:global([data-orbit-live="true"]) > .fireworks { opacity: 0; }
 .cityBlocks { opacity: calc(var(--city-windows, 1) * 0.65); }
 .towerWelcome { opacity: var(--city-tower, 1); }
 .entryWindow { opacity: .85; transition: opacity 160ms ease; }
