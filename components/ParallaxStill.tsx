@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
+import { CITY_TIME_DURATION, CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import type { ParallaxState } from "./IslandLife";
 
 // Depth parallax for an island's Cycles still. Blender renders a camera-depth
@@ -110,7 +110,7 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       const k = 1 - Math.exp(-dt / 140);
       current[0] += (target[0] - current[0]) * k; current[1] += (target[1] - current[1]) * k;
       if (daylight !== dayTarget) {
-        const step = dt / 1400;
+        const step = dt / CITY_TIME_DURATION;
         daylight = dayTarget > daylight ? Math.min(dayTarget, daylight + step) : Math.max(dayTarget, daylight - step);
       }
       draw();

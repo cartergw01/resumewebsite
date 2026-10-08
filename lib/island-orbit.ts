@@ -1,5 +1,6 @@
 import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, PointLight, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
 import { makeLitWindow } from "./work-lit-window";
+import { CITY_TIME_DURATION } from "./city-time";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -101,8 +102,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       day: { env: .28, sky: new Color(0xb4cbf5), ground: new Color(0x3e3a30), skyI: 1, key: new Color(0xfff0da), keyI: 2.6, keyPos: new Vector3(-6.6, 7.4, 7.4), rim: .35, bounceC: new Color(0xd9cdb5), bounce: .55, fill: .45, lamps: 0, glow: 0, pane: new Color(0x6c8091) },
     };
     const lampPower = lamps.map(lamp => lamp.intensity);
-    // Halfway between night and day the sun sits low and warm: golden hour.
-    const golden = new Color(0xffa25c), dawnSky = new Color(0xe8a27c);
     // Lit panes glow from within at night (a darker surface under the glow
     // reads as a lamplit window, not a white tile) and are glass by day.
     const nightPane = new Color(0x4a3d30), daylightGlass = new Color(0x2c3f48);
@@ -112,10 +111,8 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       const n = rigs.night, d = rigs.day;
       scene.environmentIntensity = lerp(n.env, d.env);
       sky.color.copy(n.sky).lerp(d.sky, daylight); sky.groundColor.copy(n.ground).lerp(d.ground, daylight); sky.intensity = lerp(n.skyI, d.skyI);
-      const low = Math.sin(Math.PI * daylight);
-      sky.color.lerp(dawnSky, .35 * low);
-      key.color.copy(n.key).lerp(d.key, daylight).lerp(golden, .65 * low); key.intensity = lerp(n.keyI, d.keyI) + .6 * low;
-      key.position.copy(n.keyPos).lerp(d.keyPos, daylight); key.position.y -= 5 * low;
+      key.color.copy(n.key).lerp(d.key, daylight); key.intensity = lerp(n.keyI, d.keyI);
+      key.position.copy(n.keyPos).lerp(d.keyPos, daylight);
       rim.intensity = lerp(n.rim, d.rim);
       bounce.color.copy(n.bounceC).lerp(d.bounceC, daylight); bounce.intensity = lerp(n.bounce, d.bounce);
       fill.intensity = lerp(n.fill, d.fill);
@@ -130,7 +127,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       if (pane instanceof Mesh && pane.material instanceof MeshBasicMaterial) pane.material.color.copy(n.pane).lerp(d.pane, daylight);
       renderer.shadowMap.needsUpdate = true;
     };
-    const setDaylight = (day: boolean, animate: boolean, duration = 1400) => new Promise<void>(resolve => {
+    const setDaylight = (day: boolean, animate: boolean, duration = CITY_TIME_DURATION) => new Promise<void>(resolve => {
       cancelAnimationFrame(tween);
       const from = daylight, to = day ? 1 : 0;
       if (!animate || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { daylight = to; applyRig(); flushRender(); resolve(); return; }

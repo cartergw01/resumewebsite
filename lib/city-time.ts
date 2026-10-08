@@ -4,6 +4,9 @@
 export type CityTime = "night" | "day";
 const KEY = "carter-city-time";
 export const CITY_TIME_EVENT = "citytimechange";
+// A quick, direct crossfade between the two renders; no sunrise or sunset.
+// LivingIsland.module.css matches it for the stills.
+export const CITY_TIME_DURATION = 600;
 
 export function currentCityTime(): CityTime {
   return typeof document !== "undefined" && document.documentElement.dataset.cityTime === "day" ? "day" : "night";

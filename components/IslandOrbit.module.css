@@ -2,10 +2,6 @@
 .canvas[data-orbit-ready="true"] { pointer-events: auto; cursor: grab; }
 .canvas[data-entry-camera] { pointer-events: none; }
 .canvas[data-orbit-live="true"] { opacity: 1; }
-/* A live sun sweep when Taipei's time of day changes: the model fades in over
-   the still, the light moves, and it fades back out onto the new still. */
-.canvas[data-time-sweep="in"] { opacity: 1; transition: opacity 350ms ease; }
-.canvas[data-time-sweep="out"] { opacity: 0; transition: opacity 550ms ease; }
 .canvas[data-orbit-dragging="true"] { cursor: grabbing; }
 .controls { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 3; max-width: calc(100vw - 3rem); white-space: nowrap; font-size: 0.75rem; line-height: 1.4; }
 .controls button { pointer-events: auto; min-height: 44px; padding: 0.35rem 0.5rem; border: 0; background: none; color: #e9d4b6; font: inherit; text-decoration: underline; text-underline-offset: 0.25em; cursor: pointer; }
