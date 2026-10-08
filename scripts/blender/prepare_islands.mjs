@@ -1,6 +1,7 @@
 // Remove excess transparent camera margin consistently from renders, animation
 // frames and interaction coordinates. Keep an 88% fit inside the 3:2 art box.
 // node scripts/blender/prepare_islands.mjs RAW_DIRECTORY WEB_DIRECTORY [--world work]
+import { existsSync } from "node:fs";
 import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
@@ -39,7 +40,9 @@ for (const world of selectedWorld ? [selectedWorld] : worlds) {
     metadata[key] = Array.isArray(value[0]) ? value.map(project) : project(value);
   }
   await writeFile(path.join(output, `${world}.json`), JSON.stringify(metadata, null, 2) + "\n");
-  if (world === "writing") {
+  // The site no longer plays the Writing loop; its frames are prepared only
+  // when a render includes them (--animate).
+  if (world === "writing" && existsSync(path.join(input, "writing-frames"))) {
     const frames = path.join(input, "writing-frames");
     const files = (await readdir(frames)).filter(name => /^\d+\.png$/.test(name));
     if (files.length !== 48) throw new Error(`Expected 48 Writing frames, received ${files.length}`);

@@ -177,8 +177,8 @@ def weathered(mat, value=.16, hue=.03, streak=.20):
 def palette():
     global P
     P = {
-        'rock': textured('Weathered shale · fractured mineral grain',(.050,.046,.033),(.22,.20,.15)),
-        'rock2': textured('Ochre mineral faces',(.075,.058,.035),(.28,.23,.15)),
+        'rock': textured('Weathered shale · fractured mineral grain',(.062,.056,.040),(.29,.26,.195)),
+        'rock2': textured('Ochre mineral faces',(.10,.072,.040),(.40,.31,.18)),
         'rock3': textured('Deep mineral seams',(.023,.025,.019),(.095,.091,.067)),
         'stone': textured('Weathered limestone',(.15,.145,.12),(.32,.30,.245)),
         'soil': textured('Exposed humus and grit',(.045,.026,.015),(.18,.12,.06),'soil',rough=.97),
@@ -222,10 +222,13 @@ def palette():
     # Continuous patches follow the surface rather than the mesh's triangle grid.
     ground=textured('Earth · irregular moss and exposed humus',(.047,.032,.016),(.13,.145,.057),'soil',rough=.98)
     ramp=next(n for n in ground.node_tree.nodes if n.type=='VALTORGB')
-    ramp.color_ramp.elements[0].position=.30
-    ramp.color_ramp.elements[1].position=.76
-    ramp.color_ramp.elements.new(.48).color=(.13,.087,.038,1)
-    ramp.color_ramp.elements.new(.62).color=(.055,.072,.025,1)
+    # Mostly meadow, with soil showing only in the hollows.
+    ramp.color_ramp.elements[0].position=.20
+    ramp.color_ramp.elements[0].color=(.042,.038,.018,1)
+    ramp.color_ramp.elements[1].position=.78
+    ramp.color_ramp.elements[1].color=(.13,.165,.062,1)
+    ramp.color_ramp.elements.new(.40).color=(.080,.074,.034,1)
+    ramp.color_ramp.elements.new(.58).color=(.075,.105,.036,1)
     P['ground']=ground
     for axis in ['X','Y']:
         mat=material('Oak · sawn end grain '+axis,(.27,.19,.105),rough=.92)
@@ -395,7 +398,9 @@ def foundation(seed,plan='garden'):
     # Different plans share the same sedimentary structure. Local faults cut
     # vertically through stepped ledges rather than smoothing into a bowl.
     faults=[(rng.uniform(0,math.tau),rng.uniform(.08,.18),rng.uniform(.06,.15)) for _ in range(11)]
-    strata=[(0,1),(.10,.99),(.15,.86),(.29,.88),(.34,.72),(.48,.74),(.54,.56),(.70,.57),(.77,.35),(.90,.28),(1,.025)]
+    # Full under the soil lip, easing to a narrower keel: shallow enough that
+    # the base supports the scene rather than outweighing it.
+    strata=[(0,1),(.10,.99),(.15,.86),(.29,.88),(.34,.72),(.48,.73),(.54,.55),(.70,.53),(.77,.33),(.90,.24),(1,.02)]
     def point(a,t):
         k=len(outline);phase=(a%math.tau)/math.tau*k;i=int(phase);f=phase-i
         edge=(outline[i%k]*(1-f)+outline[(i+1)%k]*f)*plan_radius(a,plan)
@@ -410,7 +415,7 @@ def foundation(seed,plan='garden'):
         radius=profile*edge*(1+coarse*.19+grit*.035-fissure*min(1,t*14))
         x=math.cos(a)*4.1*radius+.3*t;y=math.sin(a)*2.95*radius+.15*t
         rise=terrain_height(x*1.35,y*1.35,seed)/1.18
-        z=-3.05*t+(.055*grit+.16*coarse)*min(1,t*18)+rise*(1-t)**3
+        z=-2.4*t+(.055*grit+.16*coarse)*min(1,t*18)+rise*(1-t)**3
         return Vector((x,y,z))
     for k in range(levels+1):
         ring=[]
@@ -481,12 +486,12 @@ def foundation(seed,plan='garden'):
             curve('Cliff · branching root',branch,.003,'wood')
     # Roots that have pushed through the soil hang free below the lip, a few
     # long ones and more short ones, clustered where the cliff is deepest.
-    for i in range(16):
-        a=rng.uniform(-math.pi*.95,-math.pi*.05) if i<11 else rng.uniform(0,math.tau)
+    for i in range(8):
+        a=rng.uniform(-math.pi*.95,-math.pi*.05) if i<6 else rng.uniform(0,math.tau)
         out=Vector((math.cos(a),math.sin(a),0))
         top=point(a,.035)+out*.01
         lip=point(a,.075)+out*.06
-        length=rng.uniform(.18,.40) if i%3 else rng.uniform(.55,.95)
+        length=rng.uniform(.14,.30) if i%4 else rng.uniform(.45,.70)
         sway=Vector((rng.uniform(-.05,.05),rng.uniform(-.05,.05),0))
         pts=[top,lip,lip+out*.05+sway*.3+Vector((0,0,-length*.35)),lip+out*.07+sway*.7+Vector((0,0,-length*.7)),lip+out*.08+sway+Vector((0,0,-length))]
         curve('Cliff · hanging root',pts,rng.uniform(.005,.011),'wood')
@@ -547,7 +552,7 @@ def landscape(world,seed):
             xx=x+rng.gauss(0,.13);yy=y+rng.gauss(0,.10)
             z=surface(xx,yy)
             if z is None:continue
-            z+=.012;h=rng.uniform(.07,.23)*(.16 if world=='work' else 1)
+            z+=.012;h=rng.uniform(.05,.16)*(.16 if world=='work' else 1)
             w=h*.035;lean=rng.uniform(-.4,.4)*h;n=len(verts)
             verts.extend([(xx-w,yy,z),(xx+w,yy,z),(xx+lean+w*.4,yy+.012,z+h*.65),(xx+lean,yy+.02,z+h)])
             faces.extend([(n,n+1,n+2),(n,n+2,n+3)])
@@ -1936,11 +1941,14 @@ def camera_and_lights(scene):
     # shadows; a blue rim from behind lifts the silhouette off the navy sky;
     # warm practicals (lamps, screens, windows) carry the story.
     moon=bpy.data.lights.new('Moon · cool key','SUN')
-    moon.color=(.72,.80,1);moon.energy=1.7;moon.angle=math.radians(1.2)
+    # The study and workshop sit in more open dark than the lit city, so their
+    # moon and backlight are a little stronger to hold their silhouettes.
+    moon.color=(.72,.80,1);moon.energy=1.7 if city_scene else 2.2;moon.angle=math.radians(1.2)
     key=bpy.data.objects.new('Moon · cool key',moon);bpy.context.collection.objects.link(key)
     key.rotation_euler=Vector((.55,-.62,-.58)).to_track_quat('-Z','Y').to_euler()
     light('Moon · sky fill',(-3,-9,6),(.55,.66,1),60,10,(0,0,.6))
-    light('Rim · behind the island',(3,9,4.5),(.50,.66,1),1500,6,(0,0,.4))
+    light('Rim · behind the island',(3,9,4.5),(.50,.66,1),1500 if city_scene else 2100,6,(0,0,.4))
+    if not city_scene:scene.view_settings.exposure=.68
     light('Rim · left cliff edge',(-9,3,1),(.45,.60,1),700,5,(0,0,-1.2))
     # The lip overhangs the cliff, so a low, cool bounce models its beds and
     # roots the way a little moonlit cloud cover would.
@@ -1973,14 +1981,15 @@ def daylight(scene):
     except Exception: pass
     sky.sun_elevation=math.radians(37);sky.sun_rotation=math.radians(-132);sky.sun_disc=False
     sky.altitude=200;sky.air_density=1.0;sky.aerosol_density=1.4
-    world.links.new(sky.outputs['Color'],background.inputs[0]);background.inputs[1].default_value=.32
+    world.links.new(sky.outputs['Color'],background.inputs[0]);background.inputs[1].default_value=.24
     scene.view_settings.exposure=-.2
     for obj in list(scene.objects):
         if obj.type=='LIGHT' or obj.name.startswith(('Traffic · light trail','Night · ')):
             bpy.data.objects.remove(obj,do_unlink=True)
-    sun=bpy.data.lights.new('Sun · afternoon','SUN');sun.color=(1,.95,.86);sun.energy=4.2;sun.angle=math.radians(1.5)
+    # A lower, warmer afternoon sun: long crisp shadows give the blocks depth.
+    sun=bpy.data.lights.new('Sun · afternoon','SUN');sun.color=(1,.92,.80);sun.energy=4.8;sun.angle=math.radians(1.2)
     key=bpy.data.objects.new('Sun · afternoon',sun);bpy.context.collection.objects.link(key)
-    key.rotation_euler=Vector((.55,.62,-.62)).to_track_quat('-Z','Y').to_euler()
+    key.rotation_euler=Vector((.55,.62,-.42)).to_track_quat('-Z','Y').to_euler()
     light('Sky · cool fill',(-4,-9,7),(.62,.74,1),120,10,(0,0,.5))
     light('Cliff · ground bounce',(1.5,-9,-4.5),(.75,.72,.62),380,9,(0,0,-1.6))
     # Lit glazing becomes daytime glass; lamps and trails switch off.
