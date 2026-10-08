@@ -2,6 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page, world: string) {
   await page.goto(`/2.0#${world}`);
+  // Models load on intent (hover, focus or a first swipe), not on arrival.
+  await page.locator(`#${world} [data-island-link]`).focus();
   const canvas = page.locator(`[data-island-orbit="${world}"]`);
   await expect(canvas).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
   return canvas;
@@ -114,13 +116,15 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
 
 test("rotation help borrows the existing annotation once and leaves no extra row", async ({ page, isMobile }) => {
   test.setTimeout(90_000);
-  await ready(page, "work");
+  // Desktop preloads Taipei and offers rotation once it is ready; phones
+  // offer the swipe straight away and load the model on the first swipe.
+  await page.goto('/2.0#work');
   const link = page.locator('#work [data-island-link]');
   const cue = link.locator('[data-island-cue]');
   const destination = cue.getByText('learn about my work', { exact: true });
   await expect(destination).toBeVisible();
   await expect(page.locator('[data-orbit-controls]')).toHaveCount(0);
-  await expect(link).toHaveAttribute('data-orbit-hint', 'true');
+  await expect(link).toHaveAttribute('data-orbit-hint', 'true', { timeout: 60_000 });
   await expect(cue.getByText(isMobile ? 'swipe to look around' : 'drag to look around', { exact: true })).toBeVisible();
   await expect(destination).toBeHidden();
   await expect(cue.locator('svg')).toBeHidden();
@@ -128,6 +132,10 @@ test("rotation help borrows the existing annotation once and leaves no extra row
   await expect(destination).toBeVisible();
   await expect(cue.locator('svg')).toBeVisible();
   await page.getByRole('button', { name: 'Show Writing island' }).click();
+  // Intent once Writing has arrived (a hidden island cannot take focus).
+  await expect(page.locator('section#writing')).toHaveAttribute('data-active', 'true');
+  await expect(page.locator('[data-island-stage]')).not.toHaveAttribute('data-travelling', 'true');
+  await page.locator('#writing [data-island-link]').focus();
   await expect(page.locator('[data-island-orbit="writing"]')).toHaveAttribute('data-orbit-ready', 'true', { timeout: 60_000 });
   // Observe beyond the hint delay: changing worlds must not repeat onboarding.
   await page.waitForTimeout(1800);

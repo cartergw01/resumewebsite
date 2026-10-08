@@ -27,7 +27,11 @@ test("island artwork stays consistent from overview through forward and reverse 
     const visual = page.locator(`#${world} [data-island-visual]`);
     // Work also carries a daytime still; the night render is the default view.
     const still = visual.locator("img:not([data-city-time])");
-    await expect(still).toHaveAttribute("src", sources.get(world)!);
+    // Stills are resized per device by next/image; the source file must match.
+    await expect.poll(() => still.evaluate((node: HTMLImageElement) => {
+      const url = new URL(node.src);
+      return url.searchParams.get("url") ?? url.pathname;
+    })).toBe(sources.get(world)!);
     await expect.poll(() => still.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
     const overviewGrade = await page.locator(`#intro [data-overview-island="${world}"] img`).evaluate(node => getComputedStyle(node).filter);
     await expect(still).toHaveCSS("filter", overviewGrade);

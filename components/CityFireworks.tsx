@@ -35,7 +35,7 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
       return { scale, left: (width - 1200 * scale) / 2, top: (height - 800 * scale) / 2 };
     };
     const resize = () => {
-      ratio = Math.min(devicePixelRatio, 2);
+      ratio = Math.min(devicePixelRatio, matchMedia("(pointer: coarse)").matches ? 1 : 2);
       width = canvas.clientWidth; height = canvas.clientHeight;
       canvas.width = Math.max(1, Math.round(width * ratio)); canvas.height = Math.max(1, Math.round(height * ratio));
     };

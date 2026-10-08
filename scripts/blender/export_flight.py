@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'scripts' / 'blender'))
 args = argparse.ArgumentParser()
 args.add_argument('--world', required=True, choices=['work', 'writing', 'projects'])
-args.add_argument('--faces', type=int, default=60000)
+args.add_argument('--faces', type=int, default=45000)
 args.add_argument('--samples', type=int, default=24)
 opts = args.parse_args(sys.argv[sys.argv.index('--') + 1:])
 scene = bpy.context.scene
@@ -146,7 +146,7 @@ for layer in [a.name for a in model.data.color_attributes]:
     bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', use_selection=True,
         export_animations=False, export_cameras=False, export_lights=False, export_materials='NONE',
         export_draco_mesh_compression_enable=True, export_draco_mesh_compression_level=6,
-        export_draco_position_quantization=13, export_draco_color_quantization=8,
+        export_draco_position_quantization=12, export_draco_color_quantization=8,
         export_vertex_color='ACTIVE')
     bpy.data.objects.remove(single, do_unlink=True)
     fingerprint = hashlib.sha256(path.read_bytes()).hexdigest()[:8]

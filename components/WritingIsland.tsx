@@ -35,7 +35,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
         <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual>
           {warm ? <Image
             src={island.src} alt="" width={island.width} height={island.height}
-            sizes="(max-width: 760px) 100vw, 68vw" loading="eager" unoptimized draggable={false}
+            sizes="(max-width: 760px) 90vw, 68vw" loading="eager" quality={90} draggable={false}
             className={styles.writingPoster}
           /> : null}
           {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} className={styles.parallax} /> : null}

@@ -21,6 +21,7 @@ test("hovering keeps the cursor attached without repainting the effects canvas",
     await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
     // This measures steady pointer movement, after optional model decoding
     // and shader preparation have finished on the island route.
+    if (route.startsWith("/2.0")) await page.locator("#work [data-island-link]").focus();
     if (route.startsWith("/2.0")) await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
     const link = route.startsWith("/2.0")
       ? page.getByRole("link", { name: /Enter Work island/ })
@@ -113,6 +114,7 @@ test("a burst of orbit input submits one GPU frame and preserves the final angle
     };
   });
   await page.goto("/2.0#work");
+  await page.locator("#work [data-island-link]").focus();
   await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
   const result = await page.locator("#work [data-island-link]").evaluate(async link => {
     const probe = window as Window & { orbitDraws?: number };

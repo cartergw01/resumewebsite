@@ -81,11 +81,11 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 110vw, 68vw" loading="eager"
-          unoptimized draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
+          sizes="(max-width: 760px) 90vw, 68vw" loading="eager"
+          quality={90} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
         {world === "work" && warm && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 110vw, 68vw" loading="lazy" data-city-time="day"
-          unoptimized draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
+          sizes="(max-width: 760px) 90vw, 68vw" loading="lazy" data-city-time="day"
+          quality={90} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
         {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}
         {world === "work" ? <>

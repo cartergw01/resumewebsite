@@ -46,6 +46,8 @@ test("optional island models wait until scrolling inside a hold is quiet", async
   const models: string[] = [];
   await page.route("**/orbit-*.glb", route => { models.push(route.request().url()); return route.abort(); });
   await page.goto("/2.0#work");
+  // Phones load a model only on intent; desktops preload Taipei.
+  await page.locator("#work [data-island-link]").focus();
   const stage = page.locator("[data-island-stage]");
   await page.evaluate(() => scrollBy({ top: 1, behavior: "instant" }));
   await expect(stage).toHaveAttribute("data-scrolling", "true");

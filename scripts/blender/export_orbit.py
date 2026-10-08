@@ -17,6 +17,9 @@ ROOT = Path(__file__).resolve().parents[2]
 args = argparse.ArgumentParser()
 args.add_argument('--world', required=True, choices=['work', 'writing', 'projects'])
 args.add_argument('--samples', type=int, default=4)
+# A face budget for the browser model: rotation reads the shapes, not every
+# blade of grass, and the download is what phones feel.
+args.add_argument('--faces', type=int, default=160000)
 args.add_argument('--crop', type=int, nargs=4, metavar=('X','Y','WIDTH','HEIGHT'))
 opts = args.parse_args(sys.argv[sys.argv.index('--')+1:])
 scene = bpy.context.scene
@@ -122,6 +125,14 @@ for i,(name,metal,rough,emission,strength) in enumerate(settings):
     attr=material.node_tree.nodes.new('ShaderNodeVertexColor');attr.layer_name='SurfaceColor'
     material.node_tree.links.new(attr.outputs['Color'],bs.inputs['Base Color'])
     model.data.materials[i]=material
+# Decimate to the budget once colours are baked (the active colour layer is
+# carried through decimation).
+ratio = min(1, opts.faces / max(1, len(model.data.polygons)))
+if ratio < 1:
+    bpy.ops.object.select_all(action='DESELECT'); model.select_set(True); bpy.context.view_layer.objects.active = model
+    budget = model.modifiers.new('Browser budget', 'DECIMATE'); budget.ratio = ratio
+    bpy.ops.object.modifier_apply(modifier=budget.name)
+    print(f'ORBIT: decimated to {len(model.data.polygons)} faces', flush=True)
 # These attributes were only needed while baking.
 model.data.attributes.remove(model.data.attributes['LocalSurface'])
 for uv in list(model.data.uv_layers): model.data.uv_layers.remove(uv)
@@ -133,7 +144,7 @@ bpy.ops.wm.save_as_mainfile(filepath=str(output/f'{opts.world}-export.blend'),co
 bpy.ops.export_scene.gltf(filepath=str(path),export_format='GLB',use_selection=True,
     export_animations=False,export_cameras=False,export_lights=False,
     export_draco_mesh_compression_enable=True,export_draco_mesh_compression_level=6,
-    export_draco_position_quantization=14,export_draco_color_quantization=8,
+    export_draco_position_quantization=13,export_draco_color_quantization=8,
     export_vertex_color='NAME',export_vertex_color_name='SurfaceColor')
 fingerprint=hashlib.sha256(path.read_bytes()).hexdigest()[:8]
 name=f'orbit-{opts.world}-{fingerprint}.glb'

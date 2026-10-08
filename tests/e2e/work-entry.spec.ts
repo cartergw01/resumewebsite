@@ -22,22 +22,27 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   page.on("pageerror", error => errors.push(error.message));
   await holdCamera(page);
   await page.goto("/2.0#work");
-  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60000 });
   await page.locator("#work [data-island-link]").focus();
+  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60000 });
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("ArrowRight");
+  // Where the window sits on screen as Enter is pressed (the island's focus
+  // lift is released once the camera takes over, under the overlay).
+  const window = () => page.evaluate(() => {
+    const source = document.querySelector<SVGGraphicsElement>("#work [data-city-entry-window]")!;
+    const matrix = source.getScreenCTM()!;
+    return (JSON.parse(source.dataset.corners!) as number[][]).map(([x, y]) => [matrix.a*x + matrix.c*y + matrix.e, matrix.b*x + matrix.d*y + matrix.f]);
+  });
+  // Once the turn has eased to rest.
+  let seen = await window();
+  await expect.poll(async () => { const next = await window(); const moved = Math.max(...next.map(([x, y], i) => Math.hypot(x - seen[i][0], y - seen[i][1]))); seen = next; return moved; }, { intervals: [150] }).toBeLessThan(.2);
   await page.keyboard.press("Enter");
   const carry = page.locator("body > [data-work-transition]");
   await expect(carry).toHaveAttribute("data-work-camera", "3d");
   await expect(carry.locator("canvas[data-window-camera]")).toHaveCount(1);
   // Its first projected opening exactly matches the window on the turned tower.
-  const error = await page.evaluate(() => {
-    const source = document.querySelector<SVGGraphicsElement>("#work [data-city-entry-window]")!;
-    const matrix = source.getScreenCTM()!;
-    const actual: number[][] = JSON.parse(document.querySelector<HTMLElement>("[data-city-window]")!.dataset.corners!);
-    const expected: number[][] = JSON.parse(source.dataset.corners!);
-    return Math.max(...expected.map(([x,y],i) => Math.hypot(actual[i][0] - (matrix.a*x + matrix.c*y + matrix.e), actual[i][1] - (matrix.b*x + matrix.d*y + matrix.f))));
-  });
+  const actual: number[][] = JSON.parse((await page.locator("[data-city-window]").getAttribute("data-corners"))!);
+  const error = Math.max(...seen.map(([x, y], i) => Math.hypot(actual[i][0] - x, actual[i][1] - y)));
   expect(error).toBeLessThan(3);
   let previousArea = 0;
   let windowHeadingWidth = 0;

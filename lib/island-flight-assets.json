@@ -1,12 +1,12 @@
 {
   "projects": {
-    "src": "/blender/flight-projects-0f15099d.glb"
+    "src": "/blender/flight-projects-d880ee92.glb"
   },
   "writing": {
-    "src": "/blender/flight-writing-8128420a.glb"
+    "src": "/blender/flight-writing-59650b5b.glb"
   },
   "work": {
-    "src": "/blender/flight-work-4e813ba2.glb",
-    "daySrc": "/blender/flight-work-day-10dde430.glb"
+    "src": "/blender/flight-work-7ac24a5f.glb",
+    "daySrc": "/blender/flight-work-day-e81b5fa4.glb"
   }
 }

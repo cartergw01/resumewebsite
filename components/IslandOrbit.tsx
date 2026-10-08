@@ -30,7 +30,11 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     let loadController: AbortController | null = null;
     let failed = false;
     let live = false;
-    let interested = interactive;
+    // Rotatable models load on intent, not on arrival: hovering or focusing an
+    // island, or the first swipe on a phone. Only Taipei preloads, and only on
+    // desktop, because its click flies through the real model.
+    const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+    let interested = interactive && fine && world === "work";
     let prepared = false;
     let loadTimer: ReturnType<typeof setTimeout> | undefined;
     let idleLoad: number | undefined;
@@ -45,6 +49,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       idleLoad = undefined;
     };
     const canLoad = () => interested && (interactive || !motion.matches) && !disposed && !document.hidden && !connection?.saveData && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.scrolling && !stage.dataset.navigating && !stage.dataset.entering;
+    const interactiveSceneReady = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
     const clearHint = () => {
       clearTimeout(hintDelay);
       clearTimeout(hintTimer);
@@ -52,12 +57,14 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       delete link.dataset.orbitHint;
     };
     const suggestRotation = () => {
-      if (!interactive || !engineRef.current || !canLoad() || stage.dataset.orbitHintSeen || stage.dataset.orbitLearned || hintDelay || hintTimer) return;
+      // Phones show the swipe hint before the model exists; the swipe loads it.
+      const ready = () => engineRef.current ? canLoad() : !fine && interactiveSceneReady() && !document.hidden;
+      if (!interactive || !ready() || stage.dataset.orbitHintSeen || stage.dataset.orbitLearned || hintDelay || hintTimer) return;
       // Borrow the existing annotation once, after visitors have seen where
       // the island leads. No extra label, icon, or permanent instruction row.
       hintDelay = setTimeout(() => {
         hintDelay = undefined;
-        if (!canLoad() || stage.dataset.orbitHintSeen || stage.dataset.orbitLearned) return;
+        if (!ready() || stage.dataset.orbitHintSeen || stage.dataset.orbitLearned) return;
         stage.dataset.orbitHintSeen = "true";
         link.dataset.orbitHint = "true";
         hintTimer = setTimeout(clearHint, 3500);
@@ -143,8 +150,8 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         else loadController?.abort();
       }
       if (!canLoad()) {
-        clearHint();
         cancelScheduledLoad();
+        if (!fine && interactive && !engineRef.current && interactiveSceneReady()) suggestRotation(); else clearHint();
         if (document.hidden || connection?.saveData || stage.dataset.travelling === "true" || stage.dataset.scrolling || stage.dataset.navigating || stage.dataset.entering) loadController?.abort();
         return;
       }
@@ -187,6 +194,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         if (Math.hypot(dx, dy) < 7) return;
         drag.moved = true;
         suppressClick = true;
+        if (!engineRef.current && !interested) { interested = prepared = true; sync(); }
         canvas.setPointerCapture(event.pointerId);
         canvas.dataset.orbitDragging = "true";
       }

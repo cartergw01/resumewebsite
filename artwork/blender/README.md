@@ -74,16 +74,17 @@ node scripts/blender/export_depth.mjs .blender-build/depth
 Between Work, Writing and Projects the camera flies in 3D. Each island has a
 lightweight flight model (`scripts/blender/export_flight.py`): the saved scene
 joined, its full Cycles lighting (moon or sun, lamps, emission, bounce) baked
-into vertex colours, then decimated to ~70k faces and Draco-compressed
-(~1.5 MB each; Taipei's daytime bake is a separate file loaded only when day
+into vertex colours, then decimated to ~45k faces and Draco-compressed
+(about 1 MB each; Taipei's daytime bake is a separate file loaded only when day
 is chosen). The browser draws them unlit (`lib/island-flight.ts`): the islands
 sit apart in one space and the camera flies a curve from one island's render
 camera to the next, widening the lens mid-flight so both islands share the
 frame. Each end projects into the still's exact on-screen box, and the stills
 cross-dissolve into the flight over the first and last 10% of the crossing, so
 the hand-off is seamless. The models load after the page settles and only on
-capable devices (WebGL2, no data saver, ≥4 GB memory, 4G-class connection,
-motion allowed); otherwise, or until they arrive, the 2D flight is used.
+capable desktops (fine pointer, WebGL2, no data saver, ≥4 GB memory, 4G-class
+connection, motion allowed); phones, or any visit until they arrive, use the
+light 2D flight.
 
 ```sh
 for w in work writing projects; do
@@ -336,8 +337,10 @@ video, scrolling journeys and rocket effect are independent.
 ## Interactive angles
 
 The homepage's three detailed islands also have compressed GLB versions.
-`components/IslandOrbit.tsx` loads the active world's model after its journey
-settles. Its poster/video stays visible until a drag or arrow-key interaction.
+`components/IslandOrbit.tsx` loads the active world's model on intent, not on
+arrival: hovering or focusing the island, or the first horizontal swipe on a
+phone. Only Taipei preloads, and only on desktop, because its click flies
+through the real model. Its poster/video stays visible until a drag or arrow-key interaction.
 Horizontal touch drags turn the model; vertical swipes retain native scrolling.
 Drag release never opens a page. Click or Enter still uses the landmark entry
 and rocket. R or the reset button restores the original rendered view.
@@ -348,7 +351,9 @@ Regenerate a model from its editable Blender source:
 /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/work.blend --threads 6 --python scripts/blender/export_orbit.py -- --world work
 ```
 
-Repeat with `writing` or `projects`. This saves an intermediate scene under
+Repeat with `writing` (`--faces 70000`) or `projects` (`--faces 80000`).
+`--faces` (default 160000) decimates after the bake to keep each model near
+2 MB. This saves an intermediate scene under
 `.blender-build/orbit`, writes a hashed GLB to `public/blender`, and updates
 `lib/island-orbit-assets.json`. The original `.blend` stays untouched. If the
 camera framing changes, pass `--crop X Y WIDTH HEIGHT` using the 1200×800 crop
@@ -361,7 +366,7 @@ the scene's warm practical lamps as `practicals`, which `lib/island-orbit.ts`
 adds as point lights beside the same moon, rim and bounce rig. Lighting and
 fine wood/stone grain run in the browser; they approximate the offline Cycles
 render, so a live angle is not pixel-identical to the still. Models currently
-range from about 3–7 MiB. They load per active world, render only on input or
+are about 2–2.5 MiB. They load per active world, render only on input or
 resize, and release GPU resources when another world finishes arriving.
 Save-data, unsupported WebGL, failed downloads, or context loss retain the
 original artwork and normal navigation. Manual rotation also works with reduced

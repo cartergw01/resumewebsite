@@ -5,6 +5,7 @@ test("mobile islands and map labels keep clear of navigation at different height
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0#projects");
+  await page.locator("#projects [data-island-link]").focus();
   await expect(page.locator('[data-island-orbit="projects"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:667,height:375}]) {
     await page.setViewportSize(viewport);
