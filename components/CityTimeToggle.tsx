@@ -21,6 +21,7 @@ export default function CityTimeToggle() {
     <button
       type="button"
       className={styles.cityTime}
+      data-reads="cue-opacity:opacity"
       data-city-time-toggle
       data-time={time}
       aria-label={day ? "Show Taipei at night" : "Show Taipei in the day"}

@@ -62,10 +62,46 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const touchScroll = window.matchMedia("(pointer: coarse)");
     const paintScene = scenes.map(scenePainter);
     const paintArt = art.map(scenePainter);
+    // Arrival lighting is written as the real property (opacity or brightness)
+    // on each element that shows it (data-reads="name:property:scale:offset"),
+    // never as a CSS variable: Safari restyles on every variable write, and at
+    // 60fps that cost whole frames. At rest the inline value is released so
+    // hover, focus and discovered-cue styles apply as before.
+    const readers = art.map(() => new Map<string, ((value: number) => void)[]>());
+    const stale = art.map(() => true);
+    const readerWatch = new MutationObserver(records => records.forEach(record => {
+      const index = art.findIndex(node => node.contains(record.target));
+      if (index >= 0) stale[index] = true;
+    }));
+    art.forEach(node => readerWatch.observe(node, { childList: true, subtree: true }));
+    const paintRead = (index: number, name: string, value: number) => {
+      if (stale[index]) {
+        readers[index].clear();
+        for (const node of art[index].querySelectorAll<HTMLElement>("[data-reads]")) {
+          const [read, property, scale = "1", offset = "0", rest] = node.dataset.reads!.split(":");
+          // Unknown until first written: the element may still carry a value.
+          let previous: string | null = null;
+          const list = readers[index].get(read) ?? [];
+          list.push(value => {
+            const seen = rest && scenes[index].dataset.cueSeen === "true" ? 0 : 1;
+            const shown = Number(offset) + Number(scale) * value * seen;
+            // Released at its resting value (the workshop screen rests dim).
+            const next = value === (read === "workshop-screen" ? .3 : 1) ? "" : property === "filter" ? `brightness(${shown.toFixed(4)})` : shown.toFixed(4);
+            if (next === previous) return;
+            previous = next;
+            if (next) node.style.setProperty(property, next); else node.style.removeProperty(property);
+          });
+          readers[index].set(read, list);
+        }
+        stale[index] = false;
+      }
+      readers[index].get(name)?.forEach(paint => paint(value));
+    };
     const paintCopy = copy.map(scenePainter);
     const paintGalaxy = scenePainter(galaxy);
     const paintMiddleStars = scenePainter(middleStars);
     const paintNearStars = scenePainter(nearStars);
+    const paintTrails = scenePainter(stage.querySelector<HTMLElement>("[data-depth-trails]")!);
     const comet = createCometNavigation(sceneNav, motion);
     // Real 3D flights between islands, once the pre-lit flight models load.
     const flightCanvas = stage.querySelector<HTMLCanvasElement>("[data-flight-canvas]")!;
@@ -191,16 +227,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         paintCopy[index]("transform", motion.matches ? "none"
           : `translate3d(0, ${(outgoing ? -12 : 16) * (1 - copyOpacity)}px, 0)`);
         paintCopy[index]("opacity", copyOpacity.toFixed(4));
-        paintArt[index]("--cue-opacity", (motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue).toFixed(4));
+        paintRead(index, "cue-opacity", motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue);
         const arrivingLight = from === 0 ? 0.85 + 0.15 * arrivalLight : 0.34 + 0.16 * approach + 0.5 * arrivalLight;
-        paintArt[index]("--island-light", (motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight).toFixed(4));
-        paintArt[index]("--island-lights", (motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight).toFixed(4));
+        paintRead(index, "island-light", motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight);
+        paintRead(index, "island-lights", motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight);
         // Distinct, reversible welcomes: city blocks first, then the tower;
         // the reading lamp precedes warm paper; the workshop screen wakes last.
         for (const [name, first, last] of arrivalLights[worlds[index].id] ?? []) {
-          paintArt[index](`--${name}`, (motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last)).toFixed(4));
+          paintRead(index, name, motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last));
         }
-        if (worlds[index].id === "projects") paintArt[index]("--workshop-screen", (motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97)).toFixed(4));
+        if (worlds[index].id === "projects") paintRead(index, "workshop-screen", motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97));
       });
       stage.dataset.cameraProgress = String(cameraProgress);
       // Animate the three camera layers directly. Inherited variables on the
@@ -212,7 +248,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       paintMiddleStars("opacity", String(.24 + speed * .26));
       paintNearStars("transform", `translate3d(${path * -15}%, ${bend * -9}%, 0) rotate(${-arc * 10 * Math.cos(mix * Math.PI)}deg)`);
       paintNearStars("opacity", (speed * .65).toFixed(4));
-      paintNearStars("--flight", String(speed));
+      // The streaks fade in with speed: a plain opacity, not a CSS variable.
+      paintTrails("opacity", speed.toFixed(4));
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
       const stops = worlds.map((_, index) => stopProgress(index));
@@ -607,6 +644,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       intents.forEach(type => window.removeEventListener(type, warm));
       sceneNav.removeEventListener("focusin", warm);
       observer.disconnect();
+      readerWatch.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", measure);
       window.removeEventListener("pageshow", measure);

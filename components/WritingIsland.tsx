@@ -32,7 +32,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
   return (
     <>
       <IslandLink href="/writing" title="Writing" prompt="read my writing" landmark={landmark} book>
-        <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual>
+        <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-reads="island-light:filter">
           {warm ? <Image
             src={island.src} alt="" width={island.width} height={island.height}
             sizes="(max-width: 760px) 90vw, 68vw" loading="eager" quality={90} draggable={false}
@@ -47,16 +47,16 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
               </linearGradient>
               <radialGradient id="reading-lamp-light"><stop stopColor="#ffdc8b" stopOpacity="0.7" /><stop offset="1" stopColor="#ffdc8b" stopOpacity="0" /></radialGradient>
             </defs>
-            <path className={styles.pageLight} d={artworkOutline(island.spread)} fill="url(#book-page-light)" />
+            <path className={styles.pageLight} data-reads="reading-paper:opacity:.15" d={artworkOutline(island.spread)} fill="url(#book-page-light)" />
             <g className={styles.pageEdges} fill="none" stroke="#ffe5a6" strokeWidth="1.25" strokeLinecap="round">
               <path d={artworkOutline(island.spread)} />
             </g>
           </svg>
           <svg className={styles.bookDetails} viewBox="0 0 1200 800" aria-hidden="true">
-            <ellipse className={styles.readingLamp} cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
+            <ellipse className={styles.readingLamp} data-reads="reading-lamp:opacity:.4" cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
             {/* These planes are projected from the actual Blender notebook. */}
             <path data-book-spread data-corners={JSON.stringify(island.spread)} data-titles={JSON.stringify(titles)} fill="none" d={artworkOutline(island.spread)} />
-            <g className={styles.printedPage}>
+            <g className={styles.printedPage} data-reads="reading-paper:opacity:.22:.78">
               <PerspectiveArtwork corners={island.page} width={320} height={400}>
                 <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
               </PerspectiveArtwork>

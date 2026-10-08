@@ -88,7 +88,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
 
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
-      <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-living-island={world} data-motion-running="false">
+      <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 90vw, 68vw" loading="eager"
           quality={90} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
@@ -98,7 +98,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}
         {world === "work" ? <>
-          <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} viewBox="0 0 1200 800" aria-hidden="true">
+          <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">
             <g className={motionStyles.windows} fill="#ffd69b">
               {city.windows.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.65" />)}
             </g>
@@ -109,7 +109,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             </g> : null}
           </svg>
           <svg className={motionStyles.cityDetails} viewBox="0 0 1200 800" aria-hidden="true">
-            <g className={`${motionStyles.towerWelcome} ${motionStyles.nightOnly}`} fill="#dfecff">
+            <g className={`${motionStyles.towerWelcome} ${motionStyles.nightOnly}`} data-reads="city-tower:opacity" fill="#dfecff">
               <circle cx={city.tower[0]} cy={city.tower[1]} r="1.1" />
             </g>
             <g data-city-entry-window data-corners={JSON.stringify(city.entryWindow)}>
@@ -117,7 +117,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             </g>
           </svg>
           {warm ? <CityFireworks tower={city.tower} className={`${motionStyles.fireworks} ${motionStyles.nightOnly}`} /> : null}
-        </> : <svg className={motionStyles.details} viewBox="0 0 1200 800" aria-hidden="true">
+        </> : <svg className={motionStyles.details} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">
           <g className={motionStyles.lamp} fill="#ffd38b">
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />
           </g>
@@ -130,7 +130,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
           </defs>
           <ellipse className={motionStyles.screenSpill} cx={workshop.screenGlow[0]} cy={workshop.screenGlow[1]} rx="64" ry="24" fill="url(#workshop-screen-spill)" />
-          <g className={motionStyles.screenPreview} data-workshop-screen data-src={preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
+          <g className={motionStyles.screenPreview} data-reads="workshop-screen:opacity" data-workshop-screen data-src={preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
             <g className={motionStyles.screenRefresh} data-screen-light>
               <PerspectiveArtwork corners={workshop.screen} width={320} height={200}>
                 <image href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />

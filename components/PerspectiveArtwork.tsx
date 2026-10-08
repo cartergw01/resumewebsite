@@ -1,13 +1,11 @@
 "use client";
 
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { artworkProjection } from "@/lib/artwork-perspective";
 
 // SVG has no portable projective transform. Small clipped triangles follow the
 // four-corner camera projection in Chromium and WebKit, without a canvas texture
 // or another image download. The original content remains a single SVG symbol.
-const PINNED = Object.fromEntries(["--cue-opacity", "--island-light", "--island-lights", "--city-windows", "--city-tower", "--reading-lamp", "--reading-paper", "--workshop-screen"].map(name => [name, "1"])) as CSSProperties;
-
 export default function PerspectiveArtwork({ corners, width, height, children }: {
   corners: number[][]; width: number; height: number; children: ReactNode;
 }) {
@@ -40,11 +38,6 @@ export default function PerspectiveArtwork({ corners, width, height, children }:
       <g id={`${id}-content`}>{children}</g>
       {triangles.map(({ points }, i) => <clipPath id={`${id}-${i}`} key={i}><polygon points={points} /></clipPath>)}
     </defs>
-    {/* Each triangle draws its own copy of the content. The island's arrival
-        lighting variables change every frame of a crossing; pinning them here
-        keeps those copies from being restyled and re-laid out each frame. */}
-    <g style={PINNED}>
-      {triangles.map(({ matrix }, i) => <g key={i} clipPath={`url(#${id}-${i})`}><use href={`#${id}-content`} transform={matrix} /></g>)}
-    </g>
+    {triangles.map(({ matrix }, i) => <g key={i} clipPath={`url(#${id}-${i})`}><use href={`#${id}-content`} transform={matrix} /></g>)}
   </>;
 }

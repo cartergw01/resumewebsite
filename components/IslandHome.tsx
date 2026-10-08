@@ -94,7 +94,7 @@ export default function IslandHome() {
             inert={index !== 0}
           >
             <div className={styles.copy} data-scene-copy><Copy id={stop.id} /></div>
-            <div className={styles.art} data-scene-art><Art id={stop.id} /></div>
+            <div className={styles.art} data-scene-art><span className={styles.artGlow} data-reads={`island-lights:opacity:${stop.id === "work" ? .8 : 1}`} aria-hidden="true" /><Art id={stop.id} /></div>
           </section>
         ))}
       </IslandScrollTransport>

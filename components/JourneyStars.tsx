@@ -41,7 +41,7 @@ export default function JourneyStars() {
       </svg>
       {/* Speed streaks are drawn once and faded in with the flight's speed:
           an opacity change is composited, so nothing is repainted per frame. */}
-      <svg className={styles.depthTrails} width="100%" height="100%">
+      <svg className={styles.depthTrails} data-depth-trails width="100%" height="100%">
         <defs>
           <linearGradient id="journey-trail" gradientUnits="userSpaceOnUse" x1="-160" y1="0" x2="0" y2="0">
             <stop stopColor="#accfff" stopOpacity="0" />

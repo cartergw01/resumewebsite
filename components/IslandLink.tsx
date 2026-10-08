@@ -192,7 +192,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       onClick={enter}
     >
       {children}
-      {overview ? <span className={styles.overviewLabel}>{title}</span> : <span className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
+      {overview ? <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.8">{title}</span> : <span data-reads="cue-opacity:opacity:1:0:rest" className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
         <span>
           <span className={styles.entryPrompt}>{prompt}</span>
           <span className={styles.orbitPrompt} data-orbit-prompt aria-hidden="true"><span className={styles.mousePrompt}>drag to look around</span><span className={styles.touchPrompt}>swipe to look around</span></span>
