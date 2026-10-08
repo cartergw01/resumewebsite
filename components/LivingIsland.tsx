@@ -10,6 +10,7 @@ import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
+import { prepareWorkEntry } from "@/lib/work-entry";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
@@ -54,11 +55,18 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         image.src = posters[posterIndex++];
       }, 180);
     };
+    let lingerTimer: ReturnType<typeof setTimeout> | undefined;
     const sync = () => {
       if (stage.dataset.warm === "true") setWarm(true);
       preloadNext();
+      // Lingering on Taipei is intent too: fetch the full render its entry
+      // pushes into, so a quick tap on a phone still lands sharp.
+      clearTimeout(lingerTimer);
+      if (world === "work" && canPreload()) lingerTimer = setTimeout(() => { if (canPreload()) prepareWorkEntry(visual); }, 1500);
       const allowed = !motion.matches && !connection?.saveData;
-      visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering);
+      // Ambient SVG motion rests while the camera travels: it would restyle
+      // and repaint the island on every frame of the crossing.
+      visual.dataset.motionRunning = String(allowed && !document.hidden && scene.dataset.active === "true" && !stage.dataset.entering && stage.dataset.travelling !== "true");
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
@@ -70,12 +78,13 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
     return () => {
       observer.disconnect();
       clearTimeout(posterTimer);
+      clearTimeout(lingerTimer);
       if (pendingPoster) pendingPoster.onload = pendingPoster.onerror = null;
       motion.removeEventListener("change", sync);
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
-  }, [posters]);
+  }, [posters, world]);
 
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>

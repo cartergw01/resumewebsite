@@ -33,19 +33,26 @@ export default function JourneyStars() {
     <div className={styles.flightStars} data-flight-stars data-depth-stars="near" aria-hidden="true">
       <svg width="100%" height="100%">
         <defs>
+          <pattern id="journey-near" width="1200" height="800" patternUnits="userSpaceOnUse">
+            {near.map((star, i) => <circle key={i} cx={star.x} cy={star.y} r={i % 3 === 0 ? 1.8 : 1.1} fill="#e6efff" />)}
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#journey-near)" />
+      </svg>
+      {/* Speed streaks are drawn once and faded in with the flight's speed:
+          an opacity change is composited, so nothing is repainted per frame. */}
+      <svg className={styles.depthTrails} width="100%" height="100%">
+        <defs>
           <linearGradient id="journey-trail" gradientUnits="userSpaceOnUse" x1="-160" y1="0" x2="0" y2="0">
             <stop stopColor="#accfff" stopOpacity="0" />
             <stop offset="0.85" stopColor="#b4d6ff" stopOpacity="0.65" />
             <stop offset="1" stopColor="#fff1d7" />
           </linearGradient>
-          <pattern id="journey-near" width="1200" height="800" patternUnits="userSpaceOnUse">
-            {near.map((star, i) => <g key={i} transform={`translate(${star.x} ${star.y})`}>
-              <path className={styles.depthTrail} d={`M-${star.length} 0H0`} stroke="url(#journey-trail)" strokeWidth="1.3" strokeLinecap="round" />
-              <circle r={i % 3 === 0 ? 1.8 : 1.1} fill="#e6efff" />
-            </g>)}
+          <pattern id="journey-trails" width="1200" height="800" patternUnits="userSpaceOnUse">
+            {near.map((star, i) => <path key={i} transform={`translate(${star.x} ${star.y})`} d={`M-${star.length} 0H0`} stroke="url(#journey-trail)" strokeWidth="1.3" strokeLinecap="round" />)}
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#journey-near)" />
+        <rect width="100%" height="100%" fill="url(#journey-trails)" />
       </svg>
     </div>
   </>;

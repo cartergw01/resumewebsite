@@ -525,12 +525,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (window.scrollY !== lastScrollY) direction = window.scrollY > lastScrollY ? 1 : -1;
       lastScrollY = window.scrollY;
       if (settling || performance.now() - intentAt > 1200) return;
+      // A gesture's own momentum keeps it alive, however long the fling
+      // coasts. Never settle while the page is still moving: interrupting
+      // native momentum with a scripted glide is what makes a phone feel laggy.
+      intentAt = performance.now();
+      window.clearTimeout(settleTimer);
       // Browsers with a real scrollend settle when the gesture (and any
       // native wheel animation or momentum) has truly finished; others wait
       // for the scroll to go quiet.
       if (nativeScrollEnd) return;
-      window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(settle, 120);
+      settleTimer = window.setTimeout(settle, 150);
     };
     // A new wheel or touch takes over from any glide in progress.
     const markIntent = () => {
@@ -543,9 +547,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const onTouchEnd = () => {
       touching = false;
       markIntent();
-      // A tap without movement produces no scrollend; check once it's clear.
+      // A tap or a drag released at rest produces no scrollend. Check once it
+      // is clear; any momentum that follows cancels this and settles at its end.
       window.clearTimeout(settleTimer);
-      settleTimer = window.setTimeout(settle, nativeScrollEnd ? 400 : 120);
+      settleTimer = window.setTimeout(settle, 150);
     };
     // Each glide step ends a tiny native scroll; only the glide's own finish
     // (or a gesture's real end) releases the settle lock.

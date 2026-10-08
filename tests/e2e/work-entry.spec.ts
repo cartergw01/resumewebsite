@@ -1,96 +1,69 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-// Freeze the camera clock so assertions sample physical positions rather than
-// racing a brief animation. Extend only the recovery timer while inspecting it.
-async function holdCamera(page: import("@playwright/test").Page) {
-  await page.addInitScript(() => {
-    const timer = window.setTimeout;
-    window.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) =>
-      timer(handler, delay === 8000 ? 120000 : delay, ...args)) as typeof window.setTimeout;
+// Hold every animation of the entry once it starts, so assertions can sample
+// the push and dissolve at exact points of the shared clock.
+async function holdEntry(page: Page) {
+  await page.evaluate(() => {
     const observer = new MutationObserver(() => {
-      const overlay = document.querySelector("body > [data-work-transition]");
-      const animation = overlay?.getAnimations()[0];
-      if (animation) { animation.pause(); animation.currentTime = 0; observer.disconnect(); }
+      if (!document.querySelector("body > [data-work-transition]")) return;
+      observer.disconnect();
+      const held = document.getAnimations().filter(animation => animation.playState === "running");
+      held.forEach(animation => animation.pause());
+      (window as Window & { held?: Animation[] }).held = held;
     });
-    observer.observe(document, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true });
   });
 }
+const at = (page: Page, progress: number) => page.evaluate(progress => {
+  for (const animation of (window as Window & { held?: Animation[] }).held ?? []) {
+    animation.currentTime = Math.min(Number(animation.effect!.getTiming().duration), progress * 2050);
+  }
+}, progress);
+const scaleOf = (page: Page) => page.locator("#work [data-island-visual]").evaluate(visual => {
+  const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
+  return Math.hypot(matrix.a, matrix.b);
+});
 
-test("Work approaches its actual 3D window after orbiting, then reveals the same content inside", async ({ page }) => {
+test("Work pushes in on its sharp render and dissolves into the same page", async ({ page }) => {
   test.setTimeout(90_000);
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await holdCamera(page);
   await page.goto("/2.0#work");
-  await page.locator("#work [data-island-link]").focus();
-  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60000 });
-  await page.keyboard.press("ArrowRight");
-  await page.keyboard.press("ArrowRight");
-  // Where the window sits on screen as Enter is pressed (the island's focus
-  // lift is released once the camera takes over, under the overlay).
-  const window = () => page.evaluate(() => {
-    const source = document.querySelector<SVGGraphicsElement>("#work [data-city-entry-window]")!;
-    const matrix = source.getScreenCTM()!;
-    return (JSON.parse(source.dataset.corners!) as number[][]).map(([x, y]) => [matrix.a*x + matrix.c*y + matrix.e, matrix.b*x + matrix.d*y + matrix.f]);
-  });
-  // Once the turn has eased to rest.
-  let seen = await window();
-  await expect.poll(async () => { const next = await window(); const moved = Math.max(...next.map(([x, y], i) => Math.hypot(x - seen[i][0], y - seen[i][1]))); seen = next; return moved; }, { intervals: [150] }).toBeLessThan(.2);
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
+  const link = page.locator("#work [data-island-link]");
+  // Intent fetches the full render the push lands on.
+  const full = page.waitForResponse(response => /\/blender\/island-work-[0-9a-f]+\.webp$/.test(new URL(response.url()).pathname));
+  await link.focus();
+  await full;
+  await page.waitForTimeout(300);
+  await holdEntry(page);
   await page.keyboard.press("Enter");
   const carry = page.locator("body > [data-work-transition]");
-  await expect(carry).toHaveAttribute("data-work-camera", "3d");
-  await expect(carry.locator("canvas[data-window-camera]")).toHaveCount(1);
-  // Its first projected opening exactly matches the window on the turned tower.
-  const actual: number[][] = JSON.parse((await page.locator("[data-city-window]").getAttribute("data-corners"))!);
-  const error = Math.max(...seen.map(([x, y], i) => Math.hypot(actual[i][0] - x, actual[i][1] - y)));
-  expect(error).toBeLessThan(3);
-  let previousArea = 0;
-  let windowHeadingWidth = 0;
-  for (const progress of [.4, .75, .99]) {
-    await carry.evaluate((element, progress) => { const animation = element.getAnimations()[0]; animation.currentTime = progress * Number(animation.effect!.getTiming().duration); }, progress);
-    await expect(carry).toHaveAttribute("data-work-progress", progress.toFixed(3));
-    const points: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
-    const area = Math.abs((points[1][0] - points[0][0]) * (points[2][1] - points[0][1]));
-    expect(area).toBeGreaterThan(previousArea);
-    previousArea = area;
-    if (progress === .75) {
-      // Readable Work content stays level even when entry starts after orbiting.
-      const pose = await carry.locator("[data-work-preview]").evaluate(node => {
-        const matrix = new DOMMatrix(getComputedStyle(node).transform);
-        return { flat: matrix.is2D, skewX: matrix.c, skewY: matrix.b };
-      });
-      expect(pose).toEqual({ flat: true, skewX: 0, skewY: 0 });
-      // The whole heading is already visible inside the opening, scaled to
-      // that window rather than clipped out of a full-size page behind it.
-      const heading = (await carry.locator("h1").boundingBox())!;
-      windowHeadingWidth = heading.width;
-      const polygon = [points[0], points[1], points[3], points[2]];
-      for (const [x, y] of [[heading.x, heading.y], [heading.x + heading.width, heading.y], [heading.x, heading.y + heading.height], [heading.x + heading.width, heading.y + heading.height]]) {
-        const edges = polygon.map((a, i) => {
-          const b = polygon[(i + 1) % polygon.length];
-          return (b[0] - a[0]) * (y - a[1]) - (b[1] - a[1]) * (x - a[0]);
-        });
-        expect(edges.every(value => value >= 0) || edges.every(value => value <= 0)).toBe(true);
-      }
-    }
-  }
-  const final: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
-  expect(Math.min(...final.map(p=>p[0]))).toBeLessThan(0);
-  expect(Math.max(...final.map(p=>p[0]))).toBeGreaterThan(page.viewportSize()!.width);
-  expect(Math.min(...final.map(p=>p[1]))).toBeLessThan(0);
-  expect(Math.max(...final.map(p=>p[1]))).toBeGreaterThan(page.viewportSize()!.height);
-  const preview = await carry.locator("h1").boundingBox();
-  expect(windowHeadingWidth).toBeLessThan(preview!.width * .9);
-  await carry.evaluate(element => element.getAnimations()[0].play());
+  await expect(carry).toHaveAttribute("data-time", "night");
+  await expect(page.locator("#work [data-island-visual] > img[data-work-sharp]")).toHaveCount(1);
+  // A calm push: close on the tower without magnifying past the render.
+  await at(page, .5);
+  const middle = await scaleOf(page);
+  expect(middle).toBeGreaterThan(1.3);
+  await at(page, 1);
+  const final = await scaleOf(page);
+  expect(final).toBeGreaterThan(middle);
+  expect(final).toBeLessThan(5.5);
+  // The words arrive only after the city has dimmed into the page's dark.
+  await at(page, .55);
+  expect(Number(await carry.locator("[data-work-preview]").evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(.05);
+  await at(page, 1);
+  await expect(carry.locator("[data-work-preview]")).toHaveCSS("opacity", "1");
+  const preview = (await carry.locator("h1").boundingBox())!;
+  await page.evaluate(() => (window as Window & { held?: Animation[] }).held!.forEach(animation => animation.play()));
   await expect(page).toHaveURL(/\/work$/);
   await expect(carry).toHaveCount(0);
   const heading = page.getByRole("heading", { name: "Work", exact: true, level: 1 });
   await expect(heading).toBeFocused();
-  const destination = await heading.boundingBox();
-  expect(Math.abs(preview!.x - destination!.x)).toBeLessThan(1);
-  expect(Math.abs(preview!.y - destination!.y)).toBeLessThan(1);
-  expect(Math.abs(preview!.width - destination!.width)).toBeLessThan(1);
-  await expect(page.getByRole("heading", { name: "886 Studios", exact: true })).toBeVisible();
+  const destination = (await heading.boundingBox())!;
+  expect(Math.abs(preview.x - destination.x)).toBeLessThan(1);
+  expect(Math.abs(preview.y - destination.y)).toBeLessThan(1);
+  expect(Math.abs(preview.width - destination.width)).toBeLessThan(1);
   await expect(page.locator("html")).not.toHaveAttribute("data-work-transition");
   await page.goBack();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
@@ -98,32 +71,40 @@ test("Work approaches its actual 3D window after orbiting, then reveals the same
   expect(errors).toEqual([]);
 });
 
-test("a missing 3D model uses the same lit window without blocking Work", async ({ page }) => {
+test("a turned 3D view settles back into its render, and Escape restores it", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto("/2.0#work");
+  const link = page.locator("#work [data-island-link]");
+  await link.focus();
+  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
+  await page.keyboard.press("ArrowRight");
+  await page.keyboard.press("ArrowRight");
+  const visual = page.locator("#work [data-island-visual]");
+  await expect(visual).toHaveAttribute("data-orbit-live", "true");
+  await holdEntry(page);
+  await page.keyboard.press("Enter");
+  await expect(visual).toHaveAttribute("data-entry-still", "true");
+  // The render shows beneath the turned view, which fades away early.
+  await expect(visual.locator("> img:not([data-city-time]):not([data-work-sharp])")).toHaveCSS("opacity", "1");
+  await at(page, .35);
+  await expect(page.locator('[data-island-orbit="work"]')).toHaveCSS("opacity", "0");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("body > [data-work-transition]")).toHaveCount(0);
+  await expect(visual).not.toHaveAttribute("data-entry-still");
+  await expect(visual.locator("> img[data-work-sharp]")).toHaveCount(0);
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
+});
+
+test("an immediate Work entry needs no 3D download", async ({ page }) => {
   await page.route("**/orbit-*.glb", route => route.abort());
-  await holdCamera(page);
   await page.goto("/2.0#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await expect(page.locator("#work [data-island-link]")).toBeVisible();
   await page.locator("#work [data-island-link]").focus();
-  await expect(page.locator("#work [data-island-link]")).toBeFocused();
   await page.keyboard.press("Enter");
-  const carry = page.locator("body > [data-work-transition]");
-  await expect(carry).toHaveAttribute("data-work-camera", "still");
-  await expect(carry.locator("svg image")).toHaveCount(1);
-  await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=Number(a.effect!.getTiming().duration)*.75; });
-  await expect(carry).toHaveAttribute("data-work-progress", "0.750");
-  const points: number[][] = JSON.parse((await carry.locator("[data-city-window]").getAttribute("data-corners"))!);
-  // The poster and opening square up together before the readable close-up.
-  expect(Math.abs(points[0][1] - points[1][1])).toBeLessThan(.1);
-  expect(Math.abs(points[0][0] - points[2][0])).toBeLessThan(.1);
-  const pose = await carry.locator("[data-work-preview]").evaluate(node => {
-    const matrix = new DOMMatrix(getComputedStyle(node).transform);
-    return { flat: matrix.is2D, skewX: matrix.c, skewY: matrix.b };
-  });
-  expect(pose).toEqual({ flat: true, skewX: 0, skewY: 0 });
-  await carry.evaluate(el => { const a=el.getAnimations()[0]; a.currentTime=Number(a.effect!.getTiming().duration)*.98; a.play(); });
+  await expect(page.locator("body > [data-work-transition]")).toHaveCount(1);
   await expect(page).toHaveURL(/\/work$/);
-  await expect(carry).toHaveCount(0);
+  await expect(page.locator("body > [data-work-transition]")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Work", exact: true, level: 1 })).toBeFocused();
 });
 

@@ -1,6 +1,5 @@
 import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, PointLight, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
-import { flyThroughWindow, makeLitWindow } from "./work-window-camera";
-import type { ScreenMatrix } from "./island-orbit-bridge";
+import { makeLitWindow } from "./work-lit-window";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -195,8 +194,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         gltf.scene.add(preview);
       }
     }
-    let inFlight = false;
-    let disposePending = false;
     let yaw = 0;
     let pitch = 0;
     let renderFrame = 0;
@@ -213,18 +210,18 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       project(projection);
     };
     const render = () => {
-      if (disposed || inFlight) return;
+      if (disposed) return;
       updatePose();
       renderer.render(scene, camera);
     };
     // Pointer devices can deliver several events in one display frame. Keep
     // every movement, but submit only the latest camera position to the GPU.
     const scheduleRender = () => {
-      if (!renderFrame && !disposed && !inFlight) renderFrame = requestAnimationFrame(() => { renderFrame = 0; render(); });
+      if (!renderFrame && !disposed) renderFrame = requestAnimationFrame(() => { renderFrame = 0; render(); });
     };
     const flushRender = () => { cancelAnimationFrame(renderFrame); renderFrame = 0; render(); };
     const resize = () => {
-      if (inFlight || disposed) return;
+      if (disposed) return;
       const bounds = canvas.parentElement!.getBoundingClientRect();
       const width = Math.min(canvas.parentElement!.clientWidth || bounds.width, (canvas.parentElement!.clientHeight || bounds.height) * 1.5);
       renderer.setSize(Math.max(1, Math.round(width)), Math.max(1, Math.round(width / 1.5)), false);
@@ -267,19 +264,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       },
       reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
       setDaylight(day: boolean, animate = true, duration?: number) { return setDaylight(day, animate, duration); },
-      beginWindowFlight: litWindow ? (host: HTMLElement, matrix: ScreenMatrix) => {
-        // Carry the latest input into the flight without drawing a redundant
-        // island frame just before the full-viewport camera takes over.
-        cancelAnimationFrame(renderFrame);
-        renderFrame = 0;
-        updatePose();
-        inFlight = true;
-        return flyThroughWindow(renderer, scene, camera, litWindow, host, matrix, () => {
-          inFlight = false;
-          if (disposePending) dispose(); else resize();
-        });
-      } : undefined,
-      dispose() { if (inFlight) disposePending = true; else dispose(); },
+      dispose,
     };
   } catch (error) {
     if (!disposed) {

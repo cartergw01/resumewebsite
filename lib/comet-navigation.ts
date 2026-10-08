@@ -64,8 +64,8 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
       if (nextX === x && previousX !== null && reduced === motion.matches) return;
       reduced = motion.matches;
       x = nextX;
-      head.style.setProperty("--comet-x", `${x.toFixed(2)}px`);
-      head.style.setProperty("--comet-y", `${curveY(x, width).toFixed(2)}px`);
+      // A transform, not left/top: moving the head needs no layout or repaint.
+      head.style.transform = `translate3d(${x.toFixed(2)}px, ${curveY(x, width).toFixed(2)}px, 0)`;
       if (!motion.matches && previousX !== null && Math.abs(x - previousX) > .05) {
         direction = x > previousX ? 1 : -1;
         targetSpeed = Math.min(2.4, Math.abs(x - previousX) / Math.max(12, Math.min(64, now - previousTime)));

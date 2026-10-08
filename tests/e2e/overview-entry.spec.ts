@@ -26,14 +26,9 @@ for (const scene of ["intro", "hello"]) {
       const link = page.locator(`#${scene} [data-overview-island="${world}"]`);
       await expect.poll(() => link.locator("img").first().evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
       await recordEntries(page);
-      if (world === "work") {
-        // Both overview positions use the same real camera when it is ready.
-        await link.focus();
-        await expect(link.locator("[data-entry-camera]")).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
-      }
       if (isMobile) await link.tap(); else await link.click();
       await expect.poll(() => page.evaluate(() => (window as Window & { overviewEntries?: string[] }).overviewEntries)).toContain(transitions[world]);
-      if (world === "work") await expect(page.locator("body > [data-work-transition]")).toHaveAttribute("data-work-camera", "3d");
+      if (world === "work") await expect(page.locator("body > [data-work-transition]")).toHaveCount(1);
       await expect(page).toHaveURL(new RegExp(`/${world}$`));
       await expect(page.locator(overlays)).toHaveCount(0);
       await expect(page.getByRole("heading", { level: 1, exact: true, name: world[0].toUpperCase() + world.slice(1) })).toBeVisible();
@@ -69,7 +64,7 @@ test("an immediate Work entry needs no 3D download and Escape restores the overv
     const link = page.locator(`#${scene} [data-overview-island="work"]`);
     await link.focus();
     await page.keyboard.press("Enter");
-    await expect(page.locator("body > [data-work-transition]")).toHaveAttribute("data-work-camera", "still");
+    await expect(page.locator("body > [data-work-transition]")).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(page.locator(overlays)).toHaveCount(0);
     await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");

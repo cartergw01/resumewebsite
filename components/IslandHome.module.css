@@ -36,7 +36,7 @@
 .middleStars, .flightStars { position: absolute; overflow: hidden; pointer-events: none; will-change: transform; }
 .middleStars { inset: -25% -55%; opacity: calc(0.24 + var(--flight) * 0.26); transform: translate3d(calc(var(--camera-path) * -9%), calc(var(--camera-arc) * -4%), 0); }
 .flightStars { z-index: 3; inset: -35% -100%; opacity: calc(var(--flight) * 0.65); transform: translate3d(calc(var(--camera-path) * -15%), calc(var(--camera-arc) * -9%), 0) rotate(var(--flight-bank)); will-change: transform, opacity; }
-.depthTrail { transform: scaleX(calc(0.025 + var(--flight) * 0.975)); }
+.depthTrails { position: absolute; inset: 0; opacity: var(--flight); will-change: opacity; }
 .vignette {
   background:
     linear-gradient(90deg, #03061159, transparent 58%),
@@ -120,6 +120,9 @@
   background: radial-gradient(ellipse, #a6bfff14, transparent 65%);
   pointer-events: none;
   opacity: var(--island-lights, 1);
+  /* Its own layer: the glow fades every frame of a crossing without
+     repainting the island beside it. */
+  will-change: opacity;
 }
 .work .art::before { opacity: calc(var(--island-lights, 1) * 0.8); }
 .writing .art::before { background: radial-gradient(ellipse, #f7b96b17, transparent 65%); }
@@ -182,7 +185,7 @@
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
 .island > img, .island > video, .overviewImage { filter: var(--island-grade); }
-.island[data-orbit-live="true"] > img, .island[data-orbit-live="true"] > video, .island[data-orbit-live="true"] > svg { opacity: 0 !important; }
+.island[data-orbit-live="true"]:not([data-entry-still]) > img, .island[data-orbit-live="true"]:not([data-entry-still]) > video, .island[data-orbit-live="true"]:not([data-entry-still]) > svg { opacity: 0 !important; }
 .projects .island { width: 91%; max-height: 100%; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
@@ -226,6 +229,9 @@
   .overviewIsland:hover .overviewLabel { color: #fff1d7; }
 }
 .stage[data-travelling="true"] .overviewVisual, .stage[data-entering] .overviewVisual { animation-play-state: paused; }
+/* The opening and closing views are hidden while you are at an island; their
+   bob would otherwise restyle every frame for nothing. */
+.scene[data-active="false"] .overviewVisual { animation-play-state: paused; }
 .stage[data-entering] .overviewVisual { transition: none; will-change: transform; }
 .stage[data-entering] .overviewIsland:not([data-entering]),
 .stage[data-entering] .overviewLabel { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
@@ -306,7 +312,10 @@
 .trackEnd[data-track-end="end"] { left: auto; right: 0; }
 .cometLight { position: absolute; inset: 0; width: 100%; height: 60px; overflow: hidden; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
 .cometBloom { filter: blur(2px); opacity: .65; }
-.shootingStar { position: absolute; left: var(--comet-x, 12px); top: var(--comet-y, 45px); width: 0; height: 0; pointer-events: none; }
+/* The blurred bloom is redrawn with the tail on every scroll frame; at a
+   phone's scale it is barely visible, so touch screens skip it. */
+@media (pointer: coarse) { .cometBloom { display: none; } }
+.shootingStar { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none; transform: translate3d(12px, 45px, 0); will-change: transform; }
 .cometHead { position: absolute; left: -2px; top: -1px; width: 4px; height: 2px; border-radius: 50%; background: #fffbed; box-shadow: 0 0 3px #fff3d8, 0 0 8px #b4d7ff88; opacity: calc(.8 + var(--comet-energy, 0) * .2); }
 .cometHead::after { content: ""; position: absolute; inset: -2px -7px; border-radius: 50%; background: #b9d9ff55; filter: blur(3px); }
 .chapters[data-boundary="start"] .cometHead { opacity: .35; }
@@ -536,9 +545,11 @@
    stay underneath as its source and the fallback for transitions and 3D. */
 .parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); }
 .life { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.island[data-parallax="on"] > img { opacity: 0 !important; transition: none !important; }
-.island[data-orbit-live="true"] > .parallax { opacity: 0; }
+.island[data-parallax="on"]:not([data-entry-still]) > img { opacity: 0 !important; transition: none !important; }
+.island[data-orbit-live="true"] > .parallax, .island[data-entry-still] > .parallax { opacity: 0; }
 
 /* Real 3D flights between islands (lib/island-flight.ts): drawn over the sky,
    under the copy and controls, only while a crossing is in progress. */
-.flightCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; pointer-events: none; filter: var(--island-grade); }
+.flightCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; pointer-events: none; filter: var(--island-grade); display: none; }
+/* Phones never fly in 3D; until a flight model is ready the canvas is no layer at all. */
+.stage[data-flight-ready="true"] .flightCanvas { display: block; }

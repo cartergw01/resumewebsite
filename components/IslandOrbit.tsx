@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { OrbitAsset, OrbitProjection, createIslandOrbit } from "@/lib/island-orbit";
-import { registerWindowCamera } from "@/lib/island-orbit-bridge";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { landmarkArrow } from "./IslandLink";
@@ -24,7 +23,6 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     const scene = canvas.closest<HTMLElement>("[data-island-scene]")!;
     const stage = canvas.closest<HTMLElement>("[data-island-stage]")!;
     const link = canvas.closest<HTMLAnchorElement>("[data-island-link]")!;
-    let unregisterCamera: (() => void) | undefined;
     let disposed = false;
     let loading = false;
     let loadController: AbortController | null = null;
@@ -110,7 +108,6 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       clearHint();
       cancelScheduledLoad();
       loadController?.abort();
-      unregisterCamera?.();
       restore();
       engineRef.current?.dispose();
       engineRef.current = null;
@@ -130,7 +127,6 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         if (disposed || controller.signal.aborted || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
         engineRef.current = engine;
         if (world === "work") engine.setDaylight(currentCityTime() === "day", false);
-        if (engine.beginWindowFlight) unregisterCamera = registerWindowCamera(visual, engine.beginWindowFlight);
         canvas.dataset.orbitReady = "true";
         if (interactive) {
           link.setAttribute("aria-describedby", `${world}-orbit-instructions`);

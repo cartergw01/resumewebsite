@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
-import { beginWorkEntry } from "@/lib/work-entry";
+import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
 import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY } from "@/lib/island-entry-motion";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
@@ -22,8 +22,9 @@ export function landmarkArrow(title: string, focus: IslandLandmark) {
   return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
 }
 
-function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark) {
-  if (visual.dataset.orbitLandmark) focus = { ...focus, ...JSON.parse(visual.dataset.orbitLandmark) };
+function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark, city = false) {
+  // Work settles back into its render, so it pushes toward the still's tower.
+  if (visual.dataset.orbitLandmark && !city) focus = { ...focus, ...JSON.parse(visual.dataset.orbitLandmark) };
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
   const image = visual.querySelector("img");
   const width = visual.offsetWidth;
@@ -51,9 +52,15 @@ function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandL
   const x = center.x - link.offsetLeft - visual.offsetLeft - focusX;
   const y = center.y - link.offsetTop - visual.offsetTop - focusY;
   const parentScale = Math.hypot(matrix.a, matrix.b);
-  const scale = Math.max(4.8, innerWidth / (imageWidth * fit) * 1.7, innerHeight / (imageHeight * fit) * 1.7) / parentScale;
+  const scale = (city ? workPushScale(imageWidth * fit * parentScale, imageHeight * fit * parentScale)
+    : Math.max(4.8, innerWidth / (imageWidth * fit) * 1.7, innerHeight / (imageHeight * fit) * 1.7)) / parentScale;
   return { x, y, scale, origin: `${focusX}px ${focusY}px`, name: focus.name };
 }
+
+const prepareSharp = (link: HTMLElement) => {
+  const visual = link.querySelector<HTMLElement>("[data-island-visual]");
+  if (visual) prepareWorkEntry(visual);
+};
 
 export default function IslandLink({ href, title, prompt, landmark, children, workshop = false, book = false, overview = false }: { href: string; title: string; prompt: string; landmark: IslandLandmark; children: ReactNode; workshop?: boolean; book?: boolean; overview?: boolean }) {
   const router = useRouter();
@@ -76,7 +83,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
 
     router.prefetch(href);
     const city = title === "Work";
-    const { x, y, scale, origin, name } = landmarkApproach(visual, link, landmark);
+    const { x, y, scale, origin, name } = landmarkApproach(visual, link, landmark, city);
     const initial = getComputedStyle(visual);
     const initialTransform = initial.transform;
     const initialOrigin = initial.transformOrigin;
@@ -86,15 +93,14 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     stage.dataset.entering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
 
-    const entryWindow = city ? visual.querySelector<SVGGraphicsElement>("[data-city-entry-window]") : null;
-    const workEntry = entryWindow ? beginWorkEntry(entryWindow, visual) : null;
-    // Work borrows its real camera; the book and workshop keep their approach.
+    // Work's page dissolves in over its push; the book and workshop open theirs.
+    const workEntry = city ? beginWorkEntry(visual) : null;
     // One continuous, eased move at the shared pace: it eases out of rest,
     // glides in and settles, with no intermediate keyframe to stall on.
-    const zoom = workEntry?.animation ?? visual.animate([
+    const zoom = visual.animate([
       { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
-    ], { duration: ENTRY_APPROACH_DURATION, easing: "cubic-bezier(0.45, 0, 0.25, 1)", fill: "forwards" });
+    ], { duration: ENTRY_APPROACH_DURATION, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.45, 0, 0.25, 1)", fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
@@ -166,7 +172,10 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       data-tip={prompt}
       data-tip-side={tipSide[title.toLowerCase() as keyof typeof tipSide]}
       aria-label={`${prompt}. Enter ${title} island`}
+      onPointerEnter={event => { if (title === "Work") prepareSharp(event.currentTarget); }}
+      onFocus={event => { if (title === "Work") prepareSharp(event.currentTarget); }}
       onPointerDown={event => {
+        if (title === "Work") prepareSharp(event.currentTarget);
         if (event.pointerType !== "touch" || !event.isPrimary || event.currentTarget.closest<HTMLElement>("[data-island-stage]")?.dataset.entering) return;
         touch.current = { x: event.clientX, y: event.clientY };
         event.currentTarget.dataset.touchPressed = "true";
