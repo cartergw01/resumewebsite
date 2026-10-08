@@ -52,14 +52,12 @@ function cardPose(x: number, y: number, width: number, angle: number) {
 
 export function beginBookEntry(source: SVGGraphicsElement) {
   // Every essay title, written into the ruled pages at the same size, so the
-  // notebook is the whole archive rather than any one essay.
+  // notebook is the whole archive rather than any one essay. The left half is
+  // written on the back of the last leaf to turn; the right half waits under
+  // the leaves on the right-hand page.
   const titles: string[] = JSON.parse(source.dataset.titles ?? "[]");
   const half = Math.ceil(titles.length / 2);
-  const spread = document.createDocumentFragment();
-  for (const [side, entries] of [["left", titles.slice(0, half)], ["right", titles.slice(half)]] as const) {
-    const leaf = document.createElement("div");
-    leaf.className = `${styles.leaf} ${styles[side]}`;
-    leaf.dataset.notebookPage = side;
+  const written = (entries: string[]) => {
     const list = document.createElement("ol");
     list.className = styles.titles;
     for (const title of entries) {
@@ -69,11 +67,49 @@ export function beginBookEntry(source: SVGGraphicsElement) {
       item.append(text);
       list.append(item);
     }
-    leaf.append(list);
+    return list;
+  };
+  const page = (side: "left" | "right", entries?: string[]) => {
+    const leaf = document.createElement("div");
+    leaf.className = `${styles.leaf} ${styles[side]}`;
+    if (entries) { leaf.dataset.notebookPage = side; leaf.append(written(entries)); }
+    return leaf;
+  };
+  const spread = document.createDocumentFragment();
+  spread.append(page("left"));
+  for (let index = 0; index < BOOK_LEAVES; index++) {
+    const leaf = document.createElement("div");
+    leaf.className = styles.turn;
+    leaf.dataset.notebookLeaf = String(index);
+    const front = page("right"), back = page("left", index === BOOK_LEAVES - 1 ? titles.slice(0, half) : undefined);
+    front.classList.add(styles.face); back.classList.add(styles.face, styles.back);
+    for (const face of [front, back]) { const shade = document.createElement("span"); shade.className = styles.shade; face.append(shade); }
+    leaf.append(front, back);
     spread.append(leaf);
   }
+  // Last in reading order; the leaves' depth keeps them stacked above it.
+  spread.append(page("right", titles.slice(half)));
   return beginEntry(source, spread, "book", 640, 400);
 }
+
+// Writing opens like a notebook: it lifts off the desk to face you, then its
+// leaves turn over the spine until the archive lies open.
+const BOOK_LEAVES = 3;
+// A landscape spread on wide screens; on a phone, a taller pocket notebook so
+// the archive still reads at a comfortable size. The ruling follows the page.
+const bookSize = () => {
+  if (innerWidth < 760) {
+    const width = Math.min(innerWidth * .94, 520);
+    const height = Math.min(innerHeight * .72, width * 1.05);
+    return { width, height, rule: height / 22 };
+  }
+  const width = Math.min(innerWidth * .82, innerHeight * .78 * 1.6, 1180);
+  return { width, height: width / 1.6, rule: Math.min(34, width / 1.6 / 21) };
+};
+// A pose as one consistent list of functions, so the browser interpolates a
+// physical lift and turn rather than blending two flat matrices.
+const bookPose = (x: number, y: number, angle: number, tilt: number, scale: number) =>
+  `translate(${x}px, ${y}px) rotate(${angle}rad) rotateX(${tilt}rad) scale(${scale})`;
 
 function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind"], sourceWidth: number, sourceHeight: number) {
   const matrix = source.getScreenCTM();
@@ -87,15 +123,18 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   const backdrop = document.createElement("div");
   backdrop.className = styles.backdrop;
   const screen = document.createElement("div");
-  screen.className = kind === "book" ? `${styles.screen} ${styles.notebook}` : styles.deck;
-  // The notebook is laid out at full-viewport size so its ruling stays crisp
-  // when it lands; its start transform shrinks it back onto the island. Each
-  // project card keeps the laptop screen's 320x200 box.
-  const layoutWidth = kind === "book" ? innerWidth : sourceWidth;
-  const layoutHeight = kind === "book" ? innerHeight : sourceHeight;
+  screen.className = kind === "book" ? styles.notebook : styles.deck;
+  // The notebook is laid out at its final reading size so its ruling stays
+  // crisp when it lands. Each project card keeps the laptop screen's box.
+  const book = bookSize();
+  const layoutWidth = kind === "book" ? book.width : sourceWidth;
+  const layoutHeight = kind === "book" ? book.height : sourceHeight;
   if (kind === "book") {
+    overlay.classList.add(styles.depth);
     screen.style.width = `${layoutWidth}px`;
     screen.style.height = `${layoutHeight}px`;
+    screen.style.margin = `${-layoutHeight / 2}px 0 0 ${-layoutWidth / 2}px`;
+    screen.style.setProperty("--rule", `${book.rule}px`);
   }
   const projected: number[][] = JSON.parse(source.dataset.corners ?? "[]");
   if (projected.length !== 4) return null;
@@ -133,13 +172,40 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   timeout = window.setTimeout(current.dispose, 10_000);
 
   if (kind === "book") {
-    // Start exactly on the island's pages, then flatten until they fill the view.
-    screen.style.transform = "none";
-    current.animations.push(screen.animate([
-      { transform: startTransform },
-      { transform: "matrix(1,0,0,1,0,0)" },
-    ], { duration: ENTRY_LIFT_DURATION, easing: "cubic-bezier(0.55, 0.05, 0.25, 1)", fill: "forwards" }));
-    current.animations.push(backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ENTRY_LIFT_DURATION, easing: "ease-in", fill: "forwards" }));
+    // Start on the island's open notebook: its place, the angle of its spine
+    // and how far it lies back on the desk, read from its projected corners.
+    const [tl, tr, bl, br] = corners;
+    const cx = (tl[0] + tr[0] + bl[0] + br[0]) / 4, cy = (tl[1] + tr[1] + bl[1] + br[1]) / 4;
+    const across = [(tr[0] - tl[0] + br[0] - bl[0]) / 2, (tr[1] - tl[1] + br[1] - bl[1]) / 2];
+    const shown = Math.hypot(across[0], across[1]);
+    const angle = Math.atan2(across[1], across[0]);
+    const deep = Math.hypot((bl[0] + br[0] - tl[0] - tr[0]) / 2, (bl[1] + br[1] - tl[1] - tr[1]) / 2);
+    const scale = shown / layoutWidth;
+    const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
+    const lift = { duration: ENTRY_LIFT_DURATION, fill: "forwards" } as const;
+    current.animations.push(
+      // It rises and turns up to face you, settling at reading size.
+      screen.animate([
+        { transform: bookPose(cx, cy, angle, tilt, scale), opacity: 0, offset: 0, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
+        { opacity: 1, offset: .14 },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1), opacity: 1, offset: .56 },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1), opacity: 1, offset: 1 },
+      ], lift),
+      backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .5 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
+    );
+    // Then its leaves turn over the spine, one after another, each shading
+    // as it lifts away from the light and catching it again as it lands.
+    const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
+    leaves.forEach((leaf, index) => {
+      const depth = (from: number, to: number) => [{ transform: `translateZ(${from}px) rotateY(0deg)` }, { transform: `translateZ(${to}px) rotateY(-180deg)` }];
+      const turn = { duration: ENTRY_LIFT_DURATION * .36, delay: ENTRY_LIFT_DURATION * (.42 + index * .1), easing: "cubic-bezier(0.42, 0, 0.25, 1)", fill: "both" } as const;
+      const [front, back] = Array.from(leaf.querySelectorAll<HTMLElement>(`.${styles.shade}`));
+      current.animations.push(
+        leaf.animate(depth((leaves.length - index) * .6, (index + 1) * .6), turn),
+        front.animate([{ opacity: 0 }, { opacity: .55, offset: .5 }, { opacity: .55 }], turn),
+        back.animate([{ opacity: .55 }, { opacity: .55, offset: .5 }, { opacity: 0 }], turn),
+      );
+    });
     return current.dispose;
   }
   // The deck rises off the laptop to the centre, then fans into an arc of
@@ -197,20 +263,17 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
     current.frames.push(requestAnimationFrame(() => {
       if (entry !== current || !target.isConnected) return;
       if (kind === "book") {
-        // Keep the spread flat as its pages part onto the whole archive.
+        // The open archive eases a little closer and gives way to the page.
         document.documentElement.dataset[attribute] = "revealing";
-        const open = { duration: ENTRY_ARRIVAL_DURATION, easing: "cubic-bezier(0.45, 0, 0.2, 1)", fill: "forwards" } as const;
-        const [left, right] = Array.from(current.screen.children) as HTMLElement[];
-        const part = (direction: number) => [
-          { transform: "translateX(0%)", opacity: 1 },
-          { transform: `translateX(${direction * 72}%)`, opacity: 1, offset: 0.7 },
-          { transform: `translateX(${direction * 102}%)`, opacity: 0 },
-        ];
-        const dock = right.animate(part(1), open);
+        const open = { duration: ENTRY_ARRIVAL_DURATION, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" } as const;
+        const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
+        const dock = current.screen.animate([
+          { transform: rest, opacity: 1 },
+          { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.04)"), opacity: 0 },
+        ], open);
         current.animations.push(
           dock,
-          left.animate(part(-1), open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-out", fill: "forwards" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;

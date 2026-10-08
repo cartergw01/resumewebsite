@@ -7,26 +7,23 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
   await page.locator("#writing [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
-  // The island's open notebook lifts off as a blank ruled spread and fills the view.
+  // The island's open notebook lifts off to face you and its leaves turn.
   const carry = page.locator("body > [data-book-transition]");
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
-  // The faster handoff no longer holds on "arriving" for a polling interval.
-  // Record that the very same notebook crosses the route boundary.
+  // Record that the very same notebook crosses the route boundary, upright,
+  // centred and with every leaf turned over the spine.
   await carry.evaluate(node => {
-    const recordFrame = () => {
-      if (!node.isConnected) return;
-      const box = node.querySelector('[data-notebook-page="right"]')!.getBoundingClientRect();
-      if (Math.round(box.right) >= innerWidth - 1 && Math.round(box.bottom) >= innerHeight - 1) {
-        (window as Window & { bookFilledViewport?: boolean }).bookFilledViewport = true;
-      }
-      requestAnimationFrame(recordFrame);
-    };
-    requestAnimationFrame(recordFrame);
     const observer = new MutationObserver(() => {
-      if ((node as HTMLElement).dataset.bookTransition === "arriving") {
-        (window as Window & { bookArrivalMatched?: boolean }).bookArrivalMatched = node.isConnected && location.pathname === "/writing";
-        observer.disconnect();
-      }
+      if ((node as HTMLElement).dataset.bookTransition !== "arriving") return;
+      const leaves = Array.from(node.querySelectorAll("[data-notebook-leaf]"));
+      const book = node.querySelector('[data-notebook-page="right"]')!.parentElement!.getBoundingClientRect();
+      const w = window as Window & { bookArrival?: { matched: boolean; turned: boolean; centred: boolean } };
+      w.bookArrival = {
+        matched: node.isConnected && location.pathname === "/writing",
+        turned: leaves.length === 3 && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
+        centred: Math.abs(book.left + book.width / 2 - innerWidth / 2) < 2 && book.width > innerWidth * .6,
+      };
+      observer.disconnect();
     });
     observer.observe(node, { attributes: true, attributeFilter: ["data-book-transition"] });
   });
@@ -37,9 +34,8 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await expect(written).toHaveCount(11);
   await expect(written.first()).toHaveText("The Cost of Keeping Up");
   expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
-  await expect.poll(() => page.evaluate(() => (window as Window & { bookFilledViewport?: boolean }).bookFilledViewport)).toBe(true);
   await expect(page).toHaveURL(/\/writing$/);
-  await expect.poll(() => page.evaluate(() => (window as Window & { bookArrivalMatched?: boolean }).bookArrivalMatched)).toBe(true);
+  await expect.poll(() => page.evaluate(() => (window as Window & { bookArrival?: object }).bookArrival)).toEqual({ matched: true, turned: true, centred: true });
   await expect(carry).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeFocused();
   await expect(page.getByRole("region", { name: "Featured essay" })).toHaveCount(0);
