@@ -102,14 +102,14 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expectScene(page, "projects");
   if (isMobile) await page.keyboard.press("End");
-  else await page.getByRole("button", { name: "Scroll to the end" }).click();
+  else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expectScene(page, "hello");
   await expect(page.locator("#hello").getByRole("link", { name: "Email" })).toHaveAttribute("href", "mailto:cartergw01@gmail.com");
   await page.getByRole("button", { name: "Back to the start" }).click();
   await expectScene(page, "intro");
-  await page.getByRole("button", { name: isMobile ? "Show Work island" : "Scroll to the Work island" }).click();
+  await page.getByRole("button", { name: isMobile ? "Show Work island" : "Scroll down to the Work island" }).click();
   await expectScene(page, "work");
-  await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll to the Writing island" }).click();
+  await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll down to the Writing island" }).click();
   await expectScene(page, "writing");
   await page.getByRole("link", { name: /^Writing,/ }).focus();
   await page.keyboard.press("Enter");
@@ -239,7 +239,7 @@ test("off-screen islands wait for the first sign of travel", async ({ page }, te
   const previews = new Set(requested);
   requested.length = 0;
   if (testInfo.project.name === "desktop") await page.mouse.wheel(0, 120);
-  else await page.getByRole("button", { name: "Scroll to the Work island" }).tap();
+  else await page.getByRole("button", { name: "Scroll down to the Work island" }).tap();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true");
   await expect.poll(() => requested.filter(url => !previews.has(url)).length).toBeGreaterThanOrEqual(3);
   await expect(page.locator("#work [data-island-visual] img:not([data-city-time])")).toHaveCount(1);
@@ -325,12 +325,12 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
     await page.getByRole("link", { name: /Back to islands/i }).click();
     await expectScene(page, id);
   }
-  await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll to the Writing island" }).click();
+  await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll down to the Writing island" }).click();
   await expect(page).toHaveURL(/#writing$/);
-  await page.getByRole("button", { name: isMobile ? "Show Projects island" : "Scroll to the Projects island" }).click();
+  await page.getByRole("button", { name: isMobile ? "Show Projects island" : "Scroll down to the Projects island" }).click();
   await expect(page).toHaveURL(/#projects$/);
   if (isMobile) await page.keyboard.press("End");
-  else await page.getByRole("button", { name: "Scroll to the end" }).click();
+  else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expect(page).toHaveURL(/#hello$/);
   await page.getByRole("button", { name: "Back to the start" }).click();
   await expect(page).toHaveURL(/\/2\.0$/);

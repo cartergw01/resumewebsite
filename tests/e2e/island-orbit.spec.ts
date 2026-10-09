@@ -126,8 +126,9 @@ test("rotation help borrows the existing annotation once and leaves no extra row
   await expect(page.locator('[data-orbit-controls]')).toHaveCount(0);
   await expect(link).toHaveAttribute('data-orbit-hint', 'true', { timeout: 60_000 });
   await expect(cue.getByText(isMobile ? 'swipe to look around' : 'drag to look around', { exact: true })).toBeVisible();
-  await expect(destination).toBeHidden();
-  await expect(cue.locator('svg')).toBeHidden();
+  // The hint is a second line: the way in and its arrow stay on screen.
+  await expect(destination).toBeVisible();
+  await expect(cue.locator('svg')).toBeVisible();
   await expect(link).not.toHaveAttribute('data-orbit-hint', 'true', { timeout: 6000 });
   await expect(destination).toBeVisible();
   await expect(cue.locator('svg')).toBeVisible();

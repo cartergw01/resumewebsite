@@ -43,15 +43,16 @@ for (const scene of ["intro", "hello"]) {
   }
 }
 
-test("landing text links enter their corresponding islands", async ({ page }) => {
+// Plain text links are links: they open their page at once, with no flight.
+test("landing text links go straight to their pages", async ({ page }) => {
   for (const world of ["writing", "projects"] as const) {
     await page.goto("/2.0");
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
     await recordEntries(page);
     await page.locator(`#intro [data-scene-copy] a[href="/${world}"]`).focus();
     await page.keyboard.press("Enter");
-    await expect.poll(() => page.evaluate(() => (window as Window & { overviewEntries?: string[] }).overviewEntries)).toEqual([transitions[world]]);
     await expect(page).toHaveURL(new RegExp(`/${world}$`));
+    expect(await page.evaluate(() => (window as Window & { overviewEntries?: string[] }).overviewEntries ?? [])).toEqual([]);
     await expect(page.locator(overlays)).toHaveCount(0);
   }
 });
