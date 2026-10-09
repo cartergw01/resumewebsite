@@ -32,8 +32,9 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
         <p className={styles.description}>
           backing early stage startups alongside the founders of Twitch and Guitar Hero at <Out href="https://886studios.com">886 Studios</Out>.
         </p>
+        {/* Plain text links go straight to their page; the islands carry the flight. */}
         <p className={styles.description}>
-          <Link href="/writing" data-enter-island>writing</Link> and <Link href="/projects" data-enter-island>building</Link> things for fun on the side.
+          <Link href="/writing">writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
         </p>
       </>;
     case "work":

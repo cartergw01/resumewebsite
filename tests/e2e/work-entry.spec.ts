@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { ENTRY_APPROACH_DURATION } from "../../lib/island-entry-motion";
 
 // Hold every animation of the entry once it starts, so assertions can sample
 // the push and dissolve at exact points of the shared clock.
@@ -14,11 +15,11 @@ async function holdEntry(page: Page) {
     observer.observe(document.body, { childList: true });
   });
 }
-const at = (page: Page, progress: number) => page.evaluate(progress => {
+const at = (page: Page, progress: number) => page.evaluate(([progress, ENTRY_APPROACH_DURATION]) => {
   for (const animation of (window as Window & { held?: Animation[] }).held ?? []) {
-    animation.currentTime = Math.min(Number(animation.effect!.getTiming().duration), progress * 2050);
+    animation.currentTime = Math.min(Number(animation.effect!.getTiming().duration), progress * ENTRY_APPROACH_DURATION);
   }
-}, progress);
+}, [progress, ENTRY_APPROACH_DURATION] as const);
 const scaleOf = (page: Page) => page.locator("#work [data-island-visual]").evaluate(visual => {
   const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
   return Math.hypot(matrix.a, matrix.b);
