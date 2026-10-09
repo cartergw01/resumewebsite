@@ -368,9 +368,11 @@
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
-  .contact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .25rem; }
+  /* Even 1.5rem gaps between words, each a 44px target, aligned with the
+     copy's left edge rather than spread across four equal columns. */
+  .contact { display: flex; flex-wrap: wrap; gap: 0 .25rem; margin-left: -.625rem; }
   .contact li { display: block; }
-  .contact a { display: flex; align-items: center; justify-content: center; min-height: 44px; font-size: .875rem; }
+  .contact a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding-inline: .625rem; font-size: .9375rem; }
   .contact a::after { content: none; }
   /* Lift the island on tall phones and reserve a separate row for touch help. */
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9dvh, 5rem)); min-height: 0; margin-inline: -3rem; }

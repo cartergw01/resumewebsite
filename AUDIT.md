@@ -118,7 +118,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: consistency; one spacing scale.
 - Evidence: `chromium-375-hello.jpg` — 4 equal grid columns with centred words give "Email ····· X ····· LinkedIn · Substack". Header order is X, Email, Substack, LinkedIn; the stop's order is Email, X, LinkedIn, Substack.
 - Fix: left-aligned flex row with a consistent gap and 44 px targets; one order everywhere (Email, X, LinkedIn, Substack — email first because that's what a founder wants).
-- Status: _open_
+- Status: **Fixed.** Phone contact row is a left-aligned flex row with even 1.5 rem visual gaps, every link ≥ 44×44 (Email 57, X 44, LinkedIn 80, Substack 88 px wide). Header icons reordered to match: Email, X, LinkedIn, Substack — site-wide, since SiteNav is shared.
 
 **[A-15] [P2] Visual design: type scale sprawl**
 - Principle: one type scale, no exceptions.
@@ -180,3 +180,4 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - **A-04 · Restored a share image**, reversing `53930d7`. The new `public/og-image.jpg` is a capture of the real opening view (name + three islands, body copy hidden because it's unreadable at unfurl size). Alternative: keep no image and only fix the description — revert the image lines in `lib/seo.ts`. All subpages share the same image for now; per-page images (e.g. the open notebook for /writing) would be better but need renders you'd want to approve.
 - **A-03 · Latest essay on the opening view**, not only on the Writing stop. Most 30-second visitors never leave the opening view, and this is the only way to reach an essay in one click. Alternative rejected: an essay list or card on the Writing stop (more chrome, still two steps from landing).
 - **A-05 · Kept scroll snapping between islands**, only shortened it. The principle says never fight native scroll; the design says never rest between islands. The islands win because a half-crossed frame is visually broken, and the settle only fires after a gesture ends (it never interrupts momentum).
+- **A-14 · Email first** in both the header icons and the "say hi" links (header was X first). Founders and investors who want to reach you mostly want email; one order everywhere beats two. Alternative: X first everywhere, if X is where you'd rather be found.
