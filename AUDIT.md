@@ -1,12 +1,72 @@
 # /2.0 design audit
 
+## Session summary
+
+Everything is on branch `design-audit` (pushed; nothing merged, nothing deployed to production). 26 commits: one per fix (A-03 has a small-phone follow-up), plus the baseline, one test-update commit and this summary.
+
+### Before → after
+
+| Measure | Before (`main` @ e69ab6f) | After (`design-audit`) |
+|---|---|---|
+| Lighthouse mobile: perf / a11y / best practices / SEO | 91 / 100 / 96 / 69 | 93 / 100 / 96 / 69 (median of 3; single runs vary ±3) |
+| Lighthouse desktop | 100 / 100 / 96 / 69 | 100 / 100 / 96 / 69 |
+| Mobile LCP / TBT / CLS | 3.3 s / 40 ms / 0 | 3.2 s / 20 ms / 0 |
+| axe-core (each of 375/768/1280/1920) | 1 serious (label-content-name-mismatch), 1 moderate (region) | 0 serious, 1 moderate (region: the skip link, won't fix) |
+| Click island → destination heading (real GPU) | 2,248 ms | 970 ms |
+| Click hero text link "writing" → /writing | 2,303 ms | 86 ms |
+| One wheel tick / arrow key → settled on next island | 909 / 914 ms | 689 / 694 ms |
+| Desktop bytes in the first 6 s, no interaction | 4,711 KB (3.7 MB of 3D models) | 860 KB |
+| Mobile bytes after visiting every stop | 2,537 KB | 2,087 KB |
+| Link preview | grey box; "Carter Wang's personal website." | real capture of the islands + your hero sentence |
+| Visible way into a page on the desktop opening view | none until hover | labeled islands, underlined links, latest essay |
+
+SEO 69 is entirely `noindex` on /2.0, which is deliberate until it replaces `/`. Raw data: `audit/before/` vs `audit/after/` (screenshots, Lighthouse JSON+HTML, `axe.json`, `weight.json`, `taborder-*.json`, `aria-*.yaml`, `link-previews.jpg`), and `audit/after/timing.txt` for the click timings on GPU and software WebGL. The `before` timings came from the same harness run against `main`.
+
+### What changed, by category
+
+- **Speed and interaction:** A-01 entry 2.8 s → 1.15 s, text links skip the flight (`27dc623`) · A-05 shorter glide (`475a3b0`) · A-19 tooltip in ~270 ms (`d1dba4a`) · A-17 drag momentum and rubber-band (`d560fdb`) · A-27 no 3D flight build mid-entry or on software WebGL (`bec0b2c`)
+- **Wayfinding and IA:** A-02 labeled islands and underlined links on desktop (`501ef2d`) · A-03 latest essay one click from landing (`968ebc8`, small-phone follow-up `7546c60`) · A-09 orbit hint no longer hides the call to action (`78580f5`)
+- **Layout and visual:** A-10 header on the scene's gutters (`af73d3e`) · A-26 portrait tablets stack (`a66d689`) · A-14 even contact row, one social order (`5a2ba7b`) · A-16 lighter scene tabs (`a7d2aa0`) · A-15 one annotation size (`5acb958`)
+- **Accessibility:** A-06 2 px focus rings (`1a9a809`) · A-07 label in name for the scroll button (`f910166`) · A-08 island links named by their label (`82fc959`)
+- **Performance:** A-11 flight models on travel intent (`61a238c`) · A-12 no daytime render prefetch at night (`8366490`)
+- **Metadata:** A-04 share image + description (`5e21195`)
+- **Edge cases:** A-13 no empty void without JS (`3bda39d`)
+- **Copy:** A-18 "early-stage" (`ff48895`) · A-28 a reason to say hi (`9cdc59b`)
+- **Tests:** selectors and expectations updated for A-01/A-07/A-08/A-09 (`26e530d`, `82fc959`)
+
+### Copy you need to review
+
+All four are listed with before → after under **Copy changes** at the bottom. In short: (1) meta description is now your hero sentence; (2) new two-word label "latest essay" on the opening view; (3) "early stage" → "early-stage"; (4) "Building something? I'd love to hear about it." copied from /work onto the say-hi stop. No other wording was changed.
+
+### Judgment calls
+
+See **Judgment calls** at the bottom. The big ones: the flight stays on islands but is ~1 s; scroll snapping stays but is faster; island labels and scene tabs both stay (a known Jakob's-law cost); a share image is back, reversing your July commit `53930d7`; email is now first in the social order.
+
+### Still open, and why
+
+- **A-20 · 350+ vs 250+ startups screened.** /work and `PRODUCT.md` disagree. Only you know which is right.
+- **A-21 · Copy repetition and casing.** "886 Studios" on two adjacent screens, "fun" twice, lowercase "i" vs "I". Your voice, so I flagged it and left it alone.
+- **A-22 · Scene tabs vs page links.** Same words, different results. My call was to keep them (see judgment calls); hiding the tab labels on the opening view is the alternative.
+- **A-27 (orbit half) · drag-to-rotate models on software WebGL** can still stall a click on blocklisted-GPU machines. Gating them needs a test-infra decision: the e2e suite itself runs on software WebGL. Either launch Playwright with `--use-angle=metal` (Mac-only) or add a test-only override, then gate the orbit the way flights are gated.
+- **A-15 (rest) · UI type sizes** (0.75–0.9375 rem) still vary; each is tuned to a short-phone layout that the e2e size matrix checks.
+- **A-12 (rest) · the resized day still** (~100–235 KB) still loads at night so the crossfade never flashes.
+- **Per-page share images.** All pages share the opening-view capture. A notebook render for /writing and the workshop for /projects would be better, and you'd want to choose those frames yourself.
+- **Pre-existing test failures, unchanged by this branch** (each verified failing on `main`): `island-polish.spec.ts:112` (desktop + mobile; a strict-mode locator matching 5 spans), `rocket-smoke.spec.ts:542` ×2 (desktop; outbound links never become visible), `island-flight.spec.ts:119` (mobile; 6 px off a 3 px tolerance). `motion-responsiveness.spec.ts:42` is flaky (failed once in the full run, passed on 2 reruns). Final run on this branch: 163 passed, 6 failed (those five failures, plus the one flake), 29 skipped (desktop + mobile projects).
+- **Not tested:** a physical iPhone (Safari was tested as Playwright WebKit at 375/768/1280/1920), iOS Low Power Mode, and the Vercel preview deployment of this branch.
+
+### Look at these three first
+
+1. **Click an island** on the branch preview (or `npm run build && npm start`, then open /2.0). The entry now takes about a second instead of nearly three. Check that it still feels like *the* moment of the site. If you want a little more, change the one constant `ISLAND_ENTRY_DURATION` in `lib/island-entry-motion.ts`; everything else scales from it.
+2. **The share card** (`public/og-image.jpg`, `audit/after/link-previews.jpg`). It reverses your deliberate July removal, so keep it or revert it consciously.
+3. **The new opening view on a laptop**: labels under the islands, underlined links, and the "latest essay" line. These are the most visible changes to the first five seconds, and the line is the only new copy on that screen.
+
+## Method
+
 Branch: `design-audit` (never merged, never deployed to production). Baseline captures live in `audit/before/`, post-fix captures in `audit/after/`.
 
-How this was measured: production build (`next build && next start`) on localhost, driven with Playwright (Chromium + WebKit) at 375 / 768 / 1280 / 1920 px, plus 3440 ultra-wide, 640 px @2x (≈200% zoom on a laptop), 844×390 landscape phone, reduced motion, JS disabled, and blocked video. Lighthouse 12 mobile + desktop, axe-core 4 at all four widths, a 25-stop keyboard Tab walk, Slow-4G + 4× CPU throttled loads at 1/3/6 s, and a timing harness that clicks into each island and measures click → destination heading.
+How this was measured: production build (`next build && next start`) on localhost, driven with Playwright (Chromium + WebKit) at 375 / 768 / 1280 / 1920 px, plus 3440 ultra-wide, 640 px @2x (≈200% zoom on a laptop), 844×390 landscape phone, reduced motion, JS disabled, and blocked video. Lighthouse 13.5 mobile + desktop, axe-core 4.14 at all four widths, a 25-stop keyboard Tab walk, Slow-4G + 4× CPU throttled loads at 1/3/6 s, and a timing harness that clicks into each island and measures click → destination heading.
 
 The site is dark-only (`<html data-theme="dark">`, no light theme exists), so there is no light-mode capture. That is a deliberate brand choice, not a finding.
-
-<!-- SESSION SUMMARY is inserted above this line at the end of the session -->
 
 ## Top 5 (before fixes)
 
@@ -194,3 +254,8 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - **A-03 · Latest essay on the opening view**, not only on the Writing stop. Most 30-second visitors never leave the opening view, and this is the only way to reach an essay in one click. Alternative rejected: an essay list or card on the Writing stop (more chrome, still two steps from landing).
 - **A-05 · Kept scroll snapping between islands**, only shortened it. The principle says never fight native scroll; the design says never rest between islands. The islands win because a half-crossed frame is visually broken, and the settle only fires after a gesture ends (it never interrupts momentum).
 - **A-14 · Email first** in both the header icons and the "say hi" links (header was X first). Founders and investors who want to reach you mostly want email; one order everywhere beats two. Alternative: X first everywhere, if X is where you'd rather be found.
+- **A-01 · The flight stays on islands and stop headings**, shortened to ~1 s; only plain text links skip it. Alternative rejected: no flight at all (navigate instantly everywhere). The entry is the site's one signature moment; at 1 s it's a reward, at 2.8 s it was a gate.
+- **A-02 / A-22 · Island labels *and* scene tabs both say Work · Writing · Projects** on the opening view (on desktop they now sit ~40 px apart at 1280×800). One opens the page, the other moves the camera — a real Jakob's-law cost. I kept both: the tabs are the only persistent wayfinding and progress indicator across all five stops, and hiding them only on the opening view would make the nav pop in and out. Alternative if this bothers you: hide the tab *labels* (keep the comet line) on the opening and closing views.
+- **Header icons stay on the "say hi" stop** even though the same four links are in the copy. A global header that disappears on one stop is a worse inconsistency than a duplicate there.
+- **The starfield loop has no pause control** (Vercel: loops over 5 s should be pausable). It's ambient background at 0.55× speed, it stills for reduced motion, Save-Data and hidden tabs, and a visible pause button would be chrome on the one screen that should have none. Kept.
+- **A-27 · Software-WebGL gating for flights only.** The orbit models (drag to look around) would benefit from the same gate, but the e2e suite runs on software WebGL; gating there needs a test-infra decision from you (see open items).

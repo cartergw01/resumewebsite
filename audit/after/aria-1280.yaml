@@ -1,0 +1,47 @@
+- link "Skip to content":
+  - /url: "#islands"
+- banner:
+  - navigation "Social links":
+    - link "Email":
+      - /url: mailto:cartergw01@gmail.com
+    - link "X":
+      - /url: https://x.com/CarterKoWang
+    - link "LinkedIn":
+      - /url: https://www.linkedin.com/in/cartergrantwang
+    - link "Substack":
+      - /url: https://carterko.substack.com/
+- 'main "Three islands: work, writing, and projects"':
+  - region "Carter Wang":
+    - heading "Carter Wang" [level=1]
+    - paragraph:
+      - text: backing early-stage startups alongside the founders of Twitch and Guitar Hero at
+      - link "886 Studios":
+        - /url: https://886studios.com
+      - text: .
+    - paragraph:
+      - link "writing":
+        - /url: /writing
+      - text: and
+      - link "building":
+        - /url: /projects
+      - text: things for fun on the side.
+    - paragraph:
+      - text: latest essay
+      - link "The Cost of Keeping Up":
+        - /url: https://carterko.substack.com/p/the-cost-of-keeping-up
+    - navigation "Islands":
+      - link "Work, learn about my work":
+        - /url: /work
+        - text: Work
+      - link "Writing, read my writing":
+        - /url: /writing
+        - text: Writing
+      - link "Projects, see what i’ve built":
+        - /url: /projects
+        - text: Projects
+  - button "Scroll down to the Work island": scroll down
+  - navigation "Island scenes":
+    - button "Show Work island": Work
+    - button "Show Writing island": Writing
+    - button "Show Projects island": Projects
+- alert

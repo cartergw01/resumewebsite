@@ -1,0 +1,31 @@
+# Click → destination timings, production build. GPU = Chrome with Metal (real Apple M2 GPU); SW = default headless software WebGL.
+## after (this branch), GPU
+1280 intro→/work (overview island) url change 963 ms; heading fully visible 970 ms
+1280 #writing stop→/writing url change 899 ms; heading fully visible 1059 ms
+1280 intro→/writing inline text link url change 85 ms; heading fully visible 86 ms
+1280 ArrowDown glide settles in 694 ms at 781
+1280 single 60px wheel tick → page travels to 781 px, settles in 689 ms
+390 intro→/work (overview island) url change 956 ms; heading fully visible 958 ms
+390 #writing stop→/writing url change 896 ms; heading fully visible 1058 ms
+390 intro→/writing inline text link url change 112 ms; heading fully visible 113 ms
+390 ArrowDown glide settles in 653 ms at 824
+## before (main @ e69ab6f), GPU
+1280 intro→/work (overview island) url change 2246 ms; heading fully visible 2248 ms
+1280 #writing stop→/writing url change 2127 ms; heading fully visible 2307 ms
+1280 intro→/writing inline text link url change 2141 ms; heading fully visible 2303 ms
+1280 ArrowDown glide settles in 914 ms at 781
+1280 single 60px wheel tick → page travels to 781 px, settles in 909 ms
+390 intro→/work (overview island) url change 2171 ms; heading fully visible 2180 ms
+390 #writing stop→/writing url change 2147 ms; heading fully visible 2312 ms
+390 intro→/writing inline text link url change 2169 ms; heading fully visible 2330 ms
+390 ArrowDown glide settles in 919 ms at 824
+## after, SW
+1280 intro→/work (overview island) url change 933 ms; heading fully visible 936 ms
+1280 #writing stop→/writing url change 1232 ms; heading fully visible 1340 ms
+1280 intro→/writing inline text link url change 84 ms; heading fully visible 85 ms
+1280 ArrowDown glide settles in 556 ms at 729
+1280 single 60px wheel tick → page travels to 781 px, settles in 691 ms
+390 intro→/work (overview island) url change 969 ms; heading fully visible 970 ms
+390 #writing stop→/writing url change 874 ms; heading fully visible 1036 ms
+390 intro→/writing inline text link url change 103 ms; heading fully visible 104 ms
+390 ArrowDown glide settles in 655 ms at 824
