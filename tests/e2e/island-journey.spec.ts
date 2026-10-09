@@ -243,7 +243,8 @@ test("off-screen islands wait for the first sign of travel", async ({ page }, te
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true");
   await expect.poll(() => requested.filter(url => !previews.has(url)).length).toBeGreaterThanOrEqual(3);
   await expect(page.locator("#work [data-island-visual] img:not([data-city-time])")).toHaveCount(1);
-  await expect(page.locator('#work [data-island-visual] img[data-city-time="day"]')).toHaveCount(1);
+  // The day still waits for someone to reach for the day/night switch.
+  await expect(page.locator('#work [data-island-visual] img[data-city-time="day"]')).toHaveCount(0);
   await expect(page.locator("#writing [data-island-visual] img")).toHaveCount(1);
   await expect(page.locator("#projects [data-island-visual] img")).toHaveCount(1);
 });
