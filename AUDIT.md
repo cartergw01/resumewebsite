@@ -57,7 +57,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Evidence: `IslandScrollTransport.tsx:363` glide length `min(1250, 600 + Δstops·300)` ms with a cubic in-out. Measured: one 60 px wheel tick → page travels 781 px and settles after 981 ms; ArrowDown settles after 923 ms (1280 and 390 px).
 - Why it matters: the stops are the design (the camera should never rest between islands), so snapping stays — that's the tradeoff, and the islands win it. But a full second per step makes the whole site feel heavy, and keyboard users pay it on every keypress.
 - Fix: shorten the glide (≈450 ms + 180 ms per stop, cap 900 ms); keyboard steps use the short end.
-- Status: _open_
+- Status: **Fixed.** Glide `min(1250, 600 + 300/stop)` → `min(900, 450 + 180/stop)` ms. Measured settle after one wheel tick 981 → 709 ms; ArrowDown 923 → 741 ms (1280) and 950 → 682 ms (390). Snapping kept on purpose. Alternative rejected: instant jumps for keyboard ("keyboard actions shouldn't animate") — here the crossing *is* the content, and an instant cut between islands loses the sense of place; reduced-motion users already get instant jumps.
 
 **[A-06] [P1] Accessibility: weak focus indicators on the main targets**
 - Principle: Vercel guidelines (visible, unobscured focus ring); WCAG 2.4.7/2.4.11.
@@ -171,3 +171,4 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 
 - **A-04 · Restored a share image**, reversing `53930d7`. The new `public/og-image.jpg` is a capture of the real opening view (name + three islands, body copy hidden because it's unreadable at unfurl size). Alternative: keep no image and only fix the description — revert the image lines in `lib/seo.ts`. All subpages share the same image for now; per-page images (e.g. the open notebook for /writing) would be better but need renders you'd want to approve.
 - **A-03 · Latest essay on the opening view**, not only on the Writing stop. Most 30-second visitors never leave the opening view, and this is the only way to reach an essay in one click. Alternative rejected: an essay list or card on the Writing stop (more chrome, still two steps from landing).
+- **A-05 · Kept scroll snapping between islands**, only shortened it. The principle says never fight native scroll; the design says never rest between islands. The islands win because a half-crossed frame is visually broken, and the settle only fires after a gesture ends (it never interrupts momentum).

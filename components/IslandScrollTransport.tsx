@@ -360,7 +360,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // phone rotation mid-flight still lands exactly on the stop.
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
-      const length = Math.min(1250, 600 + Math.abs(to - from) * duration * 300);
+      // About two-thirds of a second per stop: long enough to read as one
+      // flight between islands, short enough that stepping through stays brisk.
+      const length = Math.min(900, 450 + Math.abs(to - from) * duration * 180);
       const began = performance.now();
       stage.dataset.navigating = "true";
       const step = (now: number) => {
