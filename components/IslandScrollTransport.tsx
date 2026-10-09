@@ -284,8 +284,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         });
         const upcoming = worlds[current + 1];
         nextLabel.textContent = current === scenes.length - 1 ? "back to the start" : "scroll down";
+        // Each name starts with the words on the button (WCAG 2.5.3).
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the start"
-          : upcoming.title ? `Scroll to the ${upcoming.title} island` : "Scroll to the end");
+          : upcoming.title ? `Scroll down to the ${upcoming.title} island` : "Scroll down to the end");
         next.dataset.last = String(current === scenes.length - 1);
       }
       // Wait for a settled shot; passing a world mid-flight must not rewrite
@@ -685,7 +686,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         </span>
         {children}
         <div className={styles.controls}>
-          <button type="button" className={styles.scrollHint} disabled={!ready} data-next-scene aria-label={`Scroll to the ${worlds[1].title} island`}>
+          <button type="button" className={styles.scrollHint} disabled={!ready} data-next-scene aria-label={`Scroll down to the ${worlds[1].title} island`}>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
             <span data-next-label>scroll down</span>
             <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>

@@ -69,7 +69,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: WCAG 2.5.3 Label in Name; axe `label-content-name-mismatch` (serious) at all four widths; Lighthouse a11y fail.
 - Evidence: `IslandScrollTransport.tsx:286-288,686` visible "scroll down", name "Scroll to the Work island".
 - Fix: names start with the visible text ("Scroll down to the Work island", "Back to the start").
-- Status: _open_
+- Status: **Fixed.** Names now begin with the visible words: "Scroll down to the Work island", "Scroll down to the end", "Back to the start". Verified with axe in the after pass.
 
 **[A-08] [P1] Accessibility / copy: island link names are lowercase prompts with a redundant suffix**
 - Principle: Label in Name; consistent nouns.
