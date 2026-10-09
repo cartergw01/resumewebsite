@@ -147,7 +147,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: UI motion under ~300 ms; tooltips in a group shouldn't re-delay.
 - Evidence: `.islandTip[data-visible] .tipText` — 150 ms delay + 360 ms translate / 420 ms underline (`IslandHome.module.css:506-511`).
 - Fix: total ≤ 250 ms.
-- Status: _open_
+- Status: **Fixed.** Tooltip draws star → line → words in 270 ms total (was ~620 ms: 150–200 ms delays plus 360–420 ms transitions). The order is kept; only the clock is shorter.
 
 ### Flagged, not changed (needs Carter)
 

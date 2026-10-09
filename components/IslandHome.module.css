@@ -538,13 +538,14 @@
   translate: 4px 3px;
 }
 .islandTip[data-side^="s"] .tipText { top: calc(21px - 1.2em - 0.3rem); bottom: auto; }
-.islandTip[data-visible="true"] .tipStar { opacity: 1; scale: 1; transition-duration: 220ms; }
-.islandTip[data-visible="true"] .tipLeader { scale: 1 1; transition: scale 260ms var(--cw-ease) 60ms; }
+.islandTip[data-visible="true"] .tipStar { opacity: 1; scale: 1; transition-duration: 140ms; }
+.islandTip[data-visible="true"] .tipLeader { scale: 1 1; transition: scale 160ms var(--cw-ease) 30ms; }
 .islandTip[data-visible="true"] .tipText {
   opacity: 1;
   translate: 0 0;
   background-size: 100% 1px;
-  transition: opacity 260ms ease 150ms, translate 360ms var(--cw-ease) 150ms, background-size 420ms var(--cw-ease) 200ms;
+  /* Star, line, then words, all inside a quarter second. */
+  transition: opacity 160ms ease 70ms, translate 180ms var(--cw-ease) 70ms, background-size 180ms var(--cw-ease) 90ms;
 }
 @media (prefers-reduced-motion: reduce) { .tipStar, .tipLeader, .tipText, .islandTip[data-visible="true"] * { transition: none !important; } }
 
