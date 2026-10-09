@@ -50,7 +50,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Evidence: the only essay surfaced on /2.0 is drawn onto the notebook in perspective (`WritingIsland.tsx`, `EssayLeaf`), illegible at every width (`chromium-1280-writing.jpg`). The Writing stop's copy links to the Substack home, not an essay.
 - Why it matters: audience #2 came from Substack and wants more of the writing; audience #1 wants proof of thinking. Both hit a dead end of decorative text.
 - Fix: one quiet line under the hero copy linking straight to the latest essay (title from `content/portfolio.ts`, href to the Substack post). Alternative considered: put it only on the Writing stop — rejected because most 30-second visitors never leave the opening view.
-- Status: **Fixed.** A quiet "latest essay" line under the hero links directly to the newest Substack post (display italic, real underline, 44 px-tall hit area). Verified at 375×667 (iPhone SE): still fits above the islands.
+- Status: **Fixed.** A quiet "latest essay" line under the hero links directly to the newest Substack post (display italic, real underline, 44 px-tall hit area). Verified at 375×667 (iPhone SE): still fits above the islands. Follow-up: the e2e suite caught the lowest island label crowding "scroll down" at 320×568; on short phones the line is now compact and the Projects island sits 4% higher (label clears the prompt by 13 px).
 
 **[A-05] [P1] Interaction & motion: scroll glide is too long; keyboard travel animates for ~1 s**
 - Principle: Rauno/Emil — UI motion under ~300 ms, keyboard-triggered and frequent actions shouldn't animate; "never fight native scroll".

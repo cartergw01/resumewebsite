@@ -395,6 +395,10 @@
   .stage { --controls-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
+  .latest { margin-top: 0.4rem; font-size: 0.75rem; line-height: 1.3; }
+  .copy .latest a { font-size: 0.9375rem; }
+  /* Keep the lowest island's label clear of "scroll down" on short phones. */
+  .overviewIsland[data-overview-island="projects"] { top: 50%; }
   .copy h1, .copy h2 { font-size: 2.75rem; }
   .island { max-height: 42dvh; }
   .art { height: calc(100% - 2.5rem); }
