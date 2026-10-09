@@ -33,7 +33,7 @@ test("background video advances without scrolling, keeps playing across islands,
   await video.evaluate((node: HTMLVideoElement) => { node.currentTime = 11.75; });
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await expect(visual).toHaveAttribute("data-video-ready", "true");
-  await page.getByRole("link", { name: "Enter Projects island" }).focus();
+  await page.getByRole("link", { name: /^Projects,/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
@@ -80,7 +80,7 @@ test("failed background video retains its poster and working island entry", asyn
   await expect.poll(() => visual.locator("img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(visual.locator("picture")).toHaveCSS("opacity", "1");
   await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
-  await page.getByRole("link", { name: "Enter Work island" }).click();
+  await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });
 });

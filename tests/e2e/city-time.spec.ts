@@ -17,7 +17,7 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await expect.poll(() => day.evaluate(node => node.parentElement!.dataset.parallax === "on" || getComputedStyle(node).opacity === "1")).toBe(true);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
-  await page.getByRole("link", { name: /Enter Work island/ }).click();
+  await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });
   await page.goto("/2.0#work");
   await page.getByRole("button", { name: "Show Taipei at night" }).click();

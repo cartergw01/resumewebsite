@@ -75,7 +75,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: Label in Name; consistent nouns.
 - Evidence: accessibility tree (`audit/before/aria-1280.yaml`): "learn about my work. Enter Work island", "see what i’ve built. Enter Projects island". The visible label on mobile is "Work"; the name puts it at the end.
 - Fix: `"Work — learn about my work"` pattern (visible label first, prompt second, no "Enter … island").
-- Status: _open_
+- Status: **Fixed.** Island links are named "Work, learn about my work" / "Writing, read my writing" / "Projects, see what i’ve built" — the visible label first. e2e selectors updated to match (`/^Work,/` etc.).
 
 **[A-09] [P1] Navigation: the orbit hint replaces the island's only call to action**
 - Principle: affordances must be visible (recognition over recall); the 3D orbit should be a reward, not compete with the way in.

@@ -24,7 +24,7 @@ test("hovering keeps the cursor attached without repainting the effects canvas",
     if (route.startsWith("/2.0")) await page.locator("#work [data-island-link]").focus();
     if (route.startsWith("/2.0")) await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
     const link = route.startsWith("/2.0")
-      ? page.getByRole("link", { name: /Enter Work island/ })
+      ? page.getByRole("link", { name: /^Work,/ })
       : page.getByLabel("Primary navigation").getByRole("link").first();
     await link.hover();
     const canvas = page.getByTestId("rocket-effects-canvas");

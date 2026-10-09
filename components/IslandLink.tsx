@@ -171,7 +171,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       data-world={title.toLowerCase()}
       data-tip={prompt}
       data-tip-side={tipSide[title.toLowerCase() as keyof typeof tipSide]}
-      aria-label={`${prompt}. Enter ${title} island`}
+      aria-label={`${title}, ${prompt}`}
       onPointerEnter={event => { if (title === "Work") prepareSharp(event.currentTarget); }}
       onFocus={event => { if (title === "Work") prepareSharp(event.currentTarget); }}
       onPointerDown={event => {

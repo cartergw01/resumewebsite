@@ -98,7 +98,7 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   await page.getByRole("button", { name: "Show Writing island" }).focus();
   await page.keyboard.press("Enter");
   await expectScene(page, "writing");
-  await expect(page.getByRole("link", { name: "Enter Writing island" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Writing,/ })).toBeVisible();
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expectScene(page, "projects");
   if (isMobile) await page.keyboard.press("End");
@@ -111,7 +111,7 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   await expectScene(page, "work");
   await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll to the Writing island" }).click();
   await expectScene(page, "writing");
-  await page.getByRole("link", { name: "Enter Writing island" }).focus();
+  await page.getByRole("link", { name: /^Writing,/ }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
@@ -125,7 +125,7 @@ test("each island zooms into its own page and owns navigation until arrival", as
     await page.goto(`/2.0#${id}`);
     await expectScene(page, id);
     await expect(page.getByRole("link", { name: /^Explore / })).toHaveCount(0);
-    const island = page.getByRole("link", { name: `Enter ${world} island` });
+    const island = page.getByRole("link", { name: new RegExp(`^${world},`) });
     await island.click();
     await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", id);
     await expect.poll(() => island.locator("[data-island-visual]").evaluate((visual) => {
@@ -146,7 +146,7 @@ test("reduced motion enters an island without zooming", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/2.0#projects");
   await expectScene(page, "projects");
-  await page.getByRole("link", { name: "Enter Projects island" }).click();
+  await page.getByRole("link", { name: /^Projects,/ }).click();
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.locator("main h1")).toHaveText("Projects");
 });
@@ -251,7 +251,7 @@ test("off-screen islands wait for the first sign of travel", async ({ page }, te
 test("Escape backs out of an island approach and restores the page", async ({ page }) => {
   await page.goto("/2.0#work");
   await expectScene(page, "work");
-  await page.getByRole("link", { name: "Enter Work island" }).click();
+  await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "work");
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
@@ -268,7 +268,7 @@ test("skip link and the opening islands reach content directly", async ({ page, 
   await expect(skip).toBeFocused();
   await expect(skip).toBeInViewport();
   // The opening islands open their pages directly.
-  await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: "Enter Projects island" }).click();
+  await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: /^Projects,/ }).click();
   await expect(page).toHaveURL(/\/projects$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/2\.0#projects$/);
@@ -315,7 +315,7 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
     await expectScene(page, id);
     await page.reload();
     await expectScene(page, id);
-    await page.getByRole("link", { name: `Enter ${world} island` }).click();
+    await page.getByRole("link", { name: new RegExp(`^${world},`) }).click();
     await expect(page).toHaveURL(new RegExp(`/${id}$`));
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/2\\.0#${id}$`));

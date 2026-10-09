@@ -519,7 +519,7 @@ test("reduced motion skips launch and responds to preference changes after mount
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
   await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle");
 
-  await page.getByRole("link", { name: "Enter Work island" }).click();
+  await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page).toHaveURL("/work", { timeout: 15_000 });
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
   await expectRocketEffectsCleared(page);
