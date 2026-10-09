@@ -152,10 +152,12 @@
 .islandLink:focus-visible .landmarkCue { opacity: var(--cue-opacity, 1); }
 .landmarkCue > span { position: absolute; white-space: nowrap; }
 .orbitPrompt, .touchPrompt { display: none; }
-.islandLink[data-orbit-hint] .entryPrompt { display: none; }
-.islandLink[data-orbit-hint] .orbitPrompt { display: inline; }
+/* The orbit hint joins the call to action as a quieter second line; the
+   prompt and its arrow stay, since they are the way in. */
+.islandLink[data-orbit-hint] .orbitPrompt { display: block; margin-top: 0.15em; font-size: 0.8em; opacity: 0.7; }
 .islandLink[data-orbit-hint] .landmarkCue { opacity: var(--cue-opacity, 1); }
-.islandLink[data-orbit-hint] .landmarkCue svg { visibility: hidden; }
+/* The book's arrow leaves from under its words; it rests while the hint is up. */
+.islandLink[data-orbit-hint] .bookCue svg { opacity: 0; }
 @media (pointer: coarse) {
   .mousePrompt { display: none; }
   .touchPrompt { display: inline; }

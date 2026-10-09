@@ -81,7 +81,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: affordances must be visible (recognition over recall); the 3D orbit should be a reward, not compete with the way in.
 - Evidence: `IslandHome.module.css:149-152` + `IslandOrbit.tsx:57-70`: 1.4 s after arriving at an island, "learn about my work" is swapped for "drag to look around" for 3.5 s (`edge-zoom200-work.jpg`, `edge-reduced-work.jpg`). The arrow pointing at the landmark is hidden too. A first-time visitor's first look at the CTA is an instruction for an optional toy.
 - Fix: keep the CTA and its arrow; show the orbit hint as a smaller second line beneath it.
-- Status: _open_
+- Status: **Fixed.** The orbit hint is now a smaller, dimmer second line under the prompt ("learn about my work / drag to look around"); the prompt and its arrow stay visible. Only the book's arrow rests during the 3.5 s hint, because it would cross the second line. Checked Work at 1280 and Writing at 375.
 
 **[A-10] [P1] Visual design: header and scene don't share edges on wide screens**
 - Principle: Refactoring UI / Linear — align everything to one grid; Vercel "verify on ultra-wide".
