@@ -109,8 +109,13 @@ export function beginBookEntry(source: SVGGraphicsElement) {
   };
   const spread = document.createDocumentFragment();
   spread.append(casts(page("left"), "left"));
-  // The right page lies under the leaves, so it comes first.
+  // The right page lies under the leaves, so it comes first, then the ribbon
+  // marker that rests on it: in DOM order too, so any engine that paints this
+  // flat still keeps both under the turning leaves.
   spread.append(casts(page("right", titles.slice(half)), "right"));
+  const ribbon = document.createElement("span");
+  ribbon.className = styles.ribbon;
+  spread.append(ribbon);
   for (let index = 0; index < BOOK_LEAVES; index++) {
     const last = index === BOOK_LEAVES - 1;
     const entries = last ? titles.slice(0, half) : undefined;

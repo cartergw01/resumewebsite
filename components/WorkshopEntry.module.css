@@ -13,7 +13,7 @@
 .notebook::before { content: ""; position: absolute; inset: -1.6% -1.2%; border-radius: 6px; background: linear-gradient(90deg, #3a2a1d, #4a3524 48%, #2c1f15 50%, #4a3524 52%, #3a2a1d); box-shadow: 0 30px 90px #000b, 0 2px 6px #0008; transform: translateZ(-2px); }
 /* A ribbon marker from the head of the spine, lying across the right page
    under the leaves, clear of the titles, trailing past the foot of the book. */
-.notebook::after { content: ""; position: absolute; top: -1%; left: 91%; width: 1.15%; height: 105.5%; background: linear-gradient(90deg, #5c1a17, #8a2b25 45%, #6e211c); box-shadow: 1px 0 2px #2a0d0b55; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 98.6%, 0 100%); transform: translateZ(.6px) rotate(1.4deg); transform-origin: 50% 0; }
+.ribbon { position: absolute; top: -1%; left: 91%; width: 1.15%; height: 105.5%; background: linear-gradient(90deg, #5c1a17, #8a2b25 45%, #6e211c); box-shadow: 1px 0 2px #2a0d0b55; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 98.6%, 0 100%); transform: translateZ(.6px) rotate(1.4deg); transform-origin: 50% 0; }
 /* A leaf hinges on the spine. Its own faces show the half by the spine; a
    second hinged half (.outer) carries the free edge, so the page can bend. */
 .turn { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; transform-origin: 0 50%; transform-style: preserve-3d; }
