@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CITY_TIME_DURATION, CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import type { ParallaxState } from "./IslandLife";
+import { hardwareWebGL } from "@/lib/hardware-webgl";
 
 // Depth parallax for an island's Cycles still. Blender renders a camera-depth
 // map with every island (scripts/blender/render_depth.py); this redraws the
@@ -85,7 +86,11 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
     };
 
     const resize = () => {
-      const ratio = Math.min(devicePixelRatio, 1.5);
+      // Full screen density: this canvas replaces the still, so anything less
+      // than the device's pixels shows as a soft island on Retina and phones.
+      // It only redraws while the pointer moves it, so the cost is small on a
+      // GPU; software WebGL keeps the lighter 1.5x.
+      const ratio = Math.min(devicePixelRatio, hardwareWebGL() ? 3 : 1.5);
       const width = canvas.clientWidth, height = canvas.clientHeight;
       canvas.width = Math.max(1, Math.round(width * ratio)); canvas.height = Math.max(1, Math.round(height * ratio));
       gl.viewport(0, 0, canvas.width, canvas.height);

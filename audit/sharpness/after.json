@@ -1,0 +1,70 @@
+[
+ {
+  "device": "laptop@2x",
+  "mode": "direct",
+  "sharpness": 1159,
+  "box": [
+   463,
+   134,
+   1033,
+   646
+  ],
+  "shownCss": 969,
+  "needDevicePx": 1938,
+  "img": "2048w q75 natural 979",
+  "parallax": true,
+  "canvasPx": "2016x1260 for 1008x630 css",
+  "artTransform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ {
+  "device": "laptop@2x",
+  "mode": "flown",
+  "sharpness": 1156,
+  "box": [
+   463,
+   133,
+   1033,
+   646
+  ],
+  "shownCss": 969,
+  "needDevicePx": 1938,
+  "img": "2048w q75 natural 979",
+  "parallax": true,
+  "canvasPx": "2016x1260 for 1008x630 css",
+  "artTransform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ {
+  "device": "iphone@3x",
+  "mode": "direct",
+  "sharpness": 1833,
+  "box": [
+   -24,
+   214,
+   438,
+   422
+  ],
+  "shownCss": 438,
+  "needDevicePx": 1314,
+  "img": "1920w q75 natural 448",
+  "parallax": false,
+  "canvasPx": null,
+  "artTransform": "matrix(1, 0, 0, 1, 0, 0)"
+ },
+ {
+  "device": "iphone@3x",
+  "mode": "flown",
+  "sharpness": 2118,
+  "box": [
+   -24,
+   213,
+   438,
+   422
+  ],
+  "shownCss": 438,
+  "needDevicePx": 1314,
+  "img": "1920w q75 natural 448",
+  "parallax": false,
+  "canvasPx": null,
+  "artTransform": "matrix(1, 0, 0, 1, 0, 0)"
+ }
+]

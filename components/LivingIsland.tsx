@@ -100,11 +100,13 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
+        {/* On phones the island overhangs the screen by 3rem each side, so it
+            shows at ~115vw; asking for 90vw made phones upscale a smaller file. */}
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 90vw, 68vw" loading="eager"
+          sizes="(max-width: 760px) 115vw, 68vw" loading="eager"
           quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 90vw, 68vw" loading="lazy" data-city-time="day"
+          sizes="(max-width: 760px) 115vw, 68vw" loading="lazy" data-city-time="day"
           quality={75} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
         {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}

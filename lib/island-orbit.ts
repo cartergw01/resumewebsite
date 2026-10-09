@@ -5,6 +5,7 @@ import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { hardwareWebGL } from "./hardware-webgl";
 
 export type OrbitAsset = {
   src: string;
@@ -20,7 +21,9 @@ export type OrbitProjection = Record<string, number[][]>;
 export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitAsset, anchors: OrbitProjection, project: (points: OrbitProjection) => void, screenImage?: string, signal?: AbortSignal) {
   const renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "low-power" });
   renderer.setClearColor(new Color(0), 0);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  // Sharp on Retina; capped at 2x because a turned island renders every frame,
+  // and at 1.5x on software WebGL.
+  renderer.setPixelRatio(Math.min(devicePixelRatio, hardwareWebGL() ? 2 : 1.5));
   renderer.toneMapping = AgXToneMapping;
   renderer.toneMappingExposure = 1.05;
   renderer.shadowMap.enabled = true;

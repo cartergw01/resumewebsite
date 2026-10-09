@@ -103,6 +103,20 @@ Measured on a production build: an iPhone-sized viewport (390×844 @3×) with a 
 
 **Done at Carter's request (CSS cleanup):** removed 109 dead selectors (75 whole rules, 512 lines: `globals.css` 3,610 → 3,098 lines; built stylesheet 86.0 → 78.0 KB raw). A selector was removed only if it passed **both** tests: (1) at least one of its class names appears nowhere in the site's code (classes built at runtime, like `` `world-${id}` `` on the live homepage, count as present, so the `.world-*` rules your CLAUDE.md warns about were kept), and (2) it matched nothing on any of 11 pages/stops at 1280 and 390 px, scrolled and unscrolled. Proof of no change: computed styles of all 13,953 elements compared before/after (the only differences were capture timing, confirmed by re-reading them on the old build), and 30 of 34 full-page screenshots pixel-identical (the other 4 are /resume, whose starfield is randomized: two captures of the *same* build differ in the same region). The list of removed selectors and the scripts are in `audit/css-cleanup/`. Separately, all Playfair italics on the site (island labels, cues, notebook titles) were browser-synthesized, because only the upright face was loaded. **Done at Carter's request:** the real italic now loads (+38 KB, one font file); see `audit/mobile-perf/italic-faux-vs-real.jpg`.
 
+### Blurry islands (Carter's report)
+
+Measured as edge energy (variance of a Laplacian) on a crop of downtown Taipei at the Work stop, with a real GPU, loaded directly and after flying in. Raw numbers are in `audit/sharpness/`, crops in `before-after-crops.jpg`.
+
+| | Before | After |
+|---|---|---|
+| Retina laptop (1440 @2×) | 902 | 1,159 (+28%) |
+| iPhone (390 @3×) | 921 | 1,833–2,118 (+100–130%) |
+
+- **Cause 1, laptops (pre-existing):** the depth-parallax canvas that redraws the island at a stop was capped at 1.5× pixel density, so a Retina screen saw it at 75% resolution. The 3D drag view had the same cap. Now: full device density for the parallax (it only redraws on pointer movement) and 2× for the drag view, on real GPUs. Software WebGL keeps 1.5×; with full density there it made an already-flaky orbit test (`island-orbit.spec.ts:147`, fails ~1 in 3 on the previous commit too) fail every time.
+- **Cause 2, phones (pre-existing):** the stop images were requested for 90vw, but on phones the island overhangs the screen and shows at ~115vw, so phones upscaled a 1080px file to ~1,314 device pixels. Now `sizes` says 115vw, so phones get 1920px. This costs about +210 KB over a full phone visit (≈1.3 MB total, still well below the original 1.72 MB).
+- **Not the cause:** my q75 compression change. At display size, q75, q86 and q90 measure within 1–2% of each other, so q75 stays.
+- **Also not the cause:** flying in versus loading directly. There's no difference, so no stale raster scale after the zoom.
+
 ## Top 5 (before fixes)
 
 1. **A-01 · Every path into content is a 2.2–2.7 s cinematic.** Clicking an island, a stop heading, or even the inline text link "writing" runs the full fly-in before the destination renders. A founder giving the site 30 seconds spends ~10% of it watching a camera move. Cut it to ≈1 s and let plain text links be plain links.
