@@ -87,7 +87,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: Refactoring UI / Linear — align everything to one grid; Vercel "verify on ultra-wide".
 - Evidence: `.site-nav` is capped at 1120 px and centred (`globals.css:444-456`) while scenes and the scene tabs run to `--page-x` from the viewport edge. At 1920 the social icons end at x≈1510 while the tabs end at x≈1790 (`chromium-1920-intro.jpg`); at 3440 the icons float in the middle of the sky (`edge-ultrawide-3440.jpg`).
 - Fix: on /2.0 the header spans the same `--page-x` gutters as the scene.
-- Status: _open_
+- Status: **Fixed.** On /2.0 (≥761 px) the header spans the scene's `--page-x` gutters. Measured right edges, icon vs scene tabs: 1280 → 1199/1203, 1920 → 1804/1808 (was 1510/1790), 3440 → 3324/3328 (icons used to float mid-sky). Subpages untouched — they keep their 1120 px column.
 
 ### P2
 

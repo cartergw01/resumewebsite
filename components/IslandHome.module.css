@@ -1,5 +1,11 @@
 .home { color: var(--cw-paper); background: #030611; }
 .home :global(.site-nav-social svg) { width: 18px; height: 18px; }
+/* The header shares the scene's gutters, so icons, copy and tabs line up at
+   any width instead of the header stopping at 1120px. The links' own 10px
+   padding is pulled back so the icon edge, not its hit area, aligns. */
+@media (min-width: 761px) {
+  .home :global(.site-nav) { width: calc(100% - 2 * var(--page-x) + 20px); }
+}
 @media (max-width: 760px) {
   .home :global(.site-nav-social svg) { width: 16px; height: 16px; }
   .home :global(.site-nav-social a) { min-width: 44px; min-height: 44px; padding-inline: 8px; }
