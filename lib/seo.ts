@@ -8,9 +8,12 @@ export const siteConfig = {
   locale: "en_US",
   language: "en",
   email: "cartergw01@gmail.com",
+  // Carter's own opening line, so a shared link says who he is.
   description:
-    "Carter Wang's personal website.",
-  shortDescription: "Carter Wang's personal website.",
+    "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side.",
+  shortDescription: "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios.",
+  // A capture of the /2.0 opening view: the real islands, not a poster.
+  image: { url: "/og-image.jpg", width: 2400, height: 1260, alt: "Carter Wang, with the Work, Writing and Projects islands floating in space" },
   social: {
     x: "https://x.com/CarterKoWang",
     linkedin: "https://www.linkedin.com/in/cartergrantwang",
@@ -116,9 +119,11 @@ export function buildMetadata(routeKey: RouteKey): Metadata {
       siteName: siteConfig.siteName,
       locale: siteConfig.locale,
       type: "website",
+      images: [siteConfig.image],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
+      images: [siteConfig.image.url],
       title: route.title,
       description: route.description,
       creator: "@CarterKoWang",

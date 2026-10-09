@@ -41,7 +41,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Evidence: `lib/seo.ts:12-14` description "Carter Wang's personal website."; `buildMetadata` emits `twitter:card=summary` and no `og:image` (removed in `53930d7`). `audit/before/link-previews.jpg`: X shows a grey placeholder square, LinkedIn shows a no-image card, Slack renders "Carter Wang / Carter Wang / Carter Wang's personal website.", iMessage falls back to the favicon tile.
 - Why it matters: most founders/investors meet the site as an unfurl in a DM, Slack, or LinkedIn message before they click. Right now that unfurl carries zero information and looks broken.
 - Fix: description built from Carter's own hero sentence; a 1200×630 `og:image` that is an actual capture of the /2.0 opening view (the islands + name — real, not a generated poster); `summary_large_image`. **Judgment call:** this reverses commit `53930d7` ("Remove social sharing preview image"). The removed image was a generated nebula gradient with text; this one is the real site. If you still want no image, revert the single commit and keep the description change.
-- Status: _open_
+- Status: **Fixed.** `twitter:card=summary_large_image`, `og:image` = real capture of the opening view (`public/og-image.jpg`, 2400×1260, 189 KB), description from the hero sentence. Before/after mocks: `audit/before/link-previews.jpg` → `audit/after/link-previews.jpg`. The absolute og:image URL only resolves once deployed.
 
 ### P1
 
@@ -164,8 +164,8 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 
 ## Copy changes (for review)
 
-_None yet._
+- **A-04 · meta description** (`lib/seo.ts`): "Carter Wang's personal website." → "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side." Your hero sentence, sentence-cased for a meta context. Also feeds the web manifest and WebSite JSON-LD. Note this changes the live homepage's description too once merged.
 
 ## Judgment calls
 
-_None yet._
+- **A-04 · Restored a share image**, reversing `53930d7`. The new `public/og-image.jpg` is a capture of the real opening view (name + three islands, body copy hidden because it's unreadable at unfurl size). Alternative: keep no image and only fix the description — revert the image lines in `lib/seo.ts`. All subpages share the same image for now; per-page images (e.g. the open notebook for /writing) would be better but need renders you'd want to approve.
