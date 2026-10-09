@@ -17,6 +17,18 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
     let disposed = false;
     let attempting = false;
     let generation = 0;
+    // The 240KB loop waits until the page has loaded and gone idle: its poster
+    // is the same frame, and on a phone the download would otherwise compete
+    // with the islands and fonts that make up the first view.
+    let settled = false;
+    let idle = 0;
+    const settle = () => {
+      const go = () => { if (!disposed) { settled = true; sync(); } };
+      // Safari has no requestIdleCallback.
+      if (typeof requestIdleCallback === "function") idle = requestIdleCallback(go, { timeout: 2500 });
+      else idle = setTimeout(go, 800) as unknown as number;
+    };
+    if (document.readyState === "complete") settle(); else window.addEventListener("load", settle, { once: true });
     // No manual pause control: the video only stills for reduced motion,
     // data saver, a hidden tab, or while entering an island.
     const prefersStill = () => motion.matches || Boolean(connection?.saveData);
@@ -32,6 +44,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
         if (prefersStill()) setReady(false);
         return;
       }
+      if (!settled) return;
       const source = `/starfield-loop-${portrait.matches ? "mobile" : "desktop"}-v1.mp4`;
       if (video.getAttribute("src") !== source) {
         setReady(false);
@@ -59,6 +72,8 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
     sync();
     return () => {
       disposed = true;
+      window.removeEventListener("load", settle);
+      if (typeof cancelIdleCallback === "function") cancelIdleCallback(idle); else clearTimeout(idle);
       observer.disconnect();
       motion.removeEventListener("change", sync);
       portrait.removeEventListener("change", sync);
