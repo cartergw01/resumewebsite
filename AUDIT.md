@@ -155,6 +155,12 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Fix: total ≤ 250 ms.
 - Status: **Fixed.** Tooltip draws star → line → words in 270 ms total (was ~620 ms: 150–200 ms delays plus 360–420 ms transitions). The order is kept; only the clock is shorter.
 
+**[A-28] [P2] Copy: "say hi!" gives no reason to reach out**
+- Principle: every screen needs a next step (Vercel guidelines); audience #1 is founders.
+- Evidence: second pass, `audit/after/chromium-1280-hello.jpg` — a heading and four bare links. Your /work page already ends with the line a founder needs.
+- Fix: reuse it verbatim under the heading: "Building something? I'd love to hear about it."
+- Status: **Fixed.** Line added under "say hi!"; checked 1280 and 320×568 (islands still clear the prompt).
+
 ### Flagged, not changed (needs Carter)
 
 - **[A-20] Content discrepancy.** `/work` (and the hidden Work preview on /2.0) says "screened and interviewed **350+** early-stage startups"; `PRODUCT.md` lists "**250+** startups screened". One of them is wrong.
@@ -180,6 +186,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - **A-04 · meta description** (`lib/seo.ts`): "Carter Wang's personal website." → "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side." Your hero sentence, sentence-cased for a meta context. Also feeds the web manifest and WebSite JSON-LD. Note this changes the live homepage's description too once merged.
 - **A-03 · new label** on the opening view: "latest essay" followed by the title of `essays[0]` ("The Cost of Keeping Up"), linking straight to the Substack post. The only new words are the two-word lowercase label; the title updates itself when you add an essay to `content/portfolio.ts`.
 - **A-18 · hero** (`components/IslandHome.tsx`): "backing early stage startups" → "backing early-stage startups". Grammar only (compound modifier); same as /work's own "early-stage".
+- **A-28 · "say hi!" stop** (`components/IslandHome.tsx`): added "Building something? I'd love to hear about it." — copied word for word from the end of /work. Note it's sentence-case while the rest of /2.0 is lowercase; I kept your original casing rather than edit your words.
 
 ## Judgment calls
 

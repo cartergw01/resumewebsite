@@ -59,6 +59,8 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
     case "hello":
       return <>
         <h2 id="hello-heading">say hi!</h2>
+        {/* Carter's own line from /work: a reason to write, for founders. */}
+        <p className={styles.description}>Building something? I&apos;d love to hear about it.</p>
         <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
           <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
           <li><Out href={siteConfig.social.x}>X</Out></li>
