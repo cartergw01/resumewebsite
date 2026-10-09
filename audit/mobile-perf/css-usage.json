@@ -1,0 +1,1250 @@
+{
+ "report": {
+  "82bcfdd2e4790bcf.css": {
+   "routes": 11,
+   "rules": 733,
+   "unusedRules": 148,
+   "bytes": 86624,
+   "unusedBytes": 15012,
+   "sampleUnused": [
+    " .__className_86297e",
+    " .__className_c219ed",
+    " ::file-selector-button",
+    " hr",
+    " abbr:where([title])",
+    " code, kbd, pre, samp",
+    " small",
+    " sub, sup",
+    " sub",
+    " sup",
+    " table",
+    " progress",
+    " :where(select:is([multiple], [size])) optgroup",
+    " :where(select:is([multiple], [size])) optgroup option",
+    " textarea",
+    " .\\@container",
+    " .collapse",
+    " .visible",
+    " .static",
+    " .sticky",
+    " .start",
+    " .end",
+    " .isolate",
+    " .container",
+    "@(min-width: 40rem) .container",
+    "@(min-width: 48rem) .container",
+    "@(min-width: 64rem) .container",
+    "@(min-width: 80rem) .container",
+    "@(min-width: 96rem) .container",
+    " .contents",
+    " .hidden",
+    " .inline",
+    " .list-item",
+    " .table",
+    " .flex-shrink, .shrink",
+    " .grow",
+    " .border-collapse",
+    " .transform",
+    " .resize",
+    " .overflow-clip"
+   ]
+  },
+  "47b6138828e63400.css": {
+   "routes": 10,
+   "rules": 426,
+   "unusedRules": 74,
+   "bytes": 54073,
+   "unusedBytes": 9622,
+   "sampleUnused": [
+    " .IslandHome_factMeta__6pROh",
+    " .IslandHome_scene__w3rzN[data-cue-seen=\"true\"]",
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_orbitPrompt__U25hs",
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_landmarkCue__ObN4O",
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_bookCue__wk2O6 svg",
+    " .IslandHome_island__E5wOT[data-orbit-live=\"true\"]:not([data-entry-still]) > img, .IslandHome_island__E5wOT[da",
+    " .IslandHome_island__E5wOT:has([data-orbit-dragging=\"true\"])",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_island__E5wOT, .IslandHome_stage__nfqUN[data-travelling=\"",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_overviewVisual__AdzWP",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_overviewIsland__2JQy_:not([data-entering]), .IslandHome_s",
+    " .IslandHome_overviewIsland__2JQy_[data-entering]",
+    " .IslandHome_stage__nfqUN[data-entering]",
+    " .IslandHome_stage__nfqUN[data-entering]::after",
+    " .IslandHome_stage__nfqUN[data-entering=\"projects\"]::after, .IslandHome_stage__nfqUN[data-entering=\"work\"]::af",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_scene__w3rzN[data-active=\"true\"]",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_scene__w3rzN[data-active=\"false\"]",
+    " .IslandHome_stage__nfqUN[data-entering=\"work\"] .IslandHome_islandLink__9kEJs:focus-visible",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_controls___6vjG, .IslandHome_stage__nfqUN[data-entering] ",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_galaxy__gr5uc",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_flightStars__dw3SG, .IslandHome_stage__nfqUN[data-enterin",
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_island__E5wOT",
+    " .IslandHome_stage__nfqUN[data-travelling=\"true\"] .IslandHome_scrollStar__0Z3fT",
+    "@(max-height: 740px) and (max-width: 760px) .IslandHome_factMeta__6pROh",
+    " .IslandHome_islandLink__9kEJs[data-touch-pressed] .IslandHome_touchSurface__4Kx_F",
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] .IslandHome_overviewDetails__Eyh_W",
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] [data-book-spread]",
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] [data-city-entry-window]",
+    " .IslandHome_islandTip__Rt_oU[data-side=\"nw\"] .IslandHome_tipLeader__eu_jc",
+    " .IslandHome_islandTip__Rt_oU[data-side=\"se\"] .IslandHome_tipLeader__eu_jc",
+    " .IslandHome_islandTip__Rt_oU[data-side=\"sw\"] .IslandHome_tipLeader__eu_jc",
+    " .IslandHome_islandTip__Rt_oU[data-side$=\"w\"] .IslandHome_tipText__sooQZ",
+    " .IslandHome_islandTip__Rt_oU[data-side^=\"s\"] .IslandHome_tipText__sooQZ",
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipStar__jLmYL",
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipLeader__eu_jc",
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipText__sooQZ",
+    " html[data-work-transition=\"entering\"] .IslandHome_islandTip__Rt_oU",
+    " html[data-work-transition=\"entering\"] .IslandHome_home__pQtCX .site-nav",
+    " .IslandHome_cityTime__e_RrQ[data-time=\"day\"]",
+    " .IslandHome_cityTime__e_RrQ[data-time=\"day\"]:hover",
+    " .IslandHome_cityTime__e_RrQ[data-pending] svg"
+   ]
+  },
+  "7dbc87902629eff2.css": {
+   "routes": 7,
+   "rules": 33,
+   "unusedRules": 33,
+   "bytes": 6201,
+   "unusedBytes": 6201,
+   "sampleUnused": [
+    " .WorkshopEntry_overlay__v7nmu",
+    " .WorkshopEntry_backdrop__3Bezp",
+    " .WorkshopEntry_screen__xQwBl",
+    " .WorkshopEntry_screen__xQwBl img",
+    " .WorkshopEntry_screen__xQwBl.WorkshopEntry_paper__iMpj4",
+    " .WorkshopEntry_paper__iMpj4 svg",
+    " .WorkshopEntry_fader__BRSkR",
+    " .WorkshopEntry_notebook__U0Qtw",
+    " .WorkshopEntry_notebook__U0Qtw::before",
+    " .WorkshopEntry_notebook__U0Qtw::after",
+    " .WorkshopEntry_turn__5ITyX",
+    " .WorkshopEntry_turn__5ITyX.WorkshopEntry_outer__OITOd",
+    " .WorkshopEntry_face__VNhEb",
+    " .WorkshopEntry_outer__OITOd > .WorkshopEntry_face__VNhEb",
+    " .WorkshopEntry_face__VNhEb.WorkshopEntry_back__TTFMr",
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK",
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_shift__MMhLR",
+    " .WorkshopEntry_shade__IQ9TT",
+    " .WorkshopEntry_back__TTFMr .WorkshopEntry_shade__IQ9TT",
+    " .WorkshopEntry_cast__D_RRY",
+    " .WorkshopEntry_cast__D_RRY.WorkshopEntry_left__wZ_cR",
+    " .WorkshopEntry_leaf__55rEK",
+    " .WorkshopEntry_leaf__55rEK.WorkshopEntry_left__wZ_cR",
+    " .WorkshopEntry_leaf__55rEK.WorkshopEntry_right__3v706",
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_left__wZ_cR",
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_right__3v706",
+    " .WorkshopEntry_titles__uEH9p",
+    " .WorkshopEntry_right__3v706 .WorkshopEntry_titles__uEH9p",
+    " .WorkshopEntry_titles__uEH9p li",
+    " .WorkshopEntry_titles__uEH9p span",
+    "@(max-width: 760px) .WorkshopEntry_titles__uEH9p li",
+    "@(max-width: 760px) .WorkshopEntry_titles__uEH9p span",
+    " .WorkshopEntry_deck__H_0hh"
+   ]
+  },
+  "c96f9ac15b6b8ad5.css": {
+   "routes": 1,
+   "rules": 14,
+   "unusedRules": 5,
+   "bytes": 2033,
+   "unusedBytes": 854,
+   "sampleUnused": [
+    " html[data-book-transition=\"arriving\"] .WritingWorld_lamplight__jmG36, html[data-book-transition=\"entering\"] .",
+    " html[data-book-transition=\"arriving\"] .WritingWorld_page___jjEI [data-book-reveal], html[data-book-transition",
+    " html[data-book-transition=\"arriving\"] .WritingWorld_page___jjEI .archive-row > *, html[data-book-transition=\"",
+    " html[data-book-transition=\"revealing\"] .WritingWorld_page___jjEI [data-book-reveal]",
+    " html[data-book-transition=\"revealing\"] .WritingWorld_page___jjEI .archive-row > *"
+   ]
+  },
+  "b0f9289dc76f5238.css": {
+   "routes": 1,
+   "rules": 19,
+   "unusedRules": 2,
+   "bytes": 2165,
+   "unusedBytes": 342,
+   "sampleUnused": [
+    " html[data-workshop-transition=\"arriving\"] .ProjectsWorld_page__CgJM2 [data-workshop-reveal], html[data-worksh",
+    " html[data-workshop-transition]:not([data-workshop-transition=\"landed\"]) .ProjectsWorld_page__CgJM2 [data-proj"
+   ]
+  },
+  "bffa4c53a626ee6f.css": {
+   "routes": 1,
+   "rules": 84,
+   "unusedRules": 2,
+   "bytes": 9349,
+   "unusedBytes": 180,
+   "sampleUnused": [
+    " .__className_ff0a1a",
+    " .__className_d24190"
+   ]
+  }
+ },
+ "unused": {
+  "82bcfdd2e4790bcf.css": [
+   [
+    " .__className_86297e",
+    85
+   ],
+   [
+    " .__className_c219ed",
+    99
+   ],
+   [
+    " ::file-selector-button",
+    96
+   ],
+   [
+    " hr",
+    58
+   ],
+   [
+    " abbr:where([title])",
+    58
+   ],
+   [
+    " code, kbd, pre, samp",
+    328
+   ],
+   [
+    " small",
+    25
+   ],
+   [
+    " sub, sup",
+    90
+   ],
+   [
+    " sub",
+    24
+   ],
+   [
+    " sup",
+    20
+   ],
+   [
+    " table",
+    77
+   ],
+   [
+    " progress",
+    38
+   ],
+   [
+    " :where(select:is([multiple], [size])) optgroup",
+    71
+   ],
+   [
+    " :where(select:is([multiple], [size])) optgroup option",
+    85
+   ],
+   [
+    " textarea",
+    30
+   ],
+   [
+    " .\\@container",
+    45
+   ],
+   [
+    " .collapse",
+    35
+   ],
+   [
+    " .visible",
+    33
+   ],
+   [
+    " .static",
+    29
+   ],
+   [
+    " .sticky",
+    29
+   ],
+   [
+    " .start",
+    46
+   ],
+   [
+    " .end",
+    42
+   ],
+   [
+    " .isolate",
+    32
+   ],
+   [
+    " .container",
+    27
+   ],
+   [
+    "@(min-width: 40rem) .container",
+    32
+   ],
+   [
+    "@(min-width: 48rem) .container",
+    32
+   ],
+   [
+    "@(min-width: 64rem) .container",
+    32
+   ],
+   [
+    "@(min-width: 80rem) .container",
+    32
+   ],
+   [
+    "@(min-width: 96rem) .container",
+    32
+   ],
+   [
+    " .contents",
+    32
+   ],
+   [
+    " .hidden",
+    26
+   ],
+   [
+    " .inline",
+    28
+   ],
+   [
+    " .list-item",
+    34
+   ],
+   [
+    " .table",
+    26
+   ],
+   [
+    " .flex-shrink, .shrink",
+    41
+   ],
+   [
+    " .grow",
+    23
+   ],
+   [
+    " .border-collapse",
+    47
+   ],
+   [
+    " .transform",
+    122
+   ],
+   [
+    " .resize",
+    25
+   ],
+   [
+    " .overflow-clip",
+    34
+   ],
+   [
+    " .rounded",
+    36
+   ],
+   [
+    " .text-wrap",
+    31
+   ],
+   [
+    " .lowercase",
+    41
+   ],
+   [
+    " .italic",
+    31
+   ],
+   [
+    " .shadow",
+    118
+   ],
+   [
+    " .ring",
+    262
+   ],
+   [
+    " .outline",
+    72
+   ],
+   [
+    " .blur",
+    31
+   ],
+   [
+    " .invert",
+    38
+   ],
+   [
+    " .filter, .invert",
+    208
+   ],
+   [
+    " .backdrop-filter",
+    294
+   ],
+   [
+    " .transition",
+    508
+   ],
+   [
+    " .ease-in",
+    83
+   ],
+   [
+    " .ease-in-out",
+    95
+   ],
+   [
+    " .ease-out",
+    86
+   ],
+   [
+    " .\\[xml\\:lang\\]",
+    18
+   ],
+   [
+    " .essay-list",
+    33
+   ],
+   [
+    " .essay-row",
+    57
+   ],
+   [
+    " .essay-title",
+    182
+   ],
+   [
+    " .timeline-line",
+    124
+   ],
+   [
+    " .timeline-node",
+    111
+   ],
+   [
+    " .content-fade",
+    78
+   ],
+   [
+    " .rocket-cursor-active .rocket-cursor[data-hovering=\"true\"][data-transition-phase=\"idle\"] .rocket-hover-ring",
+    123
+   ],
+   [
+    " .world-copy p + p",
+    42
+   ],
+   [
+    " .world-projects .world-copy span",
+    52
+   ],
+   [
+    " .world-intro > a",
+    357
+   ],
+   [
+    " .world-intro > a:hover",
+    57
+   ],
+   [
+    " .world-writing .world-intro > a",
+    62
+   ],
+   [
+    " .world-writing .world-intro > a:hover",
+    73
+   ],
+   [
+    " .site-nav[data-destination-nav][data-scrolled=\"true\"]::before",
+    227
+   ],
+   [
+    " .subpage-work",
+    204
+   ],
+   [
+    " .subpage-writing .subpage-hero",
+    54
+   ],
+   [
+    " .subpage-writing .subpage-hero p",
+    53
+   ],
+   [
+    " .fa-thanks",
+    72
+   ],
+   [
+    " .subpage-hero",
+    136
+   ],
+   [
+    " .panel-kicker, .research-panel span, .resume-facts span, .skill-panel-heading span, .subpage-hero > span, .work-current > span, .work-focus-card > span",
+    305
+   ],
+   [
+    " .subpage-hero h1",
+    97
+   ],
+   [
+    " .subpage-hero p",
+    146
+   ],
+   [
+    " .topic-meta-strip",
+    87
+   ],
+   [
+    " .topic-meta-strip span",
+    251
+   ],
+   [
+    " .writing-layout",
+    85
+   ],
+   [
+    " .work-layout",
+    32
+   ],
+   [
+    " .writing-layout .topic-world-art",
+    54
+   ],
+   [
+    " .topic-content",
+    81
+   ],
+   [
+    " .research-panel, .resume-facts, .skill-panel, .subpage-panel",
+    303
+   ],
+   [
+    " .subpage-panel",
+    59
+   ],
+   [
+    " .work-resume-intro",
+    140
+   ],
+   [
+    " .work-current",
+    190
+   ],
+   [
+    " .work-current::after",
+    463
+   ],
+   [
+    " .work-highlight-grid",
+    178
+   ],
+   [
+    " .work-highlight-grid div",
+    159
+   ],
+   [
+    " .work-highlight-grid strong",
+    149
+   ],
+   [
+    " .work-highlight-grid span",
+    123
+   ],
+   [
+    " .resume-facts",
+    74
+   ],
+   [
+    " .resume-facts div",
+    127
+   ],
+   [
+    " .resume-facts div + div",
+    79
+   ],
+   [
+    " .resume-facts strong",
+    107
+   ],
+   [
+    " .panel-kicker",
+    95
+   ],
+   [
+    " .subpage-panel h2",
+    162
+   ],
+   [
+    " .subpage-panel h3",
+    118
+   ],
+   [
+    " .research-panel p, .subpage-panel li, .subpage-panel p",
+    131
+   ],
+   [
+    " .subpage-panel p",
+    42
+   ],
+   [
+    " .subpage-panel ul",
+    94
+   ],
+   [
+    " .work-focus-grid",
+    121
+   ],
+   [
+    " .work-focus-card p",
+    47
+   ],
+   [
+    " .work-history",
+    42
+   ],
+   [
+    " .work-history .subpage-panel",
+    189
+   ],
+   [
+    " .work-history .subpage-panel:first-child",
+    128
+   ],
+   [
+    " .work-history .subpage-panel:last-child",
+    75
+   ],
+   [
+    " .skill-panel",
+    160
+   ],
+   [
+    " .skill-panel-heading p",
+    124
+   ],
+   [
+    " .skill-group-grid",
+    101
+   ],
+   [
+    " .skill-group",
+    118
+   ],
+   [
+    " .skill-group h2",
+    147
+   ],
+   [
+    " .skill-group div",
+    66
+   ],
+   [
+    " .skill-group span",
+    287
+   ],
+   [
+    " .research-panel",
+    165
+   ],
+   [
+    " .research-panel p",
+    46
+   ],
+   [
+    " .research-link-grid",
+    91
+   ],
+   [
+    " .research-link-grid a",
+    344
+   ],
+   [
+    " .research-link-grid a:hover",
+    126
+   ],
+   [
+    " .project-section-heading",
+    74
+   ],
+   [
+    " .project-section-heading h2",
+    184
+   ],
+   [
+    " .project-section-heading p",
+    159
+   ],
+   [
+    " .archive-empty, .project-empty",
+    263
+   ],
+   [
+    " .workshop-queue",
+    67
+   ],
+   [
+    " .workshop-ledger",
+    105
+   ],
+   [
+    " .workshop-line",
+    228
+   ],
+   [
+    " .workshop-line strong",
+    85
+   ],
+   [
+    " .workshop-line p",
+    33
+   ],
+   [
+    "@(max-width: 980px) .writing-layout .topic-world-art",
+    57
+   ],
+   [
+    "@(max-width: 980px) .work-focus-grid, .work-highlight-grid, .work-resume-intro",
+    90
+   ],
+   [
+    "@(max-width: 980px) .work-highlight-grid div",
+    46
+   ],
+   [
+    "@(max-width: 980px) .skill-group-grid, .skill-panel",
+    63
+   ],
+   [
+    "@(max-width: 760px) .world-writing .world-intro > a",
+    62
+   ],
+   [
+    "@(max-width: 760px) .world-writing .world-intro > a:hover",
+    73
+   ],
+   [
+    "@(max-width: 760px) .world-work .world-copy p + p",
+    54
+   ],
+   [
+    "@(max-width: 760px) .subpage-hero h1",
+    121
+   ],
+   [
+    "@(max-width: 760px) .subpage-hero p",
+    99
+   ],
+   [
+    "@(max-width: 760px) .topic-meta-strip span",
+    91
+   ],
+   [
+    "@(max-width: 760px) .research-panel",
+    47
+   ],
+   [
+    "@(max-width: 760px) .resume-facts div",
+    39
+   ],
+   [
+    "@(max-width: 760px) .world-card .world-intro > a",
+    52
+   ],
+   [
+    " .world-enter-cue",
+    35
+   ],
+   [
+    "@(hover: hover) and (pointer: fine) .world-enter-cue",
+    267
+   ],
+   [
+    "@(hover: hover) and (pointer: fine) .cosmic-home .world-card:hover .world-enter-cue",
+    91
+   ],
+   [
+    "@(max-width: 760px) .world-enter-cue",
+    35
+   ],
+   [
+    "@(any-pointer: coarse) .world-enter-cue",
+    35
+   ]
+  ],
+  "47b6138828e63400.css": [
+   [
+    " .IslandHome_factMeta__6pROh",
+    123
+   ],
+   [
+    " .IslandHome_scene__w3rzN[data-cue-seen=\"true\"]",
+    65
+   ],
+   [
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_orbitPrompt__U25hs",
+    149
+   ],
+   [
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_landmarkCue__ObN4O",
+    112
+   ],
+   [
+    " .IslandHome_islandLink__9kEJs[data-orbit-hint] .IslandHome_bookCue__wk2O6 svg",
+    93
+   ],
+   [
+    " .IslandHome_island__E5wOT[data-orbit-live=\"true\"]:not([data-entry-still]) > img, .IslandHome_island__E5wOT[data-orbit-live=\"true\"]:not([data-entry-still]) > svg, .IslandHome_island__E5wOT[data-orbit-live=\"true\"]:not([data-entry-still]) > video",
+    270
+   ],
+   [
+    " .IslandHome_island__E5wOT:has([data-orbit-dragging=\"true\"])",
+    93
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_island__E5wOT, .IslandHome_stage__nfqUN[data-travelling=\"true\"] .IslandHome_island__E5wOT",
+    175
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_overviewVisual__AdzWP",
+    119
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_overviewIsland__2JQy_:not([data-entering]), .IslandHome_stage__nfqUN[data-entering] .IslandHome_overviewLabel__yjYcK",
+    278
+   ],
+   [
+    " .IslandHome_overviewIsland__2JQy_[data-entering]",
+    124
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering]",
+    73
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering]::after",
+    128
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering=\"projects\"]::after, .IslandHome_stage__nfqUN[data-entering=\"work\"]::after, .IslandHome_stage__nfqUN[data-entering=\"writing\"]::after",
+    226
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_scene__w3rzN[data-active=\"true\"]",
+    111
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_scene__w3rzN[data-active=\"false\"]",
+    120
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering=\"work\"] .IslandHome_islandLink__9kEJs:focus-visible",
+    122
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_controls___6vjG, .IslandHome_stage__nfqUN[data-entering] .IslandHome_copy__N2H_d, .IslandHome_stage__nfqUN[data-entering] .IslandHome_landmarkCue__ObN4O",
+    314
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_galaxy__gr5uc",
+    164
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_flightStars__dw3SG, .IslandHome_stage__nfqUN[data-entering] .IslandHome_middleStars__mfTv1",
+    169
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_island__E5wOT",
+    125
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-travelling=\"true\"] .IslandHome_scrollStar__0Z3fT",
+    112
+   ],
+   [
+    "@(max-height: 740px) and (max-width: 760px) .IslandHome_factMeta__6pROh",
+    46
+   ],
+   [
+    " .IslandHome_islandLink__9kEJs[data-touch-pressed] .IslandHome_touchSurface__4Kx_F",
+    110
+   ],
+   [
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] .IslandHome_overviewDetails__Eyh_W",
+    145
+   ],
+   [
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] [data-book-spread]",
+    122
+   ],
+   [
+    " .IslandHome_overviewIsland__2JQy_[data-touch-pressed] [data-city-entry-window]",
+    108
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-side=\"nw\"] .IslandHome_tipLeader__eu_jc",
+    94
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-side=\"se\"] .IslandHome_tipLeader__eu_jc",
+    92
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-side=\"sw\"] .IslandHome_tipLeader__eu_jc",
+    93
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-side$=\"w\"] .IslandHome_tipText__sooQZ",
+    287
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-side^=\"s\"] .IslandHome_tipText__sooQZ",
+    124
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipStar__jLmYL",
+    130
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipLeader__eu_jc",
+    136
+   ],
+   [
+    " .IslandHome_islandTip__Rt_oU[data-visible=\"true\"] .IslandHome_tipText__sooQZ",
+    247
+   ],
+   [
+    " html[data-work-transition=\"entering\"] .IslandHome_islandTip__Rt_oU",
+    113
+   ],
+   [
+    " html[data-work-transition=\"entering\"] .IslandHome_home__pQtCX .site-nav",
+    109
+   ],
+   [
+    " .IslandHome_cityTime__e_RrQ[data-time=\"day\"]",
+    75
+   ],
+   [
+    " .IslandHome_cityTime__e_RrQ[data-time=\"day\"]:hover",
+    184
+   ],
+   [
+    " .IslandHome_cityTime__e_RrQ[data-pending] svg",
+    149
+   ],
+   [
+    "@(prefers-reduced-motion: reduce) .IslandHome_cityTime__e_RrQ[data-pending] svg",
+    115
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-entering] .IslandHome_cityTime__e_RrQ, .IslandHome_stage__nfqUN[data-travelling=\"true\"] .IslandHome_cityTime__e_RrQ",
+    183
+   ],
+   [
+    " .IslandHome_island__E5wOT[data-entry-still] > .IslandHome_parallax__tom4i, .IslandHome_island__E5wOT[data-orbit-live=\"true\"] > .IslandHome_parallax__tom4i",
+    170
+   ],
+   [
+    " .IslandHome_stage__nfqUN[data-flight-ready=\"true\"] .IslandHome_flightCanvas__v_jfv",
+    102
+   ],
+   [
+    " .WorkEntry_overlay__q0FMj",
+    111
+   ],
+   [
+    " .WorkEntry_dark__nMOO2",
+    120
+   ],
+   [
+    " .WorkEntry_page__6sBVI",
+    148
+   ],
+   [
+    " .WorkEntry_wash__3W9t6",
+    92
+   ],
+   [
+    " .WorkEntry_overlay__q0FMj[data-time=\"night\"] .WorkEntry_wash__3W9t6",
+    185
+   ],
+   [
+    " .WorkEntry_overlay__q0FMj[data-time=\"day\"] .WorkEntry_wash__3W9t6",
+    183
+   ],
+   [
+    " html[data-work-transition=\"entering\"] .WorkEntry_arrival__S6MU6",
+    87
+   ],
+   [
+    " html[data-work-transition=\"arriving\"] .WorkEntry_arrival__S6MU6",
+    89
+   ],
+   [
+    "@(prefers-reduced-motion: reduce) .WorkEntry_overlay__q0FMj",
+    44
+   ],
+   [
+    "@(prefers-reduced-motion: reduce) html[data-work-transition] .WorkEntry_arrival__S6MU6",
+    99
+   ],
+   [
+    " .IslandOrbit_canvas__1g7cA[data-orbit-ready=\"true\"]",
+    91
+   ],
+   [
+    " .IslandOrbit_canvas__1g7cA[data-orbit-live=\"true\"]",
+    66
+   ],
+   [
+    " .IslandOrbit_canvas__1g7cA[data-orbit-dragging=\"true\"]",
+    76
+   ],
+   [
+    " .IslandOrbit_controls__MtmzZ",
+    209
+   ],
+   [
+    " .IslandOrbit_controls__MtmzZ button",
+    253
+   ],
+   [
+    " .IslandOrbit_controls__MtmzZ button:focus-visible",
+    113
+   ],
+   [
+    " [data-island-stage][data-entering] .IslandOrbit_controls__MtmzZ, [data-island-stage][data-travelling=\"true\"] .IslandOrbit_controls__MtmzZ",
+    161
+   ],
+   [
+    " .IslandOrbit_instructions__TAC_k",
+    143
+   ],
+   [
+    "@(max-width: 760px) .IslandOrbit_controls__MtmzZ",
+    100
+   ],
+   [
+    "@(max-height: 500px) and (orientation: landscape) .IslandOrbit_controls__MtmzZ",
+    123
+   ],
+   [
+    " .LivingIsland_dayImage__7uR5Y",
+    102
+   ],
+   [
+    " html[data-city-time=\"day\"] .LivingIsland_dayImage__7uR5Y",
+    72
+   ],
+   [
+    " html[data-city-time=\"day\"] .LivingIsland_nightImage__J77w6",
+    100
+   ],
+   [
+    " html[data-city-time=\"day\"] .LivingIsland_nightOnly__DOmRK",
+    84
+   ],
+   [
+    " [data-orbit-live=\"true\"] > .LivingIsland_fireworks__js881",
+    73
+   ],
+   [
+    " .LivingIsland_cityBlocks__5KNlW",
+    80
+   ],
+   [
+    " [data-entering=\"work\"] .LivingIsland_entryWindow__rxmf6",
+    71
+   ],
+   [
+    " .LivingIsland_citySign__pBUyL",
+    82
+   ],
+   [
+    " .LivingIsland_windowsLate__7Lmv0",
+    125
+   ],
+   [
+    " .LivingIsland_screen__JfKWN",
+    141
+   ]
+  ],
+  "7dbc87902629eff2.css": [
+   [
+    " .WorkshopEntry_overlay__v7nmu",
+    115
+   ],
+   [
+    " .WorkshopEntry_backdrop__3Bezp",
+    105
+   ],
+   [
+    " .WorkshopEntry_screen__xQwBl",
+    310
+   ],
+   [
+    " .WorkshopEntry_screen__xQwBl img",
+    127
+   ],
+   [
+    " .WorkshopEntry_screen__xQwBl.WorkshopEntry_paper__iMpj4",
+    157
+   ],
+   [
+    " .WorkshopEntry_paper__iMpj4 svg",
+    78
+   ],
+   [
+    " .WorkshopEntry_fader__BRSkR",
+    106
+   ],
+   [
+    " .WorkshopEntry_notebook__U0Qtw",
+    129
+   ],
+   [
+    " .WorkshopEntry_notebook__U0Qtw::before",
+    359
+   ],
+   [
+    " .WorkshopEntry_notebook__U0Qtw::after",
+    410
+   ],
+   [
+    " .WorkshopEntry_turn__5ITyX",
+    154
+   ],
+   [
+    " .WorkshopEntry_turn__5ITyX.WorkshopEntry_outer__OITOd",
+    80
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb",
+    144
+   ],
+   [
+    " .WorkshopEntry_outer__OITOd > .WorkshopEntry_face__VNhEb",
+    73
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb.WorkshopEntry_back__TTFMr",
+    84
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK",
+    96
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_shift__MMhLR",
+    99
+   ],
+   [
+    " .WorkshopEntry_shade__IQ9TT",
+    181
+   ],
+   [
+    " .WorkshopEntry_back__TTFMr .WorkshopEntry_shade__IQ9TT",
+    143
+   ],
+   [
+    " .WorkshopEntry_cast__D_RRY",
+    239
+   ],
+   [
+    " .WorkshopEntry_cast__D_RRY.WorkshopEntry_left__wZ_cR",
+    189
+   ],
+   [
+    " .WorkshopEntry_leaf__55rEK",
+    770
+   ],
+   [
+    " .WorkshopEntry_leaf__55rEK.WorkshopEntry_left__wZ_cR",
+    473
+   ],
+   [
+    " .WorkshopEntry_leaf__55rEK.WorkshopEntry_right__3v706",
+    300
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_left__wZ_cR",
+    189
+   ],
+   [
+    " .WorkshopEntry_face__VNhEb > .WorkshopEntry_leaf__55rEK.WorkshopEntry_right__3v706",
+    189
+   ],
+   [
+    " .WorkshopEntry_titles__uEH9p",
+    105
+   ],
+   [
+    " .WorkshopEntry_right__3v706 .WorkshopEntry_titles__uEH9p",
+    99
+   ],
+   [
+    " .WorkshopEntry_titles__uEH9p li",
+    104
+   ],
+   [
+    " .WorkshopEntry_titles__uEH9p span",
+    392
+   ],
+   [
+    "@(max-width: 760px) .WorkshopEntry_titles__uEH9p li",
+    66
+   ],
+   [
+    "@(max-width: 760px) .WorkshopEntry_titles__uEH9p span",
+    74
+   ],
+   [
+    " .WorkshopEntry_deck__H_0hh",
+    62
+   ]
+  ],
+  "c96f9ac15b6b8ad5.css": [
+   [
+    " html[data-book-transition=\"arriving\"] .WritingWorld_lamplight__jmG36, html[data-book-transition=\"entering\"] .WritingWorld_lamplight__jmG36",
+    157
+   ],
+   [
+    " html[data-book-transition=\"arriving\"] .WritingWorld_page___jjEI [data-book-reveal], html[data-book-transition=\"entering\"] .WritingWorld_page___jjEI [data-book-reveal]",
+    203
+   ],
+   [
+    " html[data-book-transition=\"arriving\"] .WritingWorld_page___jjEI .archive-row > *, html[data-book-transition=\"entering\"] .WritingWorld_page___jjEI .archive-row > *",
+    199
+   ],
+   [
+    " html[data-book-transition=\"revealing\"] .WritingWorld_page___jjEI [data-book-reveal]",
+    157
+   ],
+   [
+    " html[data-book-transition=\"revealing\"] .WritingWorld_page___jjEI .archive-row > *",
+    138
+   ]
+  ],
+  "b0f9289dc76f5238.css": [
+   [
+    " html[data-workshop-transition=\"arriving\"] .ProjectsWorld_page__CgJM2 [data-workshop-reveal], html[data-workshop-transition=\"entering\"] .ProjectsWorld_page__CgJM2 [data-workshop-reveal]",
+    200
+   ],
+   [
+    " html[data-workshop-transition]:not([data-workshop-transition=\"landed\"]) .ProjectsWorld_page__CgJM2 [data-project-shot]",
+    142
+   ]
+  ],
+  "bffa4c53a626ee6f.css": [
+   [
+    " .__className_ff0a1a",
+    83
+   ],
+   [
+    " .__className_d24190",
+    97
+   ]
+  ]
+ }
+}
