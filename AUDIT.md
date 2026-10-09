@@ -124,7 +124,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: one type scale, no exceptions.
 - Evidence: `IslandHome.module.css` uses 0.75, 0.8125, 0.875, 0.9375, 1, 1.0625, 1.125, 1.1875 and 1.25 rem plus three `clamp()` ranges for what is really three roles: body, UI label, display italic annotation. The cursor tooltip (1.1875rem) and the on-island cue (1.0625–1.25rem) are the same element in two sizes.
 - Fix: collapse to tokens (UI 0.875, body 1–1.125, annotation 1.125–1.25).
-- Status: _open_
+- Status: **Partly fixed.** The display-italic family (island cue, cursor tooltip, island labels, latest essay title) now uses one token, `--type-annotation` (17 px at 1280) — before it was three different clamps plus a fixed 1.1875 rem. **Deferred:** the UI sizes (0.75/0.8125/0.875/0.9375 rem across tabs, scroll hint, contact and the compact-height overrides). Each one was tuned against a specific short-phone layout the e2e size matrix checks; collapsing them is a careful afternoon, not a drive-by.
 
 **[A-16] [P2] Visual hierarchy: the scene tabs out-shout the copy**
 - Principle: hierarchy from weight and colour first; nav secondary (`.impeccable.md`).

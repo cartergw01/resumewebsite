@@ -1,4 +1,10 @@
-.home { color: var(--cw-paper); background: #030611; }
+.home {
+  /* One size for every display-italic annotation: the cue on an island, the
+     cursor's tooltip, the island labels and the latest essay's title. */
+  --type-annotation: clamp(1.0625rem, 1.3vw, 1.25rem);
+  color: var(--cw-paper);
+  background: #030611;
+}
 .home :global(.site-nav-social svg) { width: 18px; height: 18px; }
 /* The header shares the scene's gutters, so icons, copy and tabs line up at
    any width instead of the header stopping at 1120px. The links' own 10px
@@ -99,7 +105,7 @@
 /* The latest essay: a quiet label, then the title as a real link. */
 .latest { margin: 1.5rem 0 0; color: #fff7ea8c; font-size: 0.875rem; line-height: 1.5; }
 .latest span { margin-right: 0.5rem; }
-.copy .latest a { color: var(--cw-paper); font-family: var(--font-display); font-size: 1.0625rem; font-style: italic; text-decoration: underline; text-decoration-color: #fff7ea66; text-decoration-thickness: 1px; text-underline-offset: 0.2em; padding-block: 0.6rem; margin-block: -0.6rem; transition: text-decoration-color 150ms ease; }
+.copy .latest a { color: var(--cw-paper); font-family: var(--font-display); font-size: var(--type-annotation); font-style: italic; text-decoration: underline; text-decoration-color: #fff7ea66; text-decoration-thickness: 1px; text-underline-offset: 0.2em; padding-block: 0.6rem; margin-block: -0.6rem; transition: text-decoration-color 150ms ease; }
 .copy .latest a:hover, .copy .latest a:focus-visible { text-decoration-color: #fff7eacc; }
 /* Real entries under each heading: quiet, scannable, one line each. */
 .facts { display: grid; gap: 0.6rem; max-width: 30rem; margin: 1.6rem 0 0; padding: 0; list-style: none; font-size: 0.9375rem; line-height: 1.4; }
@@ -145,7 +151,7 @@
   position: absolute;
   color: #e9d4b6;
   font-family: var(--font-display);
-  font-size: clamp(1.0625rem, 1.3vw, 1.25rem);
+  font-size: var(--type-annotation);
   font-weight: 500;
   font-style: italic;
   line-height: 1.5;
@@ -228,7 +234,7 @@
    camera's first zoom targets its exact position. */
 .overviewIsland:not([data-overview-island="work"]) .overviewVisual { animation: overview-bob 9s ease-in-out infinite; }
 .overviewIsland[data-overview-island="projects"] .overviewVisual { animation-delay: -4.5s; }
-.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: clamp(1rem, 1.2vw, 1.25rem); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
+.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: var(--type-annotation); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
 /* Labels leave with the other annotations as soon as the camera moves. */
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
 /* Labels sit just under each island's contained 3:2 art, at every width. */
@@ -507,7 +513,7 @@
   background-repeat: no-repeat;
   background-size: 0% 1px;
   font-family: var(--font-display);
-  font-size: 1.1875rem;
+  font-size: var(--type-annotation);
   font-style: italic;
   font-weight: 500;
   letter-spacing: 0.005em;
