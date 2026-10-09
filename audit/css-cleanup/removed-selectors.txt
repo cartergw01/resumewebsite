@@ -1,0 +1,109 @@
+line 89: .portfolio-card
+line 136: .essay-list
+line 140: .essay-row
+line 145: .essay-title
+line 150: .timeline-line
+line 154: .timeline-node
+line 366: .content-fade
+line 944: .subpage-hero h1
+line 965: .title-star
+line 1362: .subpage-work
+line 1434: .subpage-writing .subpage-hero
+line 1438: .subpage-writing .subpage-hero p
+line 1617: .subpage-hero
+line 1624: .subpage-hero > span
+line 1624: .work-focus-card > span
+line 1624: .research-panel span
+line 1624: .work-current > span
+line 1624: .resume-facts span
+line 1624: .skill-panel-heading span
+line 1624: .panel-kicker
+line 1638: .subpage-hero h1
+line 1644: .subpage-hero p
+line 1652: .topic-meta-strip
+line 1659: .topic-meta-strip span
+line 1677: .writing-layout
+line 1681: .work-layout
+line 1685: .writing-layout .topic-world-art
+line 1694: .topic-content
+line 1720: .subpage-panel
+line 1720: .research-panel
+line 1720: .resume-facts
+line 1720: .skill-panel
+line 1730: .subpage-panel
+line 1734: .work-resume-intro
+line 1740: .work-current
+line 1748: .work-current::after
+line 1764: .work-highlight-grid
+line 1773: .work-highlight-grid div
+line 1781: .work-highlight-grid strong
+line 1788: .work-highlight-grid span
+line 1795: .resume-facts
+line 1801: .resume-facts div
+line 1809: .resume-facts div + div
+line 1813: .resume-facts strong
+line 1819: .panel-kicker
+line 1826: .subpage-panel h2
+line 1834: .subpage-panel h3
+line 1841: .subpage-panel p
+line 1841: .subpage-panel li
+line 1841: .research-panel p
+line 1849: .subpage-panel p
+line 1853: .subpage-panel ul
+line 1860: .work-focus-grid
+line 1866: .work-focus-card p
+line 1870: .work-history
+line 1875: .work-history .subpage-panel
+line 1883: .work-history .subpage-panel:first-child
+line 1888: .work-history .subpage-panel:last-child
+line 1892: .skill-panel
+line 1899: .skill-panel-heading p
+line 1906: .skill-group-grid
+line 1912: .skill-group
+line 1919: .skill-group h2
+line 1927: .skill-group div
+line 1933: .skill-group span
+line 1946: .research-panel
+line 1953: .research-panel p
+line 1957: .research-link-grid
+line 1964: .research-link-grid a
+line 1976: .research-link-grid a:hover
+line 1988: .project-section-heading
+line 1994: .project-section-heading h2
+line 2003: .project-section-heading p
+line 2266: .workshop-line strong
+line 2276: .workshop-line p
+line 2312: .workshop-queue
+line 2317: .workshop-ledger
+line 2323: .workshop-line
+line 2331: .workshop-line strong
+line 2336: .workshop-line p
+line 2352: .subpage-hero
+line 2352: .subpage-panel
+line 2352: .workshop-line
+line 2352: .resume-facts
+line 2352: .skill-panel
+line 2352: .research-panel
+line 2438: .writing-layout   [@media (max-width: 980px)]
+line 2444: .writing-layout .topic-world-art   [@media (max-width: 980px)]
+line 2456: .work-focus-grid   [@media (max-width: 980px)]
+line 2456: .work-resume-intro   [@media (max-width: 980px)]
+line 2461: .work-highlight-grid   [@media (max-width: 980px)]
+line 2465: .work-highlight-grid div   [@media (max-width: 980px)]
+line 2469: .skill-panel   [@media (max-width: 980px)]
+line 2469: .skill-group-grid   [@media (max-width: 980px)]
+line 2638: .subpage-hero h1   [@media (max-width: 760px)]
+line 2645: .subpage-hero p   [@media (max-width: 760px)]
+line 2651: .topic-meta-strip span   [@media (max-width: 760px)]
+line 2657: .workshop-line   [@media (max-width: 760px)]
+line 2663: .workshop-line strong   [@media (max-width: 760px)]
+line 2746: .research-panel   [@media (max-width: 760px)]
+line 2750: .resume-facts div   [@media (max-width: 760px)]
+line 2911: .subpage-hero   [@media (max-width: 520px)]
+line 2911: .topic-content   [@media (max-width: 520px)]
+line 2918: .subpage-hero p   [@media (max-width: 520px)]
+line 3432: .research-link-grid a:hover   [@media (hover: none)]
+line 3462: .research-link-grid a:hover   [@media (prefers-reduced-motion: reduce)]
+line 3482: .subpage-panel   [@media (forced-colors: active)]
+line 3482: .workshop-line   [@media (forced-colors: active)]
+line 3482: .research-panel   [@media (forced-colors: active)]
