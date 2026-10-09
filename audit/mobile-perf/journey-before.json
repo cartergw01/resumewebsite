@@ -1,0 +1,270 @@
+{
+ "dom": {
+  "nodes": 908,
+  "hiddenWorkPreview": 42,
+  "cssRules": 789
+ },
+ "frames": {
+  "Work": {
+   "n": 159,
+   "p50": 12,
+   "p95": 27,
+   "max": 53,
+   "over50": 1
+  },
+  "Writing": {
+   "n": 159,
+   "p50": 12,
+   "p95": 27,
+   "max": 27,
+   "over50": 0
+  },
+  "Projects": {
+   "n": 159,
+   "p50": 11,
+   "p95": 26,
+   "max": 34,
+   "over50": 0
+  }
+ },
+ "bytes": {
+  "load": 735,
+  "stop-Work": 532,
+  "stop-Writing": 456,
+  "stop-Projects": 0,
+  "linger-Projects": 0
+ },
+ "big": [
+  "load 38KB font /_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+  "load 60KB image /_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=750&q=90",
+  "load 50KB image /_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=750&q=90",
+  "load 66KB image /_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=750&q=90",
+  "load 45KB script /_next/static/chunks/255-68405a37192f656a.js",
+  "load 54KB script /_next/static/chunks/4bd1b696-c023c6e3521b1417.js",
+  "load 237KB media /starfield-loop-mobile-v1.mp4",
+  "stop-Work 130KB image /_next/static/media/taipei-flix.3d9f9067.webp",
+  "stop-Work 108KB image /_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+  "stop-Work 110KB image /_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+  "stop-Work 83KB image /_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+  "stop-Work 101KB image /_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1080&q=90",
+  "stop-Writing 456KB image /blender/island-work-5105bc21.webp"
+ ],
+ "all": [
+  {
+   "phase": "load",
+   "url": "/_next/static/media/36966cca54120369-s.p.woff2",
+   "type": "font",
+   "kb": 22
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/css/92bbb86aed661f38.css",
+   "type": "stylesheet",
+   "kb": 19
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/css/c39ca38f029c7889.css",
+   "type": "stylesheet",
+   "kb": 11
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/css/7dbc87902629eff2.css",
+   "type": "stylesheet",
+   "kb": 2
+  },
+  {
+   "phase": "load",
+   "url": "/starfield-loop-mobile-poster-v1.webp",
+   "type": "image",
+   "kb": 6
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+   "type": "font",
+   "kb": 38
+  },
+  {
+   "phase": "load",
+   "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=750&q=90",
+   "type": "image",
+   "kb": 60
+  },
+  {
+   "phase": "load",
+   "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=750&q=90",
+   "type": "image",
+   "kb": 50
+  },
+  {
+   "phase": "load",
+   "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=750&q=90",
+   "type": "image",
+   "kb": 66
+  },
+  {
+   "phase": "load",
+   "url": "/2.0",
+   "type": "document",
+   "kb": 29
+  },
+  {
+   "phase": "load",
+   "url": "/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ftaipei-flix.3d9f9067.webp&w=256&q=75",
+   "type": "image",
+   "kb": 9
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/main-app-153876add0cd9bcd.js",
+   "type": "script",
+   "kb": 1
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/619-f09bc47e24909021.js",
+   "type": "script",
+   "kb": 4
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/webpack-aa5d52d1608ce3d4.js",
+   "type": "script",
+   "kb": 2
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/app/layout-3c70afe49b97ceda.js",
+   "type": "script",
+   "kb": 12
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/356-4f7b1c280cb81ceb.js",
+   "type": "script",
+   "kb": 5
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/939-97d92d866df2b593.js",
+   "type": "script",
+   "kb": 6
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/937-6d1aa77aad3a09c2.js",
+   "type": "script",
+   "kb": 5
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/255-68405a37192f656a.js",
+   "type": "script",
+   "kb": 45
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/4bd1b696-c023c6e3521b1417.js",
+   "type": "script",
+   "kb": 54
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/app/2.0/page-f6dc535e870e93ed.js",
+   "type": "script",
+   "kb": 25
+  },
+  {
+   "phase": "load",
+   "url": "/starfield-loop-mobile-v1.mp4",
+   "type": "media",
+   "kb": 237
+  },
+  {
+   "phase": "load",
+   "url": "/writing?_rsc=1o9te",
+   "type": "fetch",
+   "kb": 6
+  },
+  {
+   "phase": "load",
+   "url": "/projects?_rsc=1o9te",
+   "type": "fetch",
+   "kb": 6
+  },
+  {
+   "phase": "load",
+   "url": "/work?_rsc=1o9te",
+   "type": "fetch",
+   "kb": 7
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/css/c96f9ac15b6b8ad5.css",
+   "type": "stylesheet",
+   "kb": 1
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/app/writing/page-259b1e5baf5c5c08.js",
+   "type": "script",
+   "kb": 2
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/css/b0f9289dc76f5238.css",
+   "type": "stylesheet",
+   "kb": 1
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/app/projects/page-77148716d7790295.js",
+   "type": "script",
+   "kb": 1
+  },
+  {
+   "phase": "load",
+   "url": "/_next/static/chunks/app/work/page-71db6718ff848853.js",
+   "type": "script",
+   "kb": 3
+  },
+  {
+   "phase": "stop-Work",
+   "url": "/_next/static/media/taipei-flix.3d9f9067.webp",
+   "type": "image",
+   "kb": 130
+  },
+  {
+   "phase": "stop-Work",
+   "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+   "type": "image",
+   "kb": 108
+  },
+  {
+   "phase": "stop-Work",
+   "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+   "type": "image",
+   "kb": 110
+  },
+  {
+   "phase": "stop-Work",
+   "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+   "type": "image",
+   "kb": 83
+  },
+  {
+   "phase": "stop-Work",
+   "url": "/_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1080&q=90",
+   "type": "image",
+   "kb": 101
+  },
+  {
+   "phase": "stop-Writing",
+   "url": "/blender/island-work-5105bc21.webp",
+   "type": "image",
+   "kb": 456
+  }
+ ]
+}

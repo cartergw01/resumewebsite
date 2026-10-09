@@ -68,6 +68,37 @@ How this was measured: production build (`next build && next start`) on localhos
 
 The site is dark-only (`<html data-theme="dark">`, no light theme exists), so there is no light-mode capture. That is a deliberate brand choice, not a finding.
 
+## Follow-up: Carter's review (round 2)
+
+- **Home screen:** the "latest essay" line is gone (`1f9fe78`).
+- **Pace:** island entries slowed from 1.15 s to 2.5 s (`f8a1782`). One constant, `ISLAND_ENTRY_DURATION` in `lib/island-entry-motion.ts`.
+- **Writing entry rebuilt with more craft** (A-29, `c03fffb`): the notebook lifts off the desk, leaves curl and cast shadows as they're thumbed over, the titles ink in, and the notebook dissolves before the archive rows rise in. This also fixes a paint-order bug where the leaves sat behind the right page. Frames: `audit/writing-entry/`.
+
+### Mobile performance
+
+Measured on a production build: an iPhone-sized viewport (390×844 @3×) with a real GPU, the CPU throttled 4× while scrolling, and the same journey before and after (open → Work → Writing → Projects). Raw data is in `audit/mobile-perf/`.
+
+| | Before | After |
+|---|---|---|
+| Bytes, opening view | 735 KB | 668 KB (the video still loads, but after the page is up) |
+| Bytes, first trip to Work | 532 KB | 199 KB |
+| Bytes, Work-entry prefetch | 456 KB | 218 KB |
+| **Whole phone visit** | **1,723 KB** | **1,085 KB (−37%)** |
+| Scroll frames at 4× CPU, p50 / p95 | 12–13 / 27 ms | 11–12 / 26 ms (unchanged; it was never the problem) |
+| Lighthouse mobile perf, median of 3 | 90 | 92 |
+| Lighthouse simulated LCP, median | 3.6 s | 3.4 s |
+
+**What changed:**
+- **M-01** `6257283`: the 237 KB starfield loop waits for load + idle, so it no longer competes with first paint.
+- **M-02** `0c02adf`: island stills at q75 instead of q90 (−38%, no visible difference at display size; `quality-90-86-75.png`).
+- **M-03** `81f12ec`: the island's monitor uses a 384 px thumbnail instead of a 1200 px shot; deck cards 2–8 use 750 px renditions. Card 1 stays the original so it docks into /projects' first row as the identical image.
+- **M-04** `5cc4f92`: Taipei's daytime still loads on toggle intent. The switch waits for the image to decode, and the sun "breathes" while it does.
+- **M-05** `902bc7e`: phones prefetch a 2048 px Taipei for the Work push, not the 2880 px original. Desktop is unchanged.
+
+**Tried and rejected:** Next's `experimental.inlineCss`. It removes the render-blocking stylesheet requests, but it inlines all of `globals.css` into every page (+116 KB of uncacheable HTML) for a marginal LCP change (3.2 s median) and worse TBT (70–100 ms).
+
+**What's left, and why I stopped there:** the simulated LCP is bandwidth. On 4G the three island images download alongside 30 KB of render-blocking CSS, 60 KB of fonts and 164 KB of JS. The next real win is pruning the legacy unprefixed `.world-*` rules in `app/globals.css` (3,600 lines). Your CLAUDE.md warns those may still back /work, /writing and /projects, so that needs a careful page-by-page pass rather than a drive-by. Separately, all Playfair italics on the site (island labels, notebook titles) are browser-synthesized, because only the upright face is loaded. Loading the real italic would look better but costs ~35 KB, so that's your call.
+
 ## Top 5 (before fixes)
 
 1. **A-01 · Every path into content is a 2.2–2.7 s cinematic.** Clicking an island, a stop heading, or even the inline text link "writing" runs the full fly-in before the destination renders. A founder giving the site 30 seconds spends ~10% of it watching a camera move. Cut it to ≈1 s and let plain text links be plain links.
