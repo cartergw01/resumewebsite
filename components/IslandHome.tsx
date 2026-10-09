@@ -36,10 +36,6 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
         <p className={styles.description}>
           <Link href="/writing">writing</Link> and <Link href="/projects">building</Link> things for fun on the side.
         </p>
-        {/* One click from landing to something Carter wrote. */}
-        <p className={styles.latest}>
-          <span>latest essay</span> <Out href={essays[0].href}>{essays[0].title}</Out>
-        </p>
       </>;
     case "work":
       return <>
