@@ -84,6 +84,9 @@ export default function IslandHome() {
   return (
     <div className={styles.home}>
       <WorkWindowPreview />
+      {/* Without JavaScript only the opening view exists: no empty scroll track,
+          no camera controls that can't move. The island links still work. */}
+      <noscript dangerouslySetInnerHTML={{ __html: "<style>#islands{height:100svh!important}[data-next-scene],[data-scene-nav]{display:none!important}</style>" }} />
       <a className={styles.skipLink} href="#islands">Skip to content</a>
       <SiteNav hidePrimary />
       <IslandScrollTransport worlds={stops.map((stop) => ({ id: stop.id, title: "title" in stop ? stop.title : undefined }))}>

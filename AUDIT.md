@@ -112,7 +112,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 **[A-13] [P2] Edge case: JS disabled leaves a 3,200 px empty void**
 - Evidence: `edge-nojs-1280.jpg` — the opening view renders (good), then the 496svh scroll track scrolls through nothing.
 - Fix: `<noscript>` style collapsing the track to one viewport. The island links already work as plain links without JS.
-- Status: _open_
+- Status: **Fixed.** A `<noscript>` style collapses the scroll track to one viewport and hides the scene tabs and scroll button (they can't move without JS). Island links remain plain links.
 
 **[A-14] [P2] Mobile / copy: contact row is unevenly spaced and ordered differently from the header icons**
 - Principle: consistency; one spacing scale.
