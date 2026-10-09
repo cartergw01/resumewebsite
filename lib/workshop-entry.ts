@@ -294,22 +294,24 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
         ], turn),
       );
     });
-    // Once the last leaf has passed, the archive is written in line by line:
-    // the right page as it comes into view, the left once its leaf has landed.
+    // The archive is written in reading order, as one list: down the left
+    // page, then down the right, each line from left to right. It starts as
+    // the last leaf settles onto the left page.
     const [lastStart, lastLength] = cadence[leaves.length - 1] ?? cadence[0];
-    const inkStart = { right: lastStart + lastLength * .55, left: lastStart + lastLength * .92 };
-    for (const side of ["right", "left"] as const) {
-      const lines = side === "right"
-        ? Array.from(screen.querySelectorAll<HTMLElement>('[data-notebook-page="right"] [data-ink]'))
-        : Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf] [data-ink]"));
-      const count = side === "right" ? lines.length : lines.length / 2;
-      lines.forEach((line, position) => {
-        const row = position % count;
-        current.flourishes.push(line.animate([
-          { clipPath: "inset(-20% 100% -40% 0)", opacity: .35 },
-          { clipPath: "inset(-20% 0% -40% 0)", opacity: 1 },
-        ], { duration: 340, delay: ENTRY_LIFT_DURATION * inkStart[side] + row * 55, easing: "cubic-bezier(0.4, 0, 0.3, 1)", fill: "both" }));
-      });
+    const inkFrom = ENTRY_LIFT_DURATION * (lastStart + lastLength * .7);
+    const left = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf] [data-ink]"));
+    const right = Array.from(screen.querySelectorAll<HTMLElement>('[data-notebook-page="right"] [data-ink]'));
+    // The left titles are drawn twice, once on each hinged half of the leaf.
+    const leftRows = left.length / 2;
+    const sequence: [HTMLElement, number][] = [
+      ...left.map((line, position) => [line, position % leftRows] as [HTMLElement, number]),
+      ...right.map((line, position) => [line, leftRows + position] as [HTMLElement, number]),
+    ];
+    for (const [line, order] of sequence) {
+      current.flourishes.push(line.animate([
+        { clipPath: "inset(-20% 100% -40% 0)", opacity: .35 },
+        { clipPath: "inset(-20% 0% -40% 0)", opacity: 1 },
+      ], { duration: 260, delay: inkFrom + order * 38, easing: "cubic-bezier(0.4, 0, 0.3, 1)", fill: "both" }));
     }
     return current.dispose;
   }
@@ -376,19 +378,19 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
         const dock = current.fader.animate([
           { opacity: 1, offset: 0 },
-          { opacity: 1, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
-          { opacity: 0, offset: .78 },
+          { opacity: 1, offset: .62, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+          { opacity: 0, offset: .9 },
           { opacity: 0, offset: 1 },
         ], open);
         current.animations.push(
           dock,
           current.screen.animate([
             { transform: rest, offset: 0 },
-            { transform: rest, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
-            { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .78 },
+            { transform: rest, offset: .62, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+            { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .9 },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: 1 },
           ], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .4 }, { opacity: 0, offset: .78 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .62 }, { opacity: 0, offset: .9 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;
