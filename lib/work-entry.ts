@@ -32,6 +32,8 @@ const visibleStill = (visual: HTMLElement) => (document.documentElement.dataset.
   || visual.querySelector<HTMLImageElement>(":scope > img:not([data-city-time])");
 export function prepareWorkEntry(visual: HTMLElement) {
   for (const image of visual.querySelectorAll<HTMLImageElement>(":scope > img")) {
+    // Only the render on show is pushed into; the daytime one waits for day.
+    if (image.dataset.cityTime === "day" && document.documentElement.dataset.cityTime !== "day") continue;
     const source = fullSource(image);
     if (!source || sharp.has(source)) continue;
     const full = new Image();

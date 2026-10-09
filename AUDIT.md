@@ -107,7 +107,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 **[A-12] [P2] Performance: Taipei's daytime render downloads at night**
 - Evidence: mobile `weight.json` — `island-work-day` (452 KB raw + 100 KB resized) is requested on every visit; `LivingIsland.tsx:301-303` mounts it with `loading="lazy"` but it's stacked in the viewport, so lazy does nothing.
 - Fix: mount the day image only once day has been chosen (or on hover/focus of the toggle).
-- Status: _open_
+- Status: **Fixed (partly).** The Work entry's full-size prefetch now skips the daytime render unless day is showing — saves the 452 KB original on every night visit. The resized day still (~100 KB phone / ~235 KB desktop) still loads with the island so the day/night crossfade never flashes empty; deferring that too would need a load-then-fade toggle. Left as is.
 
 **[A-13] [P2] Edge case: JS disabled leaves a 3,200 px empty void**
 - Evidence: `edge-nojs-1280.jpg` — the opening view renders (good), then the 496svh scroll track scrolls through nothing.
