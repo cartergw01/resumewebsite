@@ -319,7 +319,7 @@
 .chapters { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(30rem, 48vw); height: 60px; padding: 0 18px; box-sizing: border-box; }
 .chapters button { position: relative; min-width: 0; min-height: 60px; text-align: center; }
 .chapters button:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; border-radius: 6px; }
-.chapterLabel { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--stop-y, 40px) - 30px); display: block; color: #b9c2cf; font-size: 0.875rem; font-weight: 700; line-height: 20px; letter-spacing: 0.015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
+.chapterLabel { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--stop-y, 40px) - 30px); display: block; color: #b9c2cf; font-size: 0.875rem; font-weight: 500; line-height: 20px; letter-spacing: 0.015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
 .chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }
 .chapters button[data-arriving] .chapterLabel { animation: chapter-arrival 900ms ease-out; }

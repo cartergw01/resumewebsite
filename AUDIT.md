@@ -130,7 +130,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: hierarchy from weight and colour first; nav secondary (`.impeccable.md`).
 - Evidence: `.chapterLabel` is 700 weight (`IslandHome.module.css:303`) — the heaviest text on screen after the H1 — while the descriptive sentences are 400.
 - Fix: 500 weight, keep the colour logic for the current tab.
-- Status: _open_
+- Status: **Fixed.** Scene tab labels 700 → 500 weight; the current tab still reads as current through colour and glow, not weight. Rest colour unchanged.
 
 **[A-17] [P2] Interaction: orbit drag has no momentum and hits a wall at its limits**
 - Principle: drag needs momentum and rubber-banding (Rauno/Emil).
