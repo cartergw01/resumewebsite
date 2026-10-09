@@ -226,7 +226,10 @@
 /* Labels sit just under each island's contained 3:2 art, at every width. */
 .overviewIsland { container-type: size; }
 .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - 1.1em); }
-.overviewIsland:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 0.25rem; border-radius: 1rem; }
+/* The ring wraps the island and its label underneath. */
+.overviewIsland:focus-visible { outline: none; }
+.overviewIsland::after { content: ""; position: absolute; inset: 0.25rem 0.25rem -1.75rem; border: 2px solid transparent; border-radius: 1rem; pointer-events: none; }
+.overviewIsland:focus-visible::after { border-color: #fff7eae6; }
 .overviewIsland:focus-visible { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
 .overviewIsland:focus-visible .overviewVisual { transform: translateY(-6px) scale(1.03); }
 .overviewIsland:focus-visible .overviewLabel { color: #fff1d7; }
@@ -254,7 +257,7 @@
   .islandLink:hover .pageLight { opacity: 0.65; }
   .islandLink:hover .pageEdges { opacity: 0.85; transform: translateY(-2px); }
 }
-.islandLink:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: -1rem; border-radius: 50%; }
+.islandLink:focus-visible { outline: 2px solid #fff7eae6; outline-offset: -1rem; border-radius: 50%; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 @media (hover: hover) and (pointer: fine) {
   .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
@@ -307,7 +310,7 @@
 /* One fine trail ties the labels together, with room above for readable text. */
 .chapters { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(30rem, 48vw); height: 60px; padding: 0 18px; box-sizing: border-box; }
 .chapters button { position: relative; min-width: 0; min-height: 60px; text-align: center; }
-.chapters button:focus-visible { outline: 1px solid #f2d7a7bb; outline-offset: 2px; border-radius: 6px; }
+.chapters button:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; border-radius: 6px; }
 .chapterLabel { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--stop-y, 40px) - 30px); display: block; color: #b9c2cf; font-size: 0.875rem; font-weight: 700; line-height: 20px; letter-spacing: 0.015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
 .chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }

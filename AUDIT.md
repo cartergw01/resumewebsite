@@ -63,7 +63,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: Vercel guidelines (visible, unobscured focus ring); WCAG 2.4.7/2.4.11.
 - Evidence: tab walk (`audit/before/taborder-1280.json`): island links get `outline: 1px solid rgba(235,208,172,.6)` (`IslandHome.module.css:221,249`), scene tabs `1px rgba(242,215,167,.73)` (`:302`), while everything else uses the global 2px paper ring. A 1 px 60%-alpha hairline over a busy render is effectively invisible.
 - Fix: island links and scene tabs use the global 2 px ring.
-- Status: _open_
+- Status: **Fixed.** Islands, stop islands and scene tabs use the same 2 px paper ring as every other control. The opening-view ring is drawn on `::after` so it wraps the island *and* its label (a plain outline cut through the label once A-02 moved it under the art). Checked at 1280 and 375.
 
 **[A-07] [P1] Accessibility: "scroll down" button's accessible name doesn't contain its visible label**
 - Principle: WCAG 2.5.3 Label in Name; axe `label-content-name-mismatch` (serious) at all four widths; Lighthouse a11y fail.
