@@ -1,0 +1,377 @@
+[
+  {
+    "tag": "A",
+    "text": "Skip to content",
+    "href": "#islands",
+    "rect": [
+      23,
+      16,
+      139,
+      42
+    ],
+    "outline": "none 3px rgb(255, 247, 234)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "X",
+    "href": "https://x.com/CarterKoWang",
+    "rect": [
+      187,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "Email",
+    "href": "mailto:cartergw01@gmail.com",
+    "rect": [
+      231,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "Substack",
+    "href": "https://carterko.substack.com/",
+    "rect": [
+      275,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "LinkedIn",
+    "href": "https://www.linkedin.com/in/cartergrantwang",
+    "rect": [
+      319,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "886 Studios",
+    "href": "https://886studios.com",
+    "rect": [
+      24,
+      205,
+      88,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "writing",
+    "href": "/writing",
+    "rect": [
+      24,
+      242,
+      51,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "building",
+    "href": "/projects",
+    "rect": [
+      110,
+      242,
+      58,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "learn about my work. Enter Work island",
+    "href": "/work",
+    "rect": [
+      11,
+      302,
+      195,
+      155
+    ],
+    "outline": "solid 1px rgba(235, 208, 172, 0.6)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "read my writing. Enter Writing island",
+    "href": "/writing",
+    "rect": [
+      169,
+      406,
+      195,
+      155
+    ],
+    "outline": "solid 1px rgba(235, 208, 172, 0.6)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "see what i’ve built. Enter Projects island",
+    "href": "/projects",
+    "rect": [
+      30,
+      510,
+      195,
+      155
+    ],
+    "outline": "solid 1px rgba(235, 208, 172, 0.6)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Scroll to the Work island",
+    "href": null,
+    "rect": [
+      24,
+      680,
+      327,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Show Work island",
+    "href": null,
+    "rect": [
+      42,
+      732,
+      97,
+      60
+    ],
+    "outline": "solid 1px rgba(242, 215, 167, 0.733)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Show Writing island",
+    "href": null,
+    "rect": [
+      139,
+      732,
+      97,
+      60
+    ],
+    "outline": "solid 1px rgba(242, 215, 167, 0.733)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "BUTTON",
+    "text": "Show Projects island",
+    "href": null,
+    "rect": [
+      236,
+      732,
+      97,
+      60
+    ],
+    "outline": "solid 1px rgba(242, 215, 167, 0.733)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "BODY",
+    "text": "[{\"@context\":\"https://schema.org\",\"@type\":\"Person\",\"@id\":\"ht",
+    "href": null,
+    "rect": [
+      0,
+      0,
+      375,
+      4028
+    ],
+    "outline": "none 3px rgb(255, 247, 234)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "Skip to content",
+    "href": "#islands",
+    "rect": [
+      23,
+      16,
+      139,
+      42
+    ],
+    "outline": "none 3px rgb(255, 247, 234)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "X",
+    "href": "https://x.com/CarterKoWang",
+    "rect": [
+      187,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "Email",
+    "href": "mailto:cartergw01@gmail.com",
+    "rect": [
+      231,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "Substack",
+    "href": "https://carterko.substack.com/",
+    "rect": [
+      275,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "LinkedIn",
+    "href": "https://www.linkedin.com/in/cartergrantwang",
+    "rect": [
+      319,
+      9,
+      44,
+      44
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "886 Studios",
+    "href": "https://886studios.com",
+    "rect": [
+      24,
+      205,
+      88,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "writing",
+    "href": "/writing",
+    "rect": [
+      24,
+      242,
+      51,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "building",
+    "href": "/projects",
+    "rect": [
+      110,
+      242,
+      58,
+      19
+    ],
+    "outline": "solid 2px rgba(255, 247, 234, 0.9)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  },
+  {
+    "tag": "A",
+    "text": "learn about my work. Enter Work island",
+    "href": "/work",
+    "rect": [
+      11,
+      302,
+      195,
+      155
+    ],
+    "outline": "solid 1px rgba(235, 208, 172, 0.6)",
+    "boxShadow": "none",
+    "scrollY": 0,
+    "visible": true
+  }
+]

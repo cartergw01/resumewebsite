@@ -1,0 +1,550 @@
+{
+  "mobile": {
+    "initialKB": 730,
+    "initialByType": {
+      "script": 164,
+      "image": 191,
+      "media": 237,
+      "font": 60,
+      "stylesheet": 32,
+      "document": 29,
+      "fetch": 18
+    },
+    "afterTravelKB": 2537,
+    "largest": [
+      {
+        "url": "/blender/island-work-5105bc21.webp",
+        "type": "image",
+        "bytes": 466970
+      },
+      {
+        "url": "/blender/island-work-day-cce6e238.webp",
+        "type": "image",
+        "bytes": 463166
+      },
+      {
+        "url": "/starfield-loop-mobile-v1.mp4",
+        "type": "media",
+        "bytes": 242859
+      },
+      {
+        "url": "/_next/static/media/taipei-flix.3d9f9067.webp",
+        "type": "image",
+        "bytes": 133464
+      },
+      {
+        "url": "/_next/static/media/taipei-run.d01a8f00.webp",
+        "type": "image",
+        "bytes": 120342
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 112392
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 110102
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 103306
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 84580
+      },
+      {
+        "url": "/_next/static/media/taipei-guide.183f5649.webp",
+        "type": "image",
+        "bytes": 80703
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=750&q=90",
+        "type": "image",
+        "bytes": 67559
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=750&q=90",
+        "type": "image",
+        "bytes": 61553
+      },
+      {
+        "url": "/_next/static/chunks/4bd1b696-c023c6e3521b1417.js",
+        "type": "script",
+        "bytes": 54800
+      },
+      {
+        "url": "/_next/static/media/night-night-ko.a25d9bf0.webp",
+        "type": "image",
+        "bytes": 53370
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=750&q=90",
+        "type": "image",
+        "bytes": 51066
+      },
+      {
+        "url": "/_next/static/chunks/255-68405a37192f656a.js",
+        "type": "script",
+        "bytes": 46438
+      },
+      {
+        "url": "/_next/static/media/886studios.d72642af.webp",
+        "type": "image",
+        "bytes": 44148
+      },
+      {
+        "url": "/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+        "type": "font",
+        "bytes": 38760
+      },
+      {
+        "url": "/_next/static/media/poker-odds.dc4e0d57.webp",
+        "type": "image",
+        "bytes": 37096
+      },
+      {
+        "url": "/2.0",
+        "type": "document",
+        "bytes": 29337
+      },
+      {
+        "url": "/_next/static/chunks/app/2.0/page-41e2da9030db3b5c.js",
+        "type": "script",
+        "bytes": 25652
+      },
+      {
+        "url": "/_next/static/media/stocker.eeb0427c.webp",
+        "type": "image",
+        "bytes": 24072
+      },
+      {
+        "url": "/_next/static/media/36966cca54120369-s.p.woff2",
+        "type": "font",
+        "bytes": 22620
+      },
+      {
+        "url": "/_next/static/css/e9d3cc8da9325d80.css",
+        "type": "stylesheet",
+        "bytes": 18498
+      },
+      {
+        "url": "/_next/static/media/ikigai-timer.f01b4ca6.webp",
+        "type": "image",
+        "bytes": 16584
+      }
+    ],
+    "imgs": [
+      {
+        "src": "http://127.0.0.1:3300/starfield-loop-mobile-poster-v1.webp",
+        "natural": [
+          900,
+          1600
+        ],
+        "shown": [
+          468,
+          1013
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          155
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          155
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          155
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+        "natural": [
+          337,
+          225
+        ],
+        "shown": [
+          423,
+          400
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1080&q=90",
+        "natural": [
+          337,
+          225
+        ],
+        "shown": [
+          423,
+          400
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+        "natural": [
+          337,
+          225
+        ],
+        "shown": [
+          423,
+          400
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+        "natural": [
+          337,
+          225
+        ],
+        "shown": [
+          385,
+          424
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          187
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          187
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=750&q=90",
+        "natural": [
+          225,
+          150
+        ],
+        "shown": [
+          195,
+          187
+        ],
+        "alt": ""
+      }
+    ]
+  },
+  "desktop": {
+    "initialKB": 4711,
+    "initialByType": {
+      "script": 324,
+      "image": 315,
+      "media": 241,
+      "font": 60,
+      "stylesheet": 32,
+      "document": 29,
+      "fetch": 3710
+    },
+    "afterTravelKB": 8898,
+    "largest": [
+      {
+        "url": "/blender/orbit-work-b9c49c1d.glb",
+        "type": "fetch",
+        "bytes": 1828922
+      },
+      {
+        "url": "/blender/flight-writing-fa48f36b.glb",
+        "type": "fetch",
+        "bytes": 1329728
+      },
+      {
+        "url": "/blender/flight-projects-87a560d3.glb",
+        "type": "fetch",
+        "bytes": 1282282
+      },
+      {
+        "url": "/blender/flight-work-1b821d27.glb",
+        "type": "fetch",
+        "bytes": 1093340
+      },
+      {
+        "url": "/blender/island-work-5105bc21.webp",
+        "type": "image",
+        "bytes": 466970
+      },
+      {
+        "url": "/blender/island-work-day-cce6e238.webp",
+        "type": "image",
+        "bytes": 463166
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1920&q=90",
+        "type": "image",
+        "bytes": 247498
+      },
+      {
+        "url": "/starfield-loop-desktop-v1.mp4",
+        "type": "media",
+        "bytes": 246887
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1920&q=90",
+        "type": "image",
+        "bytes": 246418
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1920&q=90",
+        "type": "image",
+        "bytes": 241254
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1920&q=90",
+        "type": "image",
+        "bytes": 196153
+      },
+      {
+        "url": "/_next/static/media/taipei-flix.3d9f9067.webp",
+        "type": "image",
+        "bytes": 133464
+      },
+      {
+        "url": "/_next/static/media/taipei-run.d01a8f00.webp",
+        "type": "image",
+        "bytes": 120342
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 112392
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 110102
+      },
+      {
+        "url": "/_next/static/chunks/b536a0f1.dc709807bbeaa759.js",
+        "type": "script",
+        "bytes": 84841
+      },
+      {
+        "url": "/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+        "type": "image",
+        "bytes": 84580
+      },
+      {
+        "url": "/_next/static/media/taipei-guide.183f5649.webp",
+        "type": "image",
+        "bytes": 80703
+      },
+      {
+        "url": "/draco/draco_decoder.wasm",
+        "type": "fetch",
+        "bytes": 63805
+      },
+      {
+        "url": "/_next/static/chunks/bd904a5c.d8821e1dcc7a50a6.js",
+        "type": "script",
+        "bytes": 61273
+      },
+      {
+        "url": "/_next/static/chunks/4bd1b696-c023c6e3521b1417.js",
+        "type": "script",
+        "bytes": 54800
+      },
+      {
+        "url": "/_next/static/media/night-night-ko.a25d9bf0.webp",
+        "type": "image",
+        "bytes": 53370
+      },
+      {
+        "url": "/_next/static/chunks/255-68405a37192f656a.js",
+        "type": "script",
+        "bytes": 46438
+      },
+      {
+        "url": "/_next/static/media/886studios.d72642af.webp",
+        "type": "image",
+        "bytes": 44148
+      },
+      {
+        "url": "/_next/static/media/eaead17c7dbfcd5d-s.p.woff2",
+        "type": "font",
+        "bytes": 38760
+      }
+    ],
+    "imgs": [
+      {
+        "src": "http://127.0.0.1:3300/starfield-loop-desktop-poster-v1.webp",
+        "natural": [
+          1600,
+          900
+        ],
+        "shown": [
+          1597,
+          998
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          396,
+          248
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          379,
+          237
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          379,
+          237
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1920&q=90",
+        "natural": [
+          870,
+          580
+        ],
+        "shown": [
+          896,
+          560
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-day-cce6e238.webp&w=1920&q=90",
+        "natural": [
+          870,
+          580
+        ],
+        "shown": [
+          896,
+          560
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1920&q=90",
+        "natural": [
+          870,
+          580
+        ],
+        "shown": [
+          896,
+          560
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1920&q=90",
+        "natural": [
+          870,
+          580
+        ],
+        "shown": [
+          815,
+          560
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-work-5105bc21.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          396,
+          248
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-writing-d53887f0.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          379,
+          237
+        ],
+        "alt": ""
+      },
+      {
+        "src": "http://127.0.0.1:3300/_next/image?url=%2Fblender%2Fisland-projects-048fa1d9.webp&w=1080&q=90",
+        "natural": [
+          435,
+          290
+        ],
+        "shown": [
+          379,
+          237
+        ],
+        "alt": ""
+      }
+    ]
+  }
+}
