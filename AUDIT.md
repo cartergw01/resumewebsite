@@ -97,7 +97,7 @@ Measured on a production build: an iPhone-sized viewport (390×844 @3×) with a 
 
 **Tried and rejected:** Next's `experimental.inlineCss`. It removes the render-blocking stylesheet requests, but it inlines all of `globals.css` into every page (+116 KB of uncacheable HTML) for a marginal LCP change (3.2 s median) and worse TBT (70–100 ms).
 
-**What's left, and why I stopped there:** the simulated LCP is bandwidth. On 4G the three island images download alongside 30 KB of render-blocking CSS, 60 KB of fonts and 164 KB of JS. The next real win is pruning the legacy unprefixed `.world-*` rules in `app/globals.css` (3,600 lines). Your CLAUDE.md warns those may still back /work, /writing and /projects, so that needs a careful page-by-page pass rather than a drive-by. Separately, all Playfair italics on the site (island labels, notebook titles) are browser-synthesized, because only the upright face is loaded. Loading the real italic would look better but costs ~35 KB, so that's your call.
+**What's left, and why I stopped there:** the simulated LCP is bandwidth. On 4G the three island images download alongside 30 KB of render-blocking CSS, 60 KB of fonts and 164 KB of JS. The next real win is pruning the legacy unprefixed `.world-*` rules in `app/globals.css` (3,600 lines). Your CLAUDE.md warns those may still back /work, /writing and /projects, so that needs a careful page-by-page pass rather than a drive-by. Separately, all Playfair italics on the site (island labels, cues, notebook titles) were browser-synthesized, because only the upright face was loaded. **Done at Carter's request:** the real italic now loads (+38 KB, one font file); see `audit/mobile-perf/italic-faux-vs-real.jpg`.
 
 ## Top 5 (before fixes)
 

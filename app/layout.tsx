@@ -11,8 +11,11 @@ import {
 } from "@/lib/seo";
 import "./globals.css";
 
+// Both styles: the island labels, cues and notebook titles are set in the
+// italic, which browsers otherwise fake by slanting the upright letters.
 const playfair = Playfair_Display({
   subsets: ["latin"],
+  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });
