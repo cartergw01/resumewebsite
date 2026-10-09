@@ -141,7 +141,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 **[A-18] [P2] Copy: "early stage" should be hyphenated as a compound modifier**
 - Evidence: `IslandHome.tsx:32`.
 - Fix: "early-stage". Logged in the copy-change list.
-- Status: _open_
+- Status: **Fixed.** "early stage startups" → "early-stage startups" in the hero.
 
 **[A-19] [P2] Interaction: cursor tooltip takes ~500 ms to finish drawing**
 - Principle: UI motion under ~300 ms; tooltips in a group shouldn't re-delay.
@@ -173,6 +173,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 
 - **A-04 · meta description** (`lib/seo.ts`): "Carter Wang's personal website." → "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side." Your hero sentence, sentence-cased for a meta context. Also feeds the web manifest and WebSite JSON-LD. Note this changes the live homepage's description too once merged.
 - **A-03 · new label** on the opening view: "latest essay" followed by the title of `essays[0]` ("The Cost of Keeping Up"), linking straight to the Substack post. The only new words are the two-word lowercase label; the title updates itself when you add an essay to `content/portfolio.ts`.
+- **A-18 · hero** (`components/IslandHome.tsx`): "backing early stage startups" → "backing early-stage startups". Grammar only (compound modifier); same as /work's own "early-stage".
 
 ## Judgment calls
 
