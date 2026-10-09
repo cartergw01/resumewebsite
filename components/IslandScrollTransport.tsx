@@ -10,6 +10,7 @@ import type { FlightWorld } from "@/lib/island-flight";
 import flightAssets from "@/lib/island-flight-assets.json";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
+import { hardwareWebGL } from "@/lib/hardware-webgl";
 
 // Stops without a title (the opening and closing views) have no tab.
 type World = { id: string; title?: string };
@@ -470,9 +471,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (motion.matches || nav.connection?.saveData) return false;
       if (nav.deviceMemory && nav.deviceMemory < 4) return false;
       if (nav.connection?.effectiveType && !/4g/.test(nav.connection.effectiveType)) return false;
-      return Boolean(document.createElement("canvas").getContext("webgl2"));
+      return hardwareWebGL();
     };
-    loadFlights = () => { if (capable()) flightTimer = window.setTimeout(() => {
+    // Building the flight world is one long main-thread task (renderer,
+    // model parsing). It must never land on an entry, a glide or a gesture:
+    // wait for the camera to rest, and give up if the visitor is leaving.
+    const atRest = () => !stage.dataset.travelling || stage.dataset.travelling === "false";
+    const settled = () => atRest() && !stage.dataset.scrolling && !stage.dataset.navigating && !stage.dataset.entering;
+    loadFlights = () => { if (capable()) flightTimer = window.setTimeout(function attempt() {
+      const begin = () => {
+        if (flightAbort.signal.aborted || stage.dataset.entering) return;
+        if (!settled()) { flightTimer = window.setTimeout(attempt, 600); return; }
+        start();
+      };
       const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
         const islands = Object.entries(flightAssets).map(([id, asset]) => {
           const orbit = orbitAssets[id as keyof typeof orbitAssets];
@@ -484,7 +495,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         flightWorld = world;
         stage.dataset.flightReady = "true";
       }).catch(() => { flightWorld = null; });
-      if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 4000 }); else start();
+      if ("requestIdleCallback" in window) window.requestIdleCallback(begin, { timeout: 4000 }); else begin();
     }, 0); };
     // A hash link or restored position may already have warmed the stage.
     if (stage.dataset.warm === "true") loadFlights();

@@ -96,6 +96,12 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Fix: portrait tablets (761–1100 px, portrait) use the phone's stacked composition — copy on top, the diagonal of islands below at full width — while keeping desktop type sizes and controls.
 - Status: **Fixed.** New portrait-tablet block in `IslandHome.module.css`: single column, islands in the phone's diagonal at full width, name on one line. Checked 768×1024 (opening view and Work stop) and 1024×1366. Landscape tablets keep the desktop split, which already fits.
 
+**[A-27] [P1] Performance: building the 3D flight world could freeze an island entry for seconds**
+- Principle: Doherty threshold; "never block input" (Rauno/Emil).
+- Evidence: found in the re-check. With the camera resting on #writing, ~1 in 3 clicks took 3.6–5.2 s to reach /writing — **on `main` too** (4781 / 5229 ms vs a normal 2361 ms). A PerformanceObserver showed a single 3,610 ms long task starting ~100 ms after the click: the flight world (renderer + three GLB parses) built on a `requestIdleCallback` with a 4 s timeout, which can fire mid-entry. On a real GPU (Apple M2 via Metal) the build has no task over 100 ms, so the freeze is specific to **software WebGL** — which is exactly what Chrome falls back to on blocklisted GPUs, VMs and remote desktops.
+- Fix: (1) skip 3D flights when the WebGL renderer is software (SwiftShader / llvmpipe / "Basic Render"); the 2D crossings remain; (2) start the build only when the camera is at rest (not travelling, gliding, scrolling or entering), retrying every 600 ms, and never once an entry has begun.
+- Status: **Fixed for flights; orbit left open.** `lib/hardware-webgl.ts` + an at-rest guard in `IslandScrollTransport`. After: GPU entries #writing→/writing 899 ms (5/5 runs steady); software WebGL no longer builds flights. **Still open:** the drag-to-rotate orbit model loads on hover and can stall the same way on software WebGL (seen once in 3 software runs). Gating it on `hardwareWebGL()` was tried and reverted, because the e2e suite runs on software WebGL and nine orbit tests would lose their model. Fix options for you: run Playwright with `--use-angle=metal` (Mac-only) or add a test-only override, then gate the orbit too.
+
 ### P2
 
 **[A-11] [P2] Performance: desktop pulls ~3.7 MB of 3D models before any intent**
