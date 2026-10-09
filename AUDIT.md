@@ -89,6 +89,13 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Fix: on /2.0 the header spans the same `--page-x` gutters as the scene.
 - Status: **Fixed.** On /2.0 (≥761 px) the header spans the scene's `--page-x` gutters. Measured right edges, icon vs scene tabs: 1280 → 1199/1203, 1920 → 1804/1808 (was 1510/1790), 3440 → 3324/3328 (icons used to float mid-sky). Subpages untouched — they keep their 1120 px column.
 
+**[A-26] [P1] Mobile/tablet: portrait tablets get the desktop split with tiny islands**
+- Principle: treat each form factor as primary, not a resized desktop; Fitts's law (the targets are the islands).
+- Evidence: `audit/before/chromium-768-intro.jpg` — at 768×1024 the side-by-side layout leaves the islands ~200 px wide in the lower-right with the top third of the screen empty; same at iPad Pro portrait (1024×1366). Found on the first fix pass, not in the original sweep.
+- Why it matters: iPad portrait is a common "checking someone out" device for investors.
+- Fix: portrait tablets (761–1100 px, portrait) use the phone's stacked composition — copy on top, the diagonal of islands below at full width — while keeping desktop type sizes and controls.
+- Status: **Fixed.** New portrait-tablet block in `IslandHome.module.css`: single column, islands in the phone's diagonal at full width, name on one line. Checked 768×1024 (opening view and Work stop) and 1024×1366. Landscape tablets keep the desktop split, which already fits.
+
 ### P2
 
 **[A-11] [P2] Performance: desktop pulls ~3.7 MB of 3D models before any intent**

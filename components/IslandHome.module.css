@@ -347,6 +347,21 @@
   .art { right: -7%; width: 71%; }
   .overviewIsland[data-overview-island="projects"] { left: 48%; }
 }
+/* Portrait tablets stack like phones: copy above, islands below at full
+   width. Side by side, the islands shrank to a third of a tall screen. */
+@media (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
+  .scene { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 1.5rem; padding-top: 7rem; }
+  .copy { max-width: 34rem; }
+  .copy h1 { max-width: none; }
+  .description { max-width: 40ch; }
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: 100%; height: 100%; min-height: 0; }
+  .overview { max-height: 46rem; }
+  .overviewIsland[data-overview-island="work"] { left: 3%; top: 0; width: 52%; height: 40%; }
+  .overviewIsland[data-overview-island="writing"] { left: 45%; top: 27%; width: 52%; height: 40%; }
+  .overviewIsland[data-overview-island="projects"] { left: 8%; top: 54%; width: 52%; height: 40%; }
+  .island { max-height: 56dvh; }
+  .chapters { width: min(30rem, 62vw); }
+}
 @media (max-width: 760px) {
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7.75rem; }
