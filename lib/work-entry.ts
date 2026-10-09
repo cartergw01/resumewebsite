@@ -38,7 +38,11 @@ export function prepareWorkEntry(visual: HTMLElement) {
     if (!source || sharp.has(source)) continue;
     const full = new Image();
     full.decoding = "async";
-    full.src = source;
+    // Phones push ~2x into a ~470px still: a 2048px rendition holds up for a
+    // one-second move at half the bytes of the 2880px original.
+    full.src = matchMedia("(max-width: 760px)").matches
+      ? `/_next/image?url=${encodeURIComponent(source)}&w=2048&q=86`
+      : source;
     sharp.set(source, full);
     full.decode().catch(() => sharp.delete(source));
   }

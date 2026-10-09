@@ -32,8 +32,12 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
   await page.goto("/2.0#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   const link = page.locator("#work [data-island-link]");
-  // Intent fetches the full render the push lands on.
-  const full = page.waitForResponse(response => /\/blender\/island-work-[0-9a-f]+\.webp$/.test(new URL(response.url()).pathname));
+  // Intent fetches the full render the push lands on (on phones, a 2048px
+  // rendition of it).
+  const full = page.waitForResponse(response => {
+    const url = new URL(response.url());
+    return /\/blender\/island-work-[0-9a-f]+\.webp$/.test(url.pathname) || /^\/blender\/island-work-[0-9a-f]+\.webp$/.test(url.searchParams.get("url") ?? "");
+  });
   await link.focus();
   await full;
   await page.waitForTimeout(300);
