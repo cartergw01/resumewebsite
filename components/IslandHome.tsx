@@ -7,7 +7,8 @@ import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
 import IslandLine from "./IslandLine";
 import { WorkWindowPreview } from "./WorkRoom";
-import { essays, projects } from "@/content/portfolio";
+import { essays } from "@/content/portfolio";
+import { projectPosters, projectScreenPreview } from "@/lib/project-posters";
 import { siteConfig } from "@/lib/seo";
 import { islandArtwork, islandLandmarks } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
@@ -74,7 +75,7 @@ function Art({ id }: { id: (typeof stops)[number]["id"] }) {
     // One server-side manifest supplies overview images, live media and anchors.
     // New renders remount the client media so a stale still cannot persist.
     case "writing": return <WritingIsland key={islandArtwork.writing.src} artwork={islandArtwork.writing} landmark={islandLandmarks.Writing} essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} titles={essays.map((essay) => essay.title)} />;
-    default: return <LivingIsland key={islandArtwork[id].src} artwork={islandArtwork} landmark={islandLandmarks[id === "work" ? "Work" : "Projects"]} world={id} preview={id === "projects" ? projects[0]?.image : undefined} posters={id === "projects" ? projects.map((project) => project.image) : undefined} />;
+    default: return <LivingIsland key={islandArtwork[id].src} artwork={islandArtwork} landmark={islandLandmarks[id === "work" ? "Work" : "Projects"]} world={id} preview={id === "projects" ? projectScreenPreview : undefined} posters={id === "projects" ? projectPosters : undefined} />;
   }
 }
 

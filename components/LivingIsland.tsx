@@ -141,7 +141,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             <radialGradient id="workshop-screen-spill"><stop stopColor="#f5dcc2" stopOpacity="0.48" /><stop offset="1" stopColor="#e5b989" stopOpacity="0" /></radialGradient>
           </defs>
           <ellipse className={motionStyles.screenSpill} cx={workshop.screenGlow[0]} cy={workshop.screenGlow[1]} rx="64" ry="24" fill="url(#workshop-screen-spill)" />
-          <g className={motionStyles.screenPreview} data-reads="workshop-screen:opacity" data-workshop-screen data-src={preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
+          <g className={motionStyles.screenPreview} data-reads="workshop-screen:opacity" data-workshop-screen data-src={posters?.[0] ?? preview} data-corners={JSON.stringify(workshop.screen)} data-posters={JSON.stringify(posters ?? [preview])}>
             <g className={motionStyles.screenRefresh} data-screen-light>
               <PerspectiveArtwork corners={workshop.screen} width={320} height={200}>
                 <image href={preview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />
