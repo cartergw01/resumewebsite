@@ -86,8 +86,9 @@
   line-height: 1.7;
   text-wrap: pretty;
 }
-.description a { color: inherit; text-decoration-color: #fff7ea55; text-underline-offset: 0.2em; }
-.description a:hover { color: var(--cw-paper); }
+/* Links in running copy must look like links at rest, not only on hover. */
+.description a { color: inherit; text-decoration: underline; text-decoration-color: #fff7ea66; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 150ms ease, text-decoration-color 150ms ease; }
+.description a:hover, .description a:focus-visible { color: var(--cw-paper); text-decoration-color: #fff7eacc; }
 .description + .description { margin-top: 0.75rem; }
 /* Real entries under each heading: quiet, scannable, one line each. */
 .facts { display: grid; gap: 0.6rem; max-width: 30rem; margin: 1.6rem 0 0; padding: 0; list-style: none; font-size: 0.9375rem; line-height: 1.4; }
@@ -214,10 +215,12 @@
    camera's first zoom targets its exact position. */
 .overviewIsland:not([data-overview-island="work"]) .overviewVisual { animation: overview-bob 9s ease-in-out infinite; }
 .overviewIsland[data-overview-island="projects"] .overviewVisual { animation-delay: -4.5s; }
-.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: clamp(0.9375rem, 1.1vw, 1.125rem); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
+.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: clamp(1rem, 1.2vw, 1.25rem); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
 /* Labels leave with the other annotations as soon as the camera moves. */
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
-.overviewIsland .overviewLabel { bottom: 4%; }
+/* Labels sit just under each island's contained 3:2 art, at every width. */
+.overviewIsland { container-type: size; }
+.overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - 1.1em); }
 .overviewIsland:focus-visible { outline: 1px solid #ebd0ac99; outline-offset: 0.25rem; border-radius: 1rem; }
 .overviewIsland:focus-visible { filter: drop-shadow(0 0 24px #e8b97633) drop-shadow(0 24px 28px #0005); }
 .overviewIsland:focus-visible .overviewVisual { transform: translateY(-6px) scale(1.03); }
@@ -342,7 +345,6 @@
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9dvh, 5rem)); min-height: 0; margin-inline: -3rem; }
   .scene:has(.overview) .art { width: calc(100% + 3rem); height: 100%; margin-inline: -1.5rem; }
   .overview { max-height: 30rem; }
-  .overviewIsland { container-type: size; }
   .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .9375rem; }
   .island { max-height: 50dvh; }
   .landmarkCue { font-size: 1rem; }
@@ -508,10 +510,6 @@
   translate: 0 0;
   background-size: 100% 1px;
   transition: opacity 260ms ease 150ms, translate 360ms var(--cw-ease) 150ms, background-size 420ms var(--cw-ease) 200ms;
-}
-@media (hover: hover) and (pointer: fine) {
-  .overviewLabel { visibility: hidden; }
-  .overviewIsland:focus-visible .overviewLabel { visibility: visible; }
 }
 @media (prefers-reduced-motion: reduce) { .tipStar, .tipLeader, .tipText, .islandTip[data-visible="true"] * { transition: none !important; } }
 
