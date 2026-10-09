@@ -30,7 +30,7 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
             <span className={styles.overviewVisual} data-island-visual>
               <Image
                 src={island.src} alt="" width={island.width} height={island.height}
-                sizes="(max-width: 760px) 60vw, 34vw" quality={90}
+                sizes="(max-width: 760px) 60vw, 34vw" quality={75}
                 priority={variant === "intro"} draggable={false} className={styles.overviewImage}
               />
               <svg className={styles.overviewDetails} viewBox="0 0 1200 800" aria-hidden="true">

@@ -102,10 +102,10 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 90vw, 68vw" loading="eager"
-          quality={90} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
+          quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 90vw, 68vw" loading="lazy" data-city-time="day"
-          quality={90} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
+          quality={75} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
         {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}
         {world === "work" ? <>
