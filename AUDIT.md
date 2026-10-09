@@ -102,7 +102,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: "fast, content-first" (Paco/Lee); Vercel "load only what's needed".
 - Evidence: `audit/before/weight.json` — desktop initial 4.7 MB within 6 s idle, of which 3.7 MB are `.glb` fetches: `flight-*.glb` ×3 (3.6 MB) on a 2.5 s timer (`IslandScrollTransport.tsx:465-478`) and `orbit-work.glb` (1.8 MB). Mobile is fine (730 KB initial).
 - Fix: flight models wait for the first sign of travel (wheel/touch/key/tab focus), which the stage already tracks as `data-warm`. Taipei's orbit preload stays — its click flies through the real model.
-- Status: _open_
+- Status: **Fixed.** Flight models now load on the first sign of travel (`data-warm`: wheel, touch, key, tab focus, hash jump) instead of a 2.5 s timer. The first crossing (opening view → Work) is always the 2D zoom, so the models have that whole glide to arrive before Work → Writing needs them. `island-flight.spec` passes. Taipei's orbit preload stays (its click flies through the real model).
 
 **[A-12] [P2] Performance: Taipei's daytime render downloads at night**
 - Evidence: mobile `weight.json` — `island-work-day` (452 KB raw + 100 KB resized) is requested on every visit; `LivingIsland.tsx:301-303` mounts it with `loading="lazy"` but it's stacked in the viewport, so lazy does nothing.

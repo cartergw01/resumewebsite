@@ -135,7 +135,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let introFocus = { x: 50, y: 50, size: 100 };
 
     // Off-screen islands load on the first sign of travel, not on first paint.
-    const warm = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
+    // So do the 3D flight models: the first crossing (into Work) is always the
+    // 2D zoom, which gives them time to arrive before Work → Writing.
+    let loadFlights = () => {};
+    const warm = () => {
+      if (stage.dataset.warm === "true") return;
+      stage.dataset.warm = "true";
+      loadFlights();
+    };
     const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
@@ -453,7 +460,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     next.addEventListener("click", advance);
     window.addEventListener("click", enterFromHeading, true);
     stage.addEventListener("island-entry-cancel", cancelEntry);
-    // The flight models load only on capable devices, after the page settles.
+    // The flight models load only on capable devices, once travel begins.
     const flightAbort = new AbortController();
     let flightTimer = 0;
     const capable = () => {
@@ -465,7 +472,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (nav.connection?.effectiveType && !/4g/.test(nav.connection.effectiveType)) return false;
       return Boolean(document.createElement("canvas").getContext("webgl2"));
     };
-    if (capable()) flightTimer = window.setTimeout(() => {
+    loadFlights = () => { if (capable()) flightTimer = window.setTimeout(() => {
       const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
         const islands = Object.entries(flightAssets).map(([id, asset]) => {
           const orbit = orbitAssets[id as keyof typeof orbitAssets];
@@ -478,7 +485,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         stage.dataset.flightReady = "true";
       }).catch(() => { flightWorld = null; });
       if ("requestIdleCallback" in window) window.requestIdleCallback(start, { timeout: 4000 }); else start();
-    }, 2500);
+    }, 0); };
+    // A hash link or restored position may already have warmed the stage.
+    if (stage.dataset.warm === "true") loadFlights();
     const retime = () => flightWorld?.setTime(currentCityTime());
     window.addEventListener(CITY_TIME_EVENT, retime);
     ["pointerover", "pointerout", "focusin", "focusout"].forEach(type => stage.addEventListener(type, engage));
