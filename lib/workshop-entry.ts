@@ -8,8 +8,14 @@ type Entry = {
   height: number;
   overlay: HTMLDivElement;
   screen: HTMLDivElement;
+  // What fades: the notebook's own layer. Fading the notebook itself would
+  // flatten its 3D context and paint leaves in DOM order, not by depth.
+  fader: HTMLDivElement;
   backdrop: HTMLDivElement;
   animations: Animation[];
+  // Finishing touches (the titles inking in) that may run on into the
+  // arrival; they never hold it up.
+  flourishes: Animation[];
   frames: number[];
   dispose: () => void;
 };
@@ -64,31 +70,64 @@ export function beginBookEntry(source: SVGGraphicsElement) {
       const item = document.createElement("li");
       const text = document.createElement("span");
       text.textContent = title;
+      text.dataset.ink = "";
       item.append(text);
       list.append(item);
     }
     return list;
   };
-  const page = (side: "left" | "right", entries?: string[]) => {
+  // A whole page of paper. Static pages sit in the spread; a turning leaf
+  // shows its page through two hinged halves (see below).
+  const page = (side: "left" | "right", entries?: string[], named = true) => {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
-    if (entries) { leaf.dataset.notebookPage = side; leaf.append(written(entries)); }
+    if (entries) { if (named) leaf.dataset.notebookPage = side; leaf.append(written(entries)); }
     return leaf;
   };
+  // A shadow the turning leaves cast on a static page, one per leaf.
+  const casts = (leaf: HTMLElement, side: "left" | "right") => {
+    for (let index = 0; index < BOOK_LEAVES; index++) {
+      const cast = document.createElement("span");
+      cast.className = `${styles.cast} ${styles[side]}`;
+      cast.dataset.cast = `${side}-${index}`;
+      leaf.append(cast);
+    }
+    return leaf;
+  };
+  // One face of a leaf half: a window onto a full page, offset so the two
+  // halves together show the whole page, front and back.
+  const face = (side: "left" | "right", shift: boolean, back: boolean, entries?: string[], named = false) => {
+    const pane = document.createElement("div");
+    pane.className = `${styles.face}${back ? ` ${styles.back}` : ""}`;
+    const sheet = page(side, entries, named);
+    sheet.classList.add(styles.sheet);
+    if (shift) sheet.classList.add(styles.shift);
+    const shade = document.createElement("span");
+    shade.className = styles.shade;
+    pane.append(sheet, shade);
+    return pane;
+  };
   const spread = document.createDocumentFragment();
-  spread.append(page("left"));
+  spread.append(casts(page("left"), "left"));
+  // The right page lies under the leaves, so it comes first.
+  spread.append(casts(page("right", titles.slice(half)), "right"));
   for (let index = 0; index < BOOK_LEAVES; index++) {
+    const last = index === BOOK_LEAVES - 1;
+    const entries = last ? titles.slice(0, half) : undefined;
+    // A leaf bends as it turns: the half at the spine leads, the outer half
+    // trails behind it and then whips over, which reads as a curling page.
+    // Turned over, the spine half shows the right of the left page and the
+    // outer half its left, so each back is offset the other way.
     const leaf = document.createElement("div");
     leaf.className = styles.turn;
     leaf.dataset.notebookLeaf = String(index);
-    const front = page("right"), back = page("left", index === BOOK_LEAVES - 1 ? titles.slice(0, half) : undefined);
-    front.classList.add(styles.face); back.classList.add(styles.face, styles.back);
-    for (const face of [front, back]) { const shade = document.createElement("span"); shade.className = styles.shade; face.append(shade); }
-    leaf.append(front, back);
+    const outer = document.createElement("div");
+    outer.className = `${styles.turn} ${styles.outer}`;
+    outer.dataset.notebookOuter = String(index);
+    outer.append(face("right", true, false), face("left", false, true, entries));
+    leaf.append(face("right", false, false), face("left", true, true, entries, last), outer);
     spread.append(leaf);
   }
-  // Last in reading order; the leaves' depth keeps them stacked above it.
-  spread.append(page("right", titles.slice(half)));
   return beginEntry(source, spread, "book", 640, 400);
 }
 
@@ -130,7 +169,6 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   const layoutWidth = kind === "book" ? book.width : sourceWidth;
   const layoutHeight = kind === "book" ? book.height : sourceHeight;
   if (kind === "book") {
-    overlay.classList.add(styles.depth);
     screen.style.width = `${layoutWidth}px`;
     screen.style.height = `${layoutHeight}px`;
     screen.style.margin = `${-layoutHeight / 2}px 0 0 ${-layoutWidth / 2}px`;
@@ -146,16 +184,20 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   ]);
   const startTransform = artworkTransform(corners, layoutWidth, layoutHeight);
   screen.append(content);
-  overlay.append(backdrop, screen);
+  const fader = document.createElement("div");
+  fader.className = styles.fader;
+  if (kind === "book") { fader.append(screen); overlay.append(backdrop, fader); }
+  else overlay.append(backdrop, screen);
   document.body.append(overlay);
   document.documentElement.dataset[attribute] = "entering";
 
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
   let timeout = 0;
-  const current: Entry = { kind, width: layoutWidth, height: layoutHeight, overlay, screen, backdrop, animations: [], frames: [], dispose: () => {
+  const current: Entry = { kind, width: layoutWidth, height: layoutHeight, overlay, screen, fader, backdrop, animations: [], flourishes: [], frames: [], dispose: () => {
     clearTimeout(timeout);
     current.frames.forEach(cancelAnimationFrame);
     current.animations.forEach(animation => animation.cancel());
+    current.flourishes.forEach(animation => animation.cancel());
     overlay.remove();
     window.removeEventListener("popstate", current.dispose);
     window.removeEventListener("resize", current.dispose);
@@ -183,29 +225,87 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const scale = shown / layoutWidth;
     const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
     const lift = { duration: ENTRY_LIFT_DURATION, fill: "forwards" } as const;
+    const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
     current.animations.push(
-      // It rises and turns up to face you, settling at reading size.
+      // It comes up off the desk with some weight: rising and turning to face
+      // you, tipping a touch past upright, then settling at reading size.
       screen.animate([
-        { transform: bookPose(cx, cy, angle, tilt, scale), opacity: 0, offset: 0, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
-        { opacity: 1, offset: .14 },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1), opacity: 1, offset: .56 },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1), opacity: 1, offset: 1 },
+        { transform: bookPose(cx, cy, angle, tilt, scale), offset: 0, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2 - 4, 0, -.035, 1.012), offset: .44, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
+        { transform: rest, offset: .58 },
+        { transform: rest, offset: 1 },
       ], lift),
+      fader.animate([{ opacity: 0 }, { opacity: 1, offset: .12 }, { opacity: 1 }], lift),
       backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .5 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
     );
-    // Then its leaves turn over the spine, one after another, each shading
-    // as it lifts away from the light and catching it again as it lands.
+    // Then the leaves are thumbed over the spine: the first deliberately, the
+    // rest a little quicker, overlapping like pages under a thumb. Each one
+    // lifts off the block, curls, shades as it turns from the lamp, and casts
+    // a shadow that slides from the right page to the left as it passes.
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
+    const cadence = [[.48, .34], [.6, .3], [.7, .32]];
     leaves.forEach((leaf, index) => {
-      const depth = (from: number, to: number) => [{ transform: `translateZ(${from}px) rotateY(0deg)` }, { transform: `translateZ(${to}px) rotateY(-180deg)` }];
-      const turn = { duration: ENTRY_LIFT_DURATION * .36, delay: ENTRY_LIFT_DURATION * (.42 + index * .1), easing: "cubic-bezier(0.42, 0, 0.25, 1)", fill: "both" } as const;
-      const [front, back] = Array.from(leaf.querySelectorAll<HTMLElement>(`.${styles.shade}`));
+      const [start, length] = cadence[index] ?? cadence[cadence.length - 1];
+      const turn = { duration: ENTRY_LIFT_DURATION * length, delay: ENTRY_LIFT_DURATION * start, fill: "both" } as const;
+      const below = (leaves.length - index) * 2, above = (index + 1) * 2 + 2;
+      current.animations.push(leaf.animate([
+        { transform: `translateZ(${below}px) rotateY(0deg)`, easing: "cubic-bezier(0.5, 0, 0.6, 1)" },
+        { transform: `translateZ(${below + 10}px) rotateY(-86deg)`, offset: .5, easing: "cubic-bezier(0.25, 0.4, 0.25, 1)" },
+        { transform: `translateZ(${above}px) rotateY(-180deg)` },
+      ], turn));
+      const outer = leaf.querySelector<HTMLElement>("[data-notebook-outer]")!;
+      current.animations.push(outer.animate([
+        { transform: "rotateY(0deg)", easing: "ease-out" },
+        { transform: "rotateY(28deg)", offset: .3, easing: "ease-in-out" },
+        { transform: "rotateY(12deg)", offset: .55, easing: "ease-in-out" },
+        { transform: "rotateY(-9deg)", offset: .8, easing: "ease-out" },
+        { transform: "rotateY(0deg)" },
+      ], turn));
+      // Fronts darken as they lift away from the lamp; backs brighten as they
+      // land. The trailing half, bent further, catches a little more shade.
+      const shades = Array.from(leaf.querySelectorAll<HTMLElement>(`.${styles.shade}`));
+      shades.forEach(shade => {
+        const front = !shade.parentElement!.classList.contains(styles.back);
+        const deep = outer.contains(shade) ? .7 : .5;
+        current.animations.push(shade.animate(front
+          ? [{ opacity: 0 }, { opacity: deep, offset: .5 }, { opacity: deep }]
+          : [{ opacity: deep }, { opacity: deep, offset: .5 }, { opacity: 0 }], turn));
+      });
+      const shadow = (side: string) => screen.querySelector<HTMLElement>(`[data-cast="${side}-${index}"]`)!;
       current.animations.push(
-        leaf.animate(depth((leaves.length - index) * .6, (index + 1) * .6), turn),
-        front.animate([{ opacity: 0 }, { opacity: .55, offset: .5 }, { opacity: .55 }], turn),
-        back.animate([{ opacity: .55 }, { opacity: .55, offset: .5 }, { opacity: 0 }], turn),
+        shadow("right").animate([
+          { opacity: 0, transform: "scaleX(1)" },
+          { opacity: .5, transform: "scaleX(.9)", offset: .12 },
+          { opacity: .3, transform: "scaleX(.35)", offset: .42 },
+          { opacity: 0, transform: "scaleX(.1)", offset: .5 },
+          { opacity: 0, transform: "scaleX(.1)" },
+        ], turn),
+        shadow("left").animate([
+          { opacity: 0, transform: "scaleX(.1)" },
+          { opacity: 0, transform: "scaleX(.1)", offset: .5 },
+          { opacity: .3, transform: "scaleX(.35)", offset: .6 },
+          { opacity: .45, transform: "scaleX(.9)", offset: .9 },
+          { opacity: 0, transform: "scaleX(1)" },
+        ], turn),
       );
     });
+    // Once the last leaf has passed, the archive is written in line by line:
+    // the right page as it comes into view, the left once its leaf has landed.
+    const [lastStart, lastLength] = cadence[leaves.length - 1] ?? cadence[0];
+    const inkStart = { right: lastStart + lastLength * .55, left: lastStart + lastLength * .92 };
+    for (const side of ["right", "left"] as const) {
+      const lines = side === "right"
+        ? Array.from(screen.querySelectorAll<HTMLElement>('[data-notebook-page="right"] [data-ink]'))
+        : Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf] [data-ink]"));
+      const count = side === "right" ? lines.length : lines.length / 2;
+      lines.forEach((line, position) => {
+        const row = position % count;
+        current.flourishes.push(line.animate([
+          { clipPath: "inset(-20% 100% -40% 0)", opacity: .35 },
+          { clipPath: "inset(-20% 0% -40% 0)", opacity: 1 },
+        ], { duration: 340, delay: ENTRY_LIFT_DURATION * inkStart[side] + row * 55, easing: "cubic-bezier(0.4, 0, 0.3, 1)", fill: "both" }));
+      });
+    }
     return current.dispose;
   }
   // The deck rises off the laptop to the centre, then fans into an arc of
@@ -263,17 +363,27 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
     current.frames.push(requestAnimationFrame(() => {
       if (entry !== current || !target.isConnected) return;
       if (kind === "book") {
-        // The open archive eases a little closer and gives way to the page.
+        // The written archive holds a beat, then the notebook dissolves
+        // before the page's rows rise into place (WritingWorld.module.css), so
+        // the two sets of titles never sit on top of each other.
         document.documentElement.dataset[attribute] = "revealing";
-        const open = { duration: ENTRY_ARRIVAL_DURATION, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" } as const;
+        const open = { duration: ENTRY_ARRIVAL_DURATION, fill: "forwards" } as const;
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
-        const dock = current.screen.animate([
-          { transform: rest, opacity: 1 },
-          { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.04)"), opacity: 0 },
+        const dock = current.fader.animate([
+          { opacity: 1, offset: 0 },
+          { opacity: 1, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+          { opacity: 0, offset: .78 },
+          { opacity: 0, offset: 1 },
         ], open);
         current.animations.push(
           dock,
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
+          current.screen.animate([
+            { transform: rest, offset: 0 },
+            { transform: rest, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+            { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .78 },
+            { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: 1 },
+          ], open),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .4 }, { opacity: 0, offset: .78 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;

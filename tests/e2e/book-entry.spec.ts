@@ -32,7 +32,8 @@ test("the book opens the complete Writing archive without featuring an essay", a
   // Every essay title is written in, all at the same size.
   const written = carry.locator("[data-notebook-page] li");
   await expect(written).toHaveCount(11);
-  await expect(written.first()).toHaveText("The Cost of Keeping Up");
+  // The left page opens the archive with the newest essay.
+  await expect(carry.locator('[data-notebook-page="left"] li').first()).toHaveText("The Cost of Keeping Up");
   expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
   await expect(page).toHaveURL(/\/writing$/);
   await expect.poll(() => page.evaluate(() => (window as Window & { bookArrival?: object }).bookArrival)).toEqual({ matched: true, turned: true, centred: true });

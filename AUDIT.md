@@ -221,6 +221,12 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Fix: reuse it verbatim under the heading: "Building something? I'd love to hear about it."
 - Status: **Fixed.** Line added under "say hi!"; checked 1280 and 320×568 (islands still clear the prompt).
 
+**[A-29] [P1] Interaction: the Writing entry lacked craft, and had a paint-order bug** *(from Carter's review)*
+- Principle: motion with a physical origin (Rauno/Emil); "more attention to detail".
+- Evidence: `audit/writing-entry/before-realtime.jpg`. (1) Bug: the notebook's opacity animation flattened its 3D context, so it painted in DOM order — the turning leaves sat *behind* the right page, whose titles showed from the first frame. (2) The book reached full size almost at once, with no sense of lifting off the desk. (3) Three flat, rigid leaves. (4) ~800 ms of a static open book. (5) The handoff cross-faded the notebook's titles over the page's text at 50%.
+- Fix: fades moved to a wrapper so the notebook keeps true depth sorting; the book rises off the desk, tips a touch past upright and settles; leaves are thumbed over with a cadence, each curling (two hinged halves, the outer one trailing then whipping over), shading as it turns from the lamp and casting a moving shadow on the pages beneath; the titles ink in line by line once revealed; paper grain, stacked page edges and a ribbon marker; the notebook holds a beat, dissolves, *then* the heading and each essay row rise in on the page. Captures: `after-lift-desktop.jpg`, `after-lift-phone.jpg`, `after-handoff.jpg`.
+- Status: **Fixed.** `book-entry.spec` passes on desktop and mobile (one assertion now targets the left page, since the right page moved ahead of the leaves in the DOM as a paint-order safety net).
+
 ### Flagged, not changed (needs Carter)
 
 - **[A-20] Content discrepancy.** `/work` (and the hidden Work preview on /2.0) says "screened and interviewed **350+** early-stage startups"; `PRODUCT.md` lists "**250+** startups screened". One of them is wrong.

@@ -22,6 +22,17 @@
 .page [data-book-reveal] { transition: opacity 180ms ease, translate 240ms var(--cw-ease); }
 :global(html[data-book-transition="entering"]) .page [data-book-reveal],
 :global(html[data-book-transition="arriving"]) .page [data-book-reveal] { opacity: 0; translate: 0 10px; }
+/* The notebook holds for a beat and dissolves (lib/workshop-entry.ts); the
+   page then rises in after it, heading first and each essay row in turn, as
+   if the archive were being set down from the notebook. */
+/* The rows' own load animation owns their opacity, so their contents carry
+   the stagger: the ruled lines arrive with the section, then each row's words
+   settle onto them. */
+.page :global(.archive-row) > * { transition: opacity 360ms ease, translate 520ms var(--cw-ease); }
+:global(html[data-book-transition="entering"]) .page :global(.archive-row) > *,
+:global(html[data-book-transition="arriving"]) .page :global(.archive-row) > * { opacity: 0; translate: 0 10px; }
+:global(html[data-book-transition="revealing"]) .page [data-book-reveal] { transition: opacity 420ms ease 520ms, translate 600ms var(--cw-ease) 520ms; }
+:global(html[data-book-transition="revealing"]) .page :global(.archive-row) > * { transition-delay: calc(580ms + var(--row, 0) * 45ms); }
 @media (prefers-reduced-motion: reduce) {
-  .page [data-book-reveal], .lamplight { transition: none; }
+  .page [data-book-reveal], .page :global(.archive-row) > *, .lamplight { transition: none; }
 }

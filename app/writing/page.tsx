@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import SiteNav from "@/components/SiteNav";
 import MobileContact from "@/components/MobileContact";
 import GalaxyBackground from "@/components/GalaxyBackground";
@@ -86,7 +87,7 @@ function ArchiveGroup({
               key={essay.title}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ animationDelay: `${0.08 + (offset + index) * 0.035}s` }}
+              style={{ animationDelay: `${0.08 + (offset + index) * 0.035}s`, "--row": offset + index } as CSSProperties}
             >
               <span className="archive-main">
                 <strong>{essay.title}</strong>
