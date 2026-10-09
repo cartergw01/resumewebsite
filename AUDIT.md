@@ -50,7 +50,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Evidence: the only essay surfaced on /2.0 is drawn onto the notebook in perspective (`WritingIsland.tsx`, `EssayLeaf`), illegible at every width (`chromium-1280-writing.jpg`). The Writing stop's copy links to the Substack home, not an essay.
 - Why it matters: audience #2 came from Substack and wants more of the writing; audience #1 wants proof of thinking. Both hit a dead end of decorative text.
 - Fix: one quiet line under the hero copy linking straight to the latest essay (title from `content/portfolio.ts`, href to the Substack post). Alternative considered: put it only on the Writing stop — rejected because most 30-second visitors never leave the opening view.
-- Status: _open_
+- Status: **Fixed.** A quiet "latest essay" line under the hero links directly to the newest Substack post (display italic, real underline, 44 px-tall hit area). Verified at 375×667 (iPhone SE): still fits above the islands.
 
 **[A-05] [P1] Interaction & motion: scroll glide is too long; keyboard travel animates for ~1 s**
 - Principle: Rauno/Emil — UI motion under ~300 ms, keyboard-triggered and frequent actions shouldn't animate; "never fight native scroll".
@@ -165,7 +165,9 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 ## Copy changes (for review)
 
 - **A-04 · meta description** (`lib/seo.ts`): "Carter Wang's personal website." → "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side." Your hero sentence, sentence-cased for a meta context. Also feeds the web manifest and WebSite JSON-LD. Note this changes the live homepage's description too once merged.
+- **A-03 · new label** on the opening view: "latest essay" followed by the title of `essays[0]` ("The Cost of Keeping Up"), linking straight to the Substack post. The only new words are the two-word lowercase label; the title updates itself when you add an essay to `content/portfolio.ts`.
 
 ## Judgment calls
 
 - **A-04 · Restored a share image**, reversing `53930d7`. The new `public/og-image.jpg` is a capture of the real opening view (name + three islands, body copy hidden because it's unreadable at unfurl size). Alternative: keep no image and only fix the description — revert the image lines in `lib/seo.ts`. All subpages share the same image for now; per-page images (e.g. the open notebook for /writing) would be better but need renders you'd want to approve.
+- **A-03 · Latest essay on the opening view**, not only on the Writing stop. Most 30-second visitors never leave the opening view, and this is the only way to reach an essay in one click. Alternative rejected: an essay list or card on the Writing stop (more chrome, still two steps from landing).
