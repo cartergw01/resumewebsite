@@ -4,6 +4,8 @@
 export type CityTime = "night" | "day";
 const KEY = "carter-city-time";
 export const CITY_TIME_EVENT = "citytimechange";
+// Someone is reaching for the day/night switch: time to fetch the day still.
+export const CITY_DAY_INTENT = "citydayintent";
 // A quick, direct crossfade between the two renders; no sunrise or sunset.
 // LivingIsland.module.css matches it for the stills.
 export const CITY_TIME_DURATION = 600;
@@ -21,4 +23,18 @@ export function setCityTime(time: CityTime, remember = true) {
   else delete document.documentElement.dataset.cityTime;
   if (remember) { try { localStorage.setItem(KEY, time); } catch { /* Private mode keeps the session choice only. */ } }
   window.dispatchEvent(new CustomEvent<CityTime>(CITY_TIME_EVENT, { detail: time }));
+}
+
+// The daytime still is only mounted on intent, so switching waits (briefly)
+// for it to decode; the crossfade then never shows an empty island.
+export async function dayStillReady(timeout = 2500) {
+  const started = performance.now();
+  while (performance.now() - started < timeout) {
+    const image = document.querySelector<HTMLImageElement>('img[data-city-time="day"]');
+    if (image) {
+      try { await Promise.race([image.decode(), new Promise(resolve => setTimeout(resolve, timeout))]); } catch { /* Fall through to the switch. */ }
+      return;
+    }
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  }
 }

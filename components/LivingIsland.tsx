@@ -10,6 +10,7 @@ import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
+import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill from "./ParallaxStill";
@@ -30,6 +31,16 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   }, [city, island, workshop, world]);
   // The opening view shows light previews; full islands wait for travel.
   const [warm, setWarm] = useState(false);
+  // Taipei's daytime still waits until day is chosen, or someone reaches for
+  // the switch; most visits never leave the night.
+  const [dayWanted, setDayWanted] = useState(false);
+  useEffect(() => {
+    if (world !== "work") return;
+    const want = () => setDayWanted(true);
+    if (currentCityTime() === "day" || storedCityTime() === "day") want();
+    window.addEventListener(CITY_DAY_INTENT, want);
+    return () => window.removeEventListener(CITY_DAY_INTENT, want);
+  }, [world]);
 
   useEffect(() => {
     const visual = visualRef.current;
@@ -92,7 +103,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 90vw, 68vw" loading="eager"
           quality={90} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
-        {world === "work" && warm && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
+        {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 90vw, 68vw" loading="lazy" data-city-time="day"
           quality={90} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
         {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}

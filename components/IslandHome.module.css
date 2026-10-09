@@ -568,6 +568,10 @@
 .cityTime[data-time="day"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #c9d6ff40, inset 0 1px 0 #ffffff14; }
 .cityTime:hover { border-color: #ebd0ac80; transform: translateY(-1px); }
 .cityTime:focus-visible { outline: 1px solid #ebd0ac; outline-offset: 3px; }
+/* While the day still arrives, the sun breathes so the tap reads as received. */
+.cityTime[data-pending] svg { animation: city-time-pending 700ms ease-in-out infinite alternate; }
+@keyframes city-time-pending { to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .cityTime[data-pending] svg { animation: none; opacity: .6; } }
 .stage[data-travelling="true"] .cityTime, .stage[data-entering] .cityTime { opacity: 0; pointer-events: none; }
 /* On phones the art box overhangs each screen edge by 3rem. */
 @media (max-width: 760px) { .cityTime { top: 2%; right: calc(3rem + 1.25rem); width: 40px; height: 40px; } }

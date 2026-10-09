@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CITY_TIME_EVENT, currentCityTime, setCityTime, storedCityTime, type CityTime } from "@/lib/city-time";
+import { CITY_DAY_INTENT, CITY_TIME_EVENT, currentCityTime, dayStillReady, setCityTime, storedCityTime, type CityTime } from "@/lib/city-time";
 import styles from "./IslandHome.module.css";
 
 // One small button beside Taipei that offers the other time of day: a sun
@@ -17,6 +17,16 @@ export default function CityTimeToggle() {
     return () => window.removeEventListener(CITY_TIME_EVENT, sync);
   }, []);
   const day = time === "day";
+  const [pending, setPending] = useState(false);
+  const intent = () => window.dispatchEvent(new Event(CITY_DAY_INTENT));
+  const toggle = async () => {
+    if (day) { setCityTime("night"); return; }
+    intent();
+    setPending(true);
+    await dayStillReady();
+    setPending(false);
+    setCityTime("day");
+  };
   return (
     <button
       type="button"
@@ -26,7 +36,12 @@ export default function CityTimeToggle() {
       data-time={time}
       aria-label={day ? "Show Taipei at night" : "Show Taipei in the day"}
       title={day ? "Night" : "Day"}
-      onClick={() => setCityTime(day ? "night" : "day")}
+      aria-busy={pending || undefined}
+      data-pending={pending || undefined}
+      onPointerEnter={intent}
+      onPointerDown={intent}
+      onFocus={intent}
+      onClick={() => void toggle()}
     >
       <svg className={styles.cityTimeSun} viewBox="0 0 20 20" aria-hidden="true">
         <circle cx="10" cy="10" r="3.6" />

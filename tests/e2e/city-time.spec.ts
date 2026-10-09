@@ -6,9 +6,11 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await expect(toggle).toBeVisible();
   // At night the single button offers the day (a sun), and vice versa.
   await expect(toggle).toHaveAttribute("data-time", "night");
+  // The day still only loads once someone reaches for the switch.
   const day = page.locator('#work img[data-city-time="day"]');
-  await expect(day).toHaveCount(1);
+  await expect(day).toHaveCount(0);
   await toggle.click();
+  await expect(day).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
   await expect(page).toHaveURL(/\/2\.0#work$/);
   await expect(page.getByRole("button", { name: "Show Taipei at night" })).toHaveAttribute("data-time", "day");
