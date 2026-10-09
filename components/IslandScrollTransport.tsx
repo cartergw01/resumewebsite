@@ -351,8 +351,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Glides are driven here rather than by the browser's smooth scroll, so
     // every flight starts instantly and eases in over a consistent length.
     let glideFrame = 0;
+    // Set once the gesture-settling state below exists. A glide asked for by
+    // a tab, the scroll button, a key or a link must cancel any pending
+    // settle: on touch screens a tap is also a touch, and its settle check
+    // would otherwise pull the camera back to the island it just left.
+    let cancelSettle = () => {};
     const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; };
     const jump = (index: number, instant = false) => {
+      cancelSettle();
       entryPending = false;
       window.clearTimeout(entryRecovery);
       if (index > 0) warm();
@@ -543,6 +549,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let touching = false;
     let settling = false;
     let settleTimer = 0;
+    cancelSettle = () => { window.clearTimeout(settleTimer); intentAt = Number.NEGATIVE_INFINITY; };
     let settleRelease = 0;
     let scrollIdleTimer = 0;
     let direction = 1;
