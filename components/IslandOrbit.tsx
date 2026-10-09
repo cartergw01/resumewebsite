@@ -68,7 +68,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         hintTimer = setTimeout(clearHint, 3500);
       }, 1400);
     };
-    let drag: { id: number; x: number; y: number; lastX: number; lastY: number; moved: boolean; touch: boolean } | null = null;
+    let drag: { id: number; x: number; y: number; lastX: number; lastY: number; moved: boolean; touch: boolean; samples: [number, number, number][] } | null = null;
     let suppressClick = false;
     const title = world[0].toUpperCase() + world.slice(1);
     const project = (points: OrbitProjection) => {
@@ -164,13 +164,14 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         else void load();
       }, prepared ? 0 : world === "work" ? 250 : 900);
     };
-    const rotate = (dx: number, dy: number) => {
+    const markTurned = () => {
       clearHint();
       activate();
-      engineRef.current?.rotate(dx, dy);
       stage.dataset.orbitLearned = "true";
       setTurned(true);
     };
+    const rotate = (dx: number, dy: number) => { markTurned(); engineRef.current?.rotate(dx, dy); };
+    const turn = (dx: number, dy: number) => { markTurned(); engineRef.current?.drag(dx, dy); };
     const reset = () => {
       restore();
       engineRef.current?.reset();
@@ -180,7 +181,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     const down = (event: PointerEvent) => {
       if (!interactive || event.button !== 0 || !event.isPrimary || stage.dataset.entering) return;
       suppressClick = false;
-      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, moved: false, touch: event.pointerType === "touch" };
+      drag = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX, lastY: event.clientY, moved: false, touch: event.pointerType === "touch", samples: [] };
     };
     const move = (event: PointerEvent) => {
       if (!drag || drag.id !== event.pointerId) return;
@@ -195,12 +196,34 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         canvas.dataset.orbitDragging = "true";
       }
       event.preventDefault();
-      if (engineRef.current) rotate(-(event.clientX - drag.lastX) * 0.0032, drag.touch ? 0 : -(event.clientY - drag.lastY) * 0.0016);
+      if (engineRef.current) turn(-(event.clientX - drag.lastX) * 0.0032, drag.touch ? 0 : -(event.clientY - drag.lastY) * 0.0016);
       drag.lastX = event.clientX;
       drag.lastY = event.clientY;
+      // The last ~80ms of movement set the release velocity.
+      const now = event.timeStamp;
+      drag.samples.push([now, event.clientX, event.clientY]);
+      while (drag.samples.length > 2 && now - drag.samples[0][0] > 80) drag.samples.shift();
     };
-    const up = () => { drag = null; delete canvas.dataset.orbitDragging; };
-    const cancel = () => { suppressClick = true; up(); };
+    const up = (event?: PointerEvent) => {
+      const released = drag;
+      drag = null;
+      delete canvas.dataset.orbitDragging;
+      const engine = engineRef.current;
+      if (!released?.moved || !engine) return;
+      const [first] = released.samples, last = released.samples.at(-1);
+      // A pointer that stopped before letting go has no momentum.
+      const elapsed = first && last ? last[0] - first[0] : 0;
+      const idle = event && last ? event.timeStamp - last[0] > 60 : false;
+      const coast = elapsed >= 8 && !idle && !motion.matches;
+      // Capped, so a twitch measured over a few milliseconds can't spin it.
+      const speed = (value: number) => Math.max(-0.0025, Math.min(0.0025, value));
+      engine.release(
+        coast ? speed(-(last![1] - first[1]) / elapsed * 0.0032) : 0,
+        coast && !released.touch ? speed(-(last![2] - first[2]) / elapsed * 0.0016) : 0,
+      );
+    };
+    // A cancelled pointer (the page took the gesture) stops dead and settles.
+    const cancel = () => { suppressClick = true; if (drag) drag.samples = []; up(); };
     const click = (event: MouseEvent) => {
       if (!suppressClick || !link.contains(event.target as Node)) return;
       // Capture on window, ahead of the rocket and router: releasing a drag

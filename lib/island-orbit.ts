@@ -194,6 +194,22 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     let yaw = 0;
     let pitch = 0;
     let renderFrame = 0;
+    // A drag can pull past the view's limits against growing resistance, and a
+    // release coasts and springs back. Keys still step within the hard limits.
+    const YAW = 0.65, PITCH = 0.13, STRETCH = 0.1;
+    const rubber = (value: number, limit: number) => {
+      const over = Math.abs(value) - limit;
+      return over <= 0 ? value : Math.sign(value) * (limit + STRETCH * over * .55 / (over * .55 + STRETCH));
+    };
+    let rawYaw = 0, rawPitch = 0, glide = 0;
+    const show = () => {
+      yaw = rubber(rawYaw, YAW);
+      pitch = rubber(rawPitch, PITCH);
+      canvas.dataset.orbitYaw = yaw.toFixed(4);
+      canvas.dataset.orbitPitch = pitch.toFixed(4);
+      scheduleRender();
+    };
+    const stopGlide = () => { cancelAnimationFrame(glide); glide = 0; };
     const updatePose = () => {
       const orbit = new Spherical(initial.radius, initial.phi + pitch, initial.theta + yaw);
       camera.position.copy(target).add(new Vector3().setFromSpherical(orbit));
@@ -231,6 +247,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       disposed = true;
       cancelAnimationFrame(renderFrame);
       cancelAnimationFrame(tween);
+      stopGlide();
       gltf.scene.traverse(object => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();
@@ -253,13 +270,52 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     return {
       resize,
       rotate(dx: number, dy: number) {
-        yaw = Math.max(-0.65, Math.min(0.65, yaw + dx));
-        pitch = Math.max(-0.13, Math.min(0.13, pitch + dy));
-        canvas.dataset.orbitYaw = yaw.toFixed(4);
-        canvas.dataset.orbitPitch = pitch.toFixed(4);
-        scheduleRender();
+        stopGlide();
+        rawYaw = Math.max(-YAW, Math.min(YAW, yaw + dx));
+        rawPitch = Math.max(-PITCH, Math.min(PITCH, pitch + dy));
+        show();
       },
-      reset() { yaw = 0; pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
+      // Direct manipulation: follows the pointer, stretching past the limits.
+      drag(dx: number, dy: number) {
+        stopGlide();
+        rawYaw += dx;
+        rawPitch += dy;
+        show();
+      },
+      // Coast on the release velocity (radians per ms), then settle inside
+      // the limits. Zero velocity (or reduced motion) only springs back.
+      release(vYaw: number, vPitch: number) {
+        stopGlide();
+        let previous = performance.now();
+        const step = (now: number) => {
+          // A frame's timestamp can precede the release that scheduled it.
+          const dt = Math.max(0, Math.min(now - previous, 48));
+          previous = Math.max(previous, now);
+          const settle = (raw: number, velocity: number, limit: number): [number, number] => {
+            const over = Math.abs(raw) - limit;
+            if (over > 0) {
+              // Past the edge: brake hard, then ease back onto it.
+              velocity = Math.sign(raw) === Math.sign(velocity) ? velocity * Math.exp(-dt / 40) : 0;
+              raw = Math.sign(raw) * (limit + over * Math.exp(-dt / 90)) + velocity * dt;
+            } else {
+              raw += velocity * dt;
+              velocity *= Math.exp(-dt / 220);
+            }
+            return [raw, velocity];
+          };
+          [rawYaw, vYaw] = settle(rawYaw, vYaw, YAW);
+          [rawPitch, vPitch] = settle(rawPitch, vPitch, PITCH);
+          const resting = (raw: number, velocity: number, limit: number) => Math.abs(velocity) < 2e-5 && Math.abs(raw) - limit < 1e-4;
+          if (resting(rawYaw, vYaw, YAW) && resting(rawPitch, vPitch, PITCH)) {
+            rawYaw = Math.max(-YAW, Math.min(YAW, rawYaw));
+            rawPitch = Math.max(-PITCH, Math.min(PITCH, rawPitch));
+            glide = 0;
+          } else glide = requestAnimationFrame(step);
+          show();
+        };
+        glide = requestAnimationFrame(step);
+      },
+      reset() { stopGlide(); rawYaw = rawPitch = yaw = pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
       setDaylight(day: boolean, animate = true, duration?: number) { return setDaylight(day, animate, duration); },
       dispose,
     };

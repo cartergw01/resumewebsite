@@ -136,7 +136,7 @@ Format: `[ID] [priority] Category: Issue` → principle violated → evidence �
 - Principle: drag needs momentum and rubber-banding (Rauno/Emil).
 - Evidence: `lib/island-orbit.ts:255-257` hard-clamps yaw to ±0.65 rad; release stops dead (`IslandOrbit.tsx:211`).
 - Fix: release with decaying velocity; soft resistance past the limit that springs back.
-- Status: _open_
+- Status: **Fixed.** Drags now stretch up to 0.1 rad past the ±0.65 limit against growing resistance and spring back on release (τ 90 ms); a flick coasts on its last ~80 ms of velocity (τ 220 ms, capped) and brakes hard at the edge. Keys and reset keep their exact hard limits; reduced motion and a pointer that stopped before letting go get no coast; a cancelled pointer (page took the gesture) stops dead. Verified with synthetic 16 ms-spaced events: release 0.19 → coasts to 0.64; overdrag 0.73 → settles 0.650. Caught and fixed along the way: a rAF timestamp earlier than the release produced a negative step that flung the island backwards. All orbit e2e specs pass.
 
 **[A-18] [P2] Copy: "early stage" should be hyphenated as a compound modifier**
 - Evidence: `IslandHome.tsx:32`.
