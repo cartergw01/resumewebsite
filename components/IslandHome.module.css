@@ -281,7 +281,7 @@
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
 .stage[data-entering] .controls { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 800ms) ease-in forwards; }
+.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 1800ms) ease-in forwards; }
 .stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0 !important; }
 .stage[data-entering] .island { transition: none; filter: none; will-change: transform; }
 @keyframes entry-copy { to { opacity: 0; } }
