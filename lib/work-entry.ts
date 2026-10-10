@@ -1,5 +1,6 @@
 import styles from "@/components/WorkEntry.module.css";
 import { ENTRY_APPROACH_DURATION, ENTRY_ARRIVAL_DURATION } from "./island-entry-motion";
+import { arriveEntryLight } from "./entry-light";
 
 // Entering Work is a camera push, not a dive: the island eases toward Taipei
 // 101 in the rendered still, and the page dissolves in over the second half.
@@ -65,8 +66,12 @@ export function beginWorkEntry(visual: HTMLElement) {
   const page = document.createElement("div");
   page.className = styles.page;
   page.dataset.workPreview = "true";
+  // Lay the page in after the tap has painted its answer: copying and laying
+  // out the whole page cost ~80ms on a throttled phone inside the tap. The
+  // camera's glide runs on the compositor, so this work never stalls it.
   const source = document.querySelector("[data-work-window-content]");
-  if (source) page.append(...Array.from(source.children, child => child.cloneNode(true)));
+  const layIn = () => { if (source && !page.childElementCount) page.append(...Array.from(source.children, child => child.cloneNode(true))); };
+  const layInLater = typeof requestIdleCallback === "function" ? requestIdleCallback(layIn, { timeout: 500 }) : window.setTimeout(layIn, 60);
   overlay.append(wash, dark, page);
   document.body.append(overlay);
   document.documentElement.dataset.workTransition = "entering";
@@ -89,15 +94,17 @@ export function beginWorkEntry(visual: HTMLElement) {
 
   const timing = { duration: ENTRY_APPROACH_DURATION, fill: "forwards" as const };
   const animations = [
+    // The window's light fills the view (lib/entry-light.ts); the page is
+    // laid in beneath it, so it is there when the light clears.
     dark.animate([
       { opacity: 0, offset: 0 },
-      { opacity: 0, offset: .38, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      { opacity: 1, offset: .8 },
+      { opacity: 0, offset: .7, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      { opacity: 1, offset: .9 },
       { opacity: 1, offset: 1 },
     ], timing),
     page.animate([
-      { opacity: 0, transform: "scale(1.04)", offset: 0 },
-      { opacity: 0, transform: "scale(1.04)", offset: .58, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      { opacity: 0, transform: "scale(1.03)", offset: 0 },
+      { opacity: 0, transform: "scale(1.03)", offset: .78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
       { opacity: 1, transform: "scale(1)", offset: 1 },
     ], timing),
     wash.animate([
@@ -113,6 +120,7 @@ export function beginWorkEntry(visual: HTMLElement) {
     if (disposed) return;
     disposed = true;
     clearTimeout(timeout);
+    if (typeof cancelIdleCallback === "function") cancelIdleCallback(layInLater); else clearTimeout(layInLater);
     animations.forEach(animation => animation.cancel());
     finish?.cancel();
     sharpened?.remove();
@@ -132,6 +140,8 @@ export function beginWorkEntry(visual: HTMLElement) {
   // The real page is already in place beneath; the copy fades off it.
   current.reveal = () => {
     if (disposed) return;
+    layIn();
+    arriveEntryLight();
     finish = overlay.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-in-out", fill: "forwards" });
     void finish.finished.then(dispose).catch(() => {});
   };

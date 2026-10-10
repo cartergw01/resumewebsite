@@ -3101,3 +3101,15 @@ html[data-theme="dark"] a {
 html[data-islands-quiet] [data-testid="rocket-effects-canvas"][data-transition-phase="idle"] {
   opacity: 0;
 }
+
+/* While an island is entered, the header makes way with the rest of the
+   page's chrome instead of disappearing under the stage. */
+html[data-island-entering] .site-nav {
+  z-index: 61;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 600ms cubic-bezier(0.3, 0, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-island-entering] .site-nav { transition: none; }
+}

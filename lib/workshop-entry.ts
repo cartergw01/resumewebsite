@@ -1,5 +1,6 @@
 import styles from "@/components/WorkshopEntry.module.css";
 import { artworkTransform } from "./artwork-perspective";
+import { arriveEntryLight } from "./entry-light";
 import { ENTRY_ARRIVAL_DURATION, ENTRY_HANDOFF_DURATION, ENTRY_LIFT_DURATION, ENTRY_STAGGER_DURATION } from "./island-entry-motion";
 
 type Entry = {
@@ -236,8 +237,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       // you, tipping a touch past upright, then settling at reading size.
       screen.animate([
         { transform: bookPose(cx, cy, angle, tilt, scale), offset: 0, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2 - 4, 0, -.035, 1.012), offset: .44, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
-        { transform: rest, offset: .58 },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2 - 4, 0, -.035, 1.012), offset: .5, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
+        { transform: rest, offset: .62 },
         { transform: rest, offset: 1 },
       ], lift),
       fader.animate([{ opacity: 0 }, { opacity: 1, offset: .12 }, { opacity: 1 }], lift),
@@ -248,7 +249,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     // lifts off the block, curls, shades as it turns from the lamp, and casts
     // a shadow that slides from the right page to the left as it passes.
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
-    const cadence = [[.48, .34], [.6, .3], [.7, .32]];
+    const cadence = [[.56, .28], [.66, .25], [.75, .24]];
     leaves.forEach((leaf, index) => {
       const [start, length] = cadence[index] ?? cadence[cadence.length - 1];
       const turn = { duration: ENTRY_LIFT_DURATION * length, delay: ENTRY_LIFT_DURATION * start, fill: "both" } as const;
@@ -370,6 +371,8 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
     current.frames.push(requestAnimationFrame(() => {
       if (entry !== current || !target.isConnected) return;
       if (kind === "book") {
+        // The lamplight behind it fades with the notebook.
+        arriveEntryLight(ENTRY_ARRIVAL_DURATION * .5);
         // The written archive holds a beat, then the notebook dissolves
         // before the page's rows rise into place (WritingWorld.module.css), so
         // the two sets of titles never sit on top of each other.
@@ -401,6 +404,7 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       }
       // Deal each card into its own row's shot while the list fades in.
       document.documentElement.dataset[attribute] = "revealing";
+      arriveEntryLight();
       const shots = Array.from(document.querySelectorAll<HTMLElement>("[data-project-shot]"));
       const cards = Array.from(current.screen.children) as HTMLElement[];
       const stagger = cards.length > 1 ? ENTRY_STAGGER_DURATION : 0;

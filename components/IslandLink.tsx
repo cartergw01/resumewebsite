@@ -7,6 +7,7 @@ import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
 import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
 import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY } from "@/lib/island-entry-motion";
+import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-light";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
@@ -87,20 +88,28 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     const initial = getComputedStyle(visual);
     const initialTransform = initial.transform;
     const initialOrigin = initial.transformOrigin;
+    // The landmark's place on screen, where the island answers the click.
+    const [focusX, focusY] = origin.split(" ").map(Number.parseFloat);
+    const box = visual.getBoundingClientRect();
+    const landmarkPoint = { x: box.left + focusX * box.width / visual.offsetWidth, y: box.top + focusY * box.height / visual.offsetHeight };
     visual.dataset.entryLandmark = name;
     link.dataset.entering = "true";
     stage.style.setProperty("--entry-approach-duration", `${ENTRY_APPROACH_DURATION}ms`);
     stage.dataset.entering = title.toLowerCase();
+    document.documentElement.dataset.islandEntering = title.toLowerCase();
     stage.setAttribute("aria-busy", "true");
+    beginEntryLight(title.toLowerCase() as EntryWorld, landmarkPoint, document.documentElement.dataset.cityTime === "day");
 
     // Work's page dissolves in over its push; the book and workshop open theirs.
     const workEntry = city ? beginWorkEntry(visual) : null;
-    // One continuous, eased move at the shared pace: it eases out of rest,
-    // glides in and settles, with no intermediate keyframe to stall on.
+    // A breath before the journey: the island settles back a touch as it
+    // answers, then the camera glides in and slows into the landmark.
+    const rest = initialTransform === "none" ? "" : initialTransform;
     const zoom = visual.animate([
-      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
+      { transform: rest || "scale(1)", transformOrigin: initialOrigin, easing: "cubic-bezier(0.3, 0, 0.4, 1)" },
+      { transform: `${rest} translate3d(0, 6px, 0) scale(0.975)`.trim(), transformOrigin: initialOrigin, offset: .14, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.5, 0, 0.2, 1)" },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
-    ], { duration: ENTRY_APPROACH_DURATION, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.45, 0, 0.25, 1)", fill: "forwards" });
+    ], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
@@ -118,6 +127,11 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     }
     const reset = () => {
       cancelled = true;
+      if (!handedOff) cancelEntryLight();
+      delete document.documentElement.dataset.islandEntering;
+      window.removeEventListener("pointerdown", hurry, true);
+      window.removeEventListener("keydown", hurryKey, true);
+      cancelAnimationFrame(hurryFrame);
       window.removeEventListener("keydown", escape);
       window.removeEventListener("resize", interrupted);
       window.removeEventListener("popstate", interrupted);
@@ -146,6 +160,26 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       router.push(href);
     }
     function interrupted() { if (!handedOff) reset(); else cancelScreen?.(); }
+    // Impatient? Another tap, click, Enter or Space plays the rest of the
+    // journey at four times the speed, including animations it starts later.
+    let hurryFrame = 0;
+    function hurry() {
+      if (cancelled || hurryFrame) return;
+      const until = performance.now() + 2500;
+      const speed = () => {
+        for (const animation of document.getAnimations()) if (animation.playState === "running" && animation.playbackRate < 4) animation.playbackRate = 4;
+        hurryFrame = performance.now() < until ? requestAnimationFrame(speed) : 0;
+      };
+      speed();
+    }
+    function hurryKey(event: KeyboardEvent) { if (event.key === "Enter" || event.key === " ") hurry(); }
+    // Listen from the next frame, so the press that started the journey
+    // is not counted as a second one.
+    requestAnimationFrame(() => {
+      if (cancelled) return;
+      window.addEventListener("pointerdown", hurry, true);
+      window.addEventListener("keydown", hurryKey, true);
+    });
     window.addEventListener("keydown", escape);
     window.addEventListener("resize", interrupted);
     window.addEventListener("popstate", interrupted);

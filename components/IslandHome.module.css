@@ -253,7 +253,7 @@
 .scene[data-active="false"] .overviewVisual { animation-play-state: paused; }
 .stage[data-entering] .overviewVisual { transition: none; will-change: transform; }
 .stage[data-entering] .overviewIsland:not([data-entering]),
-.stage[data-entering] .overviewLabel { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
+.stage[data-entering] .overviewLabel { animation: entry-copy 700ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
 .overviewIsland[data-entering] { z-index: 3; filter: none; outline-color: transparent; transition: none; }
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
@@ -280,11 +280,14 @@
 .stage[data-entering="work"] .islandLink:focus-visible { outline-color: transparent; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
-.stage[data-entering] .controls { animation: entry-copy 300ms ease-out forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 1800ms) ease-in forwards; }
+.stage[data-entering] .controls { animation: entry-copy 700ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
+.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 2500ms) cubic-bezier(0.5, 0, 0.75, 0.4) forwards; }
+/* The island answers: its own light swells as the journey begins. */
+.stage[data-entering] .scene[data-active="true"] .artGlow { opacity: 1 !important; transform: scale(1.25); transition: opacity 500ms ease-out, transform 1600ms cubic-bezier(0.2, 0.6, 0.3, 1); }
 .stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0 !important; }
 .stage[data-entering] .island { transition: none; filter: none; will-change: transform; }
-@keyframes entry-copy { to { opacity: 0; } }
+/* The page's words step aside rather than vanish. */
+@keyframes entry-copy { to { opacity: 0; transform: translate3d(0, -10px, 0); } }
 @keyframes entry-space { to { opacity: 0; transform: scale(1.4); } }
 @keyframes entry-cover { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
 .controls {

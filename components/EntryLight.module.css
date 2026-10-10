@@ -1,0 +1,30 @@
+/* The shared light of an island entry (lib/entry-light.ts). Front: above the
+   page carried in through Work's window. Behind: under the notebook or the
+   deck, which pass through the light themselves. */
+.overlay { position: fixed; inset: 0; z-index: 95; overflow: hidden; pointer-events: none; contain: strict; }
+.overlay[data-layer="behind"] { z-index: 89; }
+.bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(70vmax, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  /* Light, not haze: a near-white heart that falls off quickly to the
+     world's colour, then to nothing. */
+  background: radial-gradient(circle, #fffbf2 0%, var(--core) 16%, color-mix(in srgb, var(--edge) 55%, transparent) 34%, color-mix(in srgb, var(--edge) 14%, transparent) 50%, transparent 66%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(.25);
+  will-change: transform, opacity;
+}
+.mote {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffdf4 0 28%, var(--core) 46%, transparent 72%);
+  box-shadow: 0 0 10px var(--edge);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) { .overlay { display: none; } }
