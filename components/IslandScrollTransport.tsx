@@ -151,6 +151,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
     };
     syncQuiet();
+    // True while the one-time "this page moves" peek runs on touch screens.
+    let peeking = false;
     let loadFlights = () => {};
     let flightsRequested = false;
     const prepare = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
@@ -165,7 +167,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (stage.dataset.entering) return;
       const progress = clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
-      if (progress > .02 && !stage.dataset.explored) stage.dataset.explored = "true";
+      if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
       const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 32);
       // Touch momentum and our navigation glide already supply smooth positions.
@@ -308,10 +310,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           button.setAttribute("aria-label", `Show ${title} island`);
         });
         const upcoming = worlds[current + 1];
-        nextLabel.textContent = current === scenes.length - 1 ? "back to the start" : "scroll down";
+        // On touch screens the gesture is a swipe up, so the cue says so.
+        const verb = touchScroll.matches ? "swipe up" : "scroll down";
+        nextLabel.textContent = current === scenes.length - 1 ? "back to the start" : verb;
         // Each name starts with the words on the button (WCAG 2.5.3).
+        const Verb = verb[0].toUpperCase() + verb.slice(1);
         next.setAttribute("aria-label", current === scenes.length - 1 ? "Back to the start"
-          : upcoming.title ? `Scroll down to the ${upcoming.title} island` : "Scroll down to the end");
+          : upcoming.title ? `${Verb} to the ${upcoming.title} island` : `${Verb} to the end`);
         next.dataset.last = String(current === scenes.length - 1);
       }
       // Wait for a settled shot; passing a world mid-flight must not rewrite
@@ -687,9 +692,40 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("scroll", onGestureScroll, { passive: true });
     window.addEventListener("scrollend", onScrollEnd);
     window.addEventListener("keydown", onKey);
+    // Phones: if nobody has touched the opening view after a few seconds,
+    // drift the camera a little toward Work and settle back, once per visit,
+    // so the page shows that it moves. Any touch, wheel or key takes over.
+    let peekTimer = 0;
+    let peekFrame = 0;
+    let interacted = false;
+    const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; } peeking = false; };
+    const peekSeen = () => { try { return sessionStorage.getItem("islands-peek") === "1"; } catch { return false; } };
+    const peek = () => {
+      if (interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
+      try { sessionStorage.setItem("islands-peek", "1"); } catch { /* Private mode: the peek may repeat. */ }
+      // Far enough that Work starts to come forward, well short of a stop.
+      const depth = travel * (0.46 / duration);
+      const out = 750, hold = 180, back = 850, began = performance.now();
+      peeking = true;
+      const step = (now: number) => {
+        const t = now - began;
+        const k = t < out ? 1 - Math.pow(1 - t / out, 3)
+          : t < out + hold ? 1
+          : t < out + hold + back ? 1 - ease((t - out - hold) / back) : 0;
+        window.scrollTo({ top: start + depth * k, behavior: "instant" });
+        if (t < out + hold + back) peekFrame = requestAnimationFrame(step);
+        else { peekFrame = 0; peeking = false; }
+      };
+      peekFrame = requestAnimationFrame(step);
+    };
+    const peekIntents = ["touchstart", "wheel", "keydown", "pointerdown"] as const;
+    peekIntents.forEach(type => window.addEventListener(type, stopPeek, { passive: true, capture: true }));
+    if (touchScroll.matches && !motion.matches && !peekSeen()) peekTimer = window.setTimeout(peek, 3500);
     setReady(true);
 
     return () => {
+      stopPeek();
+      peekIntents.forEach(type => window.removeEventListener(type, stopPeek, { capture: true }));
       delete document.documentElement.dataset.islandsQuiet;
       history.scrollRestoration = previousRestoration;
       window.removeEventListener("wheel", markIntent);

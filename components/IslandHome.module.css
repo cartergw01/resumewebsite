@@ -305,6 +305,8 @@
    held by a frame. At the last stop the paths turn over and the stars rise. */
 .scrollArrow { position: relative; display: block; flex: none; width: 12px; height: 38px; overflow: hidden; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
 .scrollHint[data-last="true"] .scrollArrow { transform: rotate(180deg); }
+/* On touch screens the cue says "swipe up", so its stars rise with the finger. */
+@media (pointer: coarse) { .scrollArrow { transform: rotate(180deg); } }
 .scrollStar { position: absolute; top: 0; left: 50%; width: 2px; height: 16px; margin-left: -1px; border-radius: 1px; background: linear-gradient(#bddbff00, #bddbff66 45%, #fff1ce); animation: scroll-fall 2.4s cubic-bezier(0.55, 0, 0.35, 1) infinite; }
 .scrollStar::after { content: ""; position: absolute; bottom: -2.5px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: radial-gradient(circle, #fffdf3 0 1.2px, #ffe3adcc 2px, transparent 2.6px); filter: drop-shadow(0 0 4px #c6deff); }
 @keyframes scroll-fall {
@@ -387,7 +389,7 @@
   .chapters { width: 100%; }
   .chapters button { min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
-  .controls .scrollHint { justify-content: center; gap: 0.3rem; font-size: 0.8125rem; }
+  .controls .scrollHint { justify-content: center; gap: 0.4rem; color: #fff7eae6; font-size: 0.9375rem; }
   .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
   .scrollArrow { width: 12px; height: 30px; }
 }
