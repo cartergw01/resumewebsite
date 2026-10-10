@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import GalaxyBackground from "./GalaxyBackground";
 import JourneyStars from "./JourneyStars";
-import { rememberIsland } from "@/lib/island-location";
+import { rememberIsland, rememberReturn } from "@/lib/island-location";
 import { createCometNavigation } from "@/lib/comet-navigation";
 import styles from "./IslandHome.module.css";
 import type { FlightWorld } from "@/lib/island-flight";
@@ -439,16 +439,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // and re-dispatches the click on the island so both behave identically.
     const enterFromHeading = (event: MouseEvent) => {
       const link = (event.target as Element | null)?.closest<HTMLAnchorElement>("a");
-      if (link && stage.contains(link) && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-        const destination = new URL(link.href);
-        if (destination.origin === location.origin && worlds.some(world => destination.pathname === `/${world.id}`)) {
-          // Hold the destination's return address while its source scene is
-          // still mounted, including entries from the opening/closing views.
-          entryPending = true;
-          window.clearTimeout(entryRecovery);
-          entryRecovery = window.setTimeout(() => { entryPending = false; schedule(); }, 8_000);
-          rememberIsland(destination.pathname.slice(1));
-        }
+      const toWorld = link && new URL(link.href, location.href).origin === location.origin && worlds.some(world => link.pathname === `/${world.id}`);
+      // Wherever a visitor leaves for a page, from an island, a heading or
+      // the header, Back and "Back to islands" bring them to the same view:
+      // the opening view if they left from it, otherwise the island's stop.
+      const source = activeIndex >= 0 ? worlds[activeIndex].id : "intro";
+      if (toWorld) rememberReturn(source);
+      if (toWorld && stage.contains(link) && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+        // Hold the source's address while the entry plays, so settling
+        // mid-journey never rewrites it.
+        entryPending = true;
+        window.clearTimeout(entryRecovery);
+        entryRecovery = window.setTimeout(() => { entryPending = false; schedule(); }, 8_000);
+        rememberIsland(source);
       }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;

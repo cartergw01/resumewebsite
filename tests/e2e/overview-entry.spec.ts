@@ -35,9 +35,16 @@ for (const scene of ["intro", "hello"]) {
       if (world === "writing") await expect(page.locator(".archive-row")).toHaveCount(11);
       if (world === "projects") await expect(page.locator("[data-project-shot]")).toHaveCount(8);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      // Back, and Back to islands, return to the view the island was chosen
+      // from, not to that island's stop further down the page.
       await page.goBack();
-      await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
+      await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);
       await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
+      await page.goForward();
+      await expect(page).toHaveURL(new RegExp(`/${world}$`));
+      await page.getByRole("link", { name: "Back to islands" }).click();
+      await expect(page).toHaveURL(scene === "intro" ? /:\d+\/$/ : /\/#hello$/);
+      await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);
       expect(errors).toEqual([]);
     });
   }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import styles from "./MobileContact.module.css";
+import { islandReturn } from "@/lib/island-location";
 
 type SiteNavProps = {
   active?: "home" | "work" | "writing" | "projects" | "resume";
@@ -15,8 +16,17 @@ const primaryLinks = [
   { id: "projects", label: "Projects", href: "/projects" },
 ] as const;
 
-// Same order as the 'say hi' links: email first, for whoever wants to reach out.
+// Same order as the 'say hi' links: X first, then email.
 const socialLinks = [
+  {
+    label: "X",
+    href: "https://x.com/CarterKoWang",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    ),
+  },
   {
     label: "Email",
     href: "mailto:cartergw01@gmail.com",
@@ -24,15 +34,6 @@ const socialLinks = [
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <rect x="2" y="4" width="20" height="16" rx="2" />
         <path d="m2 7 10 7 10-7" />
-      </svg>
-    ),
-  },
-  {
-    label: "X",
-    href: "https://x.com/CarterKoWang",
-    icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
       </svg>
     ),
   },
@@ -65,6 +66,10 @@ function externalLinkProps(href: string) {
 export default function SiteNav({ active = "home", hidePrimary = false }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
   const destination = active !== "home";
+  const island = active === "resume" ? "work" : active;
+  const [returnHref, setReturnHref] = useState(`/#${island}`);
+  // Back to where the visitor left the islands, once storage can be read.
+  useEffect(() => { if (destination) setReturnHref(islandReturn(island)); }, [destination, island]);
 
   useEffect(() => {
     if (!destination) return;
@@ -82,7 +87,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
     <header className={`site-nav${destination && active !== "resume" ? ` ${styles.destinationNav}` : ""}`} data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled}>
       {/* Every subpage returns to its island from the same upper-left spot. */}
       {destination && (
-        <Link href={`/#${active === "resume" ? "work" : active}`} scroll={false} className="site-nav-return" aria-label="Back to islands">
+        <Link href={returnHref} scroll={false} className="site-nav-return" aria-label="Back to islands">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M13 8H3m0 0 4.5-4.5M3 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

@@ -260,9 +260,10 @@ test("skip link and the opening islands reach content directly", async ({ page, 
   // The opening islands open their pages directly.
   await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: /^Projects,/ }).click();
   await expect(page).toHaveURL(/\/projects$/);
+  // Back returns to the opening view they were chosen from.
   await page.goBack();
-  await expect(page).toHaveURL(/\/#projects$/);
-  await expectScene(page, "projects");
+  await expect(page).toHaveURL(/:\d+\/$/);
+  await expectScene(page, "intro");
 });
 
 test("each stop's heading enters its page like its island", async ({ page }) => {
