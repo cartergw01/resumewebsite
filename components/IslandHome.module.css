@@ -457,8 +457,6 @@
 .overviewIsland[data-touch-pressed] [data-book-spread] { fill: #ffe6ae; fill-opacity: .65; }
 .overviewIsland[data-touch-pressed] [data-city-entry-window] { fill: #fff4cf; }
 @media (prefers-reduced-motion: reduce) { .touchSurface { transition: none; } }
-/* The rocket itself stays available; its exhaust waits for an island or a flight. */
-:global(html):has(.stage[data-engaged="false"][data-travelling="false"]) :global([data-testid="rocket-effects-canvas"][data-transition-phase="idle"]) { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }
 
 /* Mouse users get the island prompt as a tooltip by the cursor; the island

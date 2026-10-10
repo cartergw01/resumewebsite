@@ -135,13 +135,29 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // from layout so each breakpoint's arrangement drives the first zoom.
     let introFocus = { x: 50, y: 50, size: 100 };
 
-    // Off-screen islands load on the first sign of travel, not on first paint.
-    // So do the 3D flight models: the first crossing (into Work) is always the
-    // 2D zoom, which gives them time to arrive before Work → Writing.
+    // Off-screen islands are prepared after first paint: as soon as the page
+    // is idle, or on the first sign of travel if that comes sooner. Mounting
+    // and decoding three islands mid-flight is what made the first crossing
+    // stutter. The 3D flight models wait for real travel: the first crossing
+    // (into Work) is always the 2D zoom, which gives them time to arrive.
+    // The rocket's exhaust rests while no island is engaged and nothing
+    // travels. Mirrored onto <html> as one attribute: the CSS used to ask
+    // html:has(.stage[...]), which re-styled the whole page on every change.
+    const syncQuiet = () => {
+      const quiet = stage.dataset.engaged !== "true" && stage.dataset.travelling !== "true";
+      if (quiet !== (document.documentElement.dataset.islandsQuiet === "true")) {
+        if (quiet) document.documentElement.dataset.islandsQuiet = "true";
+        else delete document.documentElement.dataset.islandsQuiet;
+      }
+    };
+    syncQuiet();
     let loadFlights = () => {};
+    let flightsRequested = false;
+    const prepare = () => { if (stage.dataset.warm !== "true") stage.dataset.warm = "true"; };
     const warm = () => {
-      if (stage.dataset.warm === "true") return;
-      stage.dataset.warm = "true";
+      prepare();
+      if (flightsRequested) return;
+      flightsRequested = true;
       loadFlights();
     };
     const render = (now: number, direct = false) => {
@@ -176,7 +192,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const arrivalCue = phase(crossing, 0.95, 1);
       const flight = Math.pow(Math.sin(Math.PI * clamp((crossing - 0.18) / 0.6)), 2);
       const travelling = String(!motion.matches && crossing > 0 && crossing < 1);
-      if (stage.dataset.travelling !== travelling) stage.dataset.travelling = travelling;
+      if (stage.dataset.travelling !== travelling) { stage.dataset.travelling = travelling; syncQuiet(); }
 
       // The first crossing flies into the opening view's Work island rather
       // than across open space, so the two islands share one path.
@@ -277,6 +293,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         activeIndex = current;
         stage.dataset.engaged = "false";
+        syncQuiet();
         track.dataset.scene = worlds[current].id;
         scenes.forEach((scene, index) => {
           scene.inert = index !== current;
@@ -448,7 +465,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (pointer.type.startsWith("pointer") && pointer.pointerType !== "mouse") return;
       const target = event.type === "pointerout" || event.type === "focusout" ? (event as FocusEvent).relatedTarget : event.target;
       const engaged = target instanceof Element && Boolean(target.closest('[data-island-scene][data-active="true"] [data-island-link]'));
-      if (stage.dataset.engaged !== String(engaged)) stage.dataset.engaged = String(engaged);
+      if (stage.dataset.engaged !== String(engaged)) { stage.dataset.engaged = String(engaged); syncQuiet(); }
       if (engaged && activeIndex >= 0) scenes[activeIndex].dataset.cueSeen = "true";
     };
 
@@ -484,11 +501,13 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // wait for the camera to rest, and give up if the visitor is leaving.
     const atRest = () => !stage.dataset.travelling || stage.dataset.travelling === "false";
     const settled = () => atRest() && !stage.dataset.scrolling && !stage.dataset.navigating && !stage.dataset.entering;
-    loadFlights = () => { if (capable()) flightTimer = window.setTimeout(function attempt() {
+    // Even the capability check stays off the gesture: probing WebGL opens a
+    // GPU context, which can block the main thread for half a second.
+    loadFlights = () => { flightTimer = window.setTimeout(function attempt() {
       const begin = () => {
         if (flightAbort.signal.aborted || stage.dataset.entering) return;
         if (!settled()) { flightTimer = window.setTimeout(attempt, 600); return; }
-        start();
+        if (capable()) start();
       };
       const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
         const islands = Object.entries(flightAssets).map(([id, asset]) => {
@@ -502,7 +521,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         stage.dataset.flightReady = "true";
       }).catch(() => { flightWorld = null; });
       if ("requestIdleCallback" in window) window.requestIdleCallback(begin, { timeout: 4000 }); else begin();
-    }, 0); };
+    }, 300); };
     // A hash link or restored position may already have warmed the stage.
     if (stage.dataset.warm === "true") loadFlights();
     const retime = () => flightWorld?.setTime(currentCityTime());
@@ -538,6 +557,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("scroll", hideTip, { passive: true });
     const intents = ["wheel", "touchstart", "keydown"] as const;
     intents.forEach(type => window.addEventListener(type, warm, { passive: true, once: true }));
+    // Prepare the islands once the opening view has loaded and gone quiet,
+    // unless the visitor asked to save data or is on a slow connection.
+    const network = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    let prepareTimer = 0;
+    let prepareIdle = 0;
+    const schedulePrepare = () => {
+      if (network?.saveData || (network?.effectiveType && !/4g/.test(network.effectiveType))) return;
+      prepareTimer = window.setTimeout(() => {
+        if (typeof requestIdleCallback === "function") prepareIdle = requestIdleCallback(prepare, { timeout: 2000 });
+        else prepare();
+      }, 600);
+    };
+    if (document.readyState === "complete") schedulePrepare(); else window.addEventListener("load", schedulePrepare, { once: true });
     sceneNav.addEventListener("focusin", warm);
     // When a scroll gesture comes to rest mid-flight, glide on to the next
     // stop in the direction you were going, so the page never stops between
@@ -658,6 +690,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     setReady(true);
 
     return () => {
+      delete document.documentElement.dataset.islandsQuiet;
       history.scrollRestoration = previousRestoration;
       window.removeEventListener("wheel", markIntent);
       window.removeEventListener("touchstart", onTouchStart);
@@ -672,6 +705,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       delete stage.dataset.scrolling;
       stopGlide();
       intents.forEach(type => window.removeEventListener(type, warm));
+      window.removeEventListener("load", schedulePrepare);
+      window.clearTimeout(prepareTimer);
+      if (typeof cancelIdleCallback === "function") cancelIdleCallback(prepareIdle);
       sceneNav.removeEventListener("focusin", warm);
       observer.disconnect();
       readerWatch.disconnect();

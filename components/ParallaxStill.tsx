@@ -75,7 +75,8 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       textures.push(texture);
       gl.activeTexture(gl.TEXTURE0 + unit);
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+      // Bitmaps arrive premultiplied (createImageBitmap); images need it here.
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, !(typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap));
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
       gl.generateMipmap(gl.TEXTURE_2D);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
@@ -145,7 +146,14 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       const depth = new Image(); depth.src = depthSrc;
       try { await Promise.all([night.decode(), day.decode(), depth.decode()]); } catch { return; }
       if (disposed) return;
-      upload(0, night, "night"); upload(1, day, "day"); upload(2, depth, "depth");
+      // Decode to bitmaps off the main thread: uploading an <img> made WebGL
+      // decode it again synchronously, ~20ms per island in the first flight.
+      const bitmap = (image: HTMLImageElement) => typeof createImageBitmap === "function"
+        ? createImageBitmap(image, { premultiplyAlpha: "premultiply" }).catch(() => image)
+        : Promise.resolve(image);
+      const [nightPixels, dayPixels] = await Promise.all([bitmap(night), day === night ? null : bitmap(day)]);
+      if (disposed) return;
+      upload(0, nightPixels, "night"); upload(1, dayPixels ?? nightPixels, "day"); upload(2, depth, "depth");
       // Sample the landmark's depth so it becomes the still point.
       const probe = document.createElement("canvas"); probe.width = 900; probe.height = 600;
       const context = probe.getContext("2d", { willReadFrequently: true })!;

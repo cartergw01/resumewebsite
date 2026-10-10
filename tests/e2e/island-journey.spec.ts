@@ -223,27 +223,16 @@ test("scene controls only select worlds, including repeated activation", async (
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
 });
 
-test("off-screen islands wait for the first sign of travel", async ({ page }, testInfo) => {
-  // Full-size island files; the opening view uses small optimized previews.
-  const requested: string[] = [];
-  page.on("request", (request) => {
-    // Stills arrive resized through next/image, like the previews but larger.
-    const url = new URL(request.url());
-    const path = url.pathname === "/_next/image" ? url.searchParams.get("url") ?? "" : url.pathname;
-    if (/^\/blender\/island-/.test(path) || /^\/_next\/static\/media\/taipei-flix/.test(url.pathname)) requested.push(request.url());
-  });
+test("off-screen islands prepare after the opening view, before anyone travels", async ({ page }) => {
+  // Mounting and decoding the islands mid-flight made the first crossing
+  // stutter, so they are prepared as soon as the opening view is idle: never
+  // in the first paint, and without waiting for a scroll.
   await page.goto("/");
-  await expect.poll(() => page.locator("#intro img").first().evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(page.locator("#work [data-island-visual] img")).toHaveCount(0);
-  await page.waitForLoadState("networkidle");
-  const previews = new Set(requested);
-  requested.length = 0;
-  if (testInfo.project.name === "desktop") await page.mouse.wheel(0, 120);
-  else await page.getByRole("button", { name: "Scroll down to the Work island" }).tap();
-  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true");
-  await expect.poll(() => requested.filter(url => !previews.has(url)).length).toBeGreaterThanOrEqual(3);
+  await expect.poll(() => page.locator("#intro img").first().evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true", { timeout: 10_000 });
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
   await expect(page.locator("#work [data-island-visual] img:not([data-city-time])")).toHaveCount(1);
-  // The day still waits for someone to reach for the day/night switch.
   await expect(page.locator('#work [data-island-visual] img[data-city-time="day"]')).toHaveCount(0);
   await expect(page.locator("#writing [data-island-visual] img")).toHaveCount(1);
   await expect(page.locator("#projects [data-island-visual] img")).toHaveCount(1);

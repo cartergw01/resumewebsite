@@ -3095,3 +3095,9 @@ html[data-theme="dark"] a {
   .site-nav[data-resume-nav] .site-nav-social a { min-width: 24px; padding-inline: 2px; }
   .site-nav[data-resume-nav] .site-nav-social a svg { width: 13px; height: 13px; }
 }
+
+/* On the islands, the rocket stays available but its exhaust waits for an
+   island or a flight. IslandScrollTransport sets data-islands-quiet. */
+html[data-islands-quiet] [data-testid="rocket-effects-canvas"][data-transition-phase="idle"] {
+  opacity: 0;
+}

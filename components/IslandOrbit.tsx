@@ -28,11 +28,11 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     let loadController: AbortController | null = null;
     let failed = false;
     let live = false;
-    // Rotatable models load on intent, not on arrival: hovering or focusing an
-    // island, or the first swipe on a phone. Only Taipei preloads, and only on
-    // desktop, because its click flies through the real model.
-    const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
-    let interested = interactive && fine && world === "work";
+    // Rotatable models load when someone starts turning an island (the first
+    // drag or swipe) or focuses it from the keyboard, never on arrival or
+    // hover: building one blocks the main thread for ~250ms (lighting setup
+    // and shader compile), which read as a hitch on landing at Work.
+    let interested = false;
     let prepared = false;
     let loadTimer: ReturnType<typeof setTimeout> | undefined;
     let idleLoad: number | undefined;
@@ -55,8 +55,8 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       delete link.dataset.orbitHint;
     };
     const suggestRotation = () => {
-      // Phones show the swipe hint before the model exists; the swipe loads it.
-      const ready = () => engineRef.current ? canLoad() : !fine && interactiveSceneReady() && !document.hidden;
+      // The hint shows before the model exists; the first drag loads it.
+      const ready = () => engineRef.current ? canLoad() : interactiveSceneReady() && !document.hidden;
       if (!interactive || !ready() || stage.dataset.orbitHintSeen || stage.dataset.orbitLearned || hintDelay || hintTimer) return;
       // Borrow the existing annotation once, after visitors have seen where
       // the island leads. No extra label, icon, or permanent instruction row.
@@ -147,7 +147,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       }
       if (!canLoad()) {
         cancelScheduledLoad();
-        if (!fine && interactive && !engineRef.current && interactiveSceneReady()) suggestRotation(); else clearHint();
+        if (interactive && !engineRef.current && interactiveSceneReady()) suggestRotation(); else clearHint();
         if (document.hidden || connection?.saveData || stage.dataset.travelling === "true" || stage.dataset.scrolling || stage.dataset.navigating || stage.dataset.entering) loadController?.abort();
         return;
       }
@@ -256,8 +256,13 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       void engine.setDaylight(currentCityTime() === "day", true);
     };
     window.addEventListener(CITY_TIME_EVENT, relight);
-    link.addEventListener("pointerenter", prepareEntry);
-    link.addEventListener("focusin", prepareEntry);
+    // Focus is intent (arrow keys turn the island), unless it came from
+    // pressing the island, which enters its page instead. Hover is not.
+    let pressedAt = Number.NEGATIVE_INFINITY;
+    const pressed = () => { pressedAt = performance.now(); };
+    const focusIntent = () => { if (performance.now() - pressedAt > 500) prepareEntry(); };
+    link.addEventListener("pointerdown", pressed, true);
+    link.addEventListener("focusin", focusIntent);
     link.addEventListener("pointerdown", down);
     link.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -273,8 +278,8 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       observer.disconnect();
       resize.disconnect();
       window.removeEventListener(CITY_TIME_EVENT, relight);
-      link.removeEventListener("pointerenter", prepareEntry);
-      link.removeEventListener("focusin", prepareEntry);
+      link.removeEventListener("pointerdown", pressed, true);
+      link.removeEventListener("focusin", focusIntent);
       link.removeEventListener("pointerdown", down);
       link.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
