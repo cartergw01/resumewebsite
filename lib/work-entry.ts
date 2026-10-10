@@ -9,7 +9,7 @@ type Journey = { overlay: HTMLDivElement; dispose: () => void; reveal: () => voi
 let journey: Journey | null = null;
 
 // Gentle out of rest, then a long settle: most of the move reads as arriving.
-export const WORK_PUSH_EASING = "cubic-bezier(0.3, 0, 0.15, 1)";
+export const WORK_PUSH_EASING = "cubic-bezier(0.48, -0.05, 0.2, 1)";
 
 // How close the push gets: the tower and its neighbours fill the view, at
 // about 2.4x on a laptop and 3x on a phone, never more than the render holds.
@@ -96,15 +96,18 @@ export function beginWorkEntry(visual: HTMLElement) {
   const animations = [
     // The window's light fills the view (lib/entry-light.ts); the page is
     // laid in beneath it, so it is there when the light clears.
+    // Never quite 0: at 0.001 the browser still paints these full-screen
+    // layers during the quiet start of the glide, instead of all at once
+    // on the frame they first appear (which dropped frames as the light came).
     dark.animate([
-      { opacity: 0, offset: 0 },
-      { opacity: 0, offset: .7, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      { opacity: .001, offset: 0 },
+      { opacity: .001, offset: .7, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
       { opacity: 1, offset: .9 },
       { opacity: 1, offset: 1 },
     ], timing),
     page.animate([
-      { opacity: 0, transform: "scale(1.03)", offset: 0 },
-      { opacity: 0, transform: "scale(1.03)", offset: .78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      { opacity: .001, transform: "scale(1.03)", offset: 0 },
+      { opacity: .001, transform: "scale(1.03)", offset: .78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
       { opacity: 1, transform: "scale(1)", offset: 1 },
     ], timing),
     wash.animate([

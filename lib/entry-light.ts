@@ -68,8 +68,8 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
   // grows behind the notebook or the deck.
   const front = world === "work";
   animations.push(bloom.animate(front ? [
-    { opacity: 0, transform: "translate(-50%, -50%) scale(.2)" },
-    { opacity: 0, transform: "translate(-50%, -50%) scale(.2)", offset: .55, easing: "cubic-bezier(0.55, 0, 0.45, 1)" },
+    { opacity: .001, transform: "translate(-50%, -50%) scale(.2)" },
+    { opacity: .001, transform: "translate(-50%, -50%) scale(.2)", offset: .55, easing: "cubic-bezier(0.55, 0, 0.45, 1)" },
     { opacity: .9, transform: "translate(-50%, -50%) scale(3.6)" },
   ] : [
     { opacity: 0, transform: "translate(-50%, -50%) scale(.3)" },

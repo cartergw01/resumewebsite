@@ -102,14 +102,13 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
 
     // Work's page dissolves in over its push; the book and workshop open theirs.
     const workEntry = city ? beginWorkEntry(visual) : null;
-    // A breath before the journey: the island settles back a touch as it
-    // answers, then the camera glides in and slows into the landmark.
-    const rest = initialTransform === "none" ? "" : initialTransform;
+    // One continuous move: the curve dips back a touch as the island
+    // answers, then glides in and slows into the landmark, never stopping
+    // in between (a separate "breath" keyframe made the camera hesitate).
     const zoom = visual.animate([
-      { transform: rest || "scale(1)", transformOrigin: initialOrigin, easing: "cubic-bezier(0.3, 0, 0.4, 1)" },
-      { transform: `${rest} translate3d(0, 6px, 0) scale(0.975)`.trim(), transformOrigin: initialOrigin, offset: .14, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.5, 0, 0.2, 1)" },
+      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
       { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
-    ], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" });
+    ], { duration: ENTRY_APPROACH_DURATION, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.5, -0.06, 0.2, 1)", fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;
