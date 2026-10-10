@@ -27,7 +27,7 @@ export const workRoles = [
     blurb:
       "Working alongside the founders of Twitch and Guitar Hero to build an accelerator that backs early-stage startups and brings a slice of Silicon Valley to Asia.",
     bullets: [
-      "Screened and interviewed 250+ startups for the accelerator pipeline.",
+      "Screened and interviewed 350+ startups for the accelerator pipeline.",
       "Helped select and support 15+ ikigai Launchpad teams through workshops, office hours, investor matching, and Demo Day.",
       "Lead Launch Station, newsletters, events, website updates, and founder communications.",
     ],
@@ -95,7 +95,7 @@ export const workPageExperience = [
     role: "Venture Associate",
     dates: "October 2024 - Present",
     details: [
-      "Lead deal sourcing for a new accelerator. Screen and interview 250+ early-stage startups, own the full application pipeline from inbound through review, run diligence on 100+ startups, design and manage the admissions process, and contribute to final selection decisions.",
+      "Lead deal sourcing for a new accelerator. Screen and interview 350+ early-stage startups, own the full application pipeline from inbound through review, run diligence on 100+ startups, design and manage the admissions process, and contribute to final selection decisions.",
       "Serve on the core team that launched ikigai Launchpad in Taiwan, helping shape the selection rubric and supporting 15+ batch teams through workshops, office hours, investor matching, partnerships, and corporate perks.",
       "Spearhead Launch Station, a community-building program for founders, and manage newsletters, socials, website updates, events, and Demo Day planning.",
     ],

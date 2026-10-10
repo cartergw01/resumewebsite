@@ -21,7 +21,7 @@ A personal site built as an environment rather than a template: Carter's name in
 ## Content truths
 
 - Current role: Associate at 886 Studios in Taipei (October 2024 to present), after being a Venture Fellow there (June to September 2024). 886 Studios was founded by the founders of Twitch and Guitar Hero and runs the ikigai Launchpad accelerator.
-- The numbers at 886 are real and may be featured: 250+ startups screened, 100+ run through diligence, 15+ batch teams supported.
+- The numbers at 886 are real and may be featured: 350+ startups screened, 100+ run through diligence, 15+ batch teams supported.
 - Earlier: Contrary Research (Research Fellow, with published profiles), Slug Fund Investment Group, and Korobra Capital (ongoing since 2020).
 - Copy on content/portfolio.ts is Carter's own. Keep it as written; restructure freely. The short headings for the 886 contributions may be rewritten.
 
