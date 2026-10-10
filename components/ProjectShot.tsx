@@ -5,7 +5,7 @@ import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { arriveAtWorkshop } from "@/lib/workshop-entry";
 import styles from "./ProjectShot.module.css";
 
-// A project row's screenshot. Travelling in from /2.0, every project card from
+// A project row's screenshot. Travelling in from the islands, every project card from
 // the workshop's fan lands on its own row's shot; the first row starts that
 // arrival and uses the same unoptimized image the laptop screen carries.
 export default function ProjectShot({ src, title, dock = false, mobilePreview }: { src: string; title: string; dock?: boolean; mobilePreview: { scale: number; position: string } }) {

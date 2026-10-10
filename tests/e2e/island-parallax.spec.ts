@@ -4,7 +4,7 @@ test("islands draw their depth parallax and shift with the pointer", async ({ pa
   test.setTimeout(120_000);
   test.skip(testInfo.project.name !== "desktop", "Parallax is for fine pointers only.");
   for (const world of ["work", "writing", "projects"]) {
-    await page.goto(`/2.0#${world}`);
+    await page.goto(`/#${world}`);
     const visual = page.locator(`#${world} [data-island-visual]`);
     await expect(visual).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
     // The still is now drawn by the canvas, and the images step aside.
@@ -19,7 +19,7 @@ test("islands draw their depth parallax and shift with the pointer", async ({ pa
 
 test("touch devices keep the plain still", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "desktop", "Phones and tablets only.");
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await page.waitForTimeout(2500);
   await expect(page.locator("#work [data-island-visual]")).not.toHaveAttribute("data-parallax", "on");
 });

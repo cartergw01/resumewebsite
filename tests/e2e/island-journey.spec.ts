@@ -34,7 +34,7 @@ async function expectFrameFits(page: Page) {
 test("scroll advances and reverses three islands inside one viewport", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/2.0");
+  await page.goto("/");
   await expect(page).toHaveTitle("Carter Wang");
   await expect(page.getByRole("heading", { name: "Carter Wang" })).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
@@ -49,14 +49,14 @@ test("scroll advances and reverses three islands inside one viewport", async ({ 
     const image = page.locator(`#${id} img`).first();
     await expect(image).toBeInViewport();
     await expect.poll(() => image.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
-    await expect(page).toHaveURL(id === "intro" ? /\/2\.0$/ : new RegExp(`#${id}$`));
+    await expect(page).toHaveURL(id === "intro" ? /:\d+\/$/ : new RegExp(`#${id}$`));
   }
   expect(await page.evaluate(() => history.length)).toBe(historyLength);
   expect(errors).toEqual([]);
 });
 
 test("shooting star follows the full page proportionally in both directions", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   const comet = page.locator("[data-scene-comet]");
 
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
@@ -94,7 +94,7 @@ test("shooting star follows the full page proportionally in both directions", as
 });
 
 test("scene controls, keyboard focus, and destination links work", async ({ page, isMobile }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   await page.getByRole("button", { name: "Show Writing island" }).focus();
   await page.keyboard.press("Enter");
   await expectScene(page, "writing");
@@ -122,7 +122,7 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
 test("each island zooms into its own page and owns navigation until arrival", async ({ page }) => {
   for (const world of ["Work", "Writing", "Projects"]) {
     const id = world.toLowerCase();
-    await page.goto(`/2.0#${id}`);
+    await page.goto(`/#${id}`);
     await expectScene(page, id);
     await expect(page.getByRole("link", { name: /^Explore / })).toHaveCount(0);
     const island = page.getByRole("link", { name: new RegExp(`^${world},`) });
@@ -144,7 +144,7 @@ test("each island zooms into its own page and owns navigation until arrival", as
 
 test("reduced motion enters an island without zooming", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   await expectScene(page, "projects");
   await page.getByRole("link", { name: /^Projects,/ }).click();
   await expect(page).toHaveURL(/\/projects$/);
@@ -152,7 +152,7 @@ test("reduced motion enters an island without zooming", async ({ page }) => {
 });
 
 test("islands travel through the scene as solid objects and scrolling reverses the flight", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   const work = page.locator("#work [data-scene-art]");
   await expect(work).toBeVisible();
   const start = await work.boundingBox();
@@ -175,7 +175,7 @@ test("islands travel through the scene as solid objects and scrolling reverses t
 
 test("reduced motion replaces camera travel with still cuts and updates live", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0");
+  await page.goto("/");
   // Mid-flight between Work and Writing.
   await scrollScreens(page, 1.43);
   await expectScene(page, "writing");
@@ -194,7 +194,7 @@ test("reduced motion replaces camera travel with still cuts and updates live", a
 
 test("resize preserves the current island and compact viewports stay usable", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "A single browser covers the responsive size matrix.");
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   await expectScene(page, "writing");
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 844, height: 390 }, { width: 667, height: 375 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
@@ -209,14 +209,14 @@ test("resize preserves the current island and compact viewports stay usable", as
 });
 
 test("scene controls only select worlds, including repeated activation", async ({ page }) => {
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   await expectScene(page, "writing");
   const tab = page.getByRole("button", { name: "Show Writing island" });
   await expect(tab).toHaveAttribute("aria-label", "Show Writing island");
   await expect(page.getByRole("button", { name: "Show Projects island" })).toHaveAttribute("aria-label", "Show Projects island");
   await tab.click();
   await tab.click();
-  await expect(page).toHaveURL(/\/2\.0#writing$/);
+  await expect(page).toHaveURL(/\/#writing$/);
   await expectScene(page, "writing");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await page.getByRole("heading", { name: "Writing", exact: true }).getByRole("link").click();
@@ -232,7 +232,7 @@ test("off-screen islands wait for the first sign of travel", async ({ page }, te
     const path = url.pathname === "/_next/image" ? url.searchParams.get("url") ?? "" : url.pathname;
     if (/^\/blender\/island-/.test(path) || /^\/_next\/static\/media\/taipei-flix/.test(url.pathname)) requested.push(request.url());
   });
-  await page.goto("/2.0");
+  await page.goto("/");
   await expect.poll(() => page.locator("#intro img").first().evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(page.locator("#work [data-island-visual] img")).toHaveCount(0);
   await page.waitForLoadState("networkidle");
@@ -250,19 +250,19 @@ test("off-screen islands wait for the first sign of travel", async ({ page }, te
 });
 
 test("Escape backs out of an island approach and restores the page", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expectScene(page, "work");
   await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "work");
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await page.waitForTimeout(1500);
-  await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(page).toHaveURL(/\/#work$/);
   await expectScene(page, "work");
 });
 
 test("skip link and the opening islands reach content directly", async ({ page, browserName }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   // WebKit follows the platform default: Option-Tab includes links.
   await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
   const skip = page.getByRole("link", { name: "Skip to content" });
@@ -272,12 +272,12 @@ test("skip link and the opening islands reach content directly", async ({ page, 
   await page.getByRole("navigation", { name: "Islands" }).getByRole("link", { name: /^Projects,/ }).click();
   await expect(page).toHaveURL(/\/projects$/);
   await page.goBack();
-  await expect(page).toHaveURL(/\/2\.0#projects$/);
+  await expect(page).toHaveURL(/\/#projects$/);
   await expectScene(page, "projects");
 });
 
 test("each stop's heading enters its page like its island", async ({ page }) => {
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   await expectScene(page, "writing");
   // The landing stays simple: no example lists under the headings.
   await expect(page.locator("#writing [data-scene-copy] ul")).toHaveCount(0);
@@ -289,7 +289,7 @@ test("each stop's heading enters its page like its island", async ({ page }) => 
 
 test("a scroll gesture never rests between islands, and keys move one stop", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Wheel and keyboard settling need a fine pointer.");
-  await page.goto("/2.0");
+  await page.goto("/");
   await page.mouse.move(640, 360);
   // A short flick carries the camera all the way to Work.
   await page.mouse.wheel(0, 90);
@@ -308,18 +308,18 @@ test("a scroll gesture never rests between islands, and keys move one stop", asy
 
 
 test("settled worlds survive refresh, browser Back, and the islands return link", async ({ page, isMobile }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   for (const world of ["Writing", "Projects", "Work"]) {
     const id = world.toLowerCase();
     await page.getByRole("button", { name: `Show ${world} island` }).click();
-    await expect(page).toHaveURL(new RegExp(`/2\\.0#${id}$`));
+    await expect(page).toHaveURL(new RegExp(`/#${id}$`));
     await expectScene(page, id);
     await page.reload();
     await expectScene(page, id);
     await page.getByRole("link", { name: new RegExp(`^${world},`) }).click();
     await expect(page).toHaveURL(new RegExp(`/${id}$`));
     await page.goBack();
-    await expect(page).toHaveURL(new RegExp(`/2\\.0#${id}$`));
+    await expect(page).toHaveURL(new RegExp(`/#${id}$`));
     await expectScene(page, id);
     await page.goForward();
     await expect(page).toHaveURL(new RegExp(`/${id}$`));
@@ -334,11 +334,11 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
   else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expect(page).toHaveURL(/#hello$/);
   await page.getByRole("button", { name: "Back to the start" }).click();
-  await expect(page).toHaveURL(/\/2\.0$/);
+  await expect(page).toHaveURL(/:\d+\/$/);
 });
 
 test("navigation labels sit above the curved light path with comfortable targets", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   for (const world of ["Work", "Writing", "Projects"]) {
     const button = page.getByRole("button", { name: `Show ${world} island` });
     await button.click();
@@ -362,7 +362,7 @@ test("navigation labels sit above the curved light path with comfortable targets
 
 test("the comet trail stretches with travel, settles, and reverses without moving the head on hover", async ({ page, isMobile }) => {
   await page.addInitScript(() => Object.defineProperty(navigator, "connection", { configurable: true, value: Object.assign(new EventTarget(), { saveData: true }) }));
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   const comet = page.locator("[data-scene-comet]");
   const tail = page.locator("[data-comet-tail]").last();
   await expect(comet).toHaveAttribute("data-moving", "false");

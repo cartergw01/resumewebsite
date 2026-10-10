@@ -21,7 +21,7 @@ for (const scene of ["intro", "hello"]) {
     test(`${scene} ${world} island carries its entrance into the destination`, async ({ page, isMobile }) => {
       const errors: string[] = [];
       page.on("pageerror", error => errors.push(error.message));
-      await page.goto(scene === "intro" ? "/2.0" : "/2.0#hello");
+      await page.goto(scene === "intro" ? "/" : "/#hello");
       await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);
       const link = page.locator(`#${scene} [data-overview-island="${world}"]`);
       await expect.poll(() => link.locator("img").first().evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
@@ -46,7 +46,7 @@ for (const scene of ["intro", "hello"]) {
 // Plain text links are links: they open their page at once, with no flight.
 test("landing text links go straight to their pages", async ({ page }) => {
   for (const world of ["writing", "projects"] as const) {
-    await page.goto("/2.0");
+    await page.goto("/");
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
     await recordEntries(page);
     await page.locator(`#intro [data-scene-copy] a[href="/${world}"]`).focus();
@@ -60,7 +60,7 @@ test("landing text links go straight to their pages", async ({ page }) => {
 test("an immediate Work entry needs no 3D download and Escape restores the overview", async ({ page }) => {
   await page.route("**/orbit-*.glb", route => route.abort());
   for (const scene of ["intro", "hello"]) {
-    await page.goto(scene === "intro" ? "/2.0" : "/2.0#hello");
+    await page.goto(scene === "intro" ? "/" : "/#hello");
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);
     const link = page.locator(`#${scene} [data-overview-island="work"]`);
     await link.focus();
@@ -69,7 +69,7 @@ test("an immediate Work entry needs no 3D download and Escape restores the overv
     await page.keyboard.press("Escape");
     await expect(page.locator(overlays)).toHaveCount(0);
     await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
-    await expect(page).toHaveURL(scene === "intro" ? /\/2\.0$/ : /#hello$/);
+    await expect(page).toHaveURL(scene === "intro" ? /:\d+\/$/ : /#hello$/);
     await expect(link).not.toHaveAttribute("data-entering");
     await expect(page.locator(`#${scene} [data-overview-island="writing"]`)).toBeVisible();
     await link.focus();
@@ -82,7 +82,7 @@ test("an immediate Work entry needs no 3D download and Escape restores the overv
 test("reduced-motion overview links remain direct and complete", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const [scene, world] of [["intro", "work"], ["hello", "writing"], ["intro", "projects"]]) {
-    await page.goto(scene === "intro" ? "/2.0" : "/2.0#hello");
+    await page.goto(scene === "intro" ? "/" : "/#hello");
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);
     const link = page.locator(`#${scene} [data-overview-island="${world}"]`);
     await expect(link).toBeVisible();

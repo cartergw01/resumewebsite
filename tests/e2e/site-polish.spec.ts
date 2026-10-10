@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 for (const width of [320, 390]) test(`navigation has distinct, comfortable tap targets at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 844 });
   // /resume intentionally retains its production navigation and touch padding.
-  for (const route of ["/", "/2.0", "/work", "/writing", "/projects"]) {
+  for (const route of ["/", "/", "/work", "/writing", "/projects"]) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     // Wait for the navigation's font without blocking on unrelated off-screen fonts.
     await page.locator(".site-nav a").first().evaluate(async link => {
@@ -45,7 +45,7 @@ test("data saver keeps the workshop usable without preloading models or the whol
   await page.addInitScript(() => Object.defineProperty(navigator, "connection", { configurable: true, value: Object.assign(new EventTarget(), { saveData: true }) }));
   const downloads: string[] = [];
   page.on("request", request => downloads.push(request.url()));
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   await expect(page.locator("#projects [data-island-visual] > img")).toBeVisible();
   await page.waitForTimeout(1200);
   expect(downloads.filter(url => url.endsWith(".glb"))).toEqual([]);

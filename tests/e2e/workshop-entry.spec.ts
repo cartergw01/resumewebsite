@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("workshop screen and book pages respond locally to keyboard focus and hover", async ({ page }, testInfo) => {
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   const screen = page.locator("#projects [data-workshop-screen]");
   const workshop = page.locator("#projects [data-island-link]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
@@ -33,7 +33,7 @@ test("workshop screen and book pages respond locally to keyboard focus and hover
 test("the workshop screen fans out every project and deals each into its row", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   const source = page.locator("#projects [data-workshop-screen]");
   const src = await source.getAttribute("data-src");
   await page.locator("#projects [data-island-link]").click();
@@ -65,7 +65,7 @@ test("the workshop screen fans out every project and deals each into its row", a
 
 test("reduced motion and direct entry show the complete project without a transition layer", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   await page.locator("#projects [data-island-link]").click();
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.locator("body > [data-workshop-transition]")).toHaveCount(0);

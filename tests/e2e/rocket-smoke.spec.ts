@@ -488,7 +488,7 @@ test("mobile island tap launches the rocket while entering its world", async ({ 
   const guard = consoleGuard();
   guard.attach(page);
 
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   const orb = page.locator("#work [data-scene-art] a");
   await expect(orb).toBeVisible();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
@@ -512,7 +512,7 @@ test("reduced motion skips launch and responds to preference changes after mount
   const guard = consoleGuard();
   guard.attach(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
 
   await expect(page.locator("body")).not.toHaveClass(/rocket-cursor-active/);
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");

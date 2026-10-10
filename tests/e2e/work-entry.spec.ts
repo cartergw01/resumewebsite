@@ -29,7 +29,7 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
   test.setTimeout(90_000);
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   const link = page.locator("#work [data-island-link]");
   // Intent fetches the full render the push lands on (on phones, a 2048px
@@ -78,7 +78,7 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
 
 test("a turned 3D view settles back into its render, and Escape restores it", async ({ page }) => {
   test.setTimeout(90_000);
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   const link = page.locator("#work [data-island-link]");
   await link.focus();
   await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
@@ -102,7 +102,7 @@ test("a turned 3D view settles back into its render, and Escape restores it", as
 
 test("an immediate Work entry needs no 3D download", async ({ page }) => {
   await page.route("**/orbit-*.glb", route => route.abort());
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await expect(page.locator("#work [data-island-link]")).toBeVisible();
   await page.locator("#work [data-island-link]").focus();
@@ -114,7 +114,7 @@ test("an immediate Work entry needs no 3D download", async ({ page }) => {
 });
 
 test("Escape cancels the camera, restores the island, and permits another entry", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   const heading = page.locator("#work-heading a");
   await heading.focus();
@@ -123,7 +123,7 @@ test("Escape cancels the camera, restores the island, and permits another entry"
   await page.keyboard.press("Escape");
   await expect(page.locator("body > [data-work-transition]")).toHaveCount(0);
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
-  await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(page).toHaveURL(/\/#work$/);
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
   await expect(page.locator("#work [data-island-visual] > img:not([data-city-time])")).toBeVisible();
   await heading.focus();
@@ -138,7 +138,7 @@ test("direct and reduced-motion Work entries remain complete and immediately usa
   await expect(page.getByRole("heading", { name: "Work", exact: true, level: 1 })).toBeVisible();
   await expect(page.locator("body > [data-work-transition]")).toHaveCount(0);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await expect(page.locator("#work [data-scene-copy]")).toHaveCSS("opacity", "1");
   // WebKit can paint the scene's children a frame after its active state.
@@ -154,7 +154,7 @@ test("direct and reduced-motion Work entries remain complete and immediately usa
 });
 
 test("changing the motion preference during the approach skips cleanly to Work", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await page.locator("#work [data-island-link]").focus();
   await page.keyboard.press("Enter");

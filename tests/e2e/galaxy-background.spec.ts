@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("background video advances without scrolling, keeps playing across islands, and loops", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   const video = page.locator("[data-background-video]");
   const visual = page.locator("[data-background-visual]");
   await expect(visual).toHaveAttribute("data-video-ready", "true");
@@ -44,7 +44,7 @@ test("reduced motion uses a poster and follows preference changes", async ({ pag
   const requested: string[] = [];
   page.on("request", (request) => { if (/starfield-loop-.*\.mp4/.test(request.url())) requested.push(request.url()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0");
+  await page.goto("/");
   const visual = page.locator("[data-background-visual]");
   const video = page.locator("[data-background-video]");
   await expect(visual).toHaveAttribute("data-video-ready", "false");
@@ -58,7 +58,7 @@ test("reduced motion uses a poster and follows preference changes", async ({ pag
 });
 
 test("background video switches orientation and continues playing", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   const video = page.locator("[data-background-video]");
   for (const [width, height, variant] of [[390, 844, "mobile"], [844, 390, "desktop"]] as const) {
     await page.setViewportSize({ width, height });
@@ -74,7 +74,7 @@ test("background video switches orientation and continues playing", async ({ pag
 
 test("failed background video retains its poster and working island entry", async ({ page }) => {
   await page.route("**/starfield-loop-*-v1.mp4", (route) => route.abort());
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   const visual = page.locator("[data-background-visual]");
   await expect(visual).toHaveAttribute("data-video-ready", "false");
   await expect.poll(() => visual.locator("img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function ready(page: Page, world: string) {
-  await page.goto(`/2.0#${world}`);
+  await page.goto(`/#${world}`);
   // Models load on intent (hover, focus or a first swipe), not on arrival.
   await page.locator(`#${world} [data-island-link]`).focus();
   const canvas = page.locator(`[data-island-orbit="${world}"]`);
@@ -26,7 +26,7 @@ for (const world of ["work", "writing", "projects"]) test(`dragging ${world} tur
     await expect(canvas).toHaveAttribute("data-orbit-live", "true");
     expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeGreaterThan(.2);
     await expect(surface).not.toHaveAttribute("data-corners", corners!);
-    await expect(page).toHaveURL(new RegExp(`/2\\.0#${world}$`));
+    await expect(page).toHaveURL(new RegExp(`/#${world}$`));
     await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     // Record the transient launch in-page. On software GPUs a camera frame
@@ -66,7 +66,7 @@ test("keyboard rotation is bounded; reset restores the original view and Enter w
   await page.keyboard.press("ArrowLeft");
   await page.getByRole("button", { name: "Reset projects island view" }).click();
   await expect(canvas).not.toHaveAttribute("data-orbit-live");
-  await expect(page).toHaveURL(/\/2\.0#projects$/);
+  await expect(page).toHaveURL(/\/#projects$/);
   await page.locator("#projects [data-island-link]").focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/projects$/);
@@ -75,7 +75,7 @@ test("keyboard rotation is bounded; reset restores the original view and Enter w
 test("a failed model leaves the original island and page navigation usable", async ({ page }) => {
   await page.route("**/orbit-*.glb", route => route.abort());
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("#work [data-island-visual] > img:not([data-city-time])")).toBeVisible();
   await expect(page.locator("#work [data-island-orbit]")).not.toHaveAttribute("data-orbit-live");
   await page.locator("#work [data-island-link]").click();
@@ -105,7 +105,7 @@ test("touch drag turns horizontally while a vertical swipe keeps native scrollin
   await swipe(-95, 0);
   await expect(canvas).toHaveAttribute("data-orbit-live", "true");
   expect(Number(await canvas.getAttribute("data-orbit-yaw"))).toBeGreaterThan(.2);
-  await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(page).toHaveURL(/\/#work$/);
   await expect(hint).toBeHidden();
   await expect(page.getByRole('button', { name: 'Reset work island view' })).toBeVisible();
   const scroll = await page.evaluate(() => scrollY);
@@ -118,7 +118,7 @@ test("rotation help borrows the existing annotation once and leaves no extra row
   test.setTimeout(90_000);
   // Desktop preloads Taipei and offers rotation once it is ready; phones
   // offer the swipe straight away and load the model on the first swipe.
-  await page.goto('/2.0#work');
+  await page.goto('/#work');
   const link = page.locator('#work [data-island-link]');
   const cue = link.locator('[data-island-cue]');
   const destination = cue.getByText('learn about my work', { exact: true });
@@ -168,7 +168,7 @@ test("dragging before the model is ready does not navigate or hide the poster", 
   let release: () => void = () => {};
   const hold = new Promise<void>(resolve => { release = resolve; });
   await page.route("**/orbit-*.glb", async route => { await hold; await route.abort(); });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   const canvas = page.locator('[data-island-orbit="work"]');
   await expect(canvas).toHaveCount(1);
@@ -180,7 +180,7 @@ test("dragging before the model is ready does not navigate or hide the poster", 
   await page.mouse.up();
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await expect(canvas).not.toHaveAttribute("data-orbit-live");
-  await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(page).toHaveURL(/\/#work$/);
   release();
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.mouse.click(x, y);

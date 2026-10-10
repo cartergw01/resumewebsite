@@ -82,7 +82,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
     <header className={`site-nav${destination && active !== "resume" ? ` ${styles.destinationNav}` : ""}`} data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled}>
       {/* Every subpage returns to its island from the same upper-left spot. */}
       {destination && (
-        <Link href={`/2.0#${active === "resume" ? "work" : active}`} scroll={false} className="site-nav-return" aria-label="Back to islands">
+        <Link href={`/#${active === "resume" ? "work" : active}`} scroll={false} className="site-nav-return" aria-label="Back to islands">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M13 8H3m0 0 4.5-4.5M3 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -91,7 +91,6 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
       )}
       {!hidePrimary && (
         <nav aria-label="Primary navigation" className="site-nav-primary">
-          {/* Home stays on the live homepage; point it at /2.0 islands once that design launches. */}
           {destination && <Link href="/" className="site-nav-home">Home</Link>}
           {primaryLinks.map((link) => (
             <Link

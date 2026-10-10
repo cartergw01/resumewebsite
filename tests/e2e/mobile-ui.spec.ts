@@ -4,7 +4,7 @@ test("mobile islands and map labels keep clear of navigation at different height
   test.skip(info.project.name !== "desktop", "One browser covers the responsive size matrix; touch is tested separately.");
   test.setTimeout(90_000);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   await page.locator("#projects [data-island-link]").focus();
   await expect(page.locator('[data-island-orbit="projects"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932},{width:667,height:375}]) {
@@ -24,7 +24,7 @@ test("mobile islands and map labels keep clear of navigation at different height
   for (const viewport of [{width:320,height:568},{width:390,height:844},{width:430,height:932}]) {
     await page.setViewportSize(viewport);
     for (const id of ["intro", "hello"]) {
-      await page.goto(id === "intro" ? "/2.0" : "/2.0#hello");
+      await page.goto(id === "intro" ? "/" : "/#hello");
       await expect(page.locator('main[data-scene]')).toHaveAttribute('data-scene', id);
       const prompt = (await page.locator('[data-next-scene]').boundingBox())!;
       for (const label of await page.locator(`#${id} [data-overview-island] > span:last-child`).all()) {
@@ -66,7 +66,7 @@ test("each island gives immediate touch feedback on its landmark and clears it o
   await page.addInitScript(() => Object.defineProperty(navigator, 'connection', {configurable:true,value:Object.assign(new EventTarget(),{saveData:true})}));
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const [world, surface] of [["work","entryWindow"],["writing","spread"],["projects","screen"]]) {
-    await page.goto(`/2.0#${world}`);
+    await page.goto(`/#${world}`);
     const link = page.locator(`#${world} [data-island-link]`);
     await link.dispatchEvent('pointerdown', {pointerType:'touch',isPrimary:true,pointerId:1,button:0,clientX:180,clientY:400});
     const light = link.locator(`svg:has([data-touch-surface="${surface}"])`);

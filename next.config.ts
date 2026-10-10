@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
   outputFileTracingRoot: process.cwd(),
+  // The islands are the homepage. /2.0 was their preview address; keep old
+  // links and bookmarks working (browsers carry #work/#writing across).
+  async redirects() {
+    return [{ source: "/2.0", destination: "/", permanent: true }];
+  },
   async headers() {
     return [
       {

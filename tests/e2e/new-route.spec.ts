@@ -1,23 +1,23 @@
 import { expect, test } from "@playwright/test";
 
-test("the island and rooftop previews remain separate from the original homepage", async ({ page }) => {
+test("the islands are the homepage and the rooftop preview stays separate", async ({ page }) => {
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
+  // The islands are the homepage; /2.0 (their preview address) redirects
+  // there and keeps its deep link.
   await page.goto("/");
-  await expect(page.locator("#hero-title")).toHaveText("Carter Wang");
-  await expect(page.locator(".cosmic-hero")).toHaveCount(1);
-  await expect(page.locator("[data-island-scene]")).toHaveCount(0);
-  await expect(page.locator("#home-title")).toHaveCount(0);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com");
-
-  await page.goto("/2.0");
   await expect(page.locator("#hero-title")).toHaveText("Carter Wang");
   // Opening view, Work, Writing, Projects, and the closing Say hi view.
   await expect(page.locator("[data-island-scene]")).toHaveCount(5);
   await expect(page.locator(".cosmic-hero")).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Primary navigation" })).toHaveCount(0);
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com/2.0");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://carterkowang.com");
+  await expect(page.locator('meta[name="robots"]')).not.toHaveAttribute("content", /noindex/);
+
+  await page.goto("/2.0#writing");
+  await expect(page).toHaveURL(/:\d+\/#writing$/);
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
 
   await page.goto("/new");
   await expect(page.locator("#home-title")).toHaveText("Carter Wang");

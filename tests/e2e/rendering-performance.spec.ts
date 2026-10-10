@@ -16,14 +16,16 @@ test("hovering keeps the cursor attached without repainting the effects canvas",
     };
   });
 
-  for (const route of ["/", "/2.0#work", "/work", "/writing", "/projects"]) {
+  // The islands (homepage) at the Work stop, then each destination page.
+  for (const route of ["/#work", "/work", "/writing", "/projects"]) {
+    const islands = route.startsWith("/#");
     await page.goto(route);
     await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
     // This measures steady pointer movement, after optional model decoding
     // and shader preparation have finished on the island route.
-    if (route.startsWith("/2.0")) await page.locator("#work [data-island-link]").focus();
-    if (route.startsWith("/2.0")) await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
-    const link = route.startsWith("/2.0")
+    if (islands) await page.locator("#work [data-island-link]").focus();
+    if (islands) await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
+    const link = islands
       ? page.getByRole("link", { name: /^Work,/ })
       : page.getByLabel("Primary navigation").getByRole("link").first();
     await link.hover();
@@ -113,7 +115,7 @@ test("a burst of orbit input submits one GPU frame and preserves the final angle
       return clear.call(this, mask);
     };
   });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await page.locator("#work [data-island-link]").focus();
   await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
   const result = await page.locator("#work [data-island-link]").evaluate(async link => {

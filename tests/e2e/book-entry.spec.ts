@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("the book opens the complete Writing archive without featuring an essay", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
   await page.locator("#writing [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
@@ -56,7 +56,7 @@ test("the book opens the complete Writing archive without featuring an essay", a
 
 test("direct and reduced-motion Writing entry show every essay as a regular archive row", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/2.0#writing");
+  await page.goto("/#writing");
   await page.locator("#writing [data-island-link]").click();
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(0);
@@ -72,7 +72,7 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
 
 test("idle video stays alive and interaction increases its pace", async ({ page }) => {
   // Projects, not Writing: the sky holds its frame while Writing's loop plays.
-  await page.goto("/2.0#projects");
+  await page.goto("/#projects");
   const video = page.locator("[data-background-video]");
   const book = page.locator("#projects [data-island-link]");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.playbackRate)).toBe(0.55);

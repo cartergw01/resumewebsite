@@ -20,7 +20,7 @@ async function pose(page: Page, world: string) {
 }
 
 test("camera pulls back, follows opposite arcs, and retraces the same path", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   for (const [journey, from, to, direction] of [[1, "work", "writing", -1], [2, "writing", "projects", 1]] as const) {
     await cross(page, journey, 0);
     const start = await pose(page, from);
@@ -57,7 +57,7 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
 });
 
 test("island settles before its lights, heading, and annotation arrive", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   for (const [journey, world] of [[1, "writing"], [2, "projects"]] as const) {
     const copy = page.locator(`#${world} [data-scene-copy]`);
     const cue = page.locator(`#${world} [data-island-link] > span:last-child`);
@@ -85,7 +85,7 @@ test("book and workshop entry centers their landmarks", async ({ page }) => {
   ] as const) {
     const fx = artwork[world].landmark[0] / artwork[world].width;
     const fy = artwork[world].landmark[1] / artwork[world].height;
-    await page.goto(`/2.0#${world}`);
+    await page.goto(`/#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     if (midFlight) await cross(page, 1, 0.3);
     const visual = page.locator(`#${world} [data-island-visual]`);
@@ -117,7 +117,7 @@ test("book and workshop entry centers their landmarks", async ({ page }) => {
 });
 
 test("the opening view zooms into its Work island instead of flying past it", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
   await expect(page.locator('#intro [data-overview-island="work"]')).toBeVisible();
   for (const progress of [0.35, 0.6, 0.8]) {

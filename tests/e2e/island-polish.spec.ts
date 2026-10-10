@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("city and workshop details animate only while active and respect reduced motion", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   await expect(page.getByRole("button", { name: /island animation/ })).toHaveCount(0);
   for (const world of ["work", "projects"] as const) {
     const title = world === "work" ? "Work" : "Projects";
@@ -33,7 +33,7 @@ test("each island scene restores directly and Projects opens on the working scre
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
     await page.goto(`/${world}`);
-    // Home stays on the live homepage until /2.0 launches. Phones drop it,
+    // Home leads back to the islands. Phones drop it,
     // since Back to islands already sits in the corner.
     const home = page.locator(".site-nav-home");
     await expect(home).toHaveAttribute("href", "/");
@@ -48,7 +48,7 @@ test("each island scene restores directly and Projects opens on the working scre
       await expect(page.locator('img[src="/world-projects-workshop-v5.webp"]')).toHaveCount(0);
       await expect(page.getByRole("link", { name: "Open TaipeiFlix live project in a new tab" })).toHaveAttribute("href", "https://taipeiflix.com/");
     }
-    await page.goto(`/2.0#${world}`);
+    await page.goto(`/#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     // Check after the rocket's arrival too; its delayed reset used to erase
@@ -65,7 +65,7 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
-    await page.goto("/2.0");
+    await page.goto("/");
     for (const title of ["Work", "Writing", "Projects"]) {
       await page.getByRole("button", { name: `Show ${title} island` }).click();
       const scene = page.locator(`#${title.toLowerCase()}`);
@@ -100,7 +100,7 @@ test("destination navigation stays readable on scroll and the matching island re
     await expect(nav).toHaveCSS("position", "fixed");
     const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
     expect(backdrop).toContain("0.98");
-    await page.goto(`/2.0#${world}`);
+    await page.goto(`/#${world}`);
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");
     await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
@@ -110,7 +110,7 @@ test("destination navigation stays readable on scroll and the matching island re
 
 
 test("arrival invites entering before hover and recedes after discovery", async ({ page }, testInfo) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   for (const world of ["Work", "Writing", "Projects"]) {
     const id = world.toLowerCase();
     await page.getByRole("button", { name: `Show ${world} island` }).click();

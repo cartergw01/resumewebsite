@@ -6,7 +6,7 @@ test("navigation keeps the camera on the current scroll frame and accepts a new 
   await page.addInitScript(() => Object.defineProperty(navigator, "connection", {
     configurable: true, value: Object.assign(new EventTarget(), { saveData: true }),
   }));
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await page.evaluate(() => {
     const probe = window as Window & { cameraErrors?: number[] };
@@ -45,7 +45,7 @@ test("optional island models wait until scrolling inside a hold is quiet", async
   }));
   const models: string[] = [];
   await page.route("**/orbit-*.glb", route => { models.push(route.request().url()); return route.abort(); });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   // Phones load a model only on intent; desktops preload Taipei.
   await page.locator("#work [data-island-link]").focus();
   const stage = page.locator("[data-island-stage]");

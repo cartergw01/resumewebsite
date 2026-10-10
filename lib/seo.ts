@@ -12,7 +12,7 @@ export const siteConfig = {
   description:
     "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side.",
   shortDescription: "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios.",
-  // A capture of the /2.0 opening view: the real islands, not a poster.
+  // A capture of the homepage's opening view: the real islands, not a poster.
   image: { url: "/og-image.jpg", width: 2400, height: 1260, alt: "Carter Wang, with the Work, Writing and Projects islands floating in space" },
   social: {
     x: "https://x.com/CarterKoWang",

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("island artwork stays consistent from overview through forward and reverse travel", async ({ page }) => {
-  await page.goto("/2.0");
+  await page.goto("/");
   const worlds = ["work", "writing", "projects"] as const;
   const sources = new Map<string, string>();
   for (const world of worlds) {

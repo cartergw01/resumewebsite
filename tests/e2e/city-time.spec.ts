@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test("Taipei switches between night and day, remembers it, and still enters Work", async ({ page }) => {
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   const toggle = page.getByRole("button", { name: "Show Taipei in the day" });
   await expect(toggle).toBeVisible();
   // At night the single button offers the day (a sun), and vice versa.
@@ -12,7 +12,7 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await toggle.click();
   await expect(day).toHaveCount(1);
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
-  await expect(page).toHaveURL(/\/2\.0#work$/);
+  await expect(page).toHaveURL(/\/#work$/);
   await expect(page.getByRole("button", { name: "Show Taipei at night" })).toHaveAttribute("data-time", "day");
   // Either the day still is showing, or the depth-parallax canvas (which draws
   // the day image itself) has taken over from the stills.
@@ -21,7 +21,7 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
   await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });
-  await page.goto("/2.0#work");
+  await page.goto("/#work");
   await page.getByRole("button", { name: "Show Taipei at night" }).click();
   await expect(page.locator("html")).not.toHaveAttribute("data-city-time", "day");
 });
