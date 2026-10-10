@@ -3,6 +3,8 @@
    deck, which pass through the light themselves. */
 .overlay { position: fixed; inset: 0; z-index: 95; overflow: hidden; pointer-events: none; contain: strict; }
 .overlay[data-layer="behind"] { z-index: 89; }
+/* Held inside the notebook's or deck's own overlay, between its dark and it. */
+.overlay[data-layer="held"] { position: absolute; z-index: auto; }
 .bloom {
   position: absolute;
   top: 50%;

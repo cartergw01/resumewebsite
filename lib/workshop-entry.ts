@@ -1,6 +1,6 @@
 import styles from "@/components/WorkshopEntry.module.css";
 import { artworkTransform } from "./artwork-perspective";
-import { arriveEntryLight } from "./entry-light";
+import { arriveEntryLight, holdEntryLight } from "./entry-light";
 import { ENTRY_ARRIVAL_DURATION, ENTRY_HANDOFF_DURATION, ENTRY_LIFT_DURATION, ENTRY_STAGGER_DURATION } from "./island-entry-motion";
 
 type Entry = {
@@ -57,13 +57,18 @@ function cardPose(x: number, y: number, width: number, angle: number) {
   return `matrix(${cos},${sin},${-sin},${cos},${x - (cos * 160 - sin * 100)},${y - (sin * 160 + cos * 100)})`;
 }
 
+export type NotebookEssay = { title: string; date: string; subtitle: string };
+
 export function beginBookEntry(source: SVGGraphicsElement) {
-  // Every essay title, written into the ruled pages at the same size, so the
-  // notebook is the whole archive rather than any one essay. The left half is
-  // written on the back of the last leaf to turn; the right half waits under
-  // the leaves on the right-hand page.
-  const titles: string[] = JSON.parse(source.dataset.titles ?? "[]");
+  // The notebook is a bound collection of the essays: thumbing through it
+  // turns past them one printed page at a time, newest first, and it falls
+  // open at the contents, where every title is written in at the same size.
+  // The left half of the contents is on the back of the last leaf to turn;
+  // the right half waits under the leaves on the right-hand page.
+  const essays: NotebookEssay[] = JSON.parse(source.dataset.essays ?? "[]");
+  const titles = essays.map(essay => essay.title);
   const half = Math.ceil(titles.length / 2);
+  const leaves = bookLeaves();
   const written = (entries: string[]) => {
     const list = document.createElement("ol");
     list.className = styles.titles;
@@ -77,17 +82,50 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     }
     return list;
   };
+  // An essay's page, typeset like the one lying open on the island
+  // (EssayLeaf): the masthead, the date, the title, and its standfirst.
+  const typeset = (essay?: NotebookEssay) => {
+    const sheet = document.createElement("div");
+    sheet.className = styles.essay;
+    const line = (className: string, text: string) => {
+      const part = document.createElement("p");
+      part.className = className;
+      part.textContent = text;
+      return part;
+    };
+    if (!essay) {
+      // The flyleaf: the collection's name, and whose it is.
+      sheet.classList.add(styles.flyleaf);
+      sheet.append(line(styles.masthead, "flying Arrows"), line(styles.byline, "Carter Wang"));
+      return sheet;
+    }
+    const body = document.createElement("div");
+    body.className = styles.body;
+    const rule = document.createElement("span");
+    rule.className = styles.rule;
+    body.append(line(styles.headline, essay.title), rule, line(styles.dek, essay.subtitle));
+    sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body, line(styles.byline, "Carter Wang"));
+    return sheet;
+  };
   // A whole page of paper. Static pages sit in the spread; a turning leaf
-  // shows its page through two hinged halves (see below).
-  const page = (side: "left" | "right", entries?: string[], named = true) => {
+  // shows its page through two hinged halves (see below). A page holds either
+  // part of the contents, written on the ruling, or a printed essay.
+  type Content = { entries: string[]; named: boolean } | { essay?: NotebookEssay };
+  const page = (side: "left" | "right", content: Content) => {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
-    if (entries) { if (named) leaf.dataset.notebookPage = side; leaf.append(written(entries)); }
+    if ("entries" in content) {
+      if (content.named) leaf.dataset.notebookPage = side;
+      leaf.append(written(content.entries));
+    } else {
+      leaf.classList.add(styles.printed);
+      leaf.append(typeset(content.essay));
+    }
     return leaf;
   };
   // A shadow the turning leaves cast on a static page, one per leaf.
   const casts = (leaf: HTMLElement, side: "left" | "right") => {
-    for (let index = 0; index < BOOK_LEAVES; index++) {
+    for (let index = 0; index < leaves; index++) {
       const cast = document.createElement("span");
       cast.className = `${styles.cast} ${styles[side]}`;
       cast.dataset.cast = `${side}-${index}`;
@@ -97,10 +135,10 @@ export function beginBookEntry(source: SVGGraphicsElement) {
   };
   // One face of a leaf half: a window onto a full page, offset so the two
   // halves together show the whole page, front and back.
-  const face = (side: "left" | "right", shift: boolean, back: boolean, entries?: string[], named = false) => {
+  const face = (side: "left" | "right", shift: boolean, back: boolean, content: Content) => {
     const pane = document.createElement("div");
     pane.className = `${styles.face}${back ? ` ${styles.back}` : ""}`;
-    const sheet = page(side, entries, named);
+    const sheet = page(side, content);
     sheet.classList.add(styles.sheet);
     if (shift) sheet.classList.add(styles.shift);
     const shade = document.createElement("span");
@@ -109,17 +147,18 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     return pane;
   };
   const spread = document.createDocumentFragment();
-  spread.append(casts(page("left"), "left"));
-  // The right page lies under the leaves, so it comes first, then the ribbon
-  // marker that rests on it: in DOM order too, so any engine that paints this
-  // flat still keeps both under the turning leaves.
-  spread.append(casts(page("right", titles.slice(half)), "right"));
-  const ribbon = document.createElement("span");
-  ribbon.className = styles.ribbon;
-  spread.append(ribbon);
-  for (let index = 0; index < BOOK_LEAVES; index++) {
-    const last = index === BOOK_LEAVES - 1;
-    const entries = last ? titles.slice(0, half) : undefined;
+  spread.append(casts(page("left", {}), "left"));
+  // The right page lies under the leaves, so it comes first: in DOM order
+  // too, so any engine that paints this flat keeps it under the leaves.
+  spread.append(casts(page("right", { entries: titles.slice(half), named: true }), "right"));
+  for (let index = 0; index < leaves; index++) {
+    const last = index === leaves - 1;
+    // Each leaf carries an essay on its front and the next on its back, so
+    // every spread it opens reads newest to oldest, left to right. The last
+    // leaf's back is the first half of the contents.
+    const front: Content = { essay: essays[index * 2] };
+    const back: Content = last ? { entries: titles.slice(0, half), named: false } : { essay: essays[index * 2 + 1] };
+    const named: Content = last ? { entries: titles.slice(0, half), named: true } : back;
     // A leaf bends as it turns: the half at the spine leads, the outer half
     // trails behind it and then whips over, which reads as a curling page.
     // Turned over, the spine half shows the right of the left page and the
@@ -130,16 +169,30 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     const outer = document.createElement("div");
     outer.className = `${styles.turn} ${styles.outer}`;
     outer.dataset.notebookOuter = String(index);
-    outer.append(face("right", true, false), face("left", false, true, entries));
-    leaf.append(face("right", false, false), face("left", true, true, entries, last), outer);
+    outer.append(face("right", true, false, front), face("left", false, true, back));
+    leaf.append(face("right", false, false, front), face("left", true, true, named), outer);
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
 }
 
-// Writing opens like a notebook: it lifts off the desk to face you, then its
-// leaves turn over the spine until the archive lies open.
-const BOOK_LEAVES = 3;
+// Writing opens like a notebook: it lifts off the desk and comes up close,
+// settles at reading distance, then is thumbed through, past a few of the
+// essays, until it falls open at the contents.
+// Phones turn one leaf fewer: every face is its own layer.
+const bookLeaves = () => innerWidth < 760 ? 4 : 5;
+// When each leaf starts to turn after the notebook settles, and how long it
+// takes: the first deliberately, the thumb picking up pace through the middle,
+// the last laid down gently. Two leaves are in the air at once, never more.
+const BOOK_LIFT = 1300;
+// The notebook's perspective (WorkshopEntry.module.css .fader). A leaf lying a
+// few pixels proud of the spread is shrunk by exactly what that perspective
+// magnifies, so its printed words stay pixel-sharp at rest.
+const BOOK_PERSPECTIVE = 3000;
+const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
+const LEAF_STARTS = [0, 540, 980, 1370, 1760];
+const LEAF_TURNS = [1000, 930, 880, 880];
+const LAST_LEAF_TURN = 1080;
 // A landscape spread on wide screens; on a phone, a taller pocket notebook so
 // the archive still reads at a comfortable size. The ruling follows the page.
 const bookSize = () => {
@@ -179,6 +232,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     screen.style.height = `${layoutHeight}px`;
     screen.style.margin = `${-layoutHeight / 2}px 0 0 ${-layoutWidth / 2}px`;
     screen.style.setProperty("--rule", `${book.rule}px`);
+    // The printed pages are set like the island's 320 x 400 page, scaled to fit.
+    screen.style.setProperty("--u", `${Math.min(layoutWidth / 2 / 320, layoutHeight / 400)}px`);
   }
   const projected: number[][] = JSON.parse(source.dataset.corners ?? "[]");
   if (projected.length !== 4) return null;
@@ -195,6 +250,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   if (kind === "book") { fader.append(screen); overlay.append(backdrop, fader); }
   else overlay.append(backdrop, screen);
   document.body.append(overlay);
+  // The island's light glows behind what it carries, in front of the dark.
+  holdEntryLight(overlay, kind === "book" ? fader : screen);
   document.documentElement.dataset[attribute] = "entering";
 
   const motion = matchMedia("(prefers-reduced-motion: reduce)");
@@ -230,39 +287,45 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const deep = Math.hypot((bl[0] + br[0] - tl[0] - tr[0]) / 2, (bl[1] + br[1] - tl[1] - tr[1]) / 2);
     const scale = shown / layoutWidth;
     const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
-    const lift = { duration: ENTRY_LIFT_DURATION, fill: "forwards" } as const;
+    const lift = { duration: BOOK_LIFT, fill: "forwards" } as const;
     const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
+    const rise = Math.min(70, innerHeight * .08);
     current.animations.push(
-      // It comes up off the desk with some weight: rising and turning to face
-      // you, tipping a touch past upright, then settling at reading size.
+      // It comes up off the desk with some weight: first straight up, still
+      // lying back as it was, then it swings up to face you and keeps coming,
+      // close enough to fill your view, before easing back to reading size.
       screen.animate([
-        { transform: bookPose(cx, cy, angle, tilt, scale), offset: 0, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2 - 4, 0, -.035, 1.012), offset: .5, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
-        { transform: rest, offset: .62 },
+        { transform: bookPose(cx, cy, angle, tilt, scale), offset: 0, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
+        { transform: bookPose(cx, cy - rise, angle * .75, tilt * .85, scale * 1.15), offset: .26, easing: "cubic-bezier(0.4, 0, 0.3, 1)" },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2 + innerHeight * .015, 0, -.1, 1.17), offset: .68, easing: "cubic-bezier(0.35, 0, 0.25, 1)" },
         { transform: rest, offset: 1 },
       ], lift),
-      fader.animate([{ opacity: 0 }, { opacity: 1, offset: .12 }, { opacity: 1 }], lift),
-      backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .5 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
+      fader.animate([{ opacity: 0 }, { opacity: 1, offset: .1 }, { opacity: 1 }], lift),
+      backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .55 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
     );
-    // Then the leaves are thumbed over the spine: the first deliberately, the
-    // rest a little quicker, overlapping like pages under a thumb. Each one
-    // lifts off the block, curls, shades as it turns from the lamp, and casts
-    // a shadow that slides from the right page to the left as it passes.
+    // Then it is thumbed through, leaf by leaf, overlapping like pages under
+    // a thumb. Each one lifts off the block, curls, shades as it turns from
+    // the lamp, and casts a shadow that slides from the right page to the
+    // left as it passes.
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
-    const cadence = [[.56, .28], [.66, .25], [.75, .24]];
+    const timing = (index: number) => {
+      const last = index === leaves.length - 1;
+      return { delay: BOOK_LIFT + LEAF_STARTS[index], duration: last ? LAST_LEAF_TURN : LEAF_TURNS[index] };
+    };
     leaves.forEach((leaf, index) => {
-      const [start, length] = cadence[index] ?? cadence[cadence.length - 1];
-      const turn = { duration: ENTRY_LIFT_DURATION * length, delay: ENTRY_LIFT_DURATION * start, fill: "both" } as const;
+      const turn = { ...timing(index), fill: "both" } as const;
       const below = (leaves.length - index) * 2, above = (index + 1) * 2 + 2;
       current.animations.push(leaf.animate([
-        { transform: `translateZ(${below}px) rotateY(0deg)`, easing: "cubic-bezier(0.5, 0, 0.6, 1)" },
-        { transform: `translateZ(${below + 10}px) rotateY(-86deg)`, offset: .5, easing: "cubic-bezier(0.25, 0.4, 0.25, 1)" },
-        { transform: `translateZ(${above}px) rotateY(-180deg)` },
+        { transform: `translateZ(${below}px) rotateY(0deg) scale(${flat(below)})`, easing: "cubic-bezier(0.5, 0, 0.6, 1)" },
+        { transform: `translateZ(${below + 10}px) rotateY(-86deg) scale(1)`, offset: .5, easing: "cubic-bezier(0.25, 0.4, 0.25, 1)" },
+        { transform: `translateZ(${above}px) rotateY(-180deg) scale(${flat(above)})` },
       ], turn));
       const outer = leaf.querySelector<HTMLElement>("[data-notebook-outer]")!;
       current.animations.push(outer.animate([
-        { transform: "rotateY(0deg)", easing: "ease-out" },
-        { transform: "rotateY(28deg)", offset: .3, easing: "ease-in-out" },
+        // The free half trails the spine half, but never dips below the flat
+        // page: it only starts to lag once the leaf is well off the block.
+        { transform: "rotateY(0deg)", easing: "cubic-bezier(0.6, 0, 0.6, 1)" },
+        { transform: "rotateY(24deg)", offset: .3, easing: "ease-in-out" },
         { transform: "rotateY(12deg)", offset: .55, easing: "ease-in-out" },
         { transform: "rotateY(-9deg)", offset: .8, easing: "ease-out" },
         { transform: "rotateY(0deg)" },
@@ -298,8 +361,8 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     // The archive is written in reading order, as one list: down the left
     // page, then down the right, each line from left to right. It starts as
     // the last leaf settles onto the left page.
-    const [lastStart, lastLength] = cadence[leaves.length - 1] ?? cadence[0];
-    const inkFrom = ENTRY_LIFT_DURATION * (lastStart + lastLength * .7);
+    const settle = timing(leaves.length - 1);
+    const inkFrom = settle.delay + settle.duration * .7;
     const left = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf] [data-ink]"));
     const right = Array.from(screen.querySelectorAll<HTMLElement>('[data-notebook-page="right"] [data-ink]'));
     // The left titles are drawn twice, once on each hinged half of the leaf.

@@ -11,9 +11,10 @@ import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
+import type { NotebookEssay } from "@/lib/workshop-entry";
 import styles from "./IslandHome.module.css";
 
-export default function WritingIsland({ artwork: island, landmark, essay, titles }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; titles: string[] }) {
+export default function WritingIsland({ artwork: island, landmark, essay, pages }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; pages: NotebookEssay[] }) {
   const orbitAnchors = useMemo(() => ({ landmark: [island.landmark], spread: island.spread }), [island]);
   const visualRef = useRef<HTMLSpanElement>(null);
   const [warm, setWarm] = useState(false);
@@ -55,7 +56,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, titles
           <svg className={styles.bookDetails} viewBox="0 0 1200 800" aria-hidden="true">
             <ellipse className={styles.readingLamp} data-reads="reading-lamp:opacity:.4" cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
             {/* These planes are projected from the actual Blender notebook. */}
-            <path data-book-spread data-corners={JSON.stringify(island.spread)} data-titles={JSON.stringify(titles)} fill="none" d={artworkOutline(island.spread)} />
+            <path data-book-spread data-corners={JSON.stringify(island.spread)} data-essays={JSON.stringify(pages)} fill="none" d={artworkOutline(island.spread)} />
             <g className={styles.printedPage} data-reads="reading-paper:opacity:.22:.78">
               <PerspectiveArtwork corners={island.page} width={320} height={400}>
                 <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>

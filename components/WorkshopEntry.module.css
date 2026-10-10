@@ -6,18 +6,18 @@
 .paper svg { display: block; width: 100%; height: 100%; }
 /* Writing: the island's open notebook lifts to face you and its leaves turn. */
 /* The fader carries the perspective and the fades; the notebook inside it
-   keeps a true 3D context, so leaves, ribbon and pages sort by depth. */
+   keeps a true 3D context, so leaves and pages sort by depth. */
 .fader { position: absolute; inset: 0; perspective: 3000px; will-change: opacity; }
 .notebook { position: absolute; top: 0; left: 0; transform-style: preserve-3d; will-change: transform; }
 /* The bound body under the pages: a cloth cover just proud of the paper. */
 .notebook::before { content: ""; position: absolute; inset: -1.6% -1.2%; border-radius: 6px; background: linear-gradient(90deg, #3a2a1d, #4a3524 48%, #2c1f15 50%, #4a3524 52%, #3a2a1d); box-shadow: 0 30px 90px #000b, 0 2px 6px #0008; transform: translateZ(-2px); }
-/* A ribbon marker from the head of the spine, lying across the right page
-   under the leaves, clear of the titles, trailing past the foot of the book. */
-.ribbon { position: absolute; top: -1%; left: 91%; width: 1.15%; height: 105.5%; background: linear-gradient(90deg, #5c1a17, #8a2b25 45%, #6e211c); box-shadow: 1px 0 2px #2a0d0b55; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 98.6%, 0 100%); transform: translateZ(.6px) rotate(1.4deg); transform-origin: 50% 0; }
 /* A leaf hinges on the spine. Its own faces show the half by the spine; a
    second hinged half (.outer) carries the free edge, so the page can bend. */
 .turn { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; transform-origin: 0 50%; transform-style: preserve-3d; }
 .turn.outer { left: 50%; width: 50%; }
+/* Paper across the hinge between the two halves, so the antialiased seam
+   never lets the page beneath show through as a hairline. */
+.turn.outer::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: #e4d6bb; }
 .face { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .outer > .face { width: 100%; }
 .face.back { transform: rotateY(180deg); }
@@ -54,6 +54,21 @@
 /* Inside a leaf, the page has no block of pages behind it. */
 .face > .leaf.left { box-shadow: inset -4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f; }
 .face > .leaf.right { box-shadow: inset 4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f; }
+/* Printed pages: plain paper, set like the island's open page (EssayLeaf). */
+.leaf.printed { background-image: var(--grain); }
+.leaf.left.printed { background-image: var(--grain), radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 55%); }
+.essay { position: absolute; inset: 0; color: #392f26; font-family: var(--font-display), Georgia, serif; }
+.essay p { margin: 0; }
+.masthead { position: absolute; top: calc(var(--u) * 29); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 15), 9px); font-style: italic; }
+.dated { position: absolute; top: calc(var(--u) * 70); left: calc(var(--u) * 32); font: max(calc(var(--u) * 9), 6px) Arial, sans-serif; letter-spacing: calc(var(--u) * 1.1); }
+.body { position: absolute; top: calc(var(--u) * 94); left: calc(var(--u) * 30); right: calc(var(--u) * 30); }
+.headline { font-size: calc(var(--u) * 34); font-weight: 600; line-height: calc(var(--u) * 39); letter-spacing: calc(var(--u) * -1.1); }
+.rule { display: block; width: calc(var(--u) * 30); height: 1px; margin: calc(var(--u) * 16) 0 calc(var(--u) * 14) calc(var(--u) * 2); background: #8b7154; }
+.dek { display: -webkit-box; overflow: hidden; padding-left: calc(var(--u) * 2); font: max(calc(var(--u) * 13), 8px) / max(calc(var(--u) * 19), 12px) Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.byline { position: absolute; bottom: calc(var(--u) * 28); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 11), 7px); font-style: italic; }
+/* The flyleaf: just the collection's name, set a third of the way down. */
+.flyleaf .masthead { top: 34%; left: 0; right: 0; text-align: center; font-size: calc(var(--u) * 26); }
+.flyleaf .byline { top: calc(34% + var(--u) * 44); bottom: auto; left: 0; right: 0; text-align: center; }
 /* Titles rest on the ruling: each takes two lines, sitting on the lower one
    and wrapping onto the upper one only when the page is narrow. */
 .titles { margin: 0; padding: calc(var(--rule) * 3) 14% 0 12%; list-style: none; }

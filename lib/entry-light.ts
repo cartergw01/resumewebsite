@@ -93,6 +93,15 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
   return current.dispose;
 }
 
+// Writing and Projects carry their object over a dark backdrop of their own:
+// the light moves in between the two, so it glows behind the notebook or the
+// deck rather than under the dark.
+export function holdEntryLight(container: HTMLElement, before: Element) {
+  if (!light || light.overlay.dataset.layer !== "behind") return;
+  light.overlay.dataset.layer = "held";
+  container.insertBefore(light.overlay, before);
+}
+
 // The destination page is in place: the light thins away and reveals it.
 export function arriveEntryLight(delay = 0) {
   const current = light;

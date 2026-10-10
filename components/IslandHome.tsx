@@ -74,7 +74,7 @@ function Art({ id }: { id: (typeof stops)[number]["id"] }) {
     case "hello": return <IslandOverview variant="outro" />;
     // One server-side manifest supplies overview images, live media and anchors.
     // New renders remount the client media so a stale still cannot persist.
-    case "writing": return <WritingIsland key={islandArtwork.writing.src} artwork={islandArtwork.writing} landmark={islandLandmarks.Writing} essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} titles={essays.map((essay) => essay.title)} />;
+    case "writing": return <WritingIsland key={islandArtwork.writing.src} artwork={islandArtwork.writing} landmark={islandLandmarks.Writing} essay={{ title: essays[0].title, subtitle: essays[0].subtitle, date: essays[0].date, href: essays[0].href }} pages={essays.map(({ title, date, subtitle }) => ({ title, date, subtitle }))} />;
     default: return <LivingIsland key={islandArtwork[id].src} artwork={islandArtwork} landmark={islandLandmarks[id === "work" ? "Work" : "Projects"]} world={id} preview={id === "projects" ? projectScreenPreview : undefined} posters={id === "projects" ? projectPosters : undefined} />;
   }
 }
