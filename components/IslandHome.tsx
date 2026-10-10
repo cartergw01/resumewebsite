@@ -59,8 +59,8 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
         {/* Carter's own line from /work: a reason to write, for founders. */}
         <p className={styles.description}>Building something? I&apos;d love to hear about it.</p>
         <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
-          <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
           <li><Out href={siteConfig.social.x}>X</Out></li>
+          <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
           <li><Out href={siteConfig.social.linkedin}>LinkedIn</Out></li>
           <li><Out href={siteConfig.social.substack}>Substack</Out></li>
         </ul>
