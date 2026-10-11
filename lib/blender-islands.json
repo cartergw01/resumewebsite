@@ -3211,7 +3211,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-72f8030b.webp",
+    "src": "/blender/island-writing-a1ba9d12.webp",
     "spread": [
       [
         523.946,
@@ -3256,8 +3256,10 @@
       477.048,
       268.131
     ],
-    "darkSrc": "/blender/island-writing-dark-0a9c2251.webp",
-    "depthSrc": "/blender/depth-writing-599839f0.webp",
+    "darkSrc": "/blender/island-writing-dark-19309ed5.webp",
+    "liftedSrc": "/blender/island-writing-lifted-2bd1d0b8.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-fa5d9316.webp",
+    "depthSrc": "/blender/depth-writing-1af208d9.webp",
     "life": {
       "lamp": [
         477.05,

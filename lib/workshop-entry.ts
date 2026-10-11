@@ -136,7 +136,7 @@ const bookLeaves = () => innerWidth < 760 ? 5 : 7;
 // takes: a riffle under the thumb, the first a touch deliberate, picking up
 // pace through the middle with two or three leaves in the air at once, the
 // last laid down gently.
-const BOOK_LIFT = 1100;
+const BOOK_LIFT = 1700;
 // The notebook's perspective (WorkshopEntry.module.css .fader). A leaf lying a
 // few pixels proud of the spread is shrunk by exactly what that perspective
 // magnifies, so its printed words stay pixel-sharp at rest.
@@ -200,6 +200,10 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
   if (kind === "book") { fader.append(screen); overlay.append(backdrop, fader); }
   else overlay.append(backdrop, screen);
   document.body.append(overlay);
+  // Writing shows its desk without the notebook (the "lifted" still) while
+  // the notebook is carried off, drawn as a still rather than the parallax.
+  const visual = kind === "book" ? source.closest<HTMLElement>("[data-island-visual]") : null;
+  if (visual) visual.dataset.entryStill = "true";
   // The island's light glows behind what it carries, in front of the dark.
   holdEntryLight(overlay, kind === "book" ? fader : screen);
   document.documentElement.dataset[attribute] = "entering";
@@ -211,6 +215,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     current.frames.forEach(cancelAnimationFrame);
     current.animations.forEach(animation => animation.cancel());
     overlay.remove();
+    if (visual) delete visual.dataset.entryStill;
     window.removeEventListener("popstate", current.dispose);
     window.removeEventListener("resize", current.dispose);
     motion.removeEventListener("change", current.dispose);
@@ -238,19 +243,38 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
     const lift = { duration: BOOK_LIFT, fill: "forwards" } as const;
     const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
-    const rise = Math.min(70, innerHeight * .08);
+    // How far it rises off the desk before it turns: well clear of the desk,
+    // in proportion to how large the book looks there.
+    const rise = Math.min(innerHeight * .2, Math.max(80, shown * 1.1));
+    const start = bookPose(cx, cy, angle, tilt, scale);
+    // Where it lay, a soft shadow stays on the desk and fades as it rises.
+    const shadow = document.createElement("div");
+    shadow.className = styles.deskShadow;
+    shadow.style.width = `${layoutWidth}px`; shadow.style.height = `${layoutHeight}px`;
+    shadow.style.margin = screen.style.margin;
+    shadow.style.transform = start;
+    fader.before(shadow);
     current.animations.push(
-      // It comes up off the desk with some weight: first straight up, still
-      // lying back as it was, then it swings up to face you and keeps coming,
-      // close enough to fill your view, before easing back to reading size.
+      // The island holds still while the notebook lifts straight up off the
+      // desk, still lying back as it was, and hovers a beat; then it swings
+      // up to face you and keeps coming, close enough to fill your view,
+      // before easing back to reading size. The island's own notebook is
+      // gone from the desk beneath it (the "lifted" still), so it's the one
+      // book, carried off.
       screen.animate([
-        { transform: bookPose(cx, cy, angle, tilt, scale), offset: 0, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
-        { transform: bookPose(cx, cy - rise, angle * .75, tilt * .85, scale * 1.15), offset: .26, easing: "cubic-bezier(0.4, 0, 0.3, 1)" },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2 + innerHeight * .015, 0, -.1, 1.17), offset: .68, easing: "cubic-bezier(0.35, 0, 0.25, 1)" },
+        { transform: start, offset: 0, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
+        { transform: bookPose(cx, cy - rise, angle, tilt * .95, scale * 1.10), offset: .30, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
+        { transform: bookPose(cx, cy - rise * 1.08, angle * .9, tilt * .88, scale * 1.13), offset: .40, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
+        { transform: bookPose(innerWidth / 2, innerHeight / 2 + innerHeight * .015, 0, -.1, 1.17), offset: .80, easing: "cubic-bezier(0.35, 0, 0.25, 1)" },
         { transform: rest, offset: 1 },
       ], lift),
-      fader.animate([{ opacity: 0 }, { opacity: 1, offset: .1 }, { opacity: 1 }], lift),
-      backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .55 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
+      shadow.animate([
+        { opacity: .7, transform: `${start} scale(1)`, easing: "ease-out" },
+        { opacity: 0, transform: `${start} scale(1.25)`, offset: .35 },
+        { opacity: 0, transform: `${start} scale(1.25)` },
+      ], lift),
+      // The night closes in only once the notebook is in the air.
+      backdrop.animate([{ opacity: 0 }, { opacity: 0, offset: .35, easing: "ease-in-out" }, { opacity: 1, offset: .75 }, { opacity: 1 }], lift),
     );
     // Then it is thumbed through, leaf by leaf, overlapping like pages under
     // a thumb. A leaf turns the way paper does: the corner lifts first, the

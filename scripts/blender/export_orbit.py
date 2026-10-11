@@ -56,6 +56,9 @@ for obj in list(scene.objects):
     # Night-only still details (fireworks, lanterns) stay out of the model,
     # which the browser shows in both day and night.
     if obj.name.startswith('Night · '): obj.hide_render=True; continue
+    # Clear glass (the study's window, the latte glass and its ice) can't be
+    # baked into vertex colour; the browser model leaves it out.
+    if obj.name.startswith(('Study · window glass','Iced latte · glass','Iced latte · ice')): obj.hide_render=True; continue
     if obj.type=='MESH' and any(m and m.use_nodes and any(n.type=='TEX_IMAGE' for n in m.node_tree.nodes) for m in obj.data.materials):
         image_parts.append(obj)
         continue

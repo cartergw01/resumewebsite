@@ -82,6 +82,15 @@ for w in "${worlds[@]}"; do
       --world "$w" --time dark --output "$out/dark" --width "$width" --samples "$samples" --device "$device"
     node scripts/blender/export_variant.mjs "$out/dark" "$w" dark
   fi
+  if [ "$w" = writing ]; then
+    # The study with its notebook lifted away, lit and dark, for the entry.
+    for variant in lifted lifted-dark; do
+      step "writing: $variant still"
+      blender "writing-$variant" -b --factory-startup --python scripts/blender/build_islands.py -- \
+        --world writing --time "$variant" --output "$out/$variant" --width "$width" --samples "$samples" --device "$device"
+      node scripts/blender/export_variant.mjs "$out/$variant" writing "$variant"
+    done
+  fi
   step "$w: depth map"
   blender "$w-depth" -b "artwork/blender/$w.blend" --python scripts/blender/render_depth.py -- --world "$w" --output "$out/depth" --width 1440
   node scripts/blender/export_depth.mjs "$out/depth" "$w"

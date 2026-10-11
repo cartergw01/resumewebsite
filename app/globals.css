@@ -3129,3 +3129,12 @@ html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !impo
 [data-room-dim] { transition: filter 600ms cubic-bezier(.45, 0, .25, 1); }
 html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); }
 @media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light], [data-room-dim] { transition: none; } }
+
+/* Writing's entry carries the island's notebook off its desk: under it the
+   desk is shown without the notebook (lit or dark, with the room's switch),
+   and the notebook's drawn-on pages and edges step aside. */
+[data-book-lifted] { opacity: 0; }
+html[data-book-transition] [data-book-lifted="lit"] { opacity: 1; }
+html[data-book-transition][data-writing-lights="off"] [data-book-lifted="lit"] { opacity: 0; }
+html[data-book-transition][data-writing-lights="off"] [data-book-lifted="dark"] { opacity: 1; }
+html[data-book-transition] [data-book-surface] { opacity: 0 !important; }

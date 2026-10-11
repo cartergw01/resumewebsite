@@ -1424,6 +1424,85 @@ def turn_group(name, objects, degrees, origin, anchor_keys=()):
         ANCHORS[key]=[tuple(matrix@Vector(v)) for v in value] if isinstance(value,list) else tuple(matrix@Vector(value))
 
 
+def glass_material(name,color=(1,1,1),rough=.02,transmission=1.0):
+    """Clear glass (or ice): fully transmissive, with a hint of tint."""
+    mat=material(name,color,rough=rough)
+    bs=mat.node_tree.nodes['Principled BSDF']
+    for key in ['Transmission Weight','Transmission']:
+        if key in bs.inputs:bs.inputs[key].default_value=transmission;break
+    bs.inputs['IOR'].default_value=1.45
+    return mat
+
+
+def place(objects,x,y,z,angle):
+    """Move objects built around the origin to (x, y, z), turned about Z."""
+    from mathutils import Matrix
+    bpy.context.view_layer.update()
+    pose=Matrix.Translation(Vector((x,y,z)))@Matrix.Rotation(angle,4,'Z')
+    for obj in objects:obj.matrix_world=pose@obj.matrix_world
+
+
+def ipad_pro(x,y,z,angle):
+    """A 12.9-inch iPad Pro on a black Magic Keyboard: the keyboard and
+    trackpad on the desk, the iPad floating on its cantilevered back plate,
+    its screen facing the room and showing Carter's latest essay."""
+    before=set(bpy.context.scene.objects)
+    P['magic_keyboard']=material('Magic Keyboard · black polyurethane',(.018,.018,.02),rough=.6)
+    P['ipad_body']=material('iPad Pro · space black aluminium',(.03,.03,.033),metal=.6,rough=.35)
+    # Keyboard base, 28.5 x 24cm, with keys and a glass trackpad.
+    box('Magic Keyboard · base',(0,.24,.009),(.57,.48,.018),'magic_keyboard',.006)
+    for row in range(5):
+        for col in range(13):
+            box('Magic Keyboard · key',(-.252+col*.042,.115+row*.040,.0195),(.034,.032,.004),'ink',.002)
+    box('Magic Keyboard · space bar',(0,.075,.0195),(.21,.032,.004),'ink',.002)
+    box('Magic Keyboard · trackpad',(0,.035,.0185),(.20,.05,.002),'ipad_body',.002)
+    rod('Magic Keyboard · hinge',(-.27,.47,.016),(.27,.47,.016),.011,'magic_keyboard',16)
+    # The back plate leans back from the hinge and holds the iPad mid-height.
+    tilt=math.radians(-17)
+    plate=box('Magic Keyboard · cantilever plate',(0,.505,.12),(.56,.010,.22),'magic_keyboard',.006);plate.rotation_euler.x=math.radians(-12)
+    # The iPad: its bottom edge floats over the top row of keys.
+    centre=Vector((0,.475,.26))
+    ipad=box('iPad Pro · body',tuple(centre),(.56,.012,.43),'ipad_body',.008);ipad.rotation_euler.x=tilt
+    bezel=box('iPad Pro · black bezel',tuple(centre+Vector((0,-.0065,0))),(.548,.001,.418),'ink',0);bezel.rotation_euler.x=tilt
+    image=bpy.data.images.load(str(ROOT/'public'/'essay-covers'/'the-cost-of-keeping-up.webp'),check_existing=True)
+    if not image.packed_file:image.pack()
+    display=material('iPad Pro · Screen display',(.02,.02,.02),rough=.2)
+    tex=display.node_tree.nodes.new('ShaderNodeTexImage');tex.image=image
+    bs=display.node_tree.nodes['Principled BSDF']
+    display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Base Color'])
+    display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Emission Color'])
+    bs.inputs['Emission Strength'].default_value=1.1
+    w,h=.52,.39
+    screen=mesh('iPad Pro · screen',[(-w/2,0,-h/2),(w/2,0,-h/2),(w/2,0,h/2),(-w/2,0,h/2)],[(0,1,2,3)],display)
+    uv=screen.data.uv_layers.new(name='Screen coordinates')
+    for loop,point in zip(uv.data,[(0,0),(1,0),(1,1),(0,1)]):loop.uv=point
+    screen.location=centre+Vector((0,-.0075,0));screen.rotation_euler.x=tilt
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
+def iced_latte(x,y,z):
+    """An iced latte from Verve, the Santa Cruz roaster, in a clear glass:
+    milk below, espresso settling through it above, ice, a straw, the VERVE
+    mark printed on the glass, on a cork coaster."""
+    P['latte_glass']=glass_material('Iced latte · glass',rough=.03)
+    P['latte_ice']=glass_material('Iced latte · ice',(.95,.97,1),rough=.12,transmission=.92)
+    P['latte_milk']=material('Iced latte · milk',(.83,.76,.64),rough=.3)
+    P['latte_blend']=material('Iced latte · milky espresso',(.58,.40,.24),rough=.3)
+    P['latte_espresso']=material('Iced latte · espresso',(.30,.16,.07),rough=.3)
+    P['cork']=textured('Coaster · cork',(.42,.28,.15),(.55,.39,.22),'fabric',rough=.95)
+    cylinder('Coaster · cork',(x,y,z+.004),.10,.008,'cork',40,bevel=.002)
+    r=.070;h=.30;base=z+.008
+    cylinder('Iced latte · glass',(x,y,base+h/2),r,h,'latte_glass',48,top=r*1.08,bevel=.003)
+    for name,mat,z0,z1,rr in [('milk','latte_milk',.012,.15,.064),('milky espresso','latte_blend',.15,.185,.066),('espresso','latte_espresso',.185,.235,.067)]:
+        cylinder('Iced latte · '+name,(x,y,base+(z0+z1)/2),rr,z1-z0,mat,40,top=rr*1.01,bevel=0)
+    rng=random.Random(41)
+    for k in range(5):
+        cube=box('Iced latte · ice',(x+rng.uniform(-.03,.03),y+rng.uniform(-.03,.03),base+.215+k*.012),(.042,.042,.038),'latte_ice',.006)
+        cube.rotation_euler=(rng.uniform(0,1),rng.uniform(0,1),rng.uniform(0,3))
+    rod('Iced latte · straw',(x+.02,y+.01,base+.05),(x+.05,y+.03,base+.40),.0075,'ink',12)
+    lettering('Iced latte · VERVE mark','VERVE',(x,y-r*1.05-.002,base+.24),.030,'paper')
+
+
 def writing():
     foundation(73,'garden');landscape('writing',73);floorboards()
     # A cutaway corner of a proper study-office: painted plaster above, green
@@ -1466,13 +1545,11 @@ def writing():
     box('Diploma · certificate',(-3.094,dy,dz),(.004,.44,.30),'page',.001)
     cylinder('Diploma · gold seal',(-3.090,dy+.15,dz-.09),.035,.004,'brass',24,bevel=0).rotation_euler.y=math.pi/2
     for k in range(4):box('Diploma · printed line',(-3.091,dy-.03,dz+.09-k*.045),(.002,.26-k*.035,.008),'ink',0)
-    # The window is glazed into the opening and looks out on the night.
-    box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'nightglass',.001)
-    # The night outside: a low moon and a few stars in the panes.
-    P['moonglow']=material('Window · moon',(.95,.92,.82),emission=2.5)
-    moon=cylinder('Window · moon',(-1.55,1.976,2.55),.11,.002,'moonglow',40,bevel=0);moon.rotation_euler.x=math.pi/2
-    for sx2,sz2 in [(-2.55,2.70),(-2.30,2.42),(-2.62,2.18),(-1.30,2.25),(-2.12,2.80),(-1.75,1.72)]:
-        box('Window · star',(sx2,1.977,sz2),(.012,.001,.012),'moonglow',0)
+    # The window is clear glass: the night outside is the site's own galaxy,
+    # seen through the panes (the render is transparent beyond the wall).
+    P['clearwindow']=material('Window · clear glass',(.9,.95,1),rough=.04)
+    P['clearwindow'].node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value=.03
+    box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'clearwindow',.001)
     # Linen drapes on a brass rod frame the window.
     rod('Window · curtain rod',(-3.02,1.86,3.02),(-.90,1.86,3.02),.012,'brass',12)
     for x0 in [-3.00,-1.24]:
@@ -1496,11 +1573,19 @@ def writing():
     for zz in [1.33,2.11,2.89]:box('Window · horizontal rail',(-1.96,1.95,zz),(1.66,.05,.027),'teal',.002)
     for xx in [-2.79,-1.13]:box('Window · reveal',(xx,1.95,2.11),(.03,.06,1.58),'teal',.002)
     box('Window · oak sill',(-1.96,1.84,1.30),(1.89,.24,.05),'oak',.003)
-    # Open, lower shelves let the book keep the foreground and sky stay visible.
+    # A modern bookshelf: walnut shelves on a slim black steel frame over a
+    # dark back panel, each shelf washed from above by a warm LED strip.
     rng=random.Random(940)
-    for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,1.49),(.046,.46,2.60),'wood',.003)
+    P['shelf_panel']=material('Bookshelf · charcoal back panel',(.028,.028,.032),rough=.8)
+    P['led_strip']=material('Bookshelf · LED strip',(1,.84,.62),emission=9)
+    box('Bookshelf · back panel',(1,1.885,1.50),(3.20,.02,2.62),'shelf_panel',.002)
+    for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,1.49),(.03,.50,2.60),'ink',.002)
     for z in [.20,1.04,1.90,2.80]:
-        box('Study · bookcase shelf',(1,1.60,z),(3.22,.55,.040),'wood',.002)
+        box('Study · bookcase shelf',(1,1.60,z),(3.22,.55,.045),'wood',.002)
+        if z>.5:
+            # The strip sits under the front lip of the shelf above the books.
+            box('Bookshelf · LED strip',(1,1.37,z-.026),(3.10,.016,.006),'led_strip',0)
+            for bx in [.21,1.79]:light('Bookshelf · LED wash',(bx,1.55,z-.05),(1,.84,.62),7,.05,(bx,1.62,z-.6))
         if z>2.7:continue
         for start,end in [(-.53,.90),(1.08,2.53)]:
             x=start
@@ -1539,10 +1624,9 @@ def writing():
     ANIMATED.append(practical)
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
     # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
-    cylinder('Study · stoneware mug',(-.68,-.21,1.716),.071,.195,'linen',64,top=.076,bevel=.003)
-    cylinder('Study · coffee',(-.68,-.21,1.812),.068,.002,'leather',40,bevel=0)
-    torus('Study · mug rim',(-.68,-.21,1.814),.071,.003,'linen')
-    torus('Study · mug handle',(-.777,-.21,1.726),.048,.008,'linen',(math.pi/2,0,0))
+    iced_latte(-.62,-.30,1.61)
+    # Carter's iPad Pro on its Magic Keyboard, at the front of the desk.
+    ipad_pro(-1.02,-1.20,1.61,math.radians(14))
     rod('Fountain pen',(.80,-1.18,1.634),(.75,-.87,1.634),.009,'ink',20)
     rod('Fountain pen · silver nib',(.80,-1.18,1.634),(.807,-1.221,1.634),.004,'steel')
     for x in [1.13,1.31]:torus('Study · spectacles',(x,-1.05,1.632),.075,.0024,'brass')
@@ -2012,6 +2096,13 @@ def workshop():
     plant(-2.98,.95,.16,.64)
 
 
+def unseen_lights(scene):
+    """Lamps light the scene but are never seen themselves: through the
+    study's clear window the rim lights behind the island would show."""
+    for obj in scene.objects:
+        if obj.type=='LIGHT':obj.visible_camera=False
+
+
 def repeatable(scene):
     """Same scene in, same pixels out: a fixed sampling seed and the CPU
     denoiser, so re-rendering an unchanged island yields byte-identical
@@ -2200,13 +2291,15 @@ def main():
     # geometry, so its interaction anchors are identical to the night render.
     # Day (Work's clear afternoon) and dark (a room with its lights off) both
     # relight the saved night scene, so they share its geometry and camera.
-    parser.add_argument('--time',choices=['night','day','dark'],default='night')
+    # lifted and lifted-dark are the study with its notebook lifted away (lights
+    # on or off): what stays on the desk while the Writing entry carries it off.
+    parser.add_argument('--time',choices=['night','day','dark','lifted','lifted-dark'],default='night')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True,exist_ok=True)
     sources=ROOT/'artwork'/'blender'
     sources.mkdir(parents=True,exist_ok=True)
     for world in (['work','writing','projects'] if args.world=='all' else [args.world]):
-        if args.time in ('day','dark'):
+        if args.time!='night':
             # Day and dark relight the saved night scene itself, so they share
             # exactly the same geometry, camera and therefore interaction anchors.
             bpy.ops.wm.open_mainfile(filepath=str(sources/f'{world}.blend'))
@@ -2219,9 +2312,13 @@ def main():
                 for dev in prefs.devices: dev.use=dev.type=='METAL'
                 scene.cycles.device='GPU'
             if args.time=='day':daylight(scene)
-            else:lights_out(scene)
+            if args.time.startswith('lifted'):
+                for obj in list(scene.objects):
+                    if obj.name.startswith('Notebook'):bpy.data.objects.remove(obj,do_unlink=True)
+            if args.time.endswith('dark'):lights_out(scene)
             repeatable(scene)
             scene.render.filepath=str(args.output/f'{world}.png')
+            unseen_lights(scene)
             bpy.ops.render.render(write_still=True)
             print(f'COMPLETED {world} {args.time}',flush=True)
             continue
@@ -2241,6 +2338,7 @@ def main():
             manifest.setdefault('work',{})['entryWindow3D']=[[round(x,8),round(z,8),round(-y,8)] for x,y,z in ANCHORS['entryWindow']]
             assets.write_text(json.dumps(manifest,indent=2)+'\n')
         scene.render.filepath=str(args.output/f'{world}.png')
+        unseen_lights(scene)
         if args.time=='night':bpy.ops.wm.save_as_mainfile(filepath=str(sources/f'{world}.blend'),compress=True)
         bpy.ops.render.render(write_still=True)
         if args.animate and world=='writing':
@@ -2256,7 +2354,8 @@ def main():
             for frame in range(1,49):
                 scene.frame_set(frame)
                 scene.render.filepath=str(frames/f'{frame}.png')
-                bpy.ops.render.render(write_still=True)
+                unseen_lights(scene)
+            bpy.ops.render.render(write_still=True)
         print(f'COMPLETED {world}',flush=True)
 
 

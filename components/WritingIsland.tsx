@@ -20,6 +20,17 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
   const orbitAnchors = useMemo(() => ({ landmark: [island.landmark], spread: island.spread }), [island]);
   const visualRef = useRef<HTMLSpanElement>(null);
   const [warm, setWarm] = useState(false);
+  // The desk without its notebook, shown while the Writing entry lifts the
+  // notebook off it, loads when someone reaches for the island.
+  const [liftWanted, setLiftWanted] = useState(false);
+  useEffect(() => {
+    const link = visualRef.current?.closest<HTMLElement>("[data-island-link]");
+    if (!link) return;
+    const want = () => setLiftWanted(true);
+    const intents = ["pointerenter", "pointerdown", "focusin", "touchstart"] as const;
+    intents.forEach(type => link.addEventListener(type, want, { passive: true, once: true }));
+    return () => intents.forEach(type => link.removeEventListener(type, want));
+  }, []);
   // The lights-off still loads when someone reaches for the switch, or at once
   // if they left the study dark last time.
   const [darkWanted, setDarkWanted] = useState(false);
@@ -55,9 +66,19 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
             sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}
             className={styles.writingPoster} data-lights-off="writing"
           /> : null}
+          {warm && liftWanted && "liftedSrc" in island && island.liftedSrc ? <Image
+            src={island.liftedSrc as string} alt="" width={island.width} height={island.height}
+            sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}
+            className={styles.writingPoster} data-book-lifted="lit"
+          /> : null}
+          {warm && liftWanted && darkWanted && "liftedDarkSrc" in island && island.liftedDarkSrc ? <Image
+            src={island.liftedDarkSrc as string} alt="" width={island.width} height={island.height}
+            sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}
+            className={styles.writingPoster} data-book-lifted="dark"
+          /> : null}
           {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} room="writing" className={styles.parallax} /> : null}
           {warm && island.life ? <IslandLife world="writing" life={island.life as Life} className={styles.life} /> : null}
-          <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response>
+          <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response data-book-surface>
             <defs>
               <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">
                 <stop stopColor="#fff3c6" stopOpacity="0.05" /><stop offset="1" stopColor="#ffe6a1" stopOpacity="0.5" />
@@ -73,7 +94,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
             <ellipse className={styles.readingLamp} data-reads="reading-lamp:opacity:.4" data-room-light="writing" cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />
             {/* These planes are projected from the actual Blender notebook. */}
             <path data-book-spread data-corners={JSON.stringify(island.spread)} data-essays={JSON.stringify(pages)} fill="none" d={artworkOutline(island.spread)} />
-            <g className={styles.printedPage} data-reads="reading-paper:opacity:.22:.78" data-room-dim="writing">
+            <g className={styles.printedPage} data-reads="reading-paper:opacity:.22:.78" data-room-dim="writing" data-book-surface>
               <PerspectiveArtwork corners={island.page} width={320} height={400}>
                 <svg data-book-page viewBox="0 0 320 400" width="320" height="400"><EssayLeaf essay={essay} /></svg>
               </PerspectiveArtwork>

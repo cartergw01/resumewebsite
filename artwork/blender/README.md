@@ -33,11 +33,17 @@ backplates are used.
   additional surveyed replicas of named buildings.
 - **Writing:** a finished study-office, cut away like a doll's house: eggshell
   walls over green panelled wainscot, a chair rail, crown moulding and
-  skirting, the window glazed into the back wall, the bookshelf against it and
-  Carter's UC Santa Cruz degree framed on the side wall. Slim walnut furniture, a usable upholstered chair, a
-  madder wool rug, an open notebook, mug, spectacles, fountain pen and a task
-  lamp; a reading garden and trellis sit outside the side wall. Two scene units
-  represent one metre.
+  skirting, a clear window in the back wall (the render is transparent beyond
+  it, so the site's own galaxy shows through; lamps are never seen by the
+  camera, so nothing behind the island shows in the glass), a modern bookshelf
+  (walnut shelves on a slim black frame over a charcoal back panel, each shelf
+  washed by a warm LED strip) and Carter's UC Santa Cruz degree framed on the
+  side wall. Slim walnut furniture, a usable upholstered chair, a madder wool
+  rug, an open notebook, a 12.9-inch iPad Pro on a black Magic Keyboard showing
+  his latest essay's cover, an iced latte from Verve (the Santa Cruz roaster)
+  in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
+  spectacles, a fountain pen and a task lamp; a reading garden and trellis sit
+  outside the side wall. Two scene units represent one metre.
 - **Projects:** the opposite of the study, an open, hand-built lean-to shed: a
   bare stud frame with mismatched plywood and OSB on its lower half, two
   patched sheets above and open bays to the night, no side wall, a sloping
@@ -55,8 +61,8 @@ tail-light streaks; Xiangshan (Elephant Mountain) rises in the south-east
 corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
-study's window holds a low moon and a few stars between linen drapes, with an
-office clock above the shelves. The shed has festoon bulbs swagged along its
+study's window, between linen drapes, looks out on the site's own night sky,
+with an office clock above the shelves. The shed has festoon bulbs swagged along its
 roof beam and a telescope on a tripod in the yard.
 
 ### Depth parallax
@@ -154,6 +160,17 @@ bulb glows and the reading lamp's pool go out, the desk's printed page dims,
 and a turned 3D view dims its lamps and glows the same way. Each room
 remembers its own switch per visitor. The camera flights keep their baked,
 lit models.
+
+### Writing's entry: the notebook lifts off the desk
+
+The Writing island holds still while its open notebook lifts straight up off
+the desk, hovers a beat, then swings up to face the visitor, comes close and
+settles before the pages riffle (`lib/workshop-entry.ts`). Under it the desk is
+shown without the notebook: `--time lifted` and `--time lifted-dark` render the
+saved study with every `Notebook ·` object removed (lit, and with the lights
+off), published as `liftedSrc` and `liftedDarkSrc` and fetched when someone
+reaches for the island. A soft shadow stays on the desk where it lay; the
+night closes in only once the notebook is in the air.
 
 ### Personal details
 

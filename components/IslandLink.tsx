@@ -105,10 +105,15 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     // One continuous move: the curve dips back a touch as the island
     // answers, then glides in and slows into the landmark, never stopping
     // in between (a separate "breath" keyframe made the camera hesitate).
-    const zoom = visual.animate([
-      { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin },
-      { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin },
-    ], { duration: ENTRY_APPROACH_DURATION, easing: city ? WORK_PUSH_EASING : "cubic-bezier(0.5, -0.06, 0.2, 1)", fill: "forwards" });
+    const from = { transform: initialTransform === "none" ? "scale(1)" : initialTransform, transformOrigin: initialOrigin };
+    const to = { transform: `translate3d(${x}px, ${y}px, 0) scale(${scale})`, transformOrigin: origin };
+    // Writing holds the island still while its notebook lifts off the desk,
+    // then the camera moves in behind the night closing over it.
+    const zoom = visual.animate(book ? [
+      { ...from, offset: 0 },
+      { ...from, offset: .5, easing: "cubic-bezier(0.5, 0, 0.2, 1)" },
+      { ...to, offset: 1 },
+    ] : [from, to], { duration: ENTRY_APPROACH_DURATION, easing: book ? "linear" : city ? WORK_PUSH_EASING : "cubic-bezier(0.5, -0.06, 0.2, 1)", fill: "forwards" });
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;

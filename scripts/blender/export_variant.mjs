@@ -1,16 +1,17 @@
 // Export a relit twin of an island's still with exactly the night render's
 // crop, so both share one set of interaction anchors and switching between
 // them is a pure crossfade: Work by day, or the study and workshop with their
-// lights off.
-// node scripts/blender/export_variant.mjs RAW_DIRECTORY WORLD day|dark
+// lights off, or the study with its notebook lifted away for the Writing entry.
+// node scripts/blender/export_variant.mjs RAW_DIRECTORY WORLD day|dark|lifted|lifted-dark
 import { readFile, writeFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 
 const [input, world = "work", variant = "day"] = process.argv.slice(2);
-if (!input || !["work", "writing", "projects"].includes(world) || !["day", "dark"].includes(variant)) {
-  throw new Error("Use: export_variant.mjs RAW_DIRECTORY work|writing|projects day|dark");
+const KEYS = { day: "daySrc", dark: "darkSrc", lifted: "liftedSrc", "lifted-dark": "liftedDarkSrc" };
+if (!input || !["work", "writing", "projects"].includes(world) || !Object.keys(KEYS).includes(variant)) {
+  throw new Error("Use: export_variant.mjs RAW_DIRECTORY work|writing|projects day|dark|lifted|lifted-dark");
 }
 const root = path.resolve(import.meta.dirname, "../..");
 const [x, y, width, height] = JSON.parse(await readFile(path.join(root, "lib/island-orbit-assets.json"), "utf8"))[world].crop;
@@ -29,6 +30,6 @@ for (const file of await readdir(output)) if (file.startsWith(prefix) && file.en
 await writeFile(path.join(output, name), image);
 const manifestPath = path.join(root, "lib/blender-islands.json");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-manifest[world][variant === "day" ? "daySrc" : "darkSrc"] = `/blender/${name}`;
+manifest[world][KEYS[variant]] = `/blender/${name}`;
 await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 console.log(`Exported ${world} ${variant} still ${name} with crop ${x},${y} ${width}×${height}`);
