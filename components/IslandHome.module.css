@@ -557,19 +557,22 @@
 /* Day/night button for Taipei, at the island's upper right. It shows the
    time it would switch to; the icons turn and trade places. It arrives with
    the island's cue and steps aside during flights and entries. */
-.cityTime { position: absolute; z-index: 6; top: 7%; right: 9%; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1px solid #ebd0ac38; border-radius: 50%; color: #f3e2c4; background: radial-gradient(circle at 35% 30%, #1b2440cc, #030611d9); box-shadow: 0 6px 18px #0006, inset 0 1px 0 #ffffff14; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: pointer; pointer-events: auto; opacity: var(--cue-opacity, 1); transition: border-color 250ms ease, box-shadow 400ms ease, opacity 250ms ease, transform 250ms var(--cw-ease); }
+/* The islands' switches (Taipei's sun and moon, the rooms' light switches):
+   just the icon, no backing disc, in one spot on every island so it stays
+   put as you travel between them. The button keeps a 38px target. */
+.cityTime { position: absolute; z-index: 6; top: 19%; right: 15%; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; color: #f3e2c4; background: none; cursor: pointer; pointer-events: auto; opacity: var(--cue-opacity, 1); transition: opacity 250ms ease, transform 250ms var(--cw-ease); }
 .cityTime::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
-.cityTime svg { grid-area: 1 / 1; width: 18px; height: 18px; transition: opacity 600ms ease, transform 900ms var(--cw-ease); }
+.cityTime svg { grid-area: 1 / 1; width: 22px; height: 22px; filter: drop-shadow(0 1px 3px #000c); transition: opacity 600ms ease, transform 900ms var(--cw-ease), filter 300ms ease; }
 .cityTimeSun circle { fill: currentColor; }
 .cityTimeSun path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
 .cityTimeMoon path { fill: currentColor; }
 /* At night the button offers the sun; by day, the moon. */
 .cityTime[data-time="night"] .cityTimeMoon, .cityTime[data-time="day"] .cityTimeSun { opacity: 0; transform: rotate(-90deg) scale(.6); }
 .cityTime[data-time="night"] { color: #ffd99a; }
-.cityTime[data-time="night"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #ffd99a40, inset 0 1px 0 #ffffff14; }
+.cityTime[data-time="night"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #ffd99a99); }
 .cityTime[data-time="day"] { color: #d9e4ff; }
-.cityTime[data-time="day"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #c9d6ff40, inset 0 1px 0 #ffffff14; }
-.cityTime:hover { border-color: #ebd0ac80; transform: translateY(-1px); }
+.cityTime[data-time="day"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #c9d6ff99); }
+.cityTime:hover { transform: translateY(-1px); }
 .cityTime:focus-visible { outline: 1px solid #ebd0ac; outline-offset: 3px; }
 /* While the day still arrives, the sun breathes so the tap reads as received. */
 .cityTime[data-pending] svg { animation: city-time-pending 700ms ease-in-out infinite alternate; }
@@ -578,18 +581,24 @@
 .stage[data-travelling="true"] .cityTime, .stage[data-entering] .cityTime { opacity: 0; pointer-events: none; }
 /* The study's and workshop's light switch: a wall plate whose rocker is up,
    lit warm, while the lights are on, and down, moonlit, when they're off. */
-.lightSwitch svg { width: 19px; height: 19px; }
+.lightSwitch svg { width: 23px; height: 23px; }
 .lightSwitchPlate { fill: none; stroke: currentColor; stroke-width: 1.3; }
 .lightSwitchRocker { fill: currentColor; opacity: .28; }
 .lightSwitchTab { fill: currentColor; transition: transform 260ms var(--cw-ease); }
 .lightSwitch[data-lights="on"] { color: #ffd99a; }
-.lightSwitch[data-lights="on"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #ffd99a40, inset 0 1px 0 #ffffff14; }
+.lightSwitch[data-lights="on"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #ffd99a99); }
 .lightSwitch[data-lights="off"] { color: #b9c6e8; }
 .lightSwitch[data-lights="off"] .lightSwitchTab { transform: translateY(4.5px); }
-.lightSwitch[data-lights="off"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #c9d6ff40, inset 0 1px 0 #ffffff14; }
+.lightSwitch[data-lights="off"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #c9d6ff99); }
 @media (prefers-reduced-motion: reduce) { .lightSwitchTab { transition: none; } }
 /* On phones the art box overhangs each screen edge by 3rem. */
 @media (max-width: 760px) { .cityTime { top: 2%; right: calc(3rem + 1.25rem); width: 40px; height: 40px; } }
+/* Stacked layouts (phones, portrait tablets) put each island under its
+   copy: every island's description holds two lines, so the islands, and the
+   switches on them, sit in the same place on every stop as you scroll. */
+@media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
+  :is(.work, .writing, .projects) .description { min-height: 2lh; }
+}
 @media (prefers-reduced-motion: reduce) { .cityTime, .cityTime svg { transition: none; } }
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
