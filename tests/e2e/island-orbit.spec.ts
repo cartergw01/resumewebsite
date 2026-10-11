@@ -152,7 +152,9 @@ test("losing the graphics context restores the poster and its original entry cor
   const link = page.locator("#projects [data-island-link]");
   await link.focus();
   await page.keyboard.press("ArrowLeft");
-  await expect(surface).not.toHaveAttribute("data-corners", original!);
+  // The corners move within a frame, but on headless software WebGL the first
+  // live frame blocks the page for ~6s, longer than the default expect timeout.
+  await expect(surface).not.toHaveAttribute("data-corners", original!, { timeout: 20_000 });
   await canvas.dispatchEvent("webglcontextlost", { cancelable: true });
   await expect(canvas).not.toHaveAttribute("data-orbit-live");
   await expect(canvas).not.toHaveAttribute("data-orbit-ready");
