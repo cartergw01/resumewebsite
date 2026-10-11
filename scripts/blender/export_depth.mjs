@@ -1,18 +1,18 @@
 // Crop each island's depth map exactly like its still and publish it for the
-// browser's parallax. node scripts/blender/export_depth.mjs RAW_DEPTH_DIRECTORY
+// browser's parallax. node scripts/blender/export_depth.mjs RAW_DEPTH_DIRECTORY [WORLD]
 import { readFile, writeFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 
-const [input] = process.argv.slice(2);
+const [input, only] = process.argv.slice(2);
 if (!input) throw new Error("Pass the raw depth render directory.");
 const root = path.resolve(import.meta.dirname, "../..");
 const crops = JSON.parse(await readFile(path.join(root, "lib/island-orbit-assets.json"), "utf8"));
 const manifestPath = path.join(root, "lib/blender-islands.json");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const output = path.join(root, "public/blender");
-for (const world of ["work", "writing", "projects"]) {
+for (const world of only ? [only] : ["work", "writing", "projects"]) {
   const source = path.join(input, `${world}.png`);
   const [x, y, width, height] = crops[world].crop;
   const { width: rawWidth } = await sharp(source).metadata();

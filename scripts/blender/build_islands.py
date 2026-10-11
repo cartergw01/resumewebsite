@@ -695,21 +695,37 @@ def chamfered_square(width,cut=.10):
     return [(-h+c,-h),(h-c,-h),(h,-h+c),(h,h-c),(h-c,h),(-h+c,h),(-h,h-c),(-h,-h+c)]
 
 
-def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',columns=24,force=()):
-    """Glazing follows the actual sloping planes; fine mullions retain scale."""
-    rng=random.Random(seed);lower=chamfered_square(width);upper=chamfered_square(topwidth)
+def stepped_square(width,step=.06):
+    """Taipei 101's plan: a square whose corners step in twice ("double
+    stairstep" re-entrant corners). Side 0 is the south face; the four faces
+    are sides 0, 5, 10 and 15, each corner four short steps."""
+    h=width/2;s=width*step
+    return [(-h+2*s,-h),(h-2*s,-h),(h-2*s,-h+s),(h-s,-h+s),(h-s,-h+2*s),(h,-h+2*s),
+            (h,h-2*s),(h-s,h-2*s),(h-s,h-s),(h-2*s,h-s),(h-2*s,h),
+            (-h+2*s,h),(-h+2*s,h-s),(-h+s,h-s),(-h+s,h-2*s),(-h,h-2*s),
+            (-h,-h+2*s),(-h+s,-h+2*s),(-h+s,-h+s),(-h+2*s,-h+s)]
+
+
+def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',columns=24,force=(),plan=chamfered_square,even=False):
+    """Glazing follows the actual sloping planes; fine mullions retain scale.
+    An even tower (Taipei 101) is one uniform curtain wall: every pane the
+    same glass by day and the same soft glow by night, not a patchwork of
+    tenants' lit floors."""
+    rng=random.Random(seed);lower=plan(width);upper=plan(topwidth);sides=len(lower)
+    longest=max((Vector(lower[(i+1)%sides])-Vector(lower[i])).length for i in range(sides))
     tone=1 if rng.random()<.7 else 2
     occupancy=[];previous=False
     for row in range(floors):
         previous=rng.random()<(.72 if previous else .32);occupancy.append(previous)
     verts=[(x+a,y+b,z) for a,b in lower]+[(x+a,y+b,z+height) for a,b in upper]
-    mesh(name+' · core',verts,[tuple(reversed(range(8))),tuple(range(8,16))]+[(i,(i+1)%8,(i+1)%8+8,i+8) for i in range(8)],mat)
+    mesh(name+' · core',verts,[tuple(reversed(range(sides))),tuple(range(sides,2*sides))]+[(i,(i+1)%sides,(i+1)%sides+sides,i+sides) for i in range(sides)],mat)
     vs=[];fs=[];ms=[]
-    for side in range(8):
-        a,b=Vector((*lower[side],0)),Vector((*lower[(side+1)%8],0))
-        c,d=Vector((*upper[side],height)),Vector((*upper[(side+1)%8],height))
+    for side in range(sides):
+        a,b=Vector((*lower[side],0)),Vector((*lower[(side+1)%sides],0))
+        c,d=Vector((*upper[side],height)),Vector((*upper[(side+1)%sides],height))
         normal=Vector(((b-a).y,-(b-a).x,0)).normalized()*.0007
-        cols=columns if side%2==0 else max(2,columns//5)
+        if plan is chamfered_square: cols=columns if side%2==0 else max(2,columns//5)
+        else: cols=max(1,round(columns*(b-a).length/longest))
         def pt(u,v): return Vector((x,y,z))+(a*(1-u)+b*u)*(1-v)+(c*(1-u)+d*u)*v+normal
         for row in range(floors):
             # A lit floor is one tenant's run of bays, the same on every face.
@@ -720,51 +736,65 @@ def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',col
                 n=len(vs);vs.extend([pt(u0,v0),pt(u1,v0),pt(u1,v1),pt(u0,v1)]);fs.append((n,n+1,n+2,n+3))
                 lit=occupancy[row] and start<=(col+.5)/cols<=end and rng.random()<.92
                 if (side,row,col) in force:lit=True
-                ms.append(((3 if rng.random()<.1 else tone) if (side,row,col) not in force else 1) if lit else rng.choice([0,0,0,4,5]))
+                if even: ms.append(1 if (side,row,col) in force else 6)
+                else: ms.append(((3 if rng.random()<.1 else tone) if (side,row,col) not in force else 1) if lit else rng.choice([0,0,0,4,5]))
                 if ms[-1]==1 and side==0 and rng.random()<.01: WINDOWS.append(tuple(pt((u0+u1)/2,(v0+v1)/2)))
         for col in range(cols+1):
             rod(name+' · narrow aluminium mullion',pt(col/cols,0),pt(col/cols,1),.0008,'steel',4)
         for row in range(floors+1): rod(name+' · transom',pt(0,row/floors),pt(1,row/floors),.0008,'teal',4)
     obj=mesh(name+' · individually glazed panes',vs,fs,mat)
     for m in ['window','window2','window3','pane2','pane3']:obj.data.materials.append(P[m])
+    if even: obj.data.materials.append(P['101glass'])
     for poly,m in zip(obj.data.polygons,ms):poly.material_index=m
 
 
 def taipei101(x,y):
     # 1 unit = 100m. Eight equal 8-floor modules above a separate tapering base.
     # Dimensions below are reference-based approximations, not construction data.
-    curtain_tower('101 lower shaft',x,y,.07,.68,.43,1.12,26,81,columns=28)
+    # The pedestal: 25 floors tapering inward like a truncated pyramid.
+    STEP=.06
+    curtain_tower('101 lower shaft',x,y,.07,.68,.43,1.12,26,81,columns=28,plan=lambda w:stepped_square(w,STEP),even=True)
     for i in range(8):
         z=1.19+i*.337
-        # Module 7 holds the lit office window the Work entry flies through.
-        curtain_tower(f'101 module {i+1}',x,y,z,.432,.516,.323,8,101+i,columns=24,force={(0,4,14),(0,4,15)} if i==6 else ())
-        for side in range(8):
-            poly=chamfered_square(.522)
-            aa,bb=poly[side],poly[(side+1)%8]
+        # Eight 8-floor modules, each flaring outward ~7 degrees like a
+        # pagoda tier. Module 7 holds the lit office the Work entry flies into.
+        curtain_tower(f'101 module {i+1}',x,y,z,.432,.516,.323,8,101+i,columns=24,force={(0,4,14),(0,4,15)} if i==6 else (),plan=lambda w:stepped_square(w,STEP),even=True)
+        poly=stepped_square(.522,STEP);glow=stepped_square(.528,STEP)
+        for side in range(len(poly)):
+            aa,bb=poly[side],poly[(side+1)%len(poly)]
             rod('101 · restrained projecting cornice',(x+aa[0],y+aa[1],z+.326),(x+bb[0],y+bb[1],z+.326),.005,'jade',6)
             # Each tier's eave is uplit gold at night, so the pagoda reads.
-            glow=chamfered_square(.528);ga,gb=glow[side],glow[(side+1)%8]
+            ga,gb=glow[side],glow[(side+1)%len(glow)]
             rod('101 · gold tier light',(x+ga[0],y+ga[1],z+.320),(x+gb[0],y+gb[1],z+.320),.0022,'tierglow',4)
         for sx,sy in [(-1,-1),(1,-1),(1,1),(-1,1)]:
-            # Corner scrolls, kept much smaller than the curtain-wall module.
-            curve('101 · corner ruyi',[(x+sx*.225,y+sy*.225,z+.30),(x+sx*.261,y+sy*.261,z+.322),(x+sx*.258,y+sy*.258,z+.35)],.0045,'jade')
-    curtain_tower('101 observation crown',x,y,3.894,.34,.37,.35,8,179,columns=16)
-    curtain_tower('101 upper crown',x,y,4.249,.19,.205,.205,5,189,columns=9)
+            # Cloud-scroll ruyi at each tier's corners, on the outer step.
+            r=.516/2-.516*STEP
+            curve('101 · corner ruyi',[(x+sx*r*.86,y+sy*r*.86,z+.30),(x+sx*r,y+sy*r,z+.322),(x+sx*r*.99,y+sy*r*.99,z+.35)],.0045,'jade')
+    curtain_tower('101 observation crown',x,y,3.894,.34,.37,.35,8,179,columns=16,plan=lambda w:stepped_square(w,STEP),even=True)
+    curtain_tower('101 upper crown',x,y,4.249,.19,.205,.205,5,189,columns=9,plan=lambda w:stepped_square(w,STEP),even=True)
     cylinder('101 · antenna pedestal',(x,y,4.48),.080,.055,'jade',8,top=.061,bevel=.002)
     for zz,rr in [(4.52,.052),(4.58,.046),(4.65,.035),(4.73,.025)]:
         cylinder('101 · spire lattice',(x,y,zz),rr,.09,'steel',8,top=rr*.75,bevel=0)
     rod('101 · final antenna',(x,y,4.73),(x,y,5.15),.006,'steel')
     for zz in [4.57,4.63,4.72]:cylinder('101 · service ring',(x,y,zz),.052,.009,'jade',16,bevel=0)
     sphere('101 · obstruction light',(x,y,5.15),(.005,.005,.008),'light',2)
-    for sy in [-1,1]:
-        coin=torus('101 · round-and-square emblem',(x,y+sy*.263,1.13),.073,.010,'jade',(math.pi/2,0,0))
-        box('101 · emblem center',(x,y+sy*.265,1.13),(.032,.015,.032),'jade',.001)
+    # Where the pedestal meets the tower (floor 26), an ancient coin on each
+    # face: a round disc with a square hole.
+    for ax,ay in [(0,-1),(1,0),(0,1),(-1,0)]:
+        # Centred on the junction; clear of both the pedestal and module 1.
+        face=.228
+        rot=(math.pi/2,0,math.atan2(ax,-ay))
+        torus('101 · ancient coin rim',(x+ax*face,y+ay*face,1.16),.074,.009,'tierglow',rot)
+        disc=cylinder('101 · ancient coin',(x+ax*(face-.004),y+ay*(face-.004),1.16),.072,.006,'jade',40,bevel=0)
+        disc.rotation_euler=rot
+        hole=box('101 · coin square hole',(x+ax*(face+.0005),y+ay*(face+.0005),1.16),(.034,.034,.034),'glass',0)
+        hole.rotation_euler=rot
     ANCHORS['landmark']=(x,y,3.34);ANCHORS['tower']=(x,y,4.43)
     # The Work arrival travels through a real patch of the south-facing glazing.
     # Keep its corners and the eight cornices tied to the render camera.
     bottom=3.212+.323*4.12/8;top=3.212+.323*4.87/8
     def facade(z):return y-(.432+.084*((z-3.212)/.323))/2-.002
-    def bay(z,u):return x+(.432+.084*((z-3.212)/.323))*.8*(u/24-.5)
+    def bay(z,u):return x+(.432+.084*((z-3.212)/.323))*(1-4*STEP)*(u/24-.5)
     ANCHORS['entryWindow']=[(bay(top,14.04),facade(top),top),(bay(top,15.96),facade(top),top),(bay(bottom,14.04),facade(bottom),bottom),(bay(bottom,15.96),facade(bottom),bottom)]
     ANCHORS['towerSteps']=[(x,y-(.516/2),1.19+i*.337+.323) for i in range(8)]
 
@@ -1083,6 +1113,9 @@ def city():
     P['homelight']=material('City · lamplit apartment',(.95,.62,.32),emission=.9)
     P['streetlight']=material('City · sodium street lamp',(1,.70,.38),emission=6)
     P['tierglow']=material('Taipei 101 · gold tier lighting',(1,.78,.42),emission=5)
+    # By night the whole curtain wall glows softly and evenly, cool white
+    # through green glass; by day it is the same blue-green glass throughout.
+    P['101glass']=material('Taipei 101 · evenly lit glazing',(.30,.56,.52),emission=.075)
     P['headlight']=material('Traffic · headlight trail',(1,.93,.80),emission=4)
     P['taillight']=material('Traffic · taillight trail',(1,.10,.06),emission=4)
     for key in ['city-tile','city-plaster','city-grey','brick','concrete','city-roof','stone']:weathered(P[key])
@@ -1994,7 +2027,8 @@ def daylight(scene):
     light('Cliff · ground bounce',(1.5,-9,-4.5),(.75,.72,.62),380,9,(0,0,-1.6))
     # Lit glazing becomes daytime glass; lamps and trails switch off.
     glass={'Warm occupied offices':(.07,.12,.12),'Cool occupied offices':(.09,.14,.15),'Dim occupied offices':(.08,.11,.11),
-           'City · lamplit apartment':(.10,.12,.13),'City · lit arcade shopfront':(.14,.13,.11)}
+           'City · lamplit apartment':(.10,.12,.13),'City · lit arcade shopfront':(.14,.13,.11),
+           'Taipei 101 · evenly lit glazing':(.055,.118,.112)}
     for mat in bpy.data.materials:
         if not mat.use_nodes:continue
         bs=mat.node_tree.nodes.get('Principled BSDF')

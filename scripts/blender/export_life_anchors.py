@@ -39,15 +39,27 @@ def centres(prefix):
 life = {}
 if opts.world == 'work':
     # Lanes either side of each avenue's centreline, at road height. Each lane
-    # is sampled along its length, so traffic can follow the perspective.
-    def lane(a, b, offset, axis, samples=9):
+    # is sampled densely along its length, so traffic follows the perspective,
+    # and each sample carries whether the camera can actually see that bit of
+    # road: behind a tower, a car is hidden rather than drawn over it.
+    depsgraph = bpy.context.evaluated_depsgraph_get()
+    eye = camera.matrix_world.translation
+
+    def seen(point):
+        target = Vector(point)
+        ray = target - eye
+        hit, location, *_ = scene.ray_cast(depsgraph, eye, ray.normalized(), distance=ray.length)
+        return 0 if hit and (location - eye).length < ray.length - .03 else 1
+
+    def lane(a, b, offset, axis, samples=72):
         pts = []
         for i in range(samples):
             t = i / (samples - 1)
             x = a[0] + (b[0] - a[0]) * t; y = a[1] + (b[1] - a[1]) * t
             if axis == 'x': y += offset
             else: x += offset
-            pts.append(project((x, y, .052)))
+            # A car's roof, not the asphalt: a kerb or a parked car never hides it.
+            pts.append(project((x, y, .052)) + [seen((x, y, .075))])
         return pts
     roads = [((-3.3, -.95), (3.2, -.95), 'x'), ((-3.2, 1.35), (3.2, 1.35), 'x'), ((-1.05, -2.3), (-1.05, 2.15), 'y'), ((1.55, -2.3), (1.55, 2.15), 'y')]
     life['lanes'] = [lane(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]

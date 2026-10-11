@@ -26,7 +26,9 @@ export default function IslandLife({ world, life, className }: { world: "work" |
     let frame = 0, last = 0, width = 0, height = 0, ratio = 1, time = 0;
     const random = (seed: number) => { const x = Math.sin(seed * 12.9898) * 43758.5453; return x - Math.floor(x); };
 
-    const cars = (life.lanes ?? []).flatMap((lane, index) => Array.from({ length: 3 }, (_, k) => ({
+    // Most of each avenue is hidden behind the blocks lining it, so each lane
+    // carries enough cars that the stretches in view stay busy.
+    const cars = (life.lanes ?? []).flatMap((lane, index) => Array.from({ length: 6 }, (_, k) => ({
       lane, index, t: random(index * 7 + k) , speed: .028 + random(index * 3 + k * 11) * .03,
       tint: ["236,236,230", "214,218,222", "238,196,64", "180,186,194"][Math.floor(random(index + k * 5) * 4)],
     })));
@@ -47,6 +49,16 @@ export default function IslandLife({ world, life, className }: { world: "work" |
       const f = Math.max(0, Math.min(.9999, t)) * (points.length - 1);
       const i = Math.floor(f), k = f - i;
       return [points[i][0] + (points[i + 1][0] - points[i][0]) * k, points[i][1] + (points[i + 1][1] - points[i][1]) * k];
+    };
+    // How much of a car the camera can see at t: lane samples carry 1 where
+    // the road is in view and 0 behind a building, so cars slip out of sight
+    // behind towers instead of sliding across them. Older anchors without it
+    // count as always seen.
+    const seen = (points: Point[], t: number) => {
+      const f = Math.max(0, Math.min(.9999, t)) * (points.length - 1);
+      const i = Math.floor(f), k = f - i;
+      const a = points[i][2] ?? 1, b = points[i + 1][2] ?? 1;
+      return a + (b - a) * k;
     };
     const glow = (x: number, y: number, r: number, color: string, alpha: number) => {
       const g = context.createRadialGradient(x, y, 0, x, y, r);
@@ -78,16 +90,20 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           if (car.t > 1) car.t -= 1;
           const forward = car.index % 2 === 0;
           const t = forward ? car.t : 1 - car.t;
+          const tail = forward ? t - .025 : t + .025;
+          // A night streak shows only while both its head and tail are in view.
+          const visible = night ? Math.min(seen(car.lane, t), seen(car.lane, tail)) : seen(car.lane, t);
+          if (visible < .02) continue;
           const [x, y] = at(...(along(car.lane, t) as [number, number]));
           if (night) {
-            const [bx, by] = at(...(along(car.lane, forward ? t - .025 : t + .025) as [number, number]));
+            const [bx, by] = at(...(along(car.lane, tail) as [number, number]));
             const color = forward ? "255,240,214" : "255,70,52";
-            context.strokeStyle = `rgba(${color},.55)`; context.lineWidth = Math.max(.8, 1.4 * scale);
+            context.strokeStyle = `rgba(${color},${.55 * visible})`; context.lineWidth = Math.max(.8, 1.4 * scale);
             context.beginPath(); context.moveTo(bx, by); context.lineTo(x, y); context.stroke();
-            glow(x, y, 3.2 * scale * 1.6, color, .9);
+            glow(x, y, 3.2 * scale * 1.6, color, .9 * visible);
           } else {
             context.globalCompositeOperation = "source-over";
-            context.fillStyle = `rgba(${car.tint},.95)`;
+            context.fillStyle = `rgba(${car.tint},${.95 * visible})`;
             context.beginPath(); context.arc(x, y, Math.max(.9, 1.5 * scale), 0, Math.PI * 2); context.fill();
             context.globalCompositeOperation = "lighter";
           }
