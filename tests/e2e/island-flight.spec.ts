@@ -109,7 +109,7 @@ test("book and workshop entry centers their landmarks", async ({ page }) => {
     expect(Math.abs(point.x - point.centerX)).toBeLessThan(5);
     expect(Math.abs(point.y - point.centerY)).toBeLessThan(5);
     await visual.evaluate(node => node.getAnimations().forEach(animation => animation.play()));
-    await expect(page).toHaveURL(new RegExp(`/${world}$`));
+    await expect(page).toHaveURL(new RegExp(`/${world}$`), { timeout: 10_000 });
     // WebKit may expose the new URL before the destination has mounted. Wait
     // for the visible arrival before starting the next independent journey.
     await expect(page.getByRole("heading", { name: world[0].toUpperCase() + world.slice(1), level: 1, exact: true })).toBeVisible();

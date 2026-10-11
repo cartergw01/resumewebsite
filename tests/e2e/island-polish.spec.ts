@@ -118,7 +118,7 @@ test("arrival invites entering before hover and recedes after discovery", async 
     const island = page.locator(`#${id} [data-island-link]`);
     const cue = island.locator(":scope > span:last-child");
     await expect(cue).toHaveCSS("opacity", "1");
-    await expect(cue.locator("span")).toBeInViewport();
+    await expect(cue.locator(":scope > span")).toBeInViewport();
     if (testInfo.project.name === "desktop") {
       await island.hover();
       await expect(cue).toHaveCSS("opacity", "0");

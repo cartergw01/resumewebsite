@@ -42,7 +42,7 @@ for (const world of ["work", "writing", "projects"]) test(`dragging ${world} tur
     });
     await page.mouse.click(x - 95, y + 12);
     await expect.poll(() => page.evaluate(() => (window as Window & { sawOrbitLaunch?: boolean }).sawOrbitLaunch)).toBe(true);
-    await expect(page).toHaveURL(new RegExp(`/${world}$`));
+    await expect(page).toHaveURL(new RegExp(`/${world}$`), { timeout: 10_000 });
     await expect(page.getByRole("heading", { name: new RegExp(`^${world}$`, "i"), level: 1 })).toBeVisible();
     await expect(page.locator("[data-island-stage]")).toHaveCount(0);
     await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle");

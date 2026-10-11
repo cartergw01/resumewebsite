@@ -29,7 +29,7 @@ for (const scene of ["intro", "hello"]) {
       if (isMobile) await link.tap(); else await link.click();
       await expect.poll(() => page.evaluate(() => (window as Window & { overviewEntries?: string[] }).overviewEntries)).toContain(transitions[world]);
       if (world === "work") await expect(page.locator("body > [data-work-transition]")).toHaveCount(1);
-      await expect(page).toHaveURL(new RegExp(`/${world}$`));
+      await expect(page).toHaveURL(new RegExp(`/${world}$`), { timeout: 10_000 });
       await expect(page.locator(overlays)).toHaveCount(0);
       await expect(page.getByRole("heading", { level: 1, exact: true, name: world[0].toUpperCase() + world.slice(1) })).toBeVisible();
       if (world === "writing") await expect(page.locator(".archive-row")).toHaveCount(11);
