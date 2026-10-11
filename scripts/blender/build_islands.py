@@ -1578,10 +1578,13 @@ def hammer(x,y,z):
 
 
 def bike(x,y,angle):
-    """A plain steel city bike on its kickstand: 26-inch wheels, flat bar."""
+    """A plain steel city bike on its kickstand: 26-inch wheels, flat bar.
+    Built with its tyres touching z=0, then pitched so both tyres sit on the
+    ground where it stands and leaned a few degrees onto the kickstand."""
+    from mathutils import Euler, Matrix
     before=set(bpy.context.scene.objects)
     P.setdefault('bikeframe',material('Bike · enamelled steel frame',(.035,.075,.065),metal=.35,rough=.42))
-    r=.66;wb=2.08;z=r+.12
+    r=.66;wb=2.08;z=r
     rear=Vector((-wb/2,0,z));front=Vector((wb/2,0,z))
     for c in [rear,front]:
         torus('Bike · tyre',tuple(c),r,.034,'ink',(math.pi/2,0,0))
@@ -1596,7 +1599,7 @@ def bike(x,y,angle):
         o=Vector((0,side,0))
         rod('Bike · chainstay',tuple(bb+o*.5),tuple(rear+o),.016,'bikeframe',12)
         rod('Bike · seatstay',tuple(seat+Vector((.03,0,-.12))+o*.4),tuple(rear+o),.014,'bikeframe',12)
-        rod('Bike · fork blade',tuple(head_bot+o*.6),tuple(front+o+Vector((.05,0,0))),.016,'bikeframe',12)
+        rod('Bike · fork blade',tuple(head_bot+o*.6),tuple(front+o),.016,'bikeframe',12)
     rod('Bike · seat post',tuple(seat),tuple(seat+Vector((-.04,0,.16))),.017,'steel',12)
     box('Bike · leather saddle',tuple(seat+Vector((-.06,0,.19))),(.27,.13,.05),'leather',.02)
     stem=head_top+Vector((-.02,0,.16))
@@ -1604,32 +1607,91 @@ def bike(x,y,angle):
     rod('Bike · flat bar',tuple(stem+Vector((0,-.30,0))),tuple(stem+Vector((0,.30,0))),.014,'steel',12)
     for side in [-1,1]:rod('Bike · grip',tuple(stem+Vector((0,side*.30,0))),tuple(stem+Vector((0,side*.22,0))),.022,'ink',12)
     torus('Bike · chainring',tuple(bb+Vector((0,.07,0))),.11,.010,'steel',(math.pi/2,0,0))
-    torus('Bike · chain',tuple((bb+rear)/2+Vector((0,.07,0))),.0,.0,'ink') if False else None
     curve('Bike · chain',[tuple(bb+Vector((0,.07,.11))),tuple(rear+Vector((0,.07,.05)))],.006,'ink')
     curve('Bike · chain',[tuple(bb+Vector((0,.07,-.11))),tuple(rear+Vector((0,.07,-.05)))],.006,'ink')
     for side,phase in [(-1,0),(1,math.pi)]:
         crank=bb+Vector((math.cos(phase+.6)*.17,side*.11,math.sin(phase+.6)*.17))
         rod('Bike · crank',tuple(bb+Vector((0,side*.09,0))),tuple(crank),.012,'steel',8)
         box('Bike · pedal',tuple(crank+Vector((0,side*.06,0))),(.10,.09,.022),'ink',.004)
-    rod('Bike · kickstand',tuple(bb+Vector((-.1,-.06,0))),(bb.x-.3,-.32,.12),.011,'steel',8)
-    for c in [rear+Vector((-.05,0,.08)),front+Vector((.03,0,.08))]:
-        curve('Bike · mudguard',[tuple(c+Vector((math.cos(a)*(r+.06),0,math.sin(a)*(r+.06)))) for a in [math.pi*.15,math.pi*.5,math.pi*.85]],.012,'bikeframe')
+    # The kickstand reaches the ground on the side the bike leans toward (-y).
+    rod('Bike · kickstand',tuple(bb+Vector((-.1,-.06,0))),(bb.x-.30,-.20,.02),.011,'steel',8)
+    # Mudguards hug the top of each tyre, centred on its hub.
+    for c,(a0,a1) in [(rear,(.18,.80)),(front,(.20,.78))]:
+        curve('Bike · mudguard',[tuple(c+Vector((math.cos(a*math.pi)*(r+.06),0,math.sin(a*math.pi)*(r+.06)))) for a in [a0,(a0+a1)/2,a1]],.012,'bikeframe')
     parts=set(bpy.context.scene.objects)-before
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
     ground=bpy.data.objects['Island · eroded basalt escarpment']
     tree=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
-    inv=ground.matrix_world.inverted();heights=[]
-    for dx in [-wb/2,wb/2]:
+    inv=ground.matrix_world.inverted()
+    def height(dx):
         px=x+math.cos(angle)*dx;py=y+math.sin(angle)*dx
         hit=tree.ray_cast(inv@Vector((px,py,10)),Vector((0,0,-1)))[0]
-        if hit is not None:heights.append((ground.matrix_world@hit).z)
-    base=(max(heights) if heights else .12)-.12+.005
-    # Leaning slightly onto the kickstand, then turned and placed in the yard.
-    pivot=Vector((0,0,0))
-    for obj in parts:
-        obj.rotation_euler.rotate(__import__('mathutils').Euler((math.radians(-7),0,angle)))
-        obj.location=__import__('mathutils').Matrix.Rotation(angle,4,'Z')@__import__('mathutils').Matrix.Rotation(math.radians(-7),4,'X')@obj.location+Vector((x,y,.12+base))
+        z=(ground.matrix_world@hit).z if hit is not None else .12
+        # A tyre over the workshop deck rests on its boards (top at .151).
+        if -3.3<px<3.3 and -2.05<py<1.75:z=max(z,.151)
+        return z
+    h_rear,h_front=height(-wb/2),height(wb/2)
+    pitch=-math.atan2(h_front-h_rear,wb)
+    pose=Matrix.Translation(Vector((x,y,(h_rear+h_front)/2)))@Matrix.Rotation(angle,4,'Z')@Matrix.Rotation(math.radians(4),4,'X')@Matrix.Rotation(pitch,4,'Y')
+    for obj in parts:obj.matrix_world=pose@obj.matrix_world
+    print(f'BIKE: rear ground {h_rear:.3f}, front ground {h_front:.3f}, pitch {math.degrees(pitch):.1f} deg',flush=True)
+
+
+def kobe_jersey(cx,y,cz):
+    """Kobe Bryant's Lakers home jersey, gold #24, in a black shadow-box
+    frame: purple trim at the neck and arms with white piping, purple and
+    white side stripes, LAKERS arched across the chest and 24 below, both
+    purple outlined in white."""
+    P['jersey_gold']=material('Jersey · Lakers gold mesh',(.98,.49,.02),rough=.62)
+    P['jersey_purple']=material('Jersey · Lakers purple',(.09,.018,.23),rough=.6)
+    P['jersey_white']=material('Jersey · white piping',(.86,.86,.84),rough=.6)
+    P['frame_black']=material('Shadow box · black frame',(.015,.015,.017),rough=.35)
+    P['frame_back']=material('Shadow box · charcoal backing',(.035,.035,.04),rough=.95)
+    fw,fh=.64,.84
+    box('Shadow box · backing',(cx,y+.012,cz),(fw,.008,fh),'frame_back',.002)
+    for dx,dz,w,h in [(0,fh/2,fw+.06,.05),(0,-fh/2,fw+.06,.05),(-fw/2,0,.05,fh+.06),(fw/2,0,.05,fh+.06)]:
+        box('Shadow box · frame rail',(cx+dx,y-.005,cz+dz),(w,.045,h),'frame_black',.004)
+    # The jersey's outline, from the hem up the side, round the armhole, over
+    # the strap, down into the neck and back out (u across, v up).
+    W,H=.25,.66;bottom=cz-.34
+    half=[(.88,0),(.90,.55),(.84,.64),(.70,.71),(.60,.80),(.56,.92),(.55,1.0),(.30,1.0),(.22,.92),(.13,.84),(0,.80)]
+    outline=half+[(-u,v) for u,v in reversed(half[:-1])]
+    at=lambda u,v,dy=0:(cx+u*W,y-.004+dy,bottom+v*H)
+    body=mesh('Jersey · gold body',[at(u,v) for u,v in outline],[tuple(range(len(outline)))],'jersey_gold')
+    # Purple trim with white piping round the neck and both armholes.
+    neck=[(.30,1.0),(.22,.92),(.13,.84),(0,.80),(-.13,.84),(-.22,.92),(-.30,1.0)]
+    curve('Jersey · purple neck trim',[at(u,v,-.003) for u,v in neck],.013,'jersey_purple')
+    curve('Jersey · white neck piping',[at(u*.88,v-.035,-.004) for u,v in neck],.0035,'jersey_white')
+    for side in [-1,1]:
+        arm=[(.90,.55),(.84,.64),(.70,.71),(.60,.80),(.56,.92),(.55,1.0)]
+        curve('Jersey · purple armhole trim',[at(side*u,v,-.003) for u,v in arm],.013,'jersey_purple')
+        curve('Jersey · white armhole piping',[at(side*(u-.05),v-.01,-.004) for u,v in arm],.0035,'jersey_white')
+        # Side panel stripes from the hem to under the arm.
+        for k,(mat,du) in enumerate([('jersey_purple',.0),('jersey_white',-.07),('jersey_purple',-.12)]):
+            rod('Jersey · side stripe',at(side*(.86+du),.02,-.002),at(side*(.86+du),.52,-.002),.006 if k==1 else .009,mat,6)
+    font=None
+    for path in ['/System/Library/Fonts/Supplemental/DIN Condensed Bold.ttf','/System/Library/Fonts/Supplemental/Impact.ttf']:
+        try:font=bpy.data.fonts.load(path,check_existing=True);break
+        except Exception:pass
+    def glyph(name,text,loc,size,mat,tilt=0,outline=0):
+        data=bpy.data.curves.new(name,'FONT');data.body=text;data.size=size;data.extrude=.0012
+        data.align_x='CENTER';data.align_y='CENTER';data.shear=.18
+        if font:data.font=font
+        if outline:data.offset=outline
+        obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj)
+        obj.location=loc;obj.rotation_euler=(math.pi/2,tilt,0);data.materials.append(P[mat])
+        return obj
+    # LAKERS arched across the chest, each letter turned to the arch.
+    word='LAKERS';radius=.62;step=.105
+    for k,ch in enumerate(word):
+        th=(k-(len(word)-1)/2)*step
+        u=math.sin(th)*radius/W;v=.70+(math.cos(th)-1)*radius/H
+        glyph('Jersey · LAKERS letter',ch,at(u,v,-.009),.115,'jersey_purple',th)
+        glyph('Jersey · LAKERS outline',ch,at(u,v,-.007),.115,'jersey_white',th,.006)
+    glyph('Jersey · number 24','24',at(0,.33,-.009),.30,'jersey_purple')
+    glyph('Jersey · number outline','24',at(0,.33,-.007),.30,'jersey_white',0,.008)
+    light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
 def workshop():
@@ -1652,6 +1714,8 @@ def workshop():
         box('Project reference · '+title,(x,1.813,2.55),(.76,.017,.48),'paper',.002)
         image_panel('Project print · '+title,'project-shots/'+source,(x,1.800,2.55),.71,.43)
         pin=cylinder('Project pin',(x,1.78,2.79),.016,.008,'brass',16);pin.rotation_euler.x=math.pi/2
+    # Carter's a Lakers fan: Kobe's gold #24, framed on the wall above the bench.
+    kobe_jersey(-.20,1.80,2.38)
     furniture=set(bpy.context.scene.objects)
     # Bench dimensions: 2.35m wide, 80cm deep, 86cm working height.
     for x in [-2.17,2.17]:
@@ -1683,11 +1747,23 @@ def workshop():
     box('Monitor · slender stand',(sx,sy+.18,sz+.26),(.075,.052,.48),'steel',.006)
     bottom=sz+.37;top=bottom+.72
     screen=[(sx-.60,sy+.11,top),(sx+.60,sy+.11,top),(sx-.60,sy+.06,bottom),(sx+.60,sy+.06,bottom)]
-    housing=box('Monitor · thin display housing',(sx,sy+.105,(bottom+top)/2),(1.25,.036,.77),'teal',.008)
+    housing=box('Monitor · thin display housing',(sx,sy+.105,(bottom+top)/2),(1.25,.036,.77),'ink',.008)
     housing.rotation_euler.x=math.radians(-4)
-    mesh('Monitor · screen glass',[screen[0],screen[1],screen[3],screen[2]],[(0,1,2,3)],'screen')
+    # The display shows the project it opens onto (TaipeiFlix), lit like a
+    # real screen at night, the same image the site lays over it.
+    image=bpy.data.images.load(str(ROOT/'public'/'project-shots'/'taipei-flix.webp'),check_existing=True)
+    if not image.packed_file:image.pack()
+    display=material('Monitor · lit display',(.02,.02,.02),rough=.25)
+    tex=display.node_tree.nodes.new('ShaderNodeTexImage');tex.image=image
+    bs=display.node_tree.nodes['Principled BSDF']
+    display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Base Color'])
+    display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Emission Color'])
+    bs.inputs['Emission Strength'].default_value=1.4
+    glass=mesh('Monitor · screen glass',[screen[0],screen[1],screen[3],screen[2]],[(0,1,2,3)],display)
+    uv=glass.data.uv_layers.new(name='Screen coordinates')
+    for loop,point in zip(uv.data,[(0,1),(1,1),(1,0),(0,0)]):loop.uv=point
     ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.085,(bottom+top)/2);ANCHORS['screenGlow']=(sx,sy-.22,sz+.02)
-    light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.64,.79,1),3,.7,(sx,sy-.50,sz))
+    light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.92,.86,.80),3,.7,(sx,sy-.50,sz))
     # A partially assembled electronics instrument, with an open aluminium case.
     box('Workshop · antistatic cutting mat',(-.69,-.11,1.799),(1.52,1.08,.006),'jade',.003)
     for i in range(16):box('Cutting mat · fine grid',(-1.40+i*.095,-.11,1.803),(.0015,.995,.001),'leaf2',0)
@@ -1733,11 +1809,18 @@ def workshop():
     for x in [1.28,1.69]:box('Tool roll · leather strap',(x,.05,.68),(.045,.68,.014),'leather',.003,rot=.10)
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
-    chip_colors=['redcloth','paper','ink','redcloth','jade']
-    for sx2,sy2,count in [(1.86,-.50,9),(1.98,-.38,6),(1.74,-.33,4)]:
+    # Each stack is one colour, like a sorted stack at the table; the chips
+    # are drawn a little larger than life so they read at the island's scale.
+    for name,color in [('red',(.50,.025,.03)),('blue',(.02,.07,.32)),('black',(.012,.012,.014)),('green',(.02,.20,.07))]:
+        P['chip-'+name]=material('Poker chip · '+name+' clay',color,rough=.45)
+    for sx2,sy2,count,color in [(1.84,-.50,14,'red'),(1.99,-.42,10,'black'),(1.76,-.33,7,'blue'),(1.95,-.26,4,'green')]:
         for k in range(count):
-            cylinder('Poker · clay chip',(sx2+.002*math.sin(k*2.3),sy2,1.795+k*.0105),.048,.0095,chip_colors[(k+count)%5],32,bevel=.0015)
-            torus('Poker · chip edge inlay',(sx2+.002*math.sin(k*2.3),sy2,1.795+k*.0105),.048,.0022,'paper')
+            cz2=1.797+k*.0135;jx=sx2+.003*math.sin(k*2.3);jy=sy2+.002*math.cos(k*1.7)
+            chip=cylinder('Poker · clay chip',(jx,jy,cz2),.060,.0125,'chip-'+color,32,bevel=.0018)
+            chip.rotation_euler.z=k*.7
+            for e in range(6):
+                a=k*.7+e*math.tau/6
+                box('Poker · chip edge spot',(jx+math.cos(a)*.0598,jy+math.sin(a)*.0598,cz2),(.006,.022,.0128),'paper',0,rot=a)
     for k,(cx,cy,rot) in enumerate([(1.50,-.56,.30),(1.57,-.53,.52)]):
         box('Poker · face-down card',(cx,cy,1.792+k*.002),(.125,.175,.002),'paper',.001,rot=rot)
         box('Poker · card back',(cx,cy,1.7935+k*.002),(.105,.155,.0006),'redcloth',0,rot=rot)
@@ -1827,7 +1910,7 @@ def workshop():
     box('Pennant · sleeve',(px-.015,2.011,pz-.15),(.04,.006,.32),'lakers_gold',.002)
     cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
     # Carter's bike, on its stand in the yard; he gets around the city on it.
-    bike(3.95,1.42,math.radians(-8))
+    bike(3.15,-1.85,math.radians(-12))
     # Space things, taped and shelved: a planet poster, a model rocket and a
     # moon lamp, the same sky the site floats in.
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
@@ -1878,11 +1961,18 @@ def workshop():
     box('Cap · mark',(2.75,-.905,1.21),(.06,.004,.012),'teslared',0).rotation_euler.x=-.6
     box('Cap · mark',(2.75,-.904,1.19),(.012,.004,.045),'teslared',0).rotation_euler.x=-.6
     # A basketball left on the deck.
-    P['basketball']=textured('Basketball · pebbled leather',(.36,.10,.025),(.52,.19,.05),'fabric',rough=.75)
-    bz=.151+.24
-    sphere('Basketball',(-2.22,-1.52,bz),(.24,.24,.24),'basketball',4)
-    for rot in [(0,0,0),(math.pi/2,0,0),(0,math.pi/2,0)]:
-        torus('Basketball · seam',(-2.22,-1.52,bz),.241,.006,'ink',rot)
+    # Orange pebbled leather; its black channels are two great circles at
+    # right angles and two curved seams either side, the ball tipped at rest.
+    from mathutils import Euler, Matrix
+    P['basketball']=textured('Basketball · pebbled leather',(.62,.17,.025),(.80,.27,.05),'fabric',rough=.72)
+    br=.24;bx,by,bz=-2.22,-1.52,.151+.24
+    ball=sphere('Basketball',(bx,by,bz),(br,br,br),'basketball',4)
+    for f in ball.data.polygons:f.use_smooth=True
+    tip=Matrix.Translation(Vector((bx,by,bz)))@Euler((.5,.35,.9)).to_matrix().to_4x4()
+    seams=[(br,0,(0,0,0)),(br,0,(0,math.pi/2,0))]+[(br*math.cos(.75),side*br*math.sin(.75),(0,math.pi/2,0)) for side in [-1,1]]
+    for radius,offset,rot in seams:
+        seam=torus('Basketball · seam',(0,0,0),radius+.002,.0065,'ink',rot)
+        seam.matrix_world=tip@Matrix.Translation(Vector((offset,0,0)))@seam.matrix_world
     # Cardboard boxes, one with its flaps open.
     P['cardboard']=textured('Cardboard',(.30,.19,.09),(.42,.29,.15),'paper',rough=.92)
     box('Floor · cardboard box',(2.20,1.08,.151+.19),(.58,.46,.38),'cardboard',.006,rot=.08)

@@ -86,8 +86,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           list.push(value => {
             const seen = rest && scenes[index].dataset.cueSeen === "true" ? 0 : 1;
             const shown = Number(offset) + Number(scale) * value * seen;
-            // Released at its resting value (the workshop screen rests dim).
-            const next = value === (read === "workshop-screen" ? .3 : 1) ? "" : property === "filter" ? `brightness(${shown.toFixed(4)})` : shown.toFixed(4);
+            // Released at its resting value.
+            const next = value === 1 ? "" : property === "filter" ? `brightness(${shown.toFixed(4)})` : shown.toFixed(4);
             if (next === previous) return;
             previous = next;
             if (next) node.style.setProperty(property, next); else node.style.removeProperty(property);
@@ -265,7 +265,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         for (const [name, first, last] of arrivalLights[worlds[index].id] ?? []) {
           paintRead(index, name, motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, first, last));
         }
-        if (worlds[index].id === "projects") paintRead(index, "workshop-screen", motion.matches ? 0.3 : outgoing ? 0.3 * (1 - retreat) : phase(crossing, 0.86, 0.97));
+        if (worlds[index].id === "projects") paintRead(index, "workshop-screen", motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, 0.86, 0.97));
       });
       stage.dataset.cameraProgress = String(cameraProgress);
       // Animate the three camera layers directly. Inherited variables on the

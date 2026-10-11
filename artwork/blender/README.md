@@ -141,13 +141,19 @@ showing), with no sunrise or sunset in between.
 ### Personal details
 
 Only facts already on the site, or details Carter asked for, are used: his bike
-stands in the workshop yard (he bikes around Taipei), poker chips and a pair of
-face-down cards sit by the keyboard (he plays poker and built a poker odds
-calculator), a small purple-and-gold felt pennant (he follows the Lakers; no
-logo or lettering), a basketball on the deck, a stainless Cybertruck model and
-a black cap with a small red mark (Tesla merch), and space things: a taped
-planet poster, a model rocket and a moon lamp. The essay journals and project
-prints below are his real covers and screenshots.
+on its kickstand at the edge of the workshop deck, rear tyre on the boards and
+front on the grass (he bikes around Taipei; `bike()` sets both tyres on
+whatever they stand on and leans it onto the stand), four sorted stacks of
+poker chips with edge spots and a pair of face-down cards by the keyboard (he
+plays poker and built a poker odds calculator; the chips are drawn a little
+larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
+#24 home jersey framed in a shadow box above the bench (`kobe_jersey`: purple
+trim and white piping, side stripes, LAKERS arched over 24) and a small
+purple-and-gold felt pennant, an orange basketball with a real ball's seams on
+the deck, a stainless Cybertruck model and a black cap with a small red mark
+(Tesla merch), and space things: a taped planet poster, a model rocket and a
+moon lamp. The monitor shows TaipeiFlix, lit like a real screen. The essay
+journals and project prints below are his real covers and screenshots.
 
 ### Night
 

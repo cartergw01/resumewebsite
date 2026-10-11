@@ -5,11 +5,12 @@ test("workshop screen and book pages respond locally to keyboard focus and hover
   const screen = page.locator("#projects [data-workshop-screen]");
   const workshop = page.locator("#projects [data-island-link]");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
-  await expect(screen).toHaveCSS("opacity", "0.3");
+  // The monitor shows its project at full brightness, at rest and in focus.
+  await expect(screen).toHaveCSS("opacity", "1");
   await workshop.focus();
   await expect(screen).toHaveCSS("opacity", "1");
   await page.getByRole("button", { name: "Show Writing island" }).focus();
-  await expect(screen).toHaveCSS("opacity", "0.3");
+  await expect(screen).toHaveCSS("opacity", "1");
   if (testInfo.project.name === "desktop") {
     await workshop.hover();
     await expect(screen).toHaveCSS("opacity", "1");
