@@ -4,8 +4,9 @@ import { CITY_TIME_DURATION } from "./city-time";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { islandMeshopt } from "./meshopt";
 import { hardwareWebGL } from "./hardware-webgl";
+import { createTraffic, type Traffic } from "./island-traffic";
 
 export type OrbitAsset = {
   src: string;
@@ -15,6 +16,8 @@ export type OrbitAsset = {
   surfaceAnchors?: { signature: string; points: OrbitProjection };
   // Warm lamps, screens and task lights from the Blender scene (Three coordinates).
   practicals?: { position: number[]; color: number[]; watts: number }[];
+  // Taipei's lanes, for live traffic (lib/island-traffic.ts).
+  traffic?: Traffic;
 };
 export type OrbitProjection = Record<string, number[][]>;
 
@@ -34,13 +37,12 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
   const environment = pmrem.fromScene(environmentScene, 0.04);
   environmentScene.dispose();
   pmrem.dispose();
-  const draco = new DRACOLoader().setDecoderPath("/draco/").setWorkerLimit(1);
   let disposed = false;
   try {
     const response = await fetch(asset.src, { signal });
     if (!response.ok) throw new Error(`Island model: ${response.status}`);
     const bytes = await response.arrayBuffer();
-    const gltf = await new GLTFLoader().setDRACOLoader(draco).parseAsync(bytes, "/blender/");
+    const gltf = await new GLTFLoader().setMeshoptDecoder(islandMeshopt()).parseAsync(bytes, "/blender/");
     signal?.throwIfAborted();
     const glowing: { material: MeshStandardMaterial; night: number }[] = [];
     gltf.scene.traverse(object => {
@@ -179,6 +181,8 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     if (asset.entryWindow3D) worldPoints.entryWindow = asset.entryWindow3D.map(point => new Vector3().fromArray(point));
     const litWindow = worldPoints.entryWindow ? makeLitWindow(worldPoints.entryWindow) : null;
     if (litWindow) gltf.scene.add(litWindow.group);
+    const traffic = asset.traffic ? createTraffic(asset.traffic, true) : null;
+    if (traffic) scene.add(traffic.group);
     // The workshop keeps its real project preview attached to the screen.
     // Ray-cast corners let it turn with the monitor and become the entry surface.
     if (screenImage && worldPoints.screen) {
@@ -228,6 +232,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     const render = () => {
       if (disposed) return;
       updatePose();
+      traffic?.update(performance.now() / 1000, daylight);
       renderer.render(scene, camera);
     };
     // Pointer devices can deliver several events in one display frame. Keep
@@ -236,6 +241,27 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       if (!renderFrame && !disposed) renderFrame = requestAnimationFrame(() => { renderFrame = 0; render(); });
     };
     const flushRender = () => { cancelAnimationFrame(renderFrame); renderFrame = 0; render(); };
+    // A still model only draws on input. With traffic, a turned view on a
+    // desktop with real graphics keeps drawing at ~30fps while it is the one
+    // on show, so the cars drive; it stops when the view returns to the
+    // render, the tab hides, or motion is reduced. Phones keep drawing only on
+    // input (the cars move on as the view turns) to spare their batteries.
+    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+    const driving = matchMedia("(pointer: fine)").matches && hardwareWebGL();
+    let trafficTimer = 0;
+    const drive = () => {
+      window.clearTimeout(trafficTimer);
+      trafficTimer = 0;
+      if (!traffic || !driving || disposed || document.hidden || reducedMotion.matches || canvas.dataset.orbitLive !== "true") return;
+      scheduleRender();
+      trafficTimer = window.setTimeout(drive, 33);
+    };
+    const liveWatch = new MutationObserver(drive);
+    if (traffic && driving) {
+      liveWatch.observe(canvas, { attributes: true, attributeFilter: ["data-orbit-live"] });
+      document.addEventListener("visibilitychange", drive);
+      reducedMotion.addEventListener("change", drive);
+    }
     const resize = () => {
       if (disposed) return;
       const bounds = canvas.parentElement!.getBoundingClientRect();
@@ -251,6 +277,11 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       cancelAnimationFrame(renderFrame);
       cancelAnimationFrame(tween);
       stopGlide();
+      window.clearTimeout(trafficTimer);
+      liveWatch.disconnect();
+      document.removeEventListener("visibilitychange", drive);
+      reducedMotion.removeEventListener("change", drive);
+      traffic?.dispose();
       gltf.scene.traverse(object => {
         if (!(object instanceof Mesh)) return;
         object.geometry.dispose();
@@ -261,7 +292,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       });
       key.shadow.map?.dispose();
       environment.dispose();
-      draco.dispose();
       renderer.dispose();
     };
     // Compile before the first draw on every world. Doing this after resize()
@@ -325,7 +355,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
   } catch (error) {
     if (!disposed) {
       environment.dispose();
-      draco.dispose();
       renderer.dispose();
     }
     throw error;

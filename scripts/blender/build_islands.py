@@ -359,11 +359,14 @@ def foliage(name, center, scale, rng, count=220):
     return obj
 
 
+# Terrain and cliff noise use noise.noise, never noise.noise_vector: Blender
+# seeds noise_vector's offsets randomly at startup, so it reshaped every island
+# (and moved everything placed on it) on each build.
 def terrain_height(x,y,seed):
     """The inhabited plot is level; the outer land rises into broken shoulders."""
     radius=math.sqrt((x/5.535)**2+(y/3.9825)**2)
     edge=max(0,min(1,(radius-.66)/.25))
-    broad=noise.noise_vector(Vector((x*.65,y*.65,seed)),noise_basis='PERLIN_ORIGINAL').x
+    broad=noise.noise(Vector((x*.65,y*.65,seed)),noise_basis='PERLIN_ORIGINAL')
     # The city's district is built out to its edge, so its shoulders stay low.
     rise=.22 if seed==31 else 1
     return rise*edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
@@ -404,8 +407,8 @@ def foundation(seed,plan='garden'):
     def point(a,t):
         k=len(outline);phase=(a%math.tau)/math.tau*k;i=int(phase);f=phase-i
         edge=(outline[i%k]*(1-f)+outline[(i+1)%k]*f)*plan_radius(a,plan)
-        coarse=noise.noise_vector(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL').x
-        grit=noise.noise_vector(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL').x
+        coarse=noise.noise(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL')
+        grit=noise.noise(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL')
         warped=max(0,min(1,t+(.075*math.sin(a*3+seed)+.032*math.sin(a*7))*math.sin(math.pi*t)))
         for (ta,ra),(tb,rb) in zip(strata,strata[1:]):
             if ta<=warped<=tb:
@@ -430,7 +433,7 @@ def foundation(seed,plan='garden'):
             # Sediment reads as continuous horizontal beds (gently warped and
             # broken by the faults), not a patchwork of per-facet mineral pockets.
             v=verts[rings[k][i]]
-            warp=noise.noise_vector(Vector((v.x*.35,v.y*.35,seed))).x*.06+.025*math.sin(v.x*1.7+v.y)
+            warp=noise.noise(Vector((v.x*.35,v.y*.35,seed)),noise_basis='PERLIN_ORIGINAL')*.06+.025*math.sin(v.x*1.7+v.y)
             bed=int(max(0,t+warp-.06)*11)
             mat=2 if k<2 else (1 if k<4 else [0,3,0,0,4,3,0,4,0,4,4][min(10,bed)])
             materials.extend([mat,mat])
@@ -441,7 +444,7 @@ def foundation(seed,plan='garden'):
         for i in range(count):
             v=verts[rings[0][i]]*radius
             v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18
-            if radius!=1:v.z+=.014+max(0,radius-.7)*noise.noise_vector(Vector((v.x*8,v.y*8,seed))).x*.075
+            if radius!=1:v.z+=.014+max(0,radius-.7)*noise.noise(Vector((v.x*8,v.y*8,seed)),noise_basis='PERLIN_ORIGINAL')*.075
             ring.append(len(verts));verts.append(v)
         inner.append(ring)
     for k in range(len(inner)-1):
@@ -767,9 +770,13 @@ def taipei101(x,y):
             ga,gb=glow[side],glow[(side+1)%len(glow)]
             rod('101 · gold tier light',(x+ga[0],y+ga[1],z+.320),(x+gb[0],y+gb[1],z+.320),.0022,'tierglow',4)
         for sx,sy in [(-1,-1),(1,-1),(1,1),(-1,1)]:
-            # Cloud-scroll ruyi at each tier's corners, on the outer step.
+            # A ruyi bracket at each tier's corners, on the outer step: at
+            # least 8m tall, curling out as a small canopy over the floors
+            # below, its cloud-scroll head tucked under the eave.
             r=.516/2-.516*STEP
-            curve('101 · corner ruyi',[(x+sx*r*.86,y+sy*r*.86,z+.30),(x+sx*r,y+sy*r,z+.322),(x+sx*r*.99,y+sy*r*.99,z+.35)],.0045,'jade')
+            at=lambda k,h:(x+sx*r*k,y+sy*r*k,z+h)
+            curve('101 · corner ruyi',[at(.90,.245),at(1.0,.27),at(1.07,.305),at(1.06,.33),at(1.0,.326)],.005,'jade')
+            curve('101 · corner ruyi scroll',[at(1.06,.33),at(1.10,.318),at(1.085,.302),at(1.06,.309)],.0035,'jade')
     curtain_tower('101 observation crown',x,y,3.894,.34,.37,.35,8,179,columns=16,plan=lambda w:stepped_square(w,STEP),even=True)
     curtain_tower('101 upper crown',x,y,4.249,.19,.205,.205,5,189,columns=9,plan=lambda w:stepped_square(w,STEP),even=True)
     cylinder('101 · antenna pedestal',(x,y,4.48),.080,.055,'jade',8,top=.061,bevel=.002)
@@ -1157,10 +1164,13 @@ def city():
     for x in [-2.79,-1.51]:city_block('Grand Hyatt wing',x,.89,.25,.43,.87,216,0)
     # Nan Shan's paired blades are the front/back edges of one folded tower,
     # not two pyramidal roofs. See Mitsubishi Jisho Design's project photograph.
+    # The retail annex: three large blocks offset in alternating layers, like
+    # hands laid one on another, with planted roof terraces.
     for j in range(3):
-        box('Nan Shan · planted retail terrace',(2.09,.19+j*.055,.15+j*.15),(.94-j*.11,1.12-j*.09,.14),'glass2',.002)
-        box('Nan Shan · terrace coping',(2.09,.19+j*.055,.225+j*.15),(.96-j*.11,1.14-j*.09,.015),'steel',.001)
-        for i in range(7):tree(1.69+i*.12,-.28+j*.09,.16,.23+j*.15)
+        shift=(-.07,.07,-.07)[j]
+        box('Nan Shan · planted retail terrace',(2.09+shift,.19+j*.04,.15+j*.15),(.92-j*.06,1.12-j*.08,.14),'glass2',.002)
+        box('Nan Shan · terrace coping',(2.09+shift,.19+j*.04,.225+j*.15),(.94-j*.06,1.14-j*.08,.015),'steel',.001)
+        for i in range(6):tree(1.72+shift+i*.12,-.28+j*.08,.16,.23+j*.15)
     nx,ny=2.13,.72
     curtain_tower('Nan Shan · continuous folded shaft',nx,ny,.06,.48,.54,2.44,44,312,mat='glass3',columns=26)
     for side in [-1,1]:
@@ -1911,6 +1921,15 @@ def workshop():
     plant(-2.98,.95,.16,.64)
 
 
+def repeatable(scene):
+    """Same scene in, same pixels out: a fixed sampling seed and the CPU
+    denoiser, so re-rendering an unchanged island yields byte-identical
+    assets (and the same fingerprinted file names visitors already have)."""
+    scene.cycles.seed=0
+    scene.cycles.use_animated_seed=False
+    if hasattr(scene.cycles,'denoising_use_gpu'):scene.cycles.denoising_use_gpu=False
+
+
 def setup(world, width, samples, engine, device):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.preferences.filepaths.save_version=0
@@ -1940,6 +1959,7 @@ def setup(world, width, samples, engine, device):
         scene.cycles.samples=samples
         scene.cycles.use_denoising=True
         scene.cycles.max_bounces=6
+        repeatable(scene)
         if device == 'METAL':
             prefs=bpy.context.preferences.addons['cycles'].preferences
             prefs.compute_device_type='METAL'
@@ -2085,6 +2105,7 @@ def main():
                 for dev in prefs.devices: dev.use=dev.type=='METAL'
                 scene.cycles.device='GPU'
             daylight(scene)
+            repeatable(scene)
             scene.render.filepath=str(args.output/f'{world}.png')
             bpy.ops.render.render(write_still=True)
             print(f'COMPLETED {world} day',flush=True)
@@ -2096,6 +2117,14 @@ def main():
         if args.time=='day':daylight(scene)
         scene.frame_set(1)
         export_anchors(scene,world,args.output/f'{world}.json')
+        if world=='work':
+            # The rotatable model lights the same tower window in 3D: its
+            # corners in Three's coordinates (Blender X, Z, -Y), kept in step
+            # with the tower here rather than copied by hand.
+            assets=ROOT/'lib'/'island-orbit-assets.json'
+            manifest=json.loads(assets.read_text())
+            manifest.setdefault('work',{})['entryWindow3D']=[[round(x,8),round(z,8),round(-y,8)] for x,y,z in ANCHORS['entryWindow']]
+            assets.write_text(json.dumps(manifest,indent=2)+'\n')
         scene.render.filepath=str(args.output/f'{world}.png')
         if args.time=='night':bpy.ops.wm.save_as_mainfile(filepath=str(sources/f'{world}.blend'),compress=True)
         bpy.ops.render.render(write_still=True)

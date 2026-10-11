@@ -60,7 +60,12 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
   await at(page, 1);
   await expect(carry.locator("[data-work-preview]")).toHaveCSS("opacity", "1");
   const preview = (await carry.locator("h1").boundingBox())!;
-  await page.evaluate(() => (window as Window & { held?: Animation[] }).held!.forEach(animation => animation.play()));
+  // Resume the journey from where it was held. play() on an animation held
+  // at its end would rewind it to the start (auto-rewind), so finish those.
+  await page.evaluate(() => (window as Window & { held?: Animation[] }).held!.forEach(animation => {
+    const end = Number(animation.effect!.getComputedTiming().endTime);
+    if (Number.isFinite(end) && Number(animation.currentTime) >= end) animation.finish(); else animation.play();
+  }));
   await expect(page).toHaveURL(/\/work$/);
   await expect(carry).toHaveCount(0);
   const heading = page.getByRole("heading", { name: "Work", exact: true, level: 1 });

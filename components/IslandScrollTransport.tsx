@@ -6,7 +6,7 @@ import JourneyStars from "./JourneyStars";
 import { rememberIsland, rememberReturn } from "@/lib/island-location";
 import { createCometNavigation } from "@/lib/comet-navigation";
 import styles from "./IslandHome.module.css";
-import type { FlightWorld } from "@/lib/island-flight";
+import type { FlightIsland, FlightWorld } from "@/lib/island-flight";
 import flightAssets from "@/lib/island-flight-assets.json";
 import orbitAssets from "@/lib/island-orbit-assets.json";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
@@ -539,7 +539,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
         const islands = Object.entries(flightAssets).map(([id, asset]) => {
           const orbit = orbitAssets[id as keyof typeof orbitAssets];
-          return { id, src: asset.src, daySrc: "daySrc" in asset ? asset.daySrc as string : undefined, camera: orbit.camera, crop: orbit.crop };
+          return { id, src: asset.src, daySrc: "daySrc" in asset ? asset.daySrc as string : undefined, camera: orbit.camera, crop: orbit.crop, traffic: "traffic" in orbit ? orbit.traffic as FlightIsland["traffic"] : undefined };
         });
         const world = await createFlightWorld(flightCanvas, islands, flightAbort.signal);
         if (flightAbort.signal.aborted) { world.dispose(); return; }

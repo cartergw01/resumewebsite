@@ -1,9 +1,12 @@
 # Blender island artwork
 
-Three editable Blender scenes for the `/2.0` homepage. Geometry, materials,
+Three Blender scenes for the homepage islands. Geometry, materials,
 lighting and a 70mm perspective camera are authored in
-`scripts/blender/build_islands.py`. The final images are rendered from these
-scenes; no generated image backplates are used.
+`scripts/blender/build_islands.py`, which also saves the scenes here as
+`work.blend`, `writing.blend` and `projects.blend`. Those files are generated,
+so Git ignores them; build them with `scripts/blender/pipeline.sh` (see
+Rebuild). The final images are rendered from these scenes; no generated image
+backplates are used.
 
 ## Art direction and references
 
@@ -11,9 +14,16 @@ scenes; no generated image backplates are used.
   World Trade Center courtyard, Grand Hyatt massing, Nan Shan's paired crown,
   streets, planted pedestrian plazas, sidewalks, low-rise frontage, roof equipment,
   street trees, yellow taxis, scooter parking and Xinyi/Songzhi road signs.
-  Taipei 101 uses eight equal eight-floor modules above a separate inward
-  tapering base, smaller glazing, narrow mullions, corner details and a distinct
-  observation crown and spire. One scene unit represents approximately 100m.
+  Taipei 101 follows the published facts: a 25-floor pedestal tapering inward
+  like a truncated pyramid; eight eight-floor modules flaring out about 7°;
+  module tops near 390m, the roof near 449m and the spire tip at 508m; the
+  double-stairstep re-entrant corners on every tier; one uniform blue-green
+  curtain wall (an even soft teal glow at night, with gold-lit eaves, not an
+  office patchwork); an ancient coin, a disc with a square hole, on each face
+  where the pedestal meets the tower; and ruyi brackets about 8m tall at each
+  tier's corners, curling out as small canopies. Nan Shan Plaza's retail annex
+  is three large blocks offset in alternating layers. One scene unit
+  represents approximately 100m.
   Connected neighborhoods occupy the western, eastern and northern shoulders.
   Narrow shopfronts have covered ground-floor arcades, recessed windows,
   different balcony arrangements, external air conditioning, parapets, water
@@ -61,22 +71,16 @@ falls back to the plain still on touch, reduced motion, or without WebGL2.
 This replaced the Writing island's transparent video loop, which cost more
 frame time than any camera flight.
 
-```sh
-for w in work writing projects; do
-  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
-    --python scripts/blender/render_depth.py -- --world $w --output .blender-build/depth --width 1440
-done
-node scripts/blender/export_depth.mjs .blender-build/depth
-```
 
 ### Real camera flights
 
 Between Work, Writing and Projects the camera flies in 3D. Each island has a
 lightweight flight model (`scripts/blender/export_flight.py`): the saved scene
 joined, its full Cycles lighting (moon or sun, lamps, emission, bounce) baked
-into vertex colours, then decimated to ~45k faces and Draco-compressed
-(about 1 MB each; Taipei's daytime bake is a separate file loaded only when day
-is chosen). The browser draws them unlit (`lib/island-flight.ts`): the islands
+into vertex colours, then decimated to ~45k faces and meshopt-compressed
+(about 0.5–0.7 MB each as served; Taipei's daytime bake is a separate file
+loaded only when day is chosen). Taipei's traffic drives through the flights
+too (`lib/island-traffic.ts`). The browser draws them unlit (`lib/island-flight.ts`): the islands
 sit apart in one space and the camera flies a curve from one island's render
 camera to the next, widening the lens mid-flight so both islands share the
 frame. Each end projects into the still's exact on-screen box, and the stills
@@ -85,13 +89,6 @@ the hand-off is seamless. The models load after the page settles and only on
 capable desktops (fine pointer, WebGL2, no data saver, ≥4 GB memory, 4G-class
 connection, motion allowed); phones, or any visit until they arrive, use the
 light 2D flight.
-
-```sh
-for w in work writing projects; do
-  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
-    --python scripts/blender/export_flight.py -- --world $w
-done
-```
 
 ### Live details
 
@@ -106,12 +103,11 @@ drifting in the lamplight, breathing festoon bulbs, a flickering bare bulb and
 fireflies. It follows the depth parallax so each detail stays on its surface.
 Fireworks over Xinyi (`components/CityFireworks.tsx`) are drawn live at night.
 
-```sh
-for w in work writing projects; do
-  /Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/$w.blend \
-    --python scripts/blender/export_life_anchors.py -- --world $w
-done
-```
+Every traffic lane sample is ray-cast from the render camera: where a building
+hides the road, the lane carries 0 and cars fade out there instead of being
+drawn across the building. The exporter also writes each lane's 3D run of road
+into `lib/island-orbit-assets.json` (`work.traffic`), so the rotatable model
+and the camera flights carry the same traffic, hidden by real depth.
 
 ### Taipei by day
 
@@ -138,16 +134,6 @@ colour between the two rigs. Toggling the time of day is a direct 0.6s
 crossfade between the two stills (and the two rigs, when a turned view is
 showing), with no sunrise or sunset in between.
 
-```sh
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
-  --python scripts/blender/build_islands.py -- \
-  --world work --time night --output .blender-build/work-night --width 2880 --samples 96
-# prepare, export and export_orbit the night render as above, then:
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
-  --python scripts/blender/build_islands.py -- \
-  --world work --time day --output .blender-build/work-day --width 2880 --samples 96
-node scripts/blender/export_day.mjs .blender-build/work-day
-```
 
 ### Personal details
 
@@ -231,7 +217,9 @@ are not included or used as image textures.
 
 ## Open and edit
 
-1. Open `work.blend`, `writing.blend`, or `projects.blend` in Blender.
+1. Build the scenes if they are not here yet (`scripts/blender/pipeline.sh`,
+   or just the night render step it runs), then open `work.blend`,
+   `writing.blend`, or `projects.blend` in Blender.
 2. Use camera view for the website composition. Objects have descriptive names.
 3. Render with **Render → Render Image**. Transparent film is enabled.
 4. Writing has a four-second loop on frames 1–48 at 12 fps. Its lamp, loose
@@ -248,55 +236,40 @@ rebuilding, because the script replaces the three saved scenes.
 
 ## Rebuild
 
-From the repository root, with Blender and FFmpeg installed:
+One command rebuilds every website asset of an island from the build script,
+in the order they depend on each other:
 
 ```sh
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --threads 6 \
-  --python scripts/blender/build_islands.py -- \
-  --world all --output .blender-build/final --width 1920 --samples 72 \
-  --device CPU --animate
-
-node scripts/blender/prepare_islands.mjs .blender-build/final .blender-build/web
-
-ffmpeg -y -framerate 12 -start_number 1 \
-  -i .blender-build/web/writing-frames/%d.png \
-  -c:v libvpx-vp9 -pix_fmt yuva420p -b:v 0 -crf 28 -row-mt 1 \
-  -auto-alt-ref 0 -an -metadata:s:v:0 alpha_mode=1 \
-  .blender-build/web/writing-loop.webm
-
-ffmpeg -y -framerate 12 -start_number 1 \
-  -i .blender-build/web/writing-frames/%d.png \
-  -c:v hevc_videotoolbox -allow_sw 1 -alpha_quality 0.85 -pix_fmt bgra \
-  -b:v 2400k -tag:v hvc1 -an -movflags +faststart \
-  .blender-build/web/writing-loop.mov
-
-node scripts/blender/export_islands.mjs .blender-build/web
+scripts/blender/pipeline.sh work            # or writing, projects, all
+scripts/blender/pipeline.sh work --quick    # 1440px, 24 samples, for a look
 ```
 
-The preparation step removes excess transparent margin from stills and video
-frames and applies the same crop to interaction coordinates. Raw camera renders
-remain available in the input directory.
+For each island it renders the night still (2880px, 96 samples, Metal; this
+also saves the `.blend`), crops it and its anchors (`prepare_islands.mjs`) and
+publishes them (`export_islands.mjs`), exports the rotatable model
+(`export_orbit.py`, with the crop the still was given), renders and publishes
+Work's daytime still (`export_day.mjs`), the depth map (`render_depth.py`,
+`export_depth.mjs`), the live-detail anchors (`export_life_anchors.py`) and
+the flight model(s) (`export_flight.py`). Then it recompresses every model with
+meshopt (`compress_models.mjs`), re-bakes the orbit surface anchors
+(`bake-orbit-anchors.mjs`) and deletes published files nothing references.
+Logs go to `.blender-build/pipeline/`; a failed step stops the run and prints
+its log. Exporting a still replaces that island's manifest entry, so always
+run the later steps after it, which the script does.
 
-Safari uses transparent HEVC; Chromium uses transparent VP9. Both video formats
-and the stills receive content hashes to avoid stale media after a revision.
-The server passes the same artwork manifest and landmark coordinates into the
-overview and interactive scenes. A new render remounts its media component so
-the Writing video, still, and book projection update together.
-For a quick check, render one world at `--width 1400 --samples 40` without
-`--animate`, and inspect the PNG before rendering the loop.
+Builds are repeatable. The script builds the same scene every time (its
+terrain noise uses `noise.noise`; Blender seeds `noise.noise_vector` randomly
+at startup, which used to reshape every island on each build), and renders use
+a fixed Cycles seed and the CPU denoiser. With `--cpu`, an unchanged island
+re-renders byte-identically to the same fingerprinted files; on Metal (the
+default, much faster) a re-render differs by at most one level in a few pixels,
+invisible but enough for new file names. Rebuilding one island never changes
+another's files.
 
-To revise Work alone, render with `--world work`, then prepare and export only
-that world. The other worlds and the Writing video retain their existing files
-and coordinates:
-
-```sh
-node scripts/blender/prepare_islands.mjs .blender-build/work-final .blender-build/work-web --world work
-node scripts/blender/export_islands.mjs .blender-build/work-web --world work
-```
-
-Both scripts also accept `--world projects` or `--world writing`. Writing still
-requires all 48 animation frames during preparation and both encoded video
-formats during export, so its still, loop and interaction anchors stay together.
+Writing's old transparent video loop is no longer shown (depth parallax
+replaced it). `build_islands.py --animate` still renders its 48 frames, and
+`export_islands.mjs` still publishes `writing-loop.webm`/`.mov` if a render
+provides them.
 
 ## Interaction alignment
 
@@ -326,8 +299,8 @@ push, sharpness swap, content continuity and interruption.
 `lib/island-orbit-assets.json` stores the tower window's four world-space
 corners in Three coordinates (Blender X, Z, -Y), and `lib/work-lit-window.ts`
 lights it in the rotatable model. `lib/blender-islands.json` stores their
-1200×800 projection for the still. Update both when changing the tower/window;
-the rebuild formula is in `taipei101` in `build_islands.py`.
+1200×800 projection for the still. The night render writes both from
+`taipei101` in `build_islands.py`, so they follow any change to the tower.
 
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or
 save-data preferences. The still remains the playback fallback. The background
@@ -346,27 +319,26 @@ and rocket. R or the reset button restores the original rendered view.
 
 Regenerate a model from its editable Blender source:
 
-```sh
-/Applications/Blender.app/Contents/MacOS/Blender -b artwork/blender/work.blend --threads 6 --python scripts/blender/export_orbit.py -- --world work
-```
+`scripts/blender/pipeline.sh` exports them (`export_orbit.py`, at 160000
+faces for Work, 70000 for Writing and 80000 for Projects), saving an
+intermediate scene under `.blender-build/orbit` and updating
+`lib/island-orbit-assets.json`; the original `.blend` stays untouched.
 
-Repeat with `writing` (`--faces 70000`) or `projects` (`--faces 80000`).
-`--faces` (default 160000) decimates after the bake to keep each model near
-2 MB. This saves an intermediate scene under
-`.blender-build/orbit`, writes a hashed GLB to `public/blender`, and updates
-`lib/island-orbit-assets.json`. The original `.blend` stays untouched. If the
-camera framing changes, pass `--crop X Y WIDTH HEIGHT` using the 1200×800 crop
-printed by `prepare_islands.mjs`; otherwise the current manifest crop is kept.
-Remove superseded GLBs after checking the new model in the browser.
-
-The exporter joins detailed geometry, bakes procedural base colors, preserves
-image planes and surface roughness, and uses Draco compression. It also records
+The exporter joins detailed geometry, bakes procedural base colors and
+preserves image planes and surface roughness. `compress_models.mjs` then
+rewrites each model with meshopt and quantized vertices: smaller than Draco
+once served with Brotli, several times faster to decode on a phone, and with a
+~20 KB decoder (bundled with Three) instead of Draco's ~250 KB. The exporter also records
 the scene's warm practical lamps as `practicals`, which `lib/island-orbit.ts`
 adds as point lights beside the same moon, rim and bounce rig. Lighting and
 fine wood/stone grain run in the browser; they approximate the offline Cycles
 render, so a live angle is not pixel-identical to the still. Models currently
-are about 2–2.5 MiB. They load per active world, render only on input or
-resize, and release GPU resources when another world finishes arriving.
+are about 1.5 MiB each as served. They load per active world and render only
+on input or resize, except that on a desktop with real graphics a turned
+Taipei keeps drawing at ~30fps so its traffic drives (stopping when it returns
+to the render, the tab hides or motion is reduced; phones move the cars on only
+as the view turns). They release GPU resources when another world finishes
+arriving.
 Save-data, unsupported WebGL, failed downloads, or context loss retain the
 original artwork and normal navigation. Manual rotation also works with reduced
 motion, with no automatic orbit or inertial spin.
@@ -376,5 +348,4 @@ raycasting, then updates the annotation and entry corners while turning. The
 workshop's project preview stays attached to its screen. Tests in
 `tests/e2e/island-orbit.spec.ts` cover drag/click separation, all three destinations,
 keyboard controls, reset, reduced motion, failed downloads, and native touch
-scrolling. The Draco files under `public/draco` come from the installed Three.js
-package; their licenses are included there.
+scrolling.

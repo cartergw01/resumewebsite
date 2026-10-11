@@ -37,9 +37,8 @@ try {
     const points = await page.evaluate(async ({ asset, anchors }) => {
       const { Box3, PerspectiveCamera, Raycaster, Vector2, Vector3 } = await import('three');
       const { GLTFLoader } = await import('three/addons/loaders/GLTFLoader.js');
-      const { DRACOLoader } = await import('three/addons/loaders/DRACOLoader.js');
-      const draco = new DRACOLoader().setDecoderPath('/public/draco/').setWorkerLimit(1);
-      const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync('/public' + asset.src);
+      const { MeshoptDecoder } = await import('three/addons/libs/meshopt_decoder.module.js');
+      const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('/public' + asset.src);
       gltf.scene.updateMatrixWorld(true);
       const camera = new PerspectiveCamera(asset.camera.fov, 1.5, .05, 150);
       camera.position.fromArray(asset.camera.position);
@@ -57,7 +56,6 @@ try {
         return (raycaster.intersectObject(gltf.scene, true)[0]?.point ?? raycaster.ray.at(radius, new Vector3())).toArray();
       });
       if (asset.entryWindow3D) points.entryWindow = asset.entryWindow3D;
-      draco.dispose();
       return points;
     }, {asset, anchors});
     asset.surfaceAnchors = { signature: JSON.stringify([asset.src, asset.camera, asset.crop, anchors, asset.entryWindow3D]), points };

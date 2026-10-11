@@ -1,6 +1,7 @@
 import { AgXToneMapping, Box3, Color, Group, Matrix4, Mesh, MeshBasicMaterial, PerspectiveCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
+import { islandMeshopt } from "./meshopt";
+import { createTraffic, type Traffic } from "./island-traffic";
 
 // Real camera flights between islands. Each island's flight model has its
 // full Cycles lighting baked into vertex colours (scripts/blender/export_flight.py),
@@ -13,8 +14,9 @@ export type FlightIsland = {
   daySrc?: string;
   camera: { position: number[]; direction: number[]; fov: number };
   crop: number[];
+  traffic?: Traffic;
 };
-type Placed = { group: Group; dayGroup?: Group; daySrc?: string; dayLoading?: boolean; position: Vector3; target: Vector3; direction: Vector3; fov: number; crop: number[] };
+type Placed = { group: Group; dayGroup?: Group; daySrc?: string; dayLoading?: boolean; traffic?: Traffic; position: Vector3; target: Vector3; direction: Vector3; fov: number; crop: number[] };
 
 // Where each island sits in the shared flight space (Three coordinates).
 const OFFSETS: Record<string, [number, number, number]> = { work: [0, 0, 0], writing: [22, 2, -8], projects: [44, -1, 0] };
@@ -32,12 +34,13 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
   renderer.setClearColor(new Color(0), 0);
   renderer.toneMapping = AgXToneMapping;
   renderer.toneMappingExposure = 1;
-  const draco = new DRACOLoader().setDecoderPath("/draco/").setWorkerLimit(1);
-  const loader = new GLTFLoader().setDRACOLoader(draco);
+  const loader = new GLTFLoader().setMeshoptDecoder(islandMeshopt());
   const scene = new Scene();
   const placed = new Map<string, Placed>();
+  // Each loaded model's traffic, and whether it is the daytime version.
+  const drives: { traffic: ReturnType<typeof createTraffic>; daylight: number }[] = [];
   // A pre-lit model, drawn unlit, scaled by the still's exposure.
-  const load = async (src: string, offset: Vector3, exposure: number) => {
+  const load = async (src: string, offset: Vector3, exposure: number, traffic?: Traffic, daylight = 0) => {
     const response = await fetch(src, { signal });
     if (!response.ok) throw new Error(`Flight model: ${response.status}`);
     const gltf = await loader.parseAsync(await response.arrayBuffer(), "/blender/");
@@ -48,6 +51,11 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
     gltf.scene.traverse(object => {
       if (object instanceof Mesh) object.material = new MeshBasicMaterial({ vertexColors: true, color: new Color().setScalar(exposure) });
     });
+    if (traffic) {
+      const cars = createTraffic(traffic, false);
+      group.add(cars.group);
+      drives.push({ traffic: cars, daylight });
+    }
     group.visible = false;
     scene.add(group);
     return { group, gltf };
@@ -57,15 +65,15 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       const offset = new Vector3(...(OFFSETS[island.id] ?? [0, 0, 0]));
       // Decimation merges Taipei's lit windows, so its night model is lifted
       // a little to read like its still.
-      const { group, gltf } = await load(island.src, offset, EXPOSURE.night * (island.id === "work" ? 1.4 : 1));
+      const { group, gltf } = await load(island.src, offset, EXPOSURE.night * (island.id === "work" ? 1.4 : 1), island.traffic);
       // The still's camera, aimed where the orbit view aims it.
       const camera = new Vector3().fromArray(island.camera.position);
       const direction = new Vector3().fromArray(island.camera.direction).normalize();
       const center = new Box3().setFromObject(gltf.scene).getCenter(new Vector3());
       const target = camera.clone().addScaledVector(direction, center.clone().sub(camera).dot(direction));
-      placed.set(island.id, { group, daySrc: island.daySrc, position: camera.add(offset), target: target.add(offset), direction, fov: island.camera.fov, crop: island.crop });
+      placed.set(island.id, { group, daySrc: island.daySrc, traffic: island.traffic, position: camera.add(offset), target: target.add(offset), direction, fov: island.camera.fov, crop: island.crop });
     }
-  } catch (error) { renderer.dispose(); draco.dispose(); throw error; }
+  } catch (error) { renderer.dispose(); throw error; }
 
   const camera = new PerspectiveCamera(30, 1.5, .05, 400);
   camera.up.set(0, 1, 0);
@@ -95,7 +103,7 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       for (const island of placed.values()) {
         if (next !== "day" || !island.daySrc || island.dayGroup || island.dayLoading) continue;
         island.dayLoading = true;
-        void load(island.daySrc, island.group.position.clone(), EXPOSURE.day).then(({ group }) => { island.dayGroup = group; }).catch(() => { island.dayLoading = false; });
+        void load(island.daySrc, island.group.position.clone(), EXPOSURE.day, island.traffic, 1).then(({ group }) => { island.dayGroup = group; }).catch(() => { island.dayLoading = false; });
       }
     },
     // Fly from one island's still to the next at progress t (0..1).
@@ -126,12 +134,14 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
         island.group.visible = shown && !day;
         if (island.dayGroup) island.dayGroup.visible = shown && Boolean(day);
       }
+      const seconds = performance.now() / 1000;
+      for (const { traffic, daylight } of drives) traffic.update(seconds, daylight);
       renderer.render(scene, camera);
       return true;
     },
     clear() { renderer.clear(); },
     dispose() {
-      draco.dispose();
+      for (const { traffic } of drives) traffic.dispose();
       scene.traverse(object => { if (object instanceof Mesh) { object.geometry.dispose(); (object.material as MeshBasicMaterial).dispose(); } });
       renderer.dispose();
     },

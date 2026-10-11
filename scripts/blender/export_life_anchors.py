@@ -63,6 +63,16 @@ if opts.world == 'work':
         return pts
     roads = [((-3.3, -.95), (3.2, -.95), 'x'), ((-3.2, 1.35), (3.2, 1.35), 'x'), ((-1.05, -2.3), (-1.05, 2.15), 'y'), ((1.55, -2.3), (1.55, 2.15), 'y')]
     life['lanes'] = [lane(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]
+    # The same lanes in 3D, for traffic in the rotatable model and the camera
+    # flights (lib/island-traffic.ts): each a straight run of road, in Three's
+    # coordinates (Blender X, Z, -Y), in the same order as the 2D lanes.
+    def run(a, b, offset, axis):
+        ends = [(a[0], a[1] + offset) if axis == 'x' else (a[0] + offset, a[1]), (b[0], b[1] + offset) if axis == 'x' else (b[0] + offset, b[1])]
+        return [[round(x, 5), .052, round(-y, 5)] for x, y in ends]
+    orbit_path = ROOT / 'lib' / 'island-orbit-assets.json'
+    orbit = json.loads(orbit_path.read_text())
+    orbit.setdefault('work', {})['traffic'] = {'lanes': [run(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]}
+    orbit_path.write_text(json.dumps(orbit, indent=2) + '\n')
     # Taipei 101's front face, from the podium to the crown, for its lift.
     life['tower'] = [project((.52, -.39 - .27, 1.25)), project((.52, -.39 - .2, 3.85))]
 elif opts.world == 'writing':
