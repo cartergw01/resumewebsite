@@ -73,6 +73,15 @@ if opts.world == 'work':
     orbit = json.loads(orbit_path.read_text())
     orbit.setdefault('work', {})['traffic'] = {'lanes': [run(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]}
     orbit_path.write_text(json.dumps(orbit, indent=2) + '\n')
+    # Where Taipei 101's fireworks fire from, as in its New Year show: the two
+    # front corners at the top of each of the eight tiers, and the spire tip.
+    # (Tower centre, tier tops and widths as built by taipei101 in
+    # build_islands.py.)
+    tx, ty, half = .52, -.39, .258
+    life['fireworks'] = {
+        'tiers': [[project((tx - half, ty - half, 1.19 + i * .337 + .32)), project((tx + half, ty - half, 1.19 + i * .337 + .32))] for i in range(8)],
+        'top': project((tx, ty, 5.15)),
+    }
     # Taipei 101's front face, from the podium to the crown, for its lift.
     life['tower'] = [project((.52, -.39 - .27, 1.25)), project((.52, -.39 - .2, 3.85))]
 elif opts.world == 'writing':
@@ -93,4 +102,4 @@ path = ROOT / 'lib' / 'blender-islands.json'
 manifest = json.loads(path.read_text())
 manifest[opts.world]['life'] = life
 path.write_text(json.dumps(manifest, indent=2) + '\n')
-print(f'LIFE {opts.world}: ' + ', '.join(f'{k}={len(v) if isinstance(v[0], list) else 1}' for k, v in life.items()), flush=True)
+print(f'LIFE {opts.world}: ' + ', '.join(f'{k}={len(v) if isinstance(v, dict) or isinstance(v[0], list) else 1}' for k, v in life.items()), flush=True)

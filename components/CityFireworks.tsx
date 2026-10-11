@@ -5,15 +5,22 @@ import { currentCityTime, CITY_TIME_EVENT } from "@/lib/city-time";
 
 type Spark = { x: number; y: number; px: number; py: number; vx: number; vy: number };
 type Burst = { x: number; y: number; from: number; born: number; life: number; color: string; sparks: Spark[]; burst: boolean };
+// A spark fired out of one of the tower's tiers: it flies outward, arcs and falls.
+type Ember = { x: number; y: number; vx: number; vy: number; born: number; life: number; color: string };
+export type TowerLaunch = { tiers: number[][][]; top: number[] };
 
 const PALETTES = ["255,211,138", "255,143,176", "255,241,214", "255,190,120"];
 const RISE = 750;
 
-// Fireworks over Xinyi at night: every few seconds a small rocket climbs from
-// the city and bursts beside Taipei 101. It draws only while a burst is alive,
-// so at rest it costs nothing; it waits for the camera to settle, steps aside
-// by day, during entries and live 3D orbits, and respects reduced motion.
-export default function CityFireworks({ tower, className }: { tower: number[]; className?: string }) {
+// Fireworks out of Taipei 101 at night, like its New Year show: fire sprays
+// out of the corners of each tier in turn, climbing the tower, and then a
+// shell rises off the spire and bursts above it. Between shows a lone shell
+// now and then leaves the spire. Launch points are projected from the Blender
+// tower (scripts/blender/export_life_anchors.py). It draws only while sparks
+// are alive, so at rest it costs nothing; it waits for the camera to settle,
+// steps aside by day, during entries and live 3D orbits, and respects reduced
+// motion.
+export default function CityFireworks({ tower, launch: from, className }: { tower: number[]; launch?: TowerLaunch; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -25,6 +32,10 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
     if (!canvas || !visual || !scene || !stage || !context) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const bursts: Burst[] = [];
+    const embers: Ember[] = [];
+    const pending = new Set<ReturnType<typeof setTimeout>>();
+    const later = (ms: number, run: () => void) => { const id = setTimeout(() => { pending.delete(id); if (allowed()) run(); }, ms); pending.add(id); };
+    const spire = from?.top ?? [tower[0], tower[1] - 90];
     let frame = 0, timer: ReturnType<typeof setTimeout> | undefined, width = 0, height = 0, ratio = 1;
 
     const allowed = () => !motion.matches && !document.hidden && currentCityTime() === "night"
@@ -39,10 +50,10 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
       width = canvas.clientWidth; height = canvas.clientHeight;
       canvas.width = Math.max(1, Math.round(width * ratio)); canvas.height = Math.max(1, Math.round(height * ratio));
     };
-    const launch = () => {
-      const side = Math.random() < .5 ? -1 : 1;
-      const x = tower[0] + side * (70 + Math.random() * 120);
-      const y = tower[1] + 45 + Math.random() * 70;
+    // A shell off the spire: it climbs, then bursts into a round flower.
+    const shell = (color: string) => {
+      const x = spire[0] + (Math.random() - .5) * 14;
+      const y = spire[1] - 55 - Math.random() * 45;
       const count = 48 + Math.floor(Math.random() * 22);
       const speed = .10 + Math.random() * .045;
       const sparks: Spark[] = Array.from({ length: count }, (_, i) => {
@@ -50,8 +61,28 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
         const v = speed * (.75 + Math.random() * .3);
         return { x, y, px: x, py: y, vx: Math.cos(angle) * v, vy: Math.sin(angle) * v };
       });
-      bursts.push({ x, y, from: y + 190 + Math.random() * 60, born: performance.now(), life: 1500 + Math.random() * 500, color: PALETTES[Math.floor(Math.random() * PALETTES.length)], sparks, burst: false });
+      bursts.push({ x, y, from: spire[1], born: performance.now(), life: 1500 + Math.random() * 500, color, sparks, burst: false });
       if (!frame) frame = requestAnimationFrame(draw);
+    };
+    // A spray from one corner of a tier: sparks fly outward, mostly sideways
+    // and a little up, then arc down.
+    const spray = ([x, y]: number[], outward: number, color: string) => {
+      const now = performance.now();
+      for (let i = 0; i < 12; i++) {
+        const angle = -.15 + Math.random() * .85;
+        const speed = .07 + Math.random() * .08;
+        embers.push({ x, y, vx: outward * Math.cos(angle) * speed, vy: -Math.sin(angle) * speed, born: now, life: 1000 + Math.random() * 600, color });
+      }
+      if (!frame) frame = requestAnimationFrame(draw);
+    };
+    // The show: tier by tier up the tower, both corners at once, then the crown.
+    const show = () => {
+      const color = PALETTES[Math.floor(Math.random() * PALETTES.length)];
+      const tiers = from?.tiers ?? [];
+      tiers.forEach(([left, right], i) => later(i * 150, () => { spray(left, -1, color); spray(right, 1, color); }));
+      later(tiers.length * 150 + 150, () => shell(color));
+      // Now and then a second shell follows closely.
+      if (Math.random() < .35) later(tiers.length * 150 + 550 + Math.random() * 300, () => shell(PALETTES[Math.floor(Math.random() * PALETTES.length)]));
     };
     let last = 0;
     const draw = (now: number) => {
@@ -61,6 +92,20 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
       context.clearRect(0, 0, width, height);
       context.globalCompositeOperation = "lighter";
       context.lineCap = "round";
+      const line = Math.max(1.1, 2 * scale);
+      for (let e = embers.length - 1; e >= 0; e--) {
+        const ember = embers[e];
+        const age = now - ember.born;
+        if (age > ember.life) { embers.splice(e, 1); continue; }
+        ember.vx *= Math.pow(.9982, dt); ember.vy = ember.vy * Math.pow(.9982, dt) + .00011 * dt;
+        ember.x += ember.vx * dt; ember.y += ember.vy * dt;
+        const fade = Math.pow(1 - age / ember.life, 1.4);
+        const hx = left + ember.x * scale, hy = top + ember.y * scale;
+        context.strokeStyle = `rgba(${ember.color},${(fade * .75).toFixed(3)})`; context.lineWidth = line;
+        context.beginPath(); context.moveTo(hx - ember.vx * 70 * scale, hy - ember.vy * 70 * scale); context.lineTo(hx, hy); context.stroke();
+        context.fillStyle = `rgba(255,248,235,${fade.toFixed(3)})`;
+        context.beginPath(); context.arc(hx, hy, line * .7, 0, Math.PI * 2); context.fill();
+      }
       for (let b = bursts.length - 1; b >= 0; b--) {
         const burst = bursts[b];
         const age = now - burst.born;
@@ -101,19 +146,21 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
           context.fillStyle = glow; context.fillRect(left + burst.x * scale - r, top + burst.y * scale - r, r * 2, r * 2);
         }
       }
-      frame = bursts.length ? requestAnimationFrame(draw) : 0;
+      frame = bursts.length || embers.length ? requestAnimationFrame(draw) : 0;
       if (!frame) { last = 0; context.clearRect(0, 0, width, height); }
     };
     const schedule = () => {
       clearTimeout(timer); timer = undefined;
-      if (!allowed()) { bursts.length = 0; cancelAnimationFrame(frame); frame = 0; context.clearRect(0, 0, canvas.width, canvas.height); return; }
+      if (!allowed()) {
+        pending.forEach(clearTimeout); pending.clear();
+        bursts.length = 0; embers.length = 0; cancelAnimationFrame(frame); frame = 0; context.clearRect(0, 0, canvas.width, canvas.height); return;
+      }
       timer = setTimeout(() => {
         if (!allowed()) return;
-        launch();
-        // Now and then a second one follows closely, like a real show.
-        if (Math.random() < .35) setTimeout(() => { if (allowed()) launch(); }, 380 + Math.random() * 300);
+        // Mostly the full show; sometimes just a shell off the spire.
+        if (from && Math.random() < .7) show(); else shell(PALETTES[Math.floor(Math.random() * PALETTES.length)]);
         schedule();
-      }, 2400 + Math.random() * 3200);
+      }, 3200 + Math.random() * 3600);
     };
     const observer = new MutationObserver(schedule);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
@@ -127,12 +174,13 @@ export default function CityFireworks({ tower, className }: { tower: number[]; c
     resize(); schedule();
     return () => {
       clearTimeout(timer); cancelAnimationFrame(frame);
+      pending.forEach(clearTimeout);
       observer.disconnect(); sizes.disconnect();
       window.removeEventListener(CITY_TIME_EVENT, schedule);
       motion.removeEventListener("change", schedule);
       document.removeEventListener("visibilitychange", schedule);
     };
-  }, [tower]);
+  }, [tower, from]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" data-city-fireworks />;
 }

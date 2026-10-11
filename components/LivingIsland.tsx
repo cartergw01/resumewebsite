@@ -129,7 +129,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
               <path className={motionStyles.entryWindow} d={artworkOutline(city.entryWindow)} fill="#eacd96" />
             </g>
           </svg>
-          {warm ? <CityFireworks tower={city.tower} className={`${motionStyles.fireworks} ${motionStyles.nightOnly}`} /> : null}
+          {warm ? <CityFireworks tower={city.tower} launch={"life" in city ? (city.life as Life).fireworks : undefined} className={`${motionStyles.fireworks} ${motionStyles.nightOnly}`} /> : null}
         </> : <svg className={motionStyles.details} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">
           <g className={motionStyles.lamp} fill="#ffd38b">
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />

@@ -101,7 +101,10 @@ them on one small canvas at ~30fps, only while the island is settled: traffic
 (head/tail lights at night, cars by day), a lift riding up 101 at night, dust
 drifting in the lamplight, breathing festoon bulbs, a flickering bare bulb and
 fireflies. It follows the depth parallax so each detail stays on its surface.
-Fireworks over Xinyi (`components/CityFireworks.tsx`) are drawn live at night.
+Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
+in its New Year show: sprays from the front corners of each tier in turn,
+climbing the tower, then a shell off the spire; the launch points are the
+`life.fireworks` points the exporter projects from the tower.
 
 Every traffic lane sample is ray-cast from the render camera: where a building
 hides the road, the lane carries 0 and cars fade out there instead of being
