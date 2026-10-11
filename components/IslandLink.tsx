@@ -11,10 +11,12 @@ import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
-export function landmarkArrow(title: string, focus: IslandLandmark) {
+// Phones draw Work's arrow from below the island, where its words move to
+// stay clear of the city (see .cityCue in IslandHome.module.css).
+export function landmarkArrow(title: string, focus: IslandLandmark, phone = false) {
   const x = focus.x * 1200, y = focus.y * 800;
   const [start, first, last] = title === "Work"
-    ? [[250, 665], [560, 755], [x + 140, y + 150]]
+    ? phone ? [[690, 800], [730, 700], [x + 120, y + 170]] : [[250, 665], [560, 755], [x + 140, y + 150]]
     : title === "Writing"
       ? [[945, 25], [855, -35], [x + 160, y - 160]]
       : [[880, 735], [1140, 660], [x + 240, y + 100]];
@@ -236,7 +238,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
           <span className={styles.orbitPrompt} data-orbit-prompt aria-hidden="true"><span className={styles.mousePrompt}>drag to look around</span><span className={styles.touchPrompt}>swipe to look around</span></span>
         </span>
         <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
-          <path d={landmarkArrow(title, landmark)} stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={landmarkArrow(title, landmark)} data-arrow="wide" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={landmarkArrow(title, landmark, true)} data-arrow="phone" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>}
     </Link>

@@ -76,7 +76,9 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       if (!live) return;
       const [x, y] = points.landmark[0];
       visual.dataset.orbitLandmark = JSON.stringify({ x: x / 1200, y: y / 800 });
-      link.querySelector("[data-island-cue] path")?.setAttribute("d", landmarkArrow(title, { x: x / 1200, y: y / 800, name: title }));
+      const focus = { x: x / 1200, y: y / 800, name: title };
+      link.querySelector("[data-island-cue] [data-arrow=wide]")?.setAttribute("d", landmarkArrow(title, focus));
+      link.querySelector("[data-island-cue] [data-arrow=phone]")?.setAttribute("d", landmarkArrow(title, focus, true));
       for (const [name, selector] of [["entryWindow", "[data-city-entry-window]"], ["screen", "[data-workshop-screen]"], ["spread", "[data-book-spread]"]] as const) {
         const surface = visual.querySelector<SVGGraphicsElement>(selector);
         if (surface && points[name]) {
