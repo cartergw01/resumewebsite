@@ -1,5 +1,6 @@
 import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, PointLight, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
 import { CITY_TIME_DURATION } from "./city-time";
+import { ROOM_LIGHTS_DURATION } from "./room-lights";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -14,7 +15,7 @@ export type OrbitAsset = {
   entryWindow3D?: number[][];
   surfaceAnchors?: { signature: string; points: OrbitProjection };
   // Warm lamps, screens and task lights from the Blender scene (Three coordinates).
-  practicals?: { position: number[]; color: number[]; watts: number }[];
+  practicals?: { name?: string; position: number[]; color: number[]; watts: number }[];
   // Taipei's lanes, for live traffic (lib/island-traffic.ts).
   traffic?: Traffic;
 };
@@ -129,6 +130,33 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       }
       renderer.shadowMap.needsUpdate = true;
     };
+    // The study's and workshop's light switch: their lamps, bulbs and
+    // festoons (never the moon rig, screens or windows) dim to nothing and
+    // back, matching the lights-off still (lights_out in build_islands.py).
+    const stays = /^(Moon|Rim|Cliff|Sky|Monitor|Night ·|City)/;
+    const screens = /Screen|Monitor|Window|display|Caliper|Solder/;
+    const roomLamps = lamps.map((lamp, i) => ({ lamp, power: lampPower[i] })).filter((_, i) => !stays.test(asset.practicals?.[i]?.name ?? ""));
+    const roomGlow = glowing.filter(({ material }) => !screens.test(material.name));
+    let roomLight = 1, roomTween = 0;
+    const applyRoom = () => {
+      for (const { lamp, power } of roomLamps) lamp.intensity = power * roomLight;
+      for (const { material, night } of roomGlow) material.emissiveIntensity = night * roomLight;
+      renderer.shadowMap.needsUpdate = true;
+    };
+    const setLights = (on: boolean, animate: boolean) => new Promise<void>(resolve => {
+      cancelAnimationFrame(roomTween);
+      const from = roomLight, to = on ? 1 : 0;
+      if (!animate || from === to || matchMedia("(prefers-reduced-motion: reduce)").matches) { roomLight = to; applyRoom(); flushRender(); resolve(); return; }
+      const start = performance.now();
+      const step = (now: number) => {
+        if (disposed) { resolve(); return; }
+        const k = Math.min(1, (now - start) / ROOM_LIGHTS_DURATION);
+        roomLight = from + (to - from) * (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+        applyRoom(); flushRender();
+        if (k < 1) roomTween = requestAnimationFrame(step); else resolve();
+      };
+      roomTween = requestAnimationFrame(step);
+    });
     const setDaylight = (day: boolean, animate: boolean, duration = CITY_TIME_DURATION) => new Promise<void>(resolve => {
       cancelAnimationFrame(tween);
       const from = daylight, to = day ? 1 : 0;
@@ -271,6 +299,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       disposed = true;
       cancelAnimationFrame(renderFrame);
       cancelAnimationFrame(tween);
+      cancelAnimationFrame(roomTween);
       stopGlide();
       window.clearTimeout(trafficTimer);
       liveWatch.disconnect();
@@ -345,6 +374,7 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       },
       reset() { stopGlide(); rawYaw = rawPitch = yaw = pitch = 0; canvas.dataset.orbitYaw = "0"; canvas.dataset.orbitPitch = "0"; flushRender(); },
       setDaylight(day: boolean, animate = true, duration?: number) { return setDaylight(day, animate, duration); },
+      setLights(on: boolean, animate = true) { return setLights(on, animate); },
       dispose,
     };
   } catch (error) {

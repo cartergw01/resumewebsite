@@ -42,7 +42,7 @@ practicals=[]
 for obj in scene.objects:
     if obj.type!='LIGHT' or obj.data.type not in {'POINT','AREA'}: continue
     if obj.name.split(' ·')[0] in {'Moon','Rim','Cliff','City'}: continue
-    practicals.append({'position':web_point(obj.matrix_world.translation),
+    practicals.append({'name':obj.name.split('.')[0],'position':web_point(obj.matrix_world.translation),
                        'color':[round(c,3) for c in obj.data.color],'watts':round(obj.data.energy,2)})
 
 # A joined mesh still needs each object's original coordinates for procedural

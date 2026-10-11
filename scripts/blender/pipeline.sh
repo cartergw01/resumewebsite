@@ -9,7 +9,8 @@
 #
 # In order, for each island: model and render the night still (this also saves
 # artwork/blender/<world>.blend, which the later steps open), crop and publish
-# it, export the rotatable model, render and publish Work's daytime still,
+# it, export the rotatable model, render and publish Work's daytime still
+# (the study's and workshop's lights-off still),
 # render the parallax depth map, project the live details, bake the flight
 # model(s); then recompress every model with meshopt, re-bake the orbit
 # surface anchors, and delete published files nothing references any more.
@@ -74,7 +75,12 @@ for w in "${worlds[@]}"; do
     step "work: daytime still"
     blender work-day -b --factory-startup --python scripts/blender/build_islands.py -- \
       --world work --time day --output "$out/day" --width "$width" --samples "$samples" --device "$device"
-    node scripts/blender/export_day.mjs "$out/day"
+    node scripts/blender/export_variant.mjs "$out/day" work day
+  else
+    step "$w: lights-off still"
+    blender "$w-dark" -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world "$w" --time dark --output "$out/dark" --width "$width" --samples "$samples" --device "$device"
+    node scripts/blender/export_variant.mjs "$out/dark" "$w" dark
   fi
   step "$w: depth map"
   blender "$w-depth" -b "artwork/blender/$w.blend" --python scripts/blender/render_depth.py -- --world "$w" --output "$out/depth" --width 1440

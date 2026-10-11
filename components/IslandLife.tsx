@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
+import { lightsOn } from "@/lib/room-lights";
 
 type Point = number[];
 export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; fireworks?: { tiers: Point[][]; top: Point } };
@@ -108,7 +109,7 @@ export default function IslandLife({ world, life, className }: { world: "work" |
             context.globalCompositeOperation = "lighter";
           }
         }
-      } else if (world === "writing" && life.lamp && life.cone) {
+      } else if (world === "writing" && life.lamp && life.cone && lightsOn("writing")) {
         // Dust drifting slowly through the lamp's cone of light.
         const [lx, ly] = life.lamp, [cx, cy] = life.cone;
         for (const mote of motes) {
@@ -121,12 +122,14 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           glow(x, y, 1.8 * scale * 1.6, "255,226,170", .5 * twinkle * Math.sin(Math.PI * v));
         }
       } else if (world === "projects") {
-        for (const [i, [bx, by]] of (life.festoon ?? []).entries()) {
+        // With the workshop's lights off only the fireflies are left.
+        const lit = lightsOn("projects");
+        for (const [i, [bx, by]] of (lit ? life.festoon ?? [] : []).entries()) {
           const breath = .55 + .25 * Math.sin(time * 1.1 + i * 1.7) + .12 * Math.sin(time * 2.9 + i);
           const [x, y] = at(bx, by);
           glow(x, y, 6 * scale * 1.6, "255,214,150", .35 * breath);
         }
-        for (const [bx, by] of life.bulb ?? []) {
+        for (const [bx, by] of lit ? life.bulb ?? [] : []) {
           const flicker = .8 + .2 * Math.sin(time * 23) * Math.sin(time * 3.1);
           const [x, y] = at(bx, by);
           glow(x, y, 14 * scale * 1.6, "255,206,140", .22 * flicker);

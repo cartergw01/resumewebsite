@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { CITY_TIME_DURATION, CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
+import { lightsOn, ROOM_LIGHTS_EVENT, type RoomWorld } from "@/lib/room-lights";
 import type { ParallaxState } from "./IslandLife";
 import { hardwareWebGL } from "@/lib/hardware-webgl";
 
@@ -33,7 +34,9 @@ void main() {
   color = mix(texture(night, q), texture(day, q), daylight);
 }`;
 
-export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc: string; focus: number[]; className?: string }) {
+// The still's twin (Taipei by day, or a room with its lights off) is blended
+// in by the same shader; `room` says which switch drives it.
+export default function ParallaxStill({ depthSrc, focus, room, className }: { depthSrc: string; focus: number[]; room?: RoomWorld; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -48,7 +51,10 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
     const gl = canvas.getContext("webgl2", { premultipliedAlpha: true, alpha: true, antialias: false });
     if (!gl) return;
     let disposed = false, frame = 0, last = 0, ready = false;
-    let daylight = currentCityTime() === "day" ? 1 : 0, dayTarget = daylight;
+    // 0 shows the still, 1 its twin.
+    const twinWanted = () => room ? !lightsOn(room) : currentCityTime() === "day";
+    const twinSelector = room ? `img[data-lights-off="${room}"]` : 'img[data-city-time="day"]';
+    let daylight = twinWanted() ? 1 : 0, dayTarget = daylight, twinLoaded = false, twinLoading = false;
     const current = [0, 0], target = [0, 0];
 
     const compile = (type: number, source: string) => {
@@ -132,17 +138,38 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       target[1] = -((event.clientY / innerHeight) - .5) * .016;
       wake();
     };
+    // The twin's image is often mounted only when it's first wanted, after
+    // the canvas started: upload it then, before blending toward it.
+    const loadTwin = async () => {
+      if (twinLoaded || twinLoading || !ready) return;
+      const image = visual.querySelector<HTMLImageElement>(twinSelector);
+      if (!image) return;
+      twinLoading = true;
+      try {
+        await image.decode();
+        const pixels = typeof createImageBitmap === "function" ? await createImageBitmap(image, { premultiplyAlpha: "premultiply" }).catch(() => image) : image;
+        if (disposed) return;
+        upload(1, pixels, "day");
+        twinLoaded = true;
+      } catch { /* Keep blending toward the still itself. */ } finally { twinLoading = false; }
+      wake();
+    };
     const sync = () => {
       if (!settled()) { target[0] = target[1] = 0; }
-      dayTarget = currentCityTime() === "day" ? 1 : 0;
+      dayTarget = twinWanted() ? 1 : 0;
+      if (dayTarget && !twinLoaded) {
+        // Hold the still until its twin is on the GPU; then fade.
+        void loadTwin().then(() => { if (twinLoaded) wake(); });
+        if (!twinLoaded) return;
+      }
       wake();
     };
     const lose = (event: Event) => { event.preventDefault(); delete visual.dataset.parallax; ready = false; };
 
     void (async () => {
-      const night = visual.querySelector<HTMLImageElement>("img:not([data-city-time])");
+      const night = visual.querySelector<HTMLImageElement>("img:not([data-city-time]):not([data-lights-off])");
       if (!night) return;
-      const day = visual.querySelector<HTMLImageElement>('img[data-city-time="day"]') ?? night;
+      const day = visual.querySelector<HTMLImageElement>(twinSelector) ?? night;
       const depth = new Image(); depth.src = depthSrc;
       try { await Promise.all([night.decode(), day.decode(), depth.decode()]); } catch { return; }
       if (disposed) return;
@@ -154,6 +181,8 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       const [nightPixels, dayPixels] = await Promise.all([bitmap(night), day === night ? null : bitmap(day)]);
       if (disposed) return;
       upload(0, nightPixels, "night"); upload(1, dayPixels ?? nightPixels, "day"); upload(2, depth, "depth");
+      twinLoaded = day !== night;
+      if (!twinLoaded) daylight = 0;
       // Sample the landmark's depth so it becomes the still point.
       const probe = document.createElement("canvas"); probe.width = 900; probe.height = 600;
       const context = probe.getContext("2d", { willReadFrequently: true })!;
@@ -168,6 +197,7 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
       } };
       ready = true;
       resize();
+      sync();
       // The canvas now shows the still (and its day twin); the images stay as
       // the source and fallback for transitions and the 3D view.
       visual.dataset.parallax = "on";
@@ -179,21 +209,22 @@ export default function ParallaxStill({ depthSrc, focus, className }: { depthSrc
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
     observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
     window.addEventListener("pointermove", pointer, { passive: true });
-    window.addEventListener(CITY_TIME_EVENT, sync);
+    const twinEvent = room ? ROOM_LIGHTS_EVENT : CITY_TIME_EVENT;
+    window.addEventListener(twinEvent, sync);
     canvas.addEventListener("webglcontextlost", lose);
     return () => {
       disposed = true;
       cancelAnimationFrame(frame);
       sizes.disconnect(); observer.disconnect();
       window.removeEventListener("pointermove", pointer);
-      window.removeEventListener(CITY_TIME_EVENT, sync);
+      window.removeEventListener(twinEvent, sync);
       canvas.removeEventListener("webglcontextlost", lose);
       delete visual.dataset.parallax;
       delete visual.parallax;
       textures.forEach(texture => gl.deleteTexture(texture));
       gl.deleteBuffer(buffer); gl.deleteProgram(program);
     };
-  }, [depthSrc, focus]);
+  }, [depthSrc, focus, room]);
 
   return <canvas ref={canvasRef} className={className} aria-hidden="true" data-parallax-still />;
 }

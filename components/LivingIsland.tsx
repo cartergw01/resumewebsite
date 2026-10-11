@@ -10,6 +10,8 @@ import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
+import RoomLightSwitch from "./RoomLightSwitch";
+import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
 import CityFireworks from "./CityFireworks";
@@ -40,6 +42,16 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
     if (currentCityTime() === "day" || storedCityTime() === "day") want();
     window.addEventListener(CITY_DAY_INTENT, want);
     return () => window.removeEventListener(CITY_DAY_INTENT, want);
+  }, [world]);
+  // The workshop's lights-off still loads when someone reaches for its
+  // switch, or at once if they left the lights off last time.
+  const [darkWanted, setDarkWanted] = useState(false);
+  useEffect(() => {
+    if (world !== "projects") return;
+    if (!storedLightsOn("projects")) setDarkWanted(true);
+    const want = (event: Event) => { if ((event as CustomEvent).detail === "projects") setDarkWanted(true); };
+    window.addEventListener(ROOM_LIGHTS_INTENT, want);
+    return () => window.removeEventListener(ROOM_LIGHTS_INTENT, want);
   }, [world]);
 
   useEffect(() => {
@@ -104,11 +116,15 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             shows at ~115vw; asking for 90vw made phones upscale a smaller file. */}
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="eager"
-          quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`} /> : null}
+          quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`}
+          data-lights-on={world === "projects" ? "projects" : undefined} /> : null}
+        {world === "projects" && warm && darkWanted && "darkSrc" in island && island.darkSrc ? <Image src={island.darkSrc as string} alt="" width={island.width} height={island.height}
+          sizes="(max-width: 760px) 115vw, 68vw" loading="eager" data-lights-off="projects"
+          quality={75} draggable={false} className={motionStyles.image} /> : null}
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="lazy" data-city-time="day"
           quality={75} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
-        {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} className={styles.parallax} /> : null}
+        {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} room={world === "projects" ? "projects" : undefined} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}
         {world === "work" ? <>
           <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">
@@ -131,10 +147,10 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
           </svg>
           {warm ? <CityFireworks tower={city.tower} launch={"life" in city ? (city.life as Life).fireworks : undefined} className={`${motionStyles.fireworks} ${motionStyles.nightOnly}`} /> : null}
         </> : <svg className={motionStyles.details} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">
-          <g className={motionStyles.lamp} fill="#ffd38b">
+          <g className={motionStyles.lamp} fill="#ffd38b" data-room-light="projects">
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />
           </g>
-          <g className={motionStyles.bulbs} fill="#fff0c6">
+          <g className={motionStyles.bulbs} fill="#fff0c6" data-room-light="projects">
             {workshop.bulbs.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.9" />)}
           </g>
         </svg>}
@@ -158,6 +174,6 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {warm ? <IslandOrbit world={world} asset={orbitAssets[world]} anchors={orbitAnchors} /> : null}
       </span>
     </IslandLink>
-    {world === "work" ? <CityTimeToggle /> : null}
+    {world === "work" ? <CityTimeToggle /> : <RoomLightSwitch world="projects" />}
   </>;
 }

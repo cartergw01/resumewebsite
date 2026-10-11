@@ -3113,3 +3113,19 @@ html[data-island-entering] .site-nav {
 @media (prefers-reduced-motion: reduce) {
   html[data-island-entering] .site-nav { transition: none; }
 }
+
+/* Room light switches (components/RoomLightSwitch.tsx, lib/room-lights.ts):
+   the lights-off still fades in over the lit one, which then steps aside so
+   their soft edges never double; the room's lamp glows go out with it. */
+[data-lights-off] { opacity: 0; transition: opacity 600ms cubic-bezier(.45, 0, .25, 1); }
+html[data-writing-lights="off"] [data-lights-off="writing"],
+html[data-projects-lights="off"] [data-lights-off="projects"] { opacity: 1; }
+[data-lights-on] { transition: opacity 0s; }
+html[data-writing-lights="off"] [data-lights-on="writing"],
+html[data-projects-lights="off"] [data-lights-on="projects"] { opacity: 0; transition: opacity 0s 600ms; }
+[data-room-light] { transition: opacity 600ms cubic-bezier(.45, 0, .25, 1); }
+html[data-writing-lights="off"] [data-room-light="writing"],
+html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; }
+[data-room-dim] { transition: filter 600ms cubic-bezier(.45, 0, .25, 1); }
+html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); }
+@media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light], [data-room-dim] { transition: none; } }

@@ -123,7 +123,7 @@ versions share exactly the same geometry, camera and anchors: a physically
 based clear sky lights the scene and is what the glass reflects, a warm sun
 casts the shadows, lit glazing turns back into glass and lamps, tier lights,
 traffic streaks and the night-only lantern market are removed.
-`scripts/blender/export_day.mjs` crops it with the night render's crop.
+`scripts/blender/export_variant.mjs` crops it with the night render's crop.
 
 Details that read in both: every building gets its own small shift in tone
 and rain streaks down its facade (`weathered`), Taipei's vertical blade shop
@@ -137,6 +137,23 @@ colour between the two rigs. Toggling the time of day is a direct 0.6s
 crossfade between the two stills (and the two rigs, when a turned view is
 showing), with no sunrise or sunset in between.
 
+
+### Room lights
+
+The study (Writing) and the workshop (Projects) each have a light switch, a
+small wall-plate button where Work has its sun and moon
+(`components/RoomLightSwitch.tsx`, `lib/room-lights.ts`). Off, the room is the
+same night without its lamps, bulbs and festoons: `--time dark` opens the saved
+night scene and `lights_out` in the build script removes every light but the
+moon rig and switches off every glowing material but screens and windows
+(the workshop's monitor stays on). `export_variant.mjs` publishes it with the
+night still's crop as `darkSrc`, so the switch is a pure 0.6s crossfade. The
+still is fetched when someone reaches for the switch (or at once if they left
+the lights off), the parallax blends to it, the lamp's dust, the festoon and
+bulb glows and the reading lamp's pool go out, the desk's printed page dims,
+and a turned 3D view dims its lamps and glows the same way. Each room
+remembers its own switch per visitor. The camera flights keep their baked,
+lit models.
 
 ### Personal details
 
@@ -258,7 +275,7 @@ For each island it renders the night still (2880px, 96 samples, Metal; this
 also saves the `.blend`), crops it and its anchors (`prepare_islands.mjs`) and
 publishes them (`export_islands.mjs`), exports the rotatable model
 (`export_orbit.py`, with the crop the still was given), renders and publishes
-Work's daytime still (`export_day.mjs`), the depth map (`render_depth.py`,
+Work's daytime still and the rooms' lights-off stills (`export_variant.mjs`), the depth map (`render_depth.py`,
 `export_depth.mjs`), the live-detail anchors (`export_life_anchors.py`) and
 the flight model(s) (`export_flight.py`). Then it recompresses every model with
 meshopt (`compress_models.mjs`), re-bakes the orbit surface anchors

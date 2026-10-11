@@ -2115,6 +2115,27 @@ def camera_and_lights(scene):
     return camera
 
 
+# What stays on when a room's lights are switched off: the moonlit night rig,
+# the night through the windows, and screens.
+STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
+SCREENS=('Screen','Monitor','Window','display','Caliper','Solder')
+
+
+def lights_out(scene):
+    """The same night with the room's lights switched off: lamps, bulbs,
+    festoons and their glow go dark; moonlight, windows and screens stay."""
+    for obj in list(scene.objects):
+        if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):
+            bpy.data.objects.remove(obj,do_unlink=True)
+    for mat in bpy.data.materials:
+        if not mat.use_nodes or any(word in mat.name for word in SCREENS):continue
+        bs=mat.node_tree.nodes.get('Principled BSDF')
+        if bs and bs.inputs['Emission Strength'].default_value>0:
+            bs.inputs['Emission Strength'].default_value=0
+            # An unlit bulb is frosted glass, not a white-hot one.
+            bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
+
+
 def daylight(scene):
     """Re-light a finished scene for a clear Taipei afternoon."""
     # A physically based clear sky lights the scene and is what the glass
@@ -2177,15 +2198,17 @@ def main():
     parser.add_argument('--animate',action='store_true')
     # Work also has a daytime version, toggled on the site; same camera and
     # geometry, so its interaction anchors are identical to the night render.
-    parser.add_argument('--time',choices=['night','day'],default='night')
+    # Day (Work's clear afternoon) and dark (a room with its lights off) both
+    # relight the saved night scene, so they share its geometry and camera.
+    parser.add_argument('--time',choices=['night','day','dark'],default='night')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True,exist_ok=True)
     sources=ROOT/'artwork'/'blender'
     sources.mkdir(parents=True,exist_ok=True)
     for world in (['work','writing','projects'] if args.world=='all' else [args.world]):
-        if args.time=='day':
-            # Day relights the saved night scene itself, so both share exactly
-            # the same geometry, camera and therefore interaction anchors.
+        if args.time in ('day','dark'):
+            # Day and dark relight the saved night scene itself, so they share
+            # exactly the same geometry, camera and therefore interaction anchors.
             bpy.ops.wm.open_mainfile(filepath=str(sources/f'{world}.blend'))
             scene=bpy.context.scene
             scene.render.resolution_x=args.width;scene.render.resolution_y=round(args.width*2/3)
@@ -2195,11 +2218,12 @@ def main():
                 prefs.compute_device_type='METAL';prefs.get_devices()
                 for dev in prefs.devices: dev.use=dev.type=='METAL'
                 scene.cycles.device='GPU'
-            daylight(scene)
+            if args.time=='day':daylight(scene)
+            else:lights_out(scene)
             repeatable(scene)
             scene.render.filepath=str(args.output/f'{world}.png')
             bpy.ops.render.render(write_still=True)
-            print(f'COMPLETED {world} day',flush=True)
+            print(f'COMPLETED {world} {args.time}',flush=True)
             continue
         ANCHORS.clear(); WINDOWS.clear(); ANIMATED.clear()
         scene=setup(world,args.width,args.samples,args.engine,args.device)

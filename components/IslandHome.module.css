@@ -576,6 +576,18 @@
 @keyframes city-time-pending { to { opacity: .45; } }
 @media (prefers-reduced-motion: reduce) { .cityTime[data-pending] svg { animation: none; opacity: .6; } }
 .stage[data-travelling="true"] .cityTime, .stage[data-entering] .cityTime { opacity: 0; pointer-events: none; }
+/* The study's and workshop's light switch: a wall plate whose rocker is up,
+   lit warm, while the lights are on, and down, moonlit, when they're off. */
+.lightSwitch svg { width: 19px; height: 19px; }
+.lightSwitchPlate { fill: none; stroke: currentColor; stroke-width: 1.3; }
+.lightSwitchRocker { fill: currentColor; opacity: .28; }
+.lightSwitchTab { fill: currentColor; transition: transform 260ms var(--cw-ease); }
+.lightSwitch[data-lights="on"] { color: #ffd99a; }
+.lightSwitch[data-lights="on"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #ffd99a40, inset 0 1px 0 #ffffff14; }
+.lightSwitch[data-lights="off"] { color: #b9c6e8; }
+.lightSwitch[data-lights="off"] .lightSwitchTab { transform: translateY(4.5px); }
+.lightSwitch[data-lights="off"]:hover { box-shadow: 0 6px 18px #0006, 0 0 16px #c9d6ff40, inset 0 1px 0 #ffffff14; }
+@media (prefers-reduced-motion: reduce) { .lightSwitchTab { transition: none; } }
 /* On phones the art box overhangs each screen edge by 3rem. */
 @media (max-width: 760px) { .cityTime { top: 2%; right: calc(3rem + 1.25rem); width: 40px; height: 40px; } }
 @media (prefers-reduced-motion: reduce) { .cityTime, .cityTime svg { transition: none; } }

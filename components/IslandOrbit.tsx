@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import type { OrbitAsset, OrbitProjection, createIslandOrbit } from "@/lib/island-orbit";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
+import { lightsOn, ROOM_LIGHTS_EVENT } from "@/lib/room-lights";
 import { landmarkArrow } from "./IslandLink";
 import styles from "./IslandOrbit.module.css";
 
@@ -127,6 +128,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
         if (disposed || controller.signal.aborted || (scene.dataset.active !== "true" && stage.dataset.travelling !== "true")) { engine.dispose(); return; }
         engineRef.current = engine;
         if (world === "work") engine.setDaylight(currentCityTime() === "day", false);
+        else if (world === "writing" || world === "projects") void engine.setLights(lightsOn(world), false);
         canvas.dataset.orbitReady = "true";
         if (interactive) {
           link.setAttribute("aria-describedby", `${world}-orbit-instructions`);
@@ -252,10 +254,12 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
     // A turned view relights with the stills: the same quick crossfade.
     const relight = () => {
       const engine = engineRef.current;
-      if (world !== "work" || !engine) return;
-      void engine.setDaylight(currentCityTime() === "day", true);
+      if (!engine) return;
+      if (world === "work") void engine.setDaylight(currentCityTime() === "day", true);
+      else if (world === "writing" || world === "projects") void engine.setLights(lightsOn(world), true);
     };
     window.addEventListener(CITY_TIME_EVENT, relight);
+    window.addEventListener(ROOM_LIGHTS_EVENT, relight);
     // Focus is intent (arrow keys turn the island), unless it came from
     // pressing the island, which enters its page instead. Hover is not.
     let pressedAt = Number.NEGATIVE_INFINITY;
@@ -278,6 +282,7 @@ export default function IslandOrbit({ world, asset, anchors, interactive = true 
       observer.disconnect();
       resize.disconnect();
       window.removeEventListener(CITY_TIME_EVENT, relight);
+      window.removeEventListener(ROOM_LIGHTS_EVENT, relight);
       link.removeEventListener("pointerdown", pressed, true);
       link.removeEventListener("focusin", focusIntent);
       link.removeEventListener("pointerdown", down);
