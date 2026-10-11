@@ -8,7 +8,7 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await page.locator("#writing [data-island-link]").click();
   await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
   // The island's open notebook lifts off to face you and is thumbed through,
-  // past printed essays, to the contents.
+  // past Carter's printed essays.
   const carry = page.locator("body > [data-book-transition]");
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
   // Record that the very same notebook crosses the route boundary and opens
@@ -21,7 +21,7 @@ test("the book opens the complete Writing archive without featuring an essay", a
       const w = window as Window & { bookArrival?: { matched: boolean; turned: boolean; centred: boolean } };
       w.bookArrival = {
         matched: node.isConnected && location.pathname === "/writing",
-        turned: leaves.length === (innerWidth < 760 ? 4 : 5) && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
+        turned: leaves.length === 3 && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
         centred: Math.abs(book.left + book.width / 2 - innerWidth / 2) < 2 && book.width > innerWidth * .6,
       };
       observer.disconnect();
@@ -30,17 +30,15 @@ test("the book opens the complete Writing archive without featuring an essay", a
   });
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
-  // It opens on the newest essays, printed, and every page has something on it.
-  await expect(carry).toContainText("MAY 5, 2026");
+  // It opens on the newest essays, printed; every page is one of Carter's
+  // essays, with no reading-list roundups and no contents page.
+  await expect(carry.locator('[data-notebook-page="left"]')).toContainText("The Cost of Keeping Up");
+  await expect(carry.locator('[data-notebook-page="left"]')).toContainText("MAY 5, 2026");
   await expect(carry.locator('[data-notebook-leaf="0"]')).toContainText("Slop and Spiral");
+  await expect(carry).not.toContainText("Best Things I Read");
+  await expect(carry.locator("li")).toHaveCount(0);
   expect(await carry.evaluate(node => Array.from(node.querySelectorAll("[class*=leaf]")).every(page => page.textContent!.trim().length > 0))).toBe(true);
-  // Every essay title is written in, all at the same size.
-  const written = carry.locator("[data-notebook-page] li");
-  await expect(written).toHaveCount(11);
-  // The left page opens the archive with the newest essay.
-  await expect(carry.locator('[data-notebook-page="left"] li').first()).toHaveText("The Cost of Keeping Up");
-  expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
-  // The route swaps in once the notebook lies open at the contents.
+  // The route swaps in once the notebook lies open on its last spread.
   await expect(page).toHaveURL(/\/writing$/, { timeout: 10_000 });
   await expect.poll(() => page.evaluate(() => (window as Window & { bookArrival?: object }).bookArrival)).toEqual({ matched: true, turned: true, centred: true });
   await expect(carry).toHaveCount(0);

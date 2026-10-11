@@ -21,7 +21,8 @@ type Entry = {
 // This one visual belongs to the journey, so it survives the source route.
 // Projects lifts the laptop screen as a deck of every project, fans it out,
 // then deals each card into its row. Writing lifts the island's open notebook
-// until its pages fill the view, then opens them onto the whole archive.
+// until its pages fill the view, thumbs through the essays, then dissolves
+// into the archive.
 let entry: Entry | null = null;
 const plane = (x: number, y: number, width: number, height: number, sourceWidth: number, sourceHeight: number) =>
   `matrix(${width / sourceWidth},0,0,${height / sourceHeight},${x},${y})`;
@@ -57,29 +58,14 @@ function cardPose(x: number, y: number, width: number, angle: number) {
 export type NotebookEssay = { title: string; date: string; subtitle: string };
 
 export function beginBookEntry(source: SVGGraphicsElement) {
-  // The notebook is a bound collection of the essays: thumbing through it
-  // turns past them one printed page at a time, newest first, and it falls
-  // open at the contents, where every title is printed at the same size.
-  // Every page it shows has something on it.
-  // The left half of the contents is on the back of the last leaf to turn;
-  // the right half waits under the leaves on the right-hand page.
+  // The notebook is a bound collection of Carter's essays (not the reading
+  // lists): thumbing through it turns past them one printed page at a time,
+  // newest first, and it falls open on the last spread, which dissolves into
+  // the Writing page. Every page it shows is an essay.
   const essays: NotebookEssay[] = JSON.parse(source.dataset.essays ?? "[]");
-  const titles = essays.map(essay => essay.title);
-  const half = Math.ceil(titles.length / 2);
-  // Only as many leaves as there are essays to print on them.
-  const leaves = Math.max(1, Math.min(bookLeaves(), Math.floor((essays.length - 1) / 2)));
-  const written = (entries: string[]) => {
-    const list = document.createElement("ol");
-    list.className = styles.titles;
-    for (const title of entries) {
-      const item = document.createElement("li");
-      const text = document.createElement("span");
-      text.textContent = title;
-      item.append(text);
-      list.append(item);
-    }
-    return list;
-  };
+  // Two static pages and two essays on each leaf, so only as many leaves as
+  // there are essays to print on them.
+  const leaves = Math.max(1, Math.min(bookLeaves(), Math.floor((essays.length - 2) / 2)));
   // An essay's page, typeset like the one lying open on the island
   // (EssayLeaf): the masthead, the date, the title, and its standfirst.
   const typeset = (essay: NotebookEssay) => {
@@ -99,69 +85,45 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body, line(styles.byline, "Carter Wang"));
     return sheet;
   };
-  // A whole page of paper. Static pages sit in the spread; a turning leaf
-  // shows its page through two hinged halves (see below). A page holds either
-  // part of the contents, written on the ruling, or a printed essay.
-  type Content = { entries: string[]; named: boolean } | { essay: NotebookEssay };
-  const page = (side: "left" | "right", content: Content) => {
+  // A whole printed page. The two static pages are named for the arrival.
+  const page = (side: "left" | "right", essay: NotebookEssay, named = false) => {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
-    if ("entries" in content) {
-      if (content.named) leaf.dataset.notebookPage = side;
-      leaf.append(written(content.entries));
-    } else {
-      leaf.classList.add(styles.printed);
-      leaf.append(typeset(content.essay));
-    }
-    return leaf;
-  };
-  // A shadow the turning leaves cast on a static page, one per leaf.
-  const casts = (leaf: HTMLElement, side: "left" | "right") => {
-    for (let index = 0; index < leaves; index++) {
-      const cast = document.createElement("span");
-      cast.className = `${styles.cast} ${styles[side]}`;
-      cast.dataset.cast = `${side}-${index}`;
-      leaf.append(cast);
-    }
+    if (named) leaf.dataset.notebookPage = side;
+    if (essay) leaf.append(typeset(essay));
     return leaf;
   };
   // One face of a leaf: a whole page, front or back.
-  const face = (side: "left" | "right", back: boolean, content: Content) => {
+  const face = (side: "left" | "right", back: boolean, essay: NotebookEssay) => {
     const pane = document.createElement("div");
     pane.className = `${styles.face}${back ? ` ${styles.back}` : ""}`;
-    const shade = document.createElement("span");
-    shade.className = styles.shade;
-    pane.append(page(side, content), shade);
+    pane.append(page(side, essay));
     return pane;
   };
   // Newest first, read left to right: the spread opens on the two newest
-  // essays, and each leaf carries the next two, front then back. The last
-  // leaf's back is the first half of the contents.
-  const printed = essays.slice(0, leaves * 2);
+  // essays, each leaf carries the next two, front then back, and the page
+  // under all the leaves holds the last.
+  const printed = essays.slice(0, leaves * 2 + 2);
   const spread = document.createDocumentFragment();
-  spread.append(casts(page("left", { essay: printed[0] }), "left"));
+  spread.append(page("left", printed[0], true));
   // The right page lies under the leaves, so it comes first: in DOM order
   // too, so any engine that paints this flat keeps it under the leaves.
-  spread.append(casts(page("right", { entries: titles.slice(half), named: true }), "right"));
+  spread.append(page("right", printed[leaves * 2 + 1], true));
   for (let index = 0; index < leaves; index++) {
-    const last = index === leaves - 1;
-    const front: Content = { essay: printed[index * 2 + 1] };
-    const back: Content = last ? { entries: titles.slice(0, half), named: true } : { essay: printed[index * 2 + 2] };
     // Each leaf is one stiff sheet, hinged on the spine. (Bending it in two
     // hinged halves made engines sort and shade the halves apart, which
     // flickered as the page turned.)
     const leaf = document.createElement("div");
     leaf.className = styles.turn;
     leaf.dataset.notebookLeaf = String(index);
-    leaf.append(face("right", false, front), face("left", true, back));
+    leaf.append(face("right", false, printed[index * 2 + 1]), face("left", true, printed[index * 2 + 2]));
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
 }
 
 // Writing opens like a notebook: it lifts off the desk and comes up close,
-// settles at reading distance, then is thumbed through, past a few of the
-// essays, until it falls open at the contents.
+// settles at reading distance, then is thumbed through, past the essays.
 // Phones turn one leaf fewer: every face is its own layer.
 const bookLeaves = () => innerWidth < 760 ? 4 : 5;
 // When each leaf starts to turn after the notebook settles, and how long it
@@ -173,19 +135,18 @@ const BOOK_LIFT = 1300;
 // magnifies, so its printed words stay pixel-sharp at rest.
 const BOOK_PERSPECTIVE = 3000;
 const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
-const LEAF_STARTS = [0, 540, 980, 1370, 1760];
-const LEAF_TURNS = [1000, 930, 880, 880];
-const LAST_LEAF_TURN = 1080;
+const LEAF_STARTS = [0, 640, 1240, 1820, 2380];
+const LEAF_TURNS = [1150, 1120, 1100, 1100];
+const LAST_LEAF_TURN = 1250;
 // A landscape spread on wide screens; on a phone, a taller pocket notebook so
-// the archive still reads at a comfortable size. The ruling follows the page.
+// the essays still read at a comfortable size.
 const bookSize = () => {
   if (innerWidth < 760) {
     const width = Math.min(innerWidth * .94, 520);
-    const height = Math.min(innerHeight * .72, width * 1.05);
-    return { width, height, rule: height / 22 };
+    return { width, height: Math.min(innerHeight * .72, width * 1.05) };
   }
   const width = Math.min(innerWidth * .82, innerHeight * .78 * 1.6, 1180);
-  return { width, height: width / 1.6, rule: Math.min(34, width / 1.6 / 21) };
+  return { width, height: width / 1.6 };
 };
 // A pose as one consistent list of functions, so the browser interpolates a
 // physical lift and turn rather than blending two flat matrices.
@@ -214,7 +175,6 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     screen.style.width = `${layoutWidth}px`;
     screen.style.height = `${layoutHeight}px`;
     screen.style.margin = `${-layoutHeight / 2}px 0 0 ${-layoutWidth / 2}px`;
-    screen.style.setProperty("--rule", `${book.rule}px`);
     // The printed pages are set like the island's 320 x 400 page, scaled to fit.
     screen.style.setProperty("--u", `${Math.min(layoutWidth / 2 / 320, layoutHeight / 400)}px`);
   }
@@ -286,9 +246,10 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       backdrop.animate([{ opacity: 0 }, { opacity: 1, offset: .55 }, { opacity: 1 }], { ...lift, easing: "ease-in-out" }),
     );
     // Then it is thumbed through, leaf by leaf, overlapping like pages under
-    // a thumb. Each one lifts off the block, shades as it turns from the
-    // lamp, and casts a shadow that slides from the right page to the left
-    // as it passes.
+    // a thumb. A leaf turns the way paper does: the corner lifts first, the
+    // page swings over through upright, then floats down, slowing onto the
+    // left-hand stack; a slight skew in the air reads as the sheet flexing.
+    // No shading or cast shadows: they flickered as the pages turned.
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
     const timing = (index: number) => {
       const last = index === leaves.length - 1;
@@ -298,35 +259,11 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       const turn = { ...timing(index), fill: "both" } as const;
       const below = (leaves.length - index) * 2, above = (index + 1) * 2 + 2;
       current.animations.push(leaf.animate([
-        { transform: `translateZ(${below}px) rotateY(0deg) scale(${flat(below)})`, easing: "cubic-bezier(0.5, 0, 0.6, 1)" },
-        { transform: `translateZ(${below + 10}px) rotateY(-86deg) scale(1)`, offset: .5, easing: "cubic-bezier(0.25, 0.4, 0.25, 1)" },
-        { transform: `translateZ(${above}px) rotateY(-180deg) scale(${flat(above)})` },
+        { transform: `translateZ(${below}px) rotateY(0deg) skewY(0deg) scale(${flat(below)})`, easing: "cubic-bezier(0.45, 0, 0.7, 0.55)" },
+        { transform: `translateZ(${below + 6}px) rotateY(-24deg) skewY(-1.2deg) scale(1)`, offset: .24, easing: "cubic-bezier(0.3, 0.25, 0.55, 1)" },
+        { transform: `translateZ(${below + 14}px) rotateY(-122deg) skewY(1deg) scale(1)`, offset: .62, easing: "cubic-bezier(0.2, 0.45, 0.35, 1)" },
+        { transform: `translateZ(${above}px) rotateY(-180deg) skewY(0deg) scale(${flat(above)})` },
       ], turn));
-      // Fronts darken as they lift away from the lamp; backs brighten as
-      // they land.
-      for (const shade of leaf.querySelectorAll<HTMLElement>(`.${styles.shade}`)) {
-        const front = !shade.parentElement!.classList.contains(styles.back);
-        current.animations.push(shade.animate(front
-          ? [{ opacity: 0 }, { opacity: .5, offset: .5 }, { opacity: .5 }]
-          : [{ opacity: .5 }, { opacity: .5, offset: .5 }, { opacity: 0 }], turn));
-      }
-      const shadow = (side: string) => screen.querySelector<HTMLElement>(`[data-cast="${side}-${index}"]`)!;
-      current.animations.push(
-        shadow("right").animate([
-          { opacity: 0, transform: "scaleX(1)" },
-          { opacity: .5, transform: "scaleX(.9)", offset: .12 },
-          { opacity: .3, transform: "scaleX(.35)", offset: .42 },
-          { opacity: 0, transform: "scaleX(.1)", offset: .5 },
-          { opacity: 0, transform: "scaleX(.1)" },
-        ], turn),
-        shadow("left").animate([
-          { opacity: 0, transform: "scaleX(.1)" },
-          { opacity: 0, transform: "scaleX(.1)", offset: .5 },
-          { opacity: .3, transform: "scaleX(.35)", offset: .6 },
-          { opacity: .45, transform: "scaleX(.9)", offset: .9 },
-          { opacity: 0, transform: "scaleX(1)" },
-        ], turn),
-      );
     });
     return current.dispose;
   }
@@ -396,9 +333,9 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       if (kind === "book") {
         // The lamplight behind it fades with the notebook.
         arriveEntryLight(ENTRY_ARRIVAL_DURATION * .5);
-        // The written archive holds a beat, then the notebook dissolves
-        // before the page's rows rise into place (WritingWorld.module.css), so
-        // the two sets of titles never sit on top of each other.
+        // The last spread holds a beat, then the notebook dissolves before the
+        // page's rows rise into place (WritingWorld.module.css), so the
+        // essays on the pages never sit on top of the archive's titles.
         document.documentElement.dataset[attribute] = "revealing";
         const open = { duration: ENTRY_ARRIVAL_DURATION, fill: "forwards" } as const;
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);

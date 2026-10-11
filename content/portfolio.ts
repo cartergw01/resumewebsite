@@ -295,6 +295,11 @@ export const essays = [
   },
 ];
 
+// Carter's own essays, and his yearly "Best Things I Read" roundups.
+const isReadingList = (essay: { title: string }) => essay.title.startsWith("The Best Things I Read");
+export const ownEssays = essays.filter((essay) => !isReadingList(essay));
+export const readingLists = essays.filter(isReadingList);
+
 export const projects = [
   {
     title: "TaipeiFlix",

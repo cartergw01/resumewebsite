@@ -16,38 +16,29 @@
 .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .face.back { transform: rotateY(180deg); }
 .face > .leaf { left: 0; right: auto; width: 100%; }
-/* Shade deepens toward the free edge as a leaf lifts away from the light. */
-.shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(90deg, #2e1f1008, #2e1f1070); }
-.back .shade { background: linear-gradient(270deg, #2e1f1008, #2e1f1070); }
-/* The shadow a turning leaf throws on the page beneath, darkest at the spine. */
-.cast { position: absolute; inset: 0; z-index: 1; opacity: 0; pointer-events: none; transform-origin: 0 50%; background: linear-gradient(90deg, #24160a80, #24160a26 45%, transparent 80%); }
-.cast.left { transform-origin: 100% 50%; background: linear-gradient(270deg, #24160a80, #24160a26 45%, transparent 80%); }
-/* Paper: a fine grain over the cream, a ruled lined block, and the edges of
-   the pages stacked under each half of the spread. */
+/* Paper: printed pages of fine grain over the cream, set like the island's
+   open page (EssayLeaf), and the edges of the pages stacked under each half of
+   the spread. */
 .leaf {
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .17 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
-  --ruling: repeating-linear-gradient(to bottom, transparent 0 calc(var(--rule) - 1px), #8b71543d calc(var(--rule) - 1px) var(--rule));
   position: absolute;
   overflow: hidden;
   top: 0;
   bottom: 0;
   width: 50%;
   background-color: #ecdfc6;
-  background-image: var(--grain), linear-gradient(#ecdfc6 0 calc(var(--rule) * 4), transparent 0), var(--ruling);
+  background-image: var(--grain);
 }
 .leaf.left {
   left: 0;
   /* The reading lamp's warm pool falls across the left page. */
-  background-image: var(--grain), radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 55%), linear-gradient(#ecdfc6 0 calc(var(--rule) * 4), transparent 0), var(--ruling);
+  background-image: var(--grain), radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 55%);
   box-shadow: inset -4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f, -1px 0 0 #d4c4a2, -2px 0 0 #eadcc2, -3px 0 0 #c8b791, -4px 0 0 #e4d5b8;
 }
 .leaf.right { right: 0; box-shadow: inset 4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f, 1px 0 0 #d4c4a2, 2px 0 0 #eadcc2, 3px 0 0 #c8b791, 4px 0 0 #e4d5b8; }
 /* Inside a leaf, the page has no block of pages behind it. */
 .face > .leaf.left { box-shadow: inset -4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f; }
 .face > .leaf.right { box-shadow: inset 4vw 0 5vw -3vw #5a432a66, inset 0 0 12vw #b88d5a1f; }
-/* Printed pages: plain paper, set like the island's open page (EssayLeaf). */
-.leaf.printed { background-image: var(--grain); }
-.leaf.left.printed { background-image: var(--grain), radial-gradient(ellipse at 18% 8%, #ffd99426, transparent 55%); }
 .essay { position: absolute; inset: 0; color: #392f26; font-family: var(--font-display), Georgia, serif; }
 .essay p { margin: 0; }
 .masthead { position: absolute; top: calc(var(--u) * 29); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 15), 9px); font-style: italic; }
@@ -57,29 +48,5 @@
 .rule { display: block; width: calc(var(--u) * 30); height: 1px; margin: calc(var(--u) * 16) 0 calc(var(--u) * 14) calc(var(--u) * 2); background: #8b7154; }
 .dek { display: -webkit-box; overflow: hidden; padding-left: calc(var(--u) * 2); font: max(calc(var(--u) * 13), 8px) / max(calc(var(--u) * 19), 12px) Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
 .byline { position: absolute; bottom: calc(var(--u) * 28); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 11), 7px); font-style: italic; }
-/* Titles rest on the ruling: each takes two lines, sitting on the lower one
-   and wrapping onto the upper one only when the page is narrow. */
-.titles { margin: 0; padding: calc(var(--rule) * 3) 14% 0 12%; list-style: none; }
-.right .titles { padding-right: 10%; padding-left: 15%; }
-.titles li { display: flex; align-items: flex-end; height: calc(var(--rule) * 2); }
-.titles span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: #33271cdb;
-  font-family: var(--font-display), Georgia, serif;
-  font-size: clamp(14px, calc(var(--rule) * 0.62), 21px);
-  font-style: italic;
-  line-height: var(--rule);
-  /* Seat the baseline on the ruled line; keep the italic overhang unclipped. */
-  translate: 0 calc(var(--rule) * 0.36);
-  padding-right: 0.3em;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-/* Narrow pages wrap longer titles, so each keeps a blank line above it. */
-@media (max-width: 760px) {
-  .titles li { height: calc(var(--rule) * 3); }
-  .titles span { font-size: clamp(13px, 4.1vw, 17px); }
-}
 /* Projects: every poster card shares the laptop screen's look and size. */
 .deck { position: absolute; inset: 0; }

@@ -4,7 +4,7 @@ import SiteNav from "@/components/SiteNav";
 import MobileContact from "@/components/MobileContact";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
-import { essays } from "@/content/portfolio";
+import { essays, ownEssays, readingLists } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
 import IslandLine from "@/components/IslandLine";
 import heading from "@/components/PageHeading.module.css";
@@ -19,8 +19,7 @@ import {
 
 export const metadata: Metadata = buildMetadata("writing");
 
-const readingLists = essays.filter((essay) => essay.title.startsWith("The Best Things I Read"));
-const essayEntries = essays.filter((essay) => !essay.title.startsWith("The Best Things I Read"));
+const essayEntries = ownEssays;
 
 export default function WritingPage() {
   return (
