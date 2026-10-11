@@ -17,6 +17,25 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
     let disposed = false;
     let attempting = false;
     let generation = 0;
+    // Some in-app browsers on iPhone (Arc, social apps) play every video
+    // fullscreen in the system player, ignoring playsinline. They also refuse
+    // muted autoplay, so the first attempt, made outside any gesture, tells:
+    // if it is refused, the loop never tries again (a later attempt during a
+    // scroll would be allowed, and would throw the visitor into a fullscreen
+    // player). Low Power Mode in Safari refuses too, and keeps the still.
+    let inlineRefused = false;
+    const refuse = () => {
+      inlineRefused = true;
+      video.pause();
+      setReady(false);
+    };
+    // A last guard: if playback goes fullscreen anyway, leave it at once.
+    const leaveFullscreen = () => {
+      (video as HTMLVideoElement & { webkitExitFullscreen?: () => void }).webkitExitFullscreen?.();
+      refuse();
+    };
+    video.addEventListener("webkitbeginfullscreen", leaveFullscreen);
+    video.setAttribute("webkit-playsinline", "");
     // The 240KB loop waits until the page has loaded and gone idle: its poster
     // is the same frame, and on a phone the download would otherwise compete
     // with the islands and fonts that make up the first view.
@@ -39,7 +58,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
       // Loading or switching the portrait source restores the default rate.
       video.defaultPlaybackRate = rate;
       video.playbackRate = rate;
-      if (!shouldPlay()) {
+      if (!shouldPlay() || inlineRefused) {
         video.pause();
         if (prefersStill()) setReady(false);
         return;
@@ -59,8 +78,9 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
       video.muted = true;
       void video.play().then(() => {
         if (disposed || !shouldPlay()) video.pause();
-      }).catch(() => {
-        // Keep the poster if browser autoplay is blocked.
+      }).catch((error: unknown) => {
+        // Autoplay refused: keep the poster, and never retry from a gesture.
+        if (error instanceof DOMException && error.name === "NotAllowedError") refuse();
       }).finally(() => { if (attempt === generation) attempting = false; });
     };
     const observer = new MutationObserver(sync);
@@ -79,6 +99,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
       portrait.removeEventListener("change", sync);
       connection?.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
+      video.removeEventListener("webkitbeginfullscreen", leaveFullscreen);
       video.pause();
     };
   }, [page, playbackRate]);
@@ -94,7 +115,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
             </picture>
             <video
               ref={videoRef} className={styles.starfieldVideo} data-background-video
-              autoPlay muted loop playsInline preload="none" disablePictureInPicture tabIndex={-1}
+              muted loop playsInline preload="none" disablePictureInPicture tabIndex={-1}
               onPlaying={() => setReady(true)}
               onError={() => setReady(false)}
             />
