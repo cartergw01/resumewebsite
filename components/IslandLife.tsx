@@ -8,7 +8,7 @@ export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Po
 export type ParallaxState = { x: number; y: number; focus: number; depth?: (x: number, y: number) => number };
 
 // Small things that move, placed with points projected from the Blender scene
-// (scripts/blender/export_life_anchors.py): traffic and Taipei 101's lift,
+// (scripts/blender/export_life_anchors.py): Taipei's traffic,
 // dust in the study's lamplight, the shed's festoon bulbs and fireflies.
 // One canvas at ~30fps, only while the island is settled and visible; it
 // follows the depth parallax so the details stay on their surfaces.
@@ -107,14 +107,6 @@ export default function IslandLife({ world, life, className }: { world: "work" |
             context.beginPath(); context.arc(x, y, Math.max(.9, 1.5 * scale), 0, Math.PI * 2); context.fill();
             context.globalCompositeOperation = "lighter";
           }
-        }
-        if (night && life.tower) {
-          // The lift rides up the tower, pauses at the top, and comes down.
-          const cycle = (time % 30) / 30;
-          const k = cycle < .4 ? cycle / .4 : cycle < .5 ? 1 : cycle < .9 ? 1 - (cycle - .5) / .4 : 0;
-          const e = k * k * (3 - 2 * k);
-          const [x, y] = at(life.tower[0][0] + (life.tower[1][0] - life.tower[0][0]) * e, life.tower[0][1] + (life.tower[1][1] - life.tower[0][1]) * e);
-          glow(x, y, 4 * scale * 1.6, "255,226,170", .8);
         }
       } else if (world === "writing" && life.lamp && life.cone) {
         // Dust drifting slowly through the lamp's cone of light.

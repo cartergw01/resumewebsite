@@ -98,7 +98,7 @@ scene through its render camera and crop into `lib/blender-islands.json`
 the perspective) and Taipei 101's face, the study lamp's light cone, and the
 shed's festoon bulbs, bare bulb and yard. `components/IslandLife.tsx` animates
 them on one small canvas at ~30fps, only while the island is settled: traffic
-(head/tail lights at night, cars by day), a lift riding up 101 at night, dust
+(head/tail lights at night, cars by day), dust
 drifting in the lamplight, breathing festoon bulbs, a flickering bare bulb and
 fireflies. It follows the depth parallax so each detail stays on its surface.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
@@ -159,7 +159,8 @@ cliff under its overhanging lip. The story lights are warm practicals: the desk
 and bench lamps pool on the work, the study window and the workshop's open bays show the
 night, and Xinyi glows from its arcades, street lamps and offices. Office
 windows light by floor and tenant, one tone per building, never as a random
-checkerboard; Taipei 101's entry window is always lit. The camera uses
+checkerboard; Taipei 101 is one evenly glowing curtain wall, with no single
+lit window. The camera uses
 perspective without miniature depth-of-field blur.
 
 The shared foundation has chipped stone faces in continuous sedimentary beds
@@ -300,9 +301,10 @@ Escape, resize and back cancel it. `tests/e2e/work-entry.spec.ts` checks the
 push, sharpness swap, content continuity and interruption.
 
 `lib/island-orbit-assets.json` stores the tower window's four world-space
-corners in Three coordinates (Blender X, Z, -Y), and `lib/work-lit-window.ts`
-lights it in the rotatable model. `lib/blender-islands.json` stores their
-1200×800 projection for the still. The night render writes both from
+corners in Three coordinates (Blender X, Z, -Y), which the rotatable model
+projects for the entry, and `lib/blender-islands.json` stores their 1200×800
+projection for the still. The window is not lit or drawn anywhere: it is just
+the pane of Taipei 101's even curtain wall the entry flies toward. The night render writes both from
 `taipei101` in `build_islands.py`, so they follow any change to the tower.
 
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or

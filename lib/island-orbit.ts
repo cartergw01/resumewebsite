@@ -1,5 +1,4 @@
 import { AgXToneMapping, Box3, BufferGeometry, DoubleSide, Float32BufferAttribute, Color, DirectionalLight, HemisphereLight, Mesh, PointLight, MeshBasicMaterial, MeshStandardMaterial, PCFSoftShadowMap, PerspectiveCamera, PMREMGenerator, Raycaster, Scene, Spherical, SRGBColorSpace, Texture, TextureLoader, Vector2, Vector3, WebGLRenderer } from "three";
-import { makeLitWindow } from "./work-lit-window";
 import { CITY_TIME_DURATION } from "./city-time";
 import { addIslandGrain } from "./island-orbit-materials";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
@@ -103,8 +102,8 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
     // a bright sky, and every lit window and lamp switched off. The two rigs
     // blend, so switching relights the model gradually rather than snapping.
     const rigs = {
-      night: { env: .1, sky: new Color(0x5d73b0), ground: new Color(0x15151c), skyI: .7, key: new Color(0xb8ccff), keyI: 2.4, keyPos: new Vector3(-6.6, 7, -7.4), rim: 1.3, bounceC: new Color(0x8ca4ff), bounce: .45, fill: .35, lamps: 1, glow: 1, pane: new Color(0xd9a868) },
-      day: { env: .28, sky: new Color(0xb4cbf5), ground: new Color(0x3e3a30), skyI: 1, key: new Color(0xfff0da), keyI: 2.6, keyPos: new Vector3(-6.6, 7.4, 7.4), rim: .35, bounceC: new Color(0xd9cdb5), bounce: .55, fill: .45, lamps: 0, glow: 0, pane: new Color(0x6c8091) },
+      night: { env: .1, sky: new Color(0x5d73b0), ground: new Color(0x15151c), skyI: .7, key: new Color(0xb8ccff), keyI: 2.4, keyPos: new Vector3(-6.6, 7, -7.4), rim: 1.3, bounceC: new Color(0x8ca4ff), bounce: .45, fill: .35, lamps: 1, glow: 1 },
+      day: { env: .28, sky: new Color(0xb4cbf5), ground: new Color(0x3e3a30), skyI: 1, key: new Color(0xfff0da), keyI: 2.6, keyPos: new Vector3(-6.6, 7.4, 7.4), rim: .35, bounceC: new Color(0xd9cdb5), bounce: .55, fill: .45, lamps: 0, glow: 0 },
     };
     const lampPower = lamps.map(lamp => lamp.intensity);
     // Lit panes glow from within at night (a darker surface under the glow
@@ -128,8 +127,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
         material.emissiveIntensity = night * (1 - daylight);
         material.color.copy(nightPane).lerp(daylightGlass, daylight);
       }
-      const pane = litWindow?.group.children[0];
-      if (pane instanceof Mesh && pane.material instanceof MeshBasicMaterial) pane.material.color.copy(n.pane).lerp(d.pane, daylight);
       renderer.shadowMap.needsUpdate = true;
     };
     const setDaylight = (day: boolean, animate: boolean, duration = CITY_TIME_DURATION) => new Promise<void>(resolve => {
@@ -179,8 +176,6 @@ export async function createIslandOrbit(canvas: HTMLCanvasElement, asset: OrbitA
       }
     }
     if (asset.entryWindow3D) worldPoints.entryWindow = asset.entryWindow3D.map(point => new Vector3().fromArray(point));
-    const litWindow = worldPoints.entryWindow ? makeLitWindow(worldPoints.entryWindow) : null;
-    if (litWindow) gltf.scene.add(litWindow.group);
     const traffic = asset.traffic ? createTraffic(asset.traffic, true) : null;
     if (traffic) scene.add(traffic.group);
     // The workshop keeps its real project preview attached to the screen.

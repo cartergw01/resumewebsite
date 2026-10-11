@@ -28,13 +28,16 @@
 :global([data-island-link]:focus-visible) .details { opacity: var(--island-lights, 1); }
 @media (hover: hover) and (pointer: fine) { :global([data-island-link]:hover) .details { opacity: var(--island-lights, 1); } }
 .cityDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-/* Live fireworks over Xinyi (night only); hidden whenever the 3D view takes over. */
-.fireworks { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+/* Live fireworks out of Taipei 101 (night only); hidden whenever the 3D view
+   takes over. The canvas reaches well past the island, above all, so bursts
+   off the spire are never cut off at the island's edge. */
+.fireworks { position: absolute; left: -30%; top: -60%; width: 160%; height: 175%; max-width: none; pointer-events: none; }
 :global([data-orbit-live="true"]) > .fireworks { opacity: 0; }
 .cityBlocks { opacity: calc(var(--city-windows, 1) * 0.65); }
 .towerWelcome { opacity: var(--city-tower, 1); }
-.entryWindow { opacity: .85; transition: opacity 160ms ease; }
-:global([data-entering="work"]) .entryWindow { opacity: 1; }
+/* The Work entry's window keeps its corners for the approach, but is not
+   drawn: in Taipei 101's even curtain wall a lit pane read as a stray light. */
+.entryWindow { opacity: 0; }
 .citySign { opacity: calc(0.45 + var(--city-tower, 1) * 0.55); }
 .windows { animation: windows 7s ease-in-out infinite; }
 .traffic { opacity: 0; animation: traffic 17s linear infinite; }
@@ -58,6 +61,3 @@
 @media (prefers-reduced-motion: reduce) { .details { display: none; } }
 @media (prefers-reduced-motion: reduce) { .screenPreview, .screenSpill, .screenRim { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .screenRefresh { animation: none; } }
-@media (prefers-reduced-motion: reduce) {
-  .entryWindow { transition: none; }
-}

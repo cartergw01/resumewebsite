@@ -2,7 +2,7 @@
   "work": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-work-3ceafdc8.webp",
+    "src": "/blender/island-work-4c671cfd.webp",
     "traffic": [
       [
         438.067,
@@ -207,7 +207,7 @@
         330.523
       ]
     ],
-    "daySrc": "/blender/island-work-day-95b2e66e.webp",
+    "daySrc": "/blender/island-work-day-5645eb43.webp",
     "depthSrc": "/blender/depth-work-1fe534b6.webp",
     "life": {
       "lanes": [

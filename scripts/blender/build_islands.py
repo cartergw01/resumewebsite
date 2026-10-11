@@ -739,7 +739,8 @@ def curtain_tower(name,x,y,z,width,topwidth,height,floors,seed=1,mat='glass',col
                 n=len(vs);vs.extend([pt(u0,v0),pt(u1,v0),pt(u1,v1),pt(u0,v1)]);fs.append((n,n+1,n+2,n+3))
                 lit=occupancy[row] and start<=(col+.5)/cols<=end and rng.random()<.92
                 if (side,row,col) in force:lit=True
-                if even: ms.append(1 if (side,row,col) in force else 6)
+                # The Work entry's window is just another pane of the even wall.
+                if even: ms.append(6)
                 else: ms.append(((3 if rng.random()<.1 else tone) if (side,row,col) not in force else 1) if lit else rng.choice([0,0,0,4,5]))
                 if ms[-1]==1 and side==0 and rng.random()<.01: WINDOWS.append(tuple(pt((u0+u1)/2,(v0+v1)/2)))
         for col in range(cols+1):
@@ -760,7 +761,7 @@ def taipei101(x,y):
     for i in range(8):
         z=1.19+i*.337
         # Eight 8-floor modules, each flaring outward ~7 degrees like a
-        # pagoda tier. Module 7 holds the lit office the Work entry flies into.
+        # pagoda tier. Module 7 holds the window the Work entry flies into.
         curtain_tower(f'101 module {i+1}',x,y,z,.432,.516,.323,8,101+i,columns=24,force={(0,4,14),(0,4,15)} if i==6 else (),plan=lambda w:stepped_square(w,STEP),even=True)
         poly=stepped_square(.522,STEP);glow=stepped_square(.528,STEP)
         for side in range(len(poly)):
