@@ -11,20 +11,11 @@
 .notebook { position: absolute; top: 0; left: 0; transform-style: preserve-3d; will-change: transform; }
 /* The bound body under the pages: a cloth cover just proud of the paper. */
 .notebook::before { content: ""; position: absolute; inset: -1.6% -1.2%; border-radius: 6px; background: linear-gradient(90deg, #3a2a1d, #4a3524 48%, #2c1f15 50%, #4a3524 52%, #3a2a1d); box-shadow: 0 30px 90px #000b, 0 2px 6px #0008; transform: translateZ(-2px); }
-/* A leaf hinges on the spine. Its own faces show the half by the spine; a
-   second hinged half (.outer) carries the free edge, so the page can bend. */
+/* A leaf is one sheet hinged on the spine: a page on each face. */
 .turn { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; transform-origin: 0 50%; transform-style: preserve-3d; }
-.turn.outer { left: 50%; width: 50%; }
-/* Paper across the hinge between the two halves, so the antialiased seam
-   never lets the page beneath show through as a hairline. */
-.turn.outer::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: #e4d6bb; }
-.face { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-.outer > .face { width: 100%; }
+.face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .face.back { transform: rotateY(180deg); }
-/* Each face is a window onto one whole page, so its ruling, lamplight and
-   titles line up exactly with the other half's. */
-.face > .leaf { left: 0; right: auto; width: 200%; }
-.face > .leaf.shift { left: -100%; }
+.face > .leaf { left: 0; right: auto; width: 100%; }
 /* Shade deepens toward the free edge as a leaf lifts away from the light. */
 .shade { position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(90deg, #2e1f1008, #2e1f1070); }
 .back .shade { background: linear-gradient(270deg, #2e1f1008, #2e1f1070); }
@@ -66,9 +57,6 @@
 .rule { display: block; width: calc(var(--u) * 30); height: 1px; margin: calc(var(--u) * 16) 0 calc(var(--u) * 14) calc(var(--u) * 2); background: #8b7154; }
 .dek { display: -webkit-box; overflow: hidden; padding-left: calc(var(--u) * 2); font: max(calc(var(--u) * 13), 8px) / max(calc(var(--u) * 19), 12px) Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
 .byline { position: absolute; bottom: calc(var(--u) * 28); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 11), 7px); font-style: italic; }
-/* The flyleaf: just the collection's name, set a third of the way down. */
-.flyleaf .masthead { top: 34%; left: 0; right: 0; text-align: center; font-size: calc(var(--u) * 26); }
-.flyleaf .byline { top: calc(34% + var(--u) * 44); bottom: auto; left: 0; right: 0; text-align: center; }
 /* Titles rest on the ruling: each takes two lines, sitting on the lower one
    and wrapping onto the upper one only when the page is narrow. */
 .titles { margin: 0; padding: calc(var(--rule) * 3) 14% 0 12%; list-style: none; }
@@ -85,7 +73,6 @@
   /* Seat the baseline on the ruled line; keep the italic overhang unclipped. */
   translate: 0 calc(var(--rule) * 0.36);
   padding-right: 0.3em;
-  will-change: clip-path;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }

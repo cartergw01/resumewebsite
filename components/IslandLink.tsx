@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
-import { beginBookEntry, beginWorkshopEntry } from "@/lib/workshop-entry";
+import { beginBookEntry, beginWorkshopEntry, bookOpened } from "@/lib/workshop-entry";
 import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
 import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY } from "@/lib/island-entry-motion";
 import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-light";
@@ -185,7 +185,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     motion.addEventListener("change", skipMotion);
     // Recover the homepage if a destination fails to mount, allowing a retry.
     recoveryTimer = window.setTimeout(() => { cancelScreen?.(); reset(); }, 8_000);
-    void zoom.finished.then(() => {
+    void zoom.finished.then(() => book ? bookOpened() : undefined).then(() => {
       if (cancelled) return;
       arrivalFrame = requestAnimationFrame(() => {
         if (!cancelled) { handedOff = true; router.push(href); }

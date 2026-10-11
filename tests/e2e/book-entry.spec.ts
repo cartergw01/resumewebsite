@@ -30,16 +30,18 @@ test("the book opens the complete Writing archive without featuring an essay", a
   });
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
-  // The leaves carry the newest essays, as printed pages, with no ribbon.
-  await expect(carry.locator('[data-notebook-leaf="0"]').first()).toContainText("The Cost of Keeping Up");
-  await expect(carry.locator('[data-notebook-leaf="0"]').first()).toContainText("May 5, 2026".toUpperCase());
+  // It opens on the newest essays, printed, and every page has something on it.
+  await expect(carry).toContainText("MAY 5, 2026");
+  await expect(carry.locator('[data-notebook-leaf="0"]')).toContainText("Slop and Spiral");
+  expect(await carry.evaluate(node => Array.from(node.querySelectorAll("[class*=leaf]")).every(page => page.textContent!.trim().length > 0))).toBe(true);
   // Every essay title is written in, all at the same size.
   const written = carry.locator("[data-notebook-page] li");
   await expect(written).toHaveCount(11);
   // The left page opens the archive with the newest essay.
   await expect(carry.locator('[data-notebook-page="left"] li').first()).toHaveText("The Cost of Keeping Up");
   expect(new Set(await written.evaluateAll(nodes => nodes.map(node => getComputedStyle(node.firstElementChild!).fontSize))).size).toBe(1);
-  await expect(page).toHaveURL(/\/writing$/);
+  // The route swaps in once the notebook lies open at the contents.
+  await expect(page).toHaveURL(/\/writing$/, { timeout: 10_000 });
   await expect.poll(() => page.evaluate(() => (window as Window & { bookArrival?: object }).bookArrival)).toEqual({ matched: true, turned: true, centred: true });
   await expect(carry).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeFocused();
