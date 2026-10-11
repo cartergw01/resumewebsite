@@ -59,56 +59,62 @@ export type NotebookEssay = { title: string; date: string; subtitle: string };
 
 export function beginBookEntry(source: SVGGraphicsElement) {
   // The notebook is a bound collection of Carter's essays (not the reading
-  // lists): thumbing through it turns past them one printed page at a time,
-  // newest first, and it falls open on the last spread, which dissolves into
-  // the Writing page. Every page it shows is an essay.
+  // lists), one spread each: the title page on the left, its standfirst set
+  // large on the right. Thumbing through it riffles past them, newest first,
+  // and it falls open on the last one, which dissolves into the Writing page.
   const essays: NotebookEssay[] = JSON.parse(source.dataset.essays ?? "[]");
-  // Two static pages and two essays on each leaf, so only as many leaves as
-  // there are essays to print on them.
-  const leaves = Math.max(1, Math.min(bookLeaves(), Math.floor((essays.length - 2) / 2)));
-  // An essay's page, typeset like the one lying open on the island
-  // (EssayLeaf): the masthead, the date, the title, and its standfirst.
-  const typeset = (essay: NotebookEssay) => {
+  // Each leaf turns from one essay's spread to the next.
+  const leaves = Math.max(1, Math.min(bookLeaves(), essays.length - 1));
+  const line = (className: string, text: string) => {
+    const part = document.createElement("p");
+    part.className = className;
+    part.textContent = text;
+    return part;
+  };
+  // An essay's two pages, typeset like the page lying open on the island
+  // (EssayLeaf): the masthead, the date and the title on the left; the
+  // standfirst and the byline on the right.
+  const typeset = (essay: NotebookEssay, half: "title" | "standfirst") => {
     const sheet = document.createElement("div");
     sheet.className = styles.essay;
-    const line = (className: string, text: string) => {
-      const part = document.createElement("p");
-      part.className = className;
-      part.textContent = text;
-      return part;
-    };
-    const body = document.createElement("div");
-    body.className = styles.body;
     const rule = document.createElement("span");
     rule.className = styles.rule;
-    body.append(line(styles.headline, essay.title), rule, line(styles.dek, essay.subtitle));
-    sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body, line(styles.byline, "Carter Wang"));
+    if (half === "title") {
+      const body = document.createElement("div");
+      body.className = styles.body;
+      body.append(line(styles.headline, essay.title), rule);
+      sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body);
+    } else {
+      const body = document.createElement("div");
+      body.className = styles.standfirst;
+      body.append(rule, line(styles.dek, essay.subtitle));
+      sheet.append(body, line(styles.byline, "Carter Wang"));
+    }
     return sheet;
   };
   // A whole printed page. The two static pages are named for the arrival.
-  const page = (side: "left" | "right", essay: NotebookEssay, named = false) => {
+  const page = (side: "left" | "right", essay: NotebookEssay | undefined, named = false) => {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
     if (named) leaf.dataset.notebookPage = side;
-    if (essay) leaf.append(typeset(essay));
+    if (essay) leaf.append(typeset(essay, side === "left" ? "title" : "standfirst"));
     return leaf;
   };
   // One face of a leaf: a whole page, front or back.
-  const face = (side: "left" | "right", back: boolean, essay: NotebookEssay) => {
+  const face = (side: "left" | "right", back: boolean, essay: NotebookEssay | undefined) => {
     const pane = document.createElement("div");
     pane.className = `${styles.face}${back ? ` ${styles.back}` : ""}`;
     pane.append(page(side, essay));
     return pane;
   };
-  // Newest first, read left to right: the spread opens on the two newest
-  // essays, each leaf carries the next two, front then back, and the page
-  // under all the leaves holds the last.
-  const printed = essays.slice(0, leaves * 2 + 2);
+  // The spread opens on the newest essay; each leaf carries the right page
+  // of one essay on its front and the left page of the next on its back; the
+  // page under all the leaves is the last essay's right page.
   const spread = document.createDocumentFragment();
-  spread.append(page("left", printed[0], true));
+  spread.append(page("left", essays[0], true));
   // The right page lies under the leaves, so it comes first: in DOM order
   // too, so any engine that paints this flat keeps it under the leaves.
-  spread.append(page("right", printed[leaves * 2 + 1], true));
+  spread.append(page("right", essays[leaves], true));
   for (let index = 0; index < leaves; index++) {
     // Each leaf is one stiff sheet, hinged on the spine. (Bending it in two
     // hinged halves made engines sort and shade the halves apart, which
@@ -116,7 +122,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     const leaf = document.createElement("div");
     leaf.className = styles.turn;
     leaf.dataset.notebookLeaf = String(index);
-    leaf.append(face("right", false, printed[index * 2 + 1]), face("left", true, printed[index * 2 + 2]));
+    leaf.append(face("right", false, essays[index]), face("left", true, essays[index + 1]));
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
@@ -124,20 +130,21 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 
 // Writing opens like a notebook: it lifts off the desk and comes up close,
 // settles at reading distance, then is thumbed through, past the essays.
-// Phones turn one leaf fewer: every face is its own layer.
-const bookLeaves = () => innerWidth < 760 ? 4 : 5;
+// Phones turn fewer leaves: every face is its own layer.
+const bookLeaves = () => innerWidth < 760 ? 5 : 7;
 // When each leaf starts to turn after the notebook settles, and how long it
-// takes: the first deliberately, the thumb picking up pace through the middle,
-// the last laid down gently. Two leaves are in the air at once, never more.
-const BOOK_LIFT = 1300;
+// takes: a riffle under the thumb, the first a touch deliberate, picking up
+// pace through the middle with two or three leaves in the air at once, the
+// last laid down gently.
+const BOOK_LIFT = 1100;
 // The notebook's perspective (WorkshopEntry.module.css .fader). A leaf lying a
 // few pixels proud of the spread is shrunk by exactly what that perspective
 // magnifies, so its printed words stay pixel-sharp at rest.
 const BOOK_PERSPECTIVE = 3000;
 const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
-const LEAF_STARTS = [0, 640, 1240, 1820, 2380];
-const LEAF_TURNS = [1150, 1120, 1100, 1100];
-const LAST_LEAF_TURN = 1250;
+const LEAF_STARTS = [0, 360, 650, 900, 1130, 1350, 1580];
+const LEAF_TURNS = [820, 760, 700, 680, 680, 720];
+const LAST_LEAF_TURN = 880;
 // A landscape spread on wide screens; on a phone, a taller pocket notebook so
 // the essays still read at a comfortable size.
 const bookSize = () => {
@@ -341,7 +348,7 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
         const dock = current.fader.animate([
           { opacity: 1, offset: 0 },
-          { opacity: 1, offset: .62, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+          { opacity: 1, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
           { opacity: 0, offset: .9 },
           { opacity: 0, offset: 1 },
         ], open);
@@ -349,11 +356,11 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
           dock,
           current.screen.animate([
             { transform: rest, offset: 0 },
-            { transform: rest, offset: .62, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+            { transform: rest, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .9 },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: 1 },
           ], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .62 }, { opacity: 0, offset: .9 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .4 }, { opacity: 0, offset: .9 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;
@@ -389,10 +396,18 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
             { transform: style.transform, objectPosition: style.objectPosition },
           ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, easing: "ease-out", fill: "forwards" }));
         }
+        // Sucked into place: the card gives a little back first, away from
+        // its row, then is pulled in faster and faster and snaps home.
+        const fan = getComputedStyle(card).transform;
+        const from = fan === "none" ? "matrix(1, 0, 0, 1, 0, 0)" : fan;
+        const box = card.getBoundingClientRect();
+        const dx = box.x + box.width / 2 - (shot.x + shot.width / 2), dy = box.y + box.height / 2 - (shot.y + shot.height / 2);
+        const give = Math.min(22, Math.hypot(dx, dy) * .06) / (Math.hypot(dx, dy) || 1);
         return card.animate([
-          { transform: getComputedStyle(card).transform },
-          { transform: plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height) },
-        ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, easing: "cubic-bezier(0.22, 1, 0.36, 1)", fill: "forwards" });
+          { transform: `translate(0px, 0px) ${from} scale(1)`, easing: "cubic-bezier(0.3, 0, 0.4, 1)" },
+          { transform: `translate(${dx * give}px, ${dy * give}px) ${from} scale(1.035)`, offset: .22, easing: "cubic-bezier(0.7, 0, 0.98, 0.55)" },
+          { transform: `translate(0px, 0px) ${plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height)} scale(1)` },
+        ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, fill: "forwards" });
       });
       current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-out", fill: "forwards" }));
       void Promise.all(docks.map(dock => dock.finished)).then(() => {

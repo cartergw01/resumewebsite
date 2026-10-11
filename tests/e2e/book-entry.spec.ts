@@ -21,7 +21,7 @@ test("the book opens the complete Writing archive without featuring an essay", a
       const w = window as Window & { bookArrival?: { matched: boolean; turned: boolean; centred: boolean } };
       w.bookArrival = {
         matched: node.isConnected && location.pathname === "/writing",
-        turned: leaves.length === 3 && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
+        turned: leaves.length === (innerWidth < 760 ? 5 : 7) && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
         centred: Math.abs(book.left + book.width / 2 - innerWidth / 2) < 2 && book.width > innerWidth * .6,
       };
       observer.disconnect();
@@ -30,8 +30,8 @@ test("the book opens the complete Writing archive without featuring an essay", a
   });
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
-  // It opens on the newest essays, printed; every page is one of Carter's
-  // essays, with no reading-list roundups and no contents page.
+  // It opens on the newest essay, one spread per essay; every page is one of
+  // Carter's essays, with no reading-list roundups and no contents page.
   await expect(carry.locator('[data-notebook-page="left"]')).toContainText("The Cost of Keeping Up");
   await expect(carry.locator('[data-notebook-page="left"]')).toContainText("MAY 5, 2026");
   await expect(carry.locator('[data-notebook-leaf="0"]')).toContainText("Slop and Spiral");

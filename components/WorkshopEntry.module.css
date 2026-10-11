@@ -47,6 +47,10 @@
 .headline { font-size: calc(var(--u) * 34); font-weight: 600; line-height: calc(var(--u) * 39); letter-spacing: calc(var(--u) * -1.1); }
 .rule { display: block; width: calc(var(--u) * 30); height: 1px; margin: calc(var(--u) * 16) 0 calc(var(--u) * 14) calc(var(--u) * 2); background: #8b7154; }
 .dek { display: -webkit-box; overflow: hidden; padding-left: calc(var(--u) * 2); font: max(calc(var(--u) * 13), 8px) / max(calc(var(--u) * 19), 12px) Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+/* The right-hand page: the essay's standfirst, set large under a short rule. */
+.standfirst { position: absolute; top: 30%; left: calc(var(--u) * 30); right: calc(var(--u) * 34); }
+.standfirst .rule { margin-top: 0; }
+.standfirst .dek { font: italic max(calc(var(--u) * 21), 11px) / max(calc(var(--u) * 30), 16px) var(--font-display), Georgia, serif; -webkit-line-clamp: 6; }
 .byline { position: absolute; bottom: calc(var(--u) * 28); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 11), 7px); font-style: italic; }
 /* Projects: every poster card shares the laptop screen's look and size. */
 .deck { position: absolute; inset: 0; }
