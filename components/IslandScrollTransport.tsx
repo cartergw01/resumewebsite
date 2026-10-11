@@ -131,9 +131,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let previousFrame = 0;
     let entryPending = false;
     let entryRecovery = 0;
-    // Where the opening view's Work island sits in its art box (percent), read
-    // from layout so each breakpoint's arrangement drives the first zoom.
-    let introFocus = { x: 50, y: 50, size: 100 };
+    // The opening view's Work island and the Work stop's island, read from
+    // layout so each breakpoint's arrangement drives the first zoom. Phones
+    // give the two scenes different art boxes, so match the islands
+    // themselves: centres in stage pixels, and the overview's size relative
+    // to the arriving island. Origins are in each art box's own pixels.
+    let introFocus: { from: [number, number]; to: [number, number]; origin: [number, number]; arrival: [number, number]; size: number } | null = null;
 
     // Off-screen islands are prepared after first paint: as soon as the page
     // is idle, or on the first sign of travel if that comes sooner. Mounting
@@ -232,15 +235,15 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           : `translate3d(${x}%, ${y}%, 0) rotate(${bank}deg) scale(${scale})`;
         let opacity = motion.matches || outgoing ? "1" : reveal.toFixed(4);
         let origin = "";
-        if (from === 0 && !motion.matches && index <= 1) {
-          const size = introFocus.size / 100;
+        if (from === 0 && !motion.matches && index <= 1 && introFocus) {
+          const { from: [fx, fy], to: [tx, ty], size } = introFocus;
           if (index === 0) {
-            origin = `${introFocus.x}% ${introFocus.y}%`;
-            transform = `translate3d(${(50 - introFocus.x) * zoom}%, ${(50 - introFocus.y) * zoom}%, 0) scale(${1 + (1 / size - 1) * zoom})`;
+            origin = introFocus.origin.map((value) => `${value}px`).join(" ");
+            transform = `translate3d(${(tx - fx) * zoom}px, ${(ty - fy) * zoom}px, 0) scale(${1 + (1 / size - 1) * zoom})`;
             opacity = (1 - phase(crossing, 0.62, 0.86)).toFixed(4);
           } else {
-            origin = "50% 50%";
-            transform = `translate3d(${(introFocus.x - 50) * (1 - zoom)}%, ${(introFocus.y - 50) * (1 - zoom)}%, 0) scale(${size + (1 - size) * zoom})`;
+            origin = introFocus.arrival.map((value) => `${value}px`).join(" ");
+            transform = `translate3d(${(fx - tx) * (1 - zoom)}px, ${(fy - ty) * (1 - zoom)}px, 0) scale(${size + (1 - size) * zoom})`;
             opacity = phase(crossing, 0.3, 0.6).toFixed(4);
           }
         }
@@ -348,11 +351,27 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       measuredHeight = height;
       const focus = art[0].querySelector<HTMLElement>('[data-overview-island="work"]');
-      if (focus && art[0].offsetWidth) {
+      const arrival = art[1]?.querySelector<HTMLElement>("[data-island-visual]");
+      if (focus && arrival && focus.offsetWidth && arrival.offsetWidth) {
+        // Layout offsets ignore the transforms this camera paints. Both
+        // islands are 3:2 stills contained and centred in their boxes.
+        const place = (node: HTMLElement) => {
+          let x = node.offsetWidth / 2, y = node.offsetHeight / 2;
+          for (let parent: HTMLElement | null = node; parent && parent !== stage; parent = parent.offsetParent as HTMLElement | null) {
+            x += parent.offsetLeft;
+            y += parent.offsetTop;
+          }
+          return [x, y] as [number, number];
+        };
+        const width = (node: HTMLElement) => Math.min(node.offsetWidth, node.offsetHeight * 1.5);
+        const [fromX, fromY] = place(focus), [toX, toY] = place(arrival);
+        const [art0X, art0Y] = place(art[0]), [art1X, art1Y] = place(art[1]);
         introFocus = {
-          x: (focus.offsetLeft + focus.offsetWidth / 2) / art[0].offsetWidth * 100,
-          y: (focus.offsetTop + focus.offsetHeight / 2) / art[0].offsetHeight * 100,
-          size: focus.offsetWidth / art[0].offsetWidth * 100,
+          from: [fromX, fromY],
+          to: [toX, toY],
+          origin: [fromX - art0X + art[0].offsetWidth / 2, fromY - art0Y + art[0].offsetHeight / 2],
+          arrival: [toX - art1X + art[1].offsetWidth / 2, toY - art1Y + art[1].offsetHeight / 2],
+          size: width(focus) / width(arrival),
         };
       }
       // Invisible endpoints keep the full-page progress mapping; each label
