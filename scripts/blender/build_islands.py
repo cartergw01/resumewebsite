@@ -1261,13 +1261,44 @@ def lava_lamp(x,y,z,k=1):
     """A small lava lamp: chrome cone base and cap round a tapered bottle of
     magenta liquid; it stays on as a night light. Only the wax pooled at the
     bottom is modelled: the page animates the drops rising (IslandLife)."""
-    P['lava_liquid']=material('Glow · lava lamp liquid',(.95,.10,.40),rough=.15,emission=1.1)
-    P['lava_wax']=material('Glow · lava lamp wax',(1,.48,.08),rough=.3,emission=4)
+    P['lava_liquid']=material('Glow · lava lamp liquid',(.90,.06,.45),rough=.15,emission=.6)
+    P['lava_wax']=material('Glow · lava lamp wax',(1,.48,.08),rough=.3,emission=3)
     lathe('Lava lamp · chrome base',(x,y,z),[(.10*k,0),(.098*k,.012*k),(.056*k,.16*k)],'steel')
     lathe('Lava lamp · bottle',(x,y,z+.16*k),[(.054*k,0),(.064*k,.07*k),(.052*k,.17*k),(.036*k,.25*k)],'lava_liquid')
     sphere('Lava lamp · pooled wax',(x,y-.01*k,z+.18*k),(.05*k,.05*k,.022*k),'lava_wax',2)
     lathe('Lava lamp · chrome cap',(x,y,z+.41*k),[(.038*k,0),(.022*k,.07*k),(.021*k,.072*k)],'steel')
-    light('Glow · lava lamp',(x,y-.12,z+.30*k),(1,.25,.40),8,.06)
+    light('Glow · lava lamp',(x,y-.12*k,z+.30*k),(1,.25,.40),5*k,.06)
+
+
+def rocket_lamp(x,y,z,k=1):
+    """A rocket lamp: a glowing shell lifted off its stand on a thin rod, red
+    fins, a lit porthole and an exhaust flame under the fins (the page makes
+    the flame flicker)."""
+    P['rocket_shell']=material('Glow · rocket lamp shell',(.92,.90,.86),rough=.35,emission=.22)
+    P['rocket_fin']=material('Glow · rocket lamp fins',(.85,.07,.05),rough=.4,emission=.5)
+    P['rocket_port']=material('Glow · rocket porthole',(.45,.78,1),emission=6)
+    P['rocket_flame']=material('Glow · rocket exhaust flame',(1,.46,.10),emission=12)
+    lift=.07*k;r=.045*k
+    cylinder('Model rocket · stand',(x,y,z+.012*k),.10*k,.024*k,'ink',32,bevel=.003)
+    rod('Model rocket · stand rod',(x,y+.03*k,z+.024*k),(x,y+.03*k,z+.10*k+lift),.006*k,'steel')
+    cylinder('Model rocket · body',(x,y,z+.24*k+lift),r,.40*k,'rocket_shell',32,bevel=.003)
+    cylinder('Model rocket · nose cone',(x,y,z+.50*k+lift),r,.13*k,'rocket_shell',32,top=.002,bevel=0)
+    for i in range(3):
+        a=i*math.tau/3-math.pi/2
+        box('Model rocket · fin',(x+math.cos(a)*.065*k,y+math.sin(a)*.065*k,z+.09*k+lift),(.075*k,.010*k,.15*k),'rocket_fin',.002,rot=a)
+    cylinder('Model rocket · porthole',(x,y-r-.001,z+.33*k+lift),.018*k,.006*k,'rocket_port',20,bevel=0).rotation_euler.x=math.pi/2
+    sphere('Model rocket · exhaust flame',(x,y,z+.035*k+lift),(.036*k,.036*k,.06*k),'rocket_flame',2)
+    light('Glow · rocket exhaust',(x,y-.12*k,z+.05*k+lift),(1,.45,.12),9*k,.03)
+
+
+def led_ball(x,y,z,radius):
+    """A colour-changing LED ball on a wooden cup; the page cycles its colour."""
+    P['ledball']=textured('Glow · LED ball shell',(.62,.60,.66),(.80,.78,.84),'stone',rough=.9)
+    bs=P['ledball'].node_tree.nodes['Principled BSDF']
+    bs.inputs['Emission Color'].default_value=(.60,.28,1,1);bs.inputs['Emission Strength'].default_value=.7
+    cylinder('LED ball · wooden base',(x,y,z+.025),radius*.55,.05,'oak',32,bevel=.004)
+    sphere('LED ball',(x,y,z+.03+radius*.95),(radius,radius,radius),'ledball',3)
+    light('Glow · LED ball',(x,y-radius*1.6,z+radius),(.58,.28,1),14,.12)
 
 
 def desk_lamp(x,y,z,scale=1):
@@ -1627,15 +1658,18 @@ def writing():
         image_panel('Journal cover · '+title,'essay-covers/'+slug+'.webp',(x,1.252,2.20),.44,.56)
         box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
         lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
-    # Night lights that stay on with the room's lamps off: a lava lamp on the
-    # top shelf, a violet strip uplighting the wall above the bookshelf, and
-    # another under the window sill washing the panelling below the galaxy.
-    lava_lamp(2.18,1.56,2.8225,1.2)
-    P['violet_strip']=material('Glow · violet LED strip',(.50,.25,1),emission=4)
+    # Night lights that stay on with the room's lamps off: violet LED strips
+    # framing the bookshelf (up both outer uprights and along its top,
+    # uplighting the wall) and under the window sill, washing the panelling
+    # below the galaxy. The lava lamp and an underglow are on the desk below.
+    P['violet_strip']=material('Glow · violet LED strip',(.45,.20,1),emission=3)
     box('Glow · bookshelf cove strip',(1,1.84,2.832),(3.0,.016,.008),'violet_strip',0)
-    for bx in [.15,1.85]:light('Glow · violet cove wash',(bx,1.80,2.86),(.46,.22,1),12,.6,(bx,1.92,3.7))
+    for bx in [.15,1.85]:light('Glow · violet cove wash',(bx,1.80,2.86),(.42,.18,1),20,.6,(bx,1.92,3.7))
+    for ux in [-.58,2.58]:
+        box('Glow · bookshelf upright strip',(ux,1.366,1.50),(.014,.008,2.56),'violet_strip',0)
+        light('Glow · upright wash',(ux,1.2,1.5),(.42,.18,1),8,.9,(ux,.2,.3))
     box('Glow · window sill strip',(-1.96,1.75,1.272),(1.80,.016,.008),'violet_strip',0)
-    light('Glow · violet sill wash',(-1.96,1.76,1.24),(.46,.22,1),14,.7,(-1.96,1.92,.35))
+    light('Glow · violet sill wash',(-1.96,1.76,1.24),(.42,.18,1),16,.7,(-1.96,1.92,.35))
     furniture=set(bpy.context.scene.objects)
     # Desk height 74cm, top 3cm; proportions use 2 scene units per metre.
     for x in [-1.46,1.66]:
@@ -1676,6 +1710,11 @@ def writing():
         for face in leaf.data.polygons:face.use_smooth=True
         for f,dz in [(1,0),(25,.006+j*.002),(49,0)]:leaf.location.z=dz;leaf.keyframe_insert(data_path='location',frame=f)
         ANIMATED.append(leaf)
+    # A lava lamp at the desk's far corner, and a violet strip under the front
+    # apron casting a glow across the rug.
+    lava_lamp(1.60,-.36,1.614,1.9)
+    box('Glow · desk underglow strip',(.1,-1.30,1.362),(3.0,.016,.008),'violet_strip',0)
+    for bx in [-.7,.9]:light('Glow · desk underglow',(bx,-1.40,1.30),(.42,.18,1),16,.9,(bx,-2.0,.16))
     chair(-.95,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
     light('Study · paper warmth',(.2,-1.15,2.75),(1,.74,.46),40,.8,(.1,-.8,1.65))
@@ -1941,10 +1980,15 @@ def workshop():
     for k,(cx,cy,rot) in enumerate([(1.50,-.56,.30),(1.57,-.53,.52)]):
         box('Poker · face-down card',(cx,cy,1.792+k*.002),(.125,.175,.002),'paper',.001,rot=rot)
         box('Poker · card back',(cx,cy,1.7935+k*.002),(.105,.155,.0006),'redcloth',0,rot=rot)
-    # Lakers gold: an LED strip under the bench's front edge washes the drawers and deck.
-    P['gold_strip']=material('Glow · gold LED strip',(1,.62,.12),emission=6)
-    box('Glow · bench edge strip',(0,-.70,1.683),(4.50,.016,.008),'gold_strip',0)
-    for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.76,1.62),(1,.60,.10),28,.8,(bx,-1.35,.2))
+    # Lakers gold: an LED strip along the bench's front edge, washing the
+    # drawers and the deck below.
+    P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
+    box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
+    for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),30,.8,(bx,-1.45,.2))
+    # Night lights on the bench: a rocket lamp beside the monitor and a
+    # colour-changing LED ball behind the cutting mat.
+    rocket_lamp(2.02,.50,1.79,1.6)
+    led_ball(-1.02,.60,1.79,.16)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -2008,10 +2052,14 @@ def workshop():
     for i in range(nx):faces.append((i*2,i*2+2,i*2+3,i*2+1))
     roof=mesh('Workshop · corrugated lean-to roof',verts,faces,'corrugated')
     roof.modifiers.new('Sheet thickness','SOLIDIFY').thickness=.012
-    # Lakers purple: an LED strip under the roof beam washes the back wall.
-    P['purple_strip']=material('Glow · purple LED strip',(.48,.16,1),emission=6)
-    box('Glow · roof beam strip',(-.09,front[0]+.08,front[1]-.087),(5.9,.016,.008),'purple_strip',0)
+    # Lakers purple: LED strips along the front of the roof beam and up both
+    # posts frame the shed in neon; the beam's washes the back wall.
+    P['purple_strip']=material('Glow · purple LED strip',(.46,.12,1),emission=4)
+    box('Glow · roof beam strip',(-.09,front[0]+.012,front[1]-.075),(6.0,.008,.016),'purple_strip',0)
     for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),30,.8,(bx,2.0,2.2))
+    for px2 in [-3.05,2.86]:
+        box('Glow · post strip',(px2,front[0]+.012,(front[1]-.12+.22)/2),(.016,.008,front[1]-.34),'purple_strip',0)
+        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),12,.9,(px2,front[0]-1.4,.2))
     # A bare bulb hung from the beam on its own flex.
     curve('Workshop · bulb flex',[(-.55,front[0]+.05,front[1]-.09),(-.50,front[0]-.05,front[1]-.4),(-.48,front[0]-.10,front[1]-.78)],.006,'ink')
     sphere('Workshop · bare bulb',(-.48,front[0]-.10,front[1]-.86),(.045,.045,.06),'light',2)
@@ -2036,8 +2084,8 @@ def workshop():
     cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
     # Carter's bike, on its stand in the yard; he gets around the city on it.
     bike(3.15,-1.85,math.radians(-12))
-    # Space things, taped and shelved: a planet poster, a rocket lamp and an
-    # LED ball, the same sky the site floats in.
+    # Space things: a taped planet poster here, and a rocket lamp and LED ball
+    # on the bench (above), the same sky the site floats in.
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
     P['planet']=textured('Poster · banded planet',(.36,.20,.09),(.62,.42,.22),'plaster',rough=.8)
     px,pz=-2.50,3.22
@@ -2053,29 +2101,6 @@ def workshop():
         box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
-    # A rocket lamp on the top shelf: a glowing shell lifted off its stand on a
-    # thin rod, a lit porthole, and an exhaust flame under the fins.
-    P['rocket_shell']=material('Glow · rocket lamp shell',(.92,.90,.86),rough=.35,emission=.6)
-    P['rocket_port']=material('Glow · rocket porthole',(.45,.78,1),emission=6)
-    P['rocket_flame']=material('Glow · rocket exhaust flame',(1,.46,.10),emission=14)
-    rx=2.38;lift=.07
-    cylinder('Model rocket · body',(rx,1.60,shelf+.24+lift),.045,.40,'rocket_shell',24,bevel=.003)
-    cylinder('Model rocket · nose cone',(rx,1.60,shelf+.50+lift),.045,.13,'rocket_shell',24,top=.002,bevel=0)
-    cylinder('Model rocket · stand',(rx,1.60,shelf+.012),.10,.024,'ink',24,bevel=.003)
-    rod('Model rocket · stand rod',(rx,1.63,shelf+.024),(rx,1.63,shelf+.10+lift),.006,'steel')
-    for k in range(3):
-        a=k*math.tau/3
-        box('Model rocket · fin',(rx+math.cos(a)*.065,1.60+math.sin(a)*.065,shelf+.09+lift),(.06,.008,.12),'redcloth',.002,rot=a)
-    cylinder('Model rocket · porthole',(rx,1.555,shelf+.33+lift),.018,.006,'rocket_port',20,bevel=0).rotation_euler.x=math.pi/2
-    sphere('Model rocket · exhaust flame',(rx,1.60,shelf+.035+lift),(.036,.036,.06),'rocket_flame',2)
-    light('Glow · rocket exhaust',(rx,1.50,shelf+.05+lift),(1,.45,.12),9,.03)
-    # A colour-changing LED ball on a wooden cup; the page cycles its colour.
-    P['ledball']=textured('Glow · LED ball shell',(.62,.60,.66),(.80,.78,.84),'stone',rough=.9)
-    P['ledball'].node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value=(.60,.28,1,1)
-    P['ledball'].node_tree.nodes['Principled BSDF'].inputs['Emission Strength'].default_value=1.3
-    cylinder('LED ball · wooden base',(.90,1.60,shelf+.025),.06,.05,'oak',24,bevel=.004)
-    sphere('LED ball',(.90,1.60,shelf+.16),(.11,.11,.11),'ledball',3)
-    light('Glow · LED ball',(.90,1.45,shelf+.18),(.58,.28,1),10,.12)
     # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
     cx,cy,cz=1.62,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]

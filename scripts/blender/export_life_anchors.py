@@ -111,6 +111,35 @@ else:
         life['ball'] = [project(centre), project(centre + Vector((ball.scale.x, 0, 0)))]
     life['yard'] = [project(p) for p in [(-3.6, -2.2, .25), (3.3, -1.6, .25), (-3.9, 1.0, .25), (2.6, -2.6, .25), (4.2, 0, .3)]]
 
+# The rooms' LED strips (named "Glow · … strip") the camera can see: each
+# one's two ends and its colour, for the light that travels along them on the
+# page. A strip hidden behind something (the roof beam's, under the roof's
+# edge) is left out, so its light never floats over what hides it.
+strips = []
+depsgraph = bpy.context.evaluated_depsgraph_get()
+eye = camera.matrix_world.translation
+
+
+def visible(obj, point):
+    ray = point - eye
+    hit, location, normal, index, hit_obj, matrix = scene.ray_cast(depsgraph, eye, ray.normalized(), distance=ray.length + .01)
+    return not hit or hit_obj.name == obj.name or (location - eye).length > ray.length - .02
+
+
+for obj in scene.objects:
+    if obj.type != 'MESH' or not obj.name.startswith('Glow ·') or 'strip' not in obj.name:
+        continue
+    corners = [obj.matrix_world @ Vector(c) for c in obj.bound_box]
+    centre = sum(corners, Vector()) / 8
+    axis = max(((corners[4] - corners[0]), (corners[3] - corners[0]), (corners[1] - corners[0])), key=lambda v: v.length)
+    samples = [centre + axis * t for t in (-.4, -.2, 0, .2, .4)]
+    if sum(visible(obj, point) for point in samples) < 3:
+        continue
+    colour = obj.active_material.node_tree.nodes['Principled BSDF'].inputs['Emission Color'].default_value
+    strips.append([project(centre - axis / 2), project(centre + axis / 2), [round(c * 255) for c in colour[:3]]])
+if strips:
+    life['strips'] = strips
+
 path = ROOT / 'lib' / 'blender-islands.json'
 manifest = json.loads(path.read_text())
 manifest[opts.world]['life'] = life

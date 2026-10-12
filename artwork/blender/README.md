@@ -62,12 +62,13 @@ corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
 study's window, between linen drapes, looks out on the site's own night sky,
-with an office clock above the shelves, a lava lamp on the top shelf, and
-violet LED strips uplighting the wall above the bookshelf and washing the
-panelling under the window sill. The shed has festoon bulbs swagged along its
-roof beam, Lakers-coloured LED strips (purple under the roof beam washing the
-back wall, gold under the bench's front edge washing the drawers and deck),
-and a telescope on a tripod in the yard.
+with an office clock above the shelves, violet LED strips framing the
+bookshelf (up its outer uprights and along its top, uplighting the wall), under
+the window sill and under the desk (a glow across the rug), and a lava lamp on
+the desk. The shed has festoon bulbs swagged along its roof beam,
+Lakers-coloured LED strips (purple along the roof beam and up both posts, gold
+along the bench's front edge), a rocket lamp and an LED ball on the bench, and
+a telescope on a tripod in the yard.
 
 ### Depth parallax
 
@@ -106,13 +107,14 @@ light 2D flight.
 scene through its render camera and crop into `lib/blender-islands.json`
 (`life`): Taipei's traffic lanes (sampled along each avenue so traffic follows
 the perspective) and Taipei 101's face, the study lamp's light cone and lava
-lamp bottle, and the shed's festoon bulbs, bare bulb, rocket lamp, LED ball and
-yard. `components/IslandLife.tsx` animates
+lamp bottle, the shed's festoon bulbs, bare bulb, rocket lamp, LED ball and
+yard, and both rooms' LED strips (each one's ends and colour). `components/IslandLife.tsx` animates
 them on one small canvas at ~30fps, only while the island is settled: traffic
 (head/tail lights at night, cars by day), dust
 drifting in the lamplight, amber wax rising and sinking in the lava lamp,
 breathing festoon bulbs, a flickering bare bulb, the rocket lamp's flickering
-exhaust, the LED ball cycling through its colours, and fireflies. It follows the depth parallax so each detail stays on its surface.
+exhaust, the LED ball cycling through its colours, a soft light travelling
+along each LED strip, and fireflies. It follows the depth parallax so each detail stays on its surface.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
 in its New Year show: sprays from the front corners of each tier in turn,
 climbing the tower, then a shell off the spire; the launch points are the
@@ -194,9 +196,9 @@ larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
 trim and white piping, side stripes, LAKERS arched over 24) and a small
 purple-and-gold felt pennant, an orange basketball with a real ball's seams on
 the deck, a stainless Cybertruck model and a black cap with a small red mark
-(Tesla merch), and space things: a taped planet poster, a rocket lamp (a
-glowing shell on a rod, a lit porthole and an exhaust flame) and a
-colour-changing LED ball. The monitor shows TaipeiFlix, lit like a real screen. The essay
+(Tesla merch), and space things: a taped planet poster, and on the bench a
+rocket lamp (a glowing shell on a rod, red fins, a lit porthole and an exhaust
+flame) and a colour-changing LED ball. The monitor shows TaipeiFlix, lit like a real screen. The essay
 journals and project prints below are his real covers and screenshots.
 
 ### Night

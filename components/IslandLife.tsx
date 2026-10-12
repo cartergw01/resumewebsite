@@ -5,14 +5,15 @@ import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { lightsOn } from "@/lib/room-lights";
 
 type Point = number[];
-export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; lava?: Point[]; rocket?: Point[]; ball?: Point[]; fireworks?: { tiers: Point[][]; top: Point } };
+export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; lava?: Point[]; rocket?: Point[]; ball?: Point[]; strips?: [Point, Point, number[]][]; fireworks?: { tiers: Point[][]; top: Point } };
 export type ParallaxState = { x: number; y: number; focus: number; depth?: (x: number, y: number) => number };
 
 // Small things that move, placed with points projected from the Blender scene
 // (scripts/blender/export_life_anchors.py): Taipei's traffic,
 // dust in the study's lamplight and wax rising in its lava lamp, the shed's
-// festoon bulbs, rocket-lamp flame, colour-cycling LED ball and fireflies.
-// The night lights (lava lamp, rocket, LED ball) stay on with a room's lights off.
+// festoon bulbs, rocket-lamp flame, colour-cycling LED ball and fireflies,
+// and a light travelling along each room's LED strips. The night lights (LED
+// strips, lava lamp, rocket, LED ball) stay on with a room's lights off.
 // One canvas at ~30fps, only while the island is settled and visible; it
 // follows the depth parallax so the details stay on their surfaces.
 export default function IslandLife({ world, life, className }: { world: "work" | "writing" | "projects"; life: Life; className?: string }) {
@@ -144,6 +145,21 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           blob(x, y, r * .8, 1 + .45 * Math.abs(rising), "255,214,140", .35);
         }
       }
+      // A soft light travels along each LED strip, which breathes gently.
+      for (const [i, [a, b, rgb]] of (life.strips ?? []).entries()) {
+        const color = rgb.join(","), length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        const [ax, ay] = at(a[0], a[1]), [bx, by] = at(b[0], b[1]);
+        context.strokeStyle = `rgba(${color},${(.12 + .06 * Math.sin(time * .8 + i)).toFixed(3)})`;
+        context.lineWidth = Math.max(1.2, 3 * scale);
+        context.beginPath(); context.moveTo(ax, ay); context.lineTo(bx, by); context.stroke();
+        // One pulse per ~250px of strip, moving at ~45px a second.
+        const pulses = Math.max(1, Math.round(length / 250));
+        for (let k = 0; k < pulses; k++) {
+          const u = ((time * 45 / Math.max(length, 1)) + k / pulses + i * .31) % 1;
+          const [x, y] = at(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u);
+          glow(x, y, Math.max(10, Math.min(28, length * .08)) * scale, color, .5);
+        }
+      }
       if (world === "writing" && life.lamp && life.cone && lightsOn("writing")) {
         // Dust drifting slowly through the lamp's cone of light.
         const [lx, ly] = life.lamp, [cx, cy] = life.cone;
@@ -169,25 +185,25 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           const [x, y] = at(bx, by);
           glow(x, y, 14 * scale * 1.6, "255,206,140", .22 * flicker);
         }
-        // The rocket lamp's exhaust flickers and its porthole glows.
-        const unit = size(life.ball) || 6;
+        // The rocket lamp's exhaust flickers and its porthole glows; sizes
+        // follow the rocket (flame to porthole).
         const [flame, porthole] = life.rocket ?? [];
-        if (flame) {
+        if (flame && porthole) {
+          const unit = size([flame, porthole]);
           const flicker = .75 + .15 * Math.sin(time * 17) + .1 * Math.sin(time * 41 + 1.3);
-          const [x, y] = at(flame[0], flame[1] + unit * .1 * flicker);
-          blob(x, y, unit * .9 * flicker * scale, 1.6, "255,128,40", .55);
-          blob(x, y, unit * .4 * scale, 1.4, "255,226,170", .6 * flicker);
-        }
-        if (porthole) {
-          const [x, y] = at(porthole[0], porthole[1]);
-          glow(x, y, unit * .45 * scale, "140,210,255", .35 + .1 * Math.sin(time * 1.2));
+          const [x, y] = at(flame[0], flame[1] + unit * .04 * flicker);
+          blob(x, y, unit * .32 * flicker * scale, 1.7, "255,128,40", .6);
+          blob(x, y, unit * .13 * scale, 1.5, "255,226,170", .7 * flicker);
+          const [px, py] = at(porthole[0], porthole[1]);
+          glow(px, py, unit * .14 * scale, "140,210,255", .4 + .1 * Math.sin(time * 1.2));
         }
         // The LED ball slowly cycles through its colours.
         if (life.ball) {
+          const unit = size(life.ball);
           const color = hue(time);
           const [x, y] = at(life.ball[0][0], life.ball[0][1]);
-          glow(x, y, unit * 1.05 * scale, color, .55);
-          glow(x, y, unit * 2.8 * scale, color, .16);
+          glow(x, y, unit * 1.05 * scale, color, .6);
+          glow(x, y, unit * 3.2 * scale, color, .18);
         }
         const yard = life.yard ?? [];
         for (const [i, fly] of flies.entries()) {
