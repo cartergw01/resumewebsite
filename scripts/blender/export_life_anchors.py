@@ -93,9 +93,22 @@ elif opts.world == 'writing':
         life['cone'] = project(lamp.matrix_world.translation + Vector((0, 0, -.9)))
     if desk:
         life['desk'] = [project(o.matrix_world.translation) for o in desk]
+    # The lava lamp's bottle: bottom and top of the liquid, and a point on its
+    # widest edge (for the wax's width). Built by lava_lamp in build_islands.py.
+    bottle = next((o for o in scene.objects if o.name.startswith('Lava lamp · bottle')), None)
+    if bottle:
+        base = bottle.matrix_world.translation
+        k = bottle.dimensions.z / .25
+        life['lava'] = [project(base + Vector((0, 0, .02 * k))), project(base + Vector((0, 0, .23 * k))), project(base + Vector((.064 * k, 0, .07 * k)))]
 else:
     life['festoon'] = centres('Festoon · bulb')
     life['bulb'] = centres('Workshop · bare bulb')[:1]
+    # The rocket lamp's flame and porthole, and the LED ball's centre and edge.
+    life['rocket'] = centres('Model rocket · exhaust flame') + centres('Model rocket · porthole')
+    ball = next((o for o in scene.objects if o.name == 'LED ball'), None)
+    if ball:
+        centre = ball.matrix_world.translation
+        life['ball'] = [project(centre), project(centre + Vector((ball.scale.x, 0, 0)))]
     life['yard'] = [project(p) for p in [(-3.6, -2.2, .25), (3.3, -1.6, .25), (-3.9, 1.0, .25), (2.6, -2.6, .25), (4.2, 0, .3)]]
 
 path = ROOT / 'lib' / 'blender-islands.json'

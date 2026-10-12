@@ -62,8 +62,12 @@ corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
 study's window, between linen drapes, looks out on the site's own night sky,
-with an office clock above the shelves. The shed has festoon bulbs swagged along its
-roof beam and a telescope on a tripod in the yard.
+with an office clock above the shelves, a lava lamp on the top shelf, and
+violet LED strips uplighting the wall above the bookshelf and washing the
+panelling under the window sill. The shed has festoon bulbs swagged along its
+roof beam, Lakers-coloured LED strips (purple under the roof beam washing the
+back wall, gold under the bench's front edge washing the drawers and deck),
+and a telescope on a tripod in the yard.
 
 ### Depth parallax
 
@@ -101,12 +105,14 @@ light 2D flight.
 `scripts/blender/export_life_anchors.py` projects extra points from each saved
 scene through its render camera and crop into `lib/blender-islands.json`
 (`life`): Taipei's traffic lanes (sampled along each avenue so traffic follows
-the perspective) and Taipei 101's face, the study lamp's light cone, and the
-shed's festoon bulbs, bare bulb and yard. `components/IslandLife.tsx` animates
+the perspective) and Taipei 101's face, the study lamp's light cone and lava
+lamp bottle, and the shed's festoon bulbs, bare bulb, rocket lamp, LED ball and
+yard. `components/IslandLife.tsx` animates
 them on one small canvas at ~30fps, only while the island is settled: traffic
 (head/tail lights at night, cars by day), dust
-drifting in the lamplight, breathing festoon bulbs, a flickering bare bulb and
-fireflies. It follows the depth parallax so each detail stays on its surface.
+drifting in the lamplight, amber wax rising and sinking in the lava lamp,
+breathing festoon bulbs, a flickering bare bulb, the rocket lamp's flickering
+exhaust, the LED ball cycling through its colours, and fireflies. It follows the depth parallax so each detail stays on its surface.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
 in its New Year show: sprays from the front corners of each tier in turn,
 climbing the tower, then a shell off the spire; the launch points are the
@@ -151,8 +157,11 @@ small wall-plate button where Work has its sun and moon
 (`components/RoomLightSwitch.tsx`, `lib/room-lights.ts`). Off, the room is the
 same night without its lamps, bulbs and festoons: `--time dark` opens the saved
 night scene and `lights_out` in the build script removes every light but the
-moon rig and switches off every glowing material but screens and windows
-(the workshop's monitor stays on). `export_variant.mjs` publishes it with the
+moon rig and the coloured night lights, and switches off every glowing
+material but screens, windows and the night lights (the workshop's monitor
+stays on). Night lights are named `Glow ·` (lights and materials): the LED
+strips, the lava lamp, the rocket lamp and the LED ball, so a room with its
+lights off glows violet (the study) or purple and gold (the workshop). `export_variant.mjs` publishes it with the
 night still's crop as `darkSrc`, so the switch is a pure 0.6s crossfade. The
 still is fetched when someone reaches for the switch (or at once if they left
 the lights off), the parallax blends to it, the lamp's dust, the festoon and
@@ -185,8 +194,9 @@ larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
 trim and white piping, side stripes, LAKERS arched over 24) and a small
 purple-and-gold felt pennant, an orange basketball with a real ball's seams on
 the deck, a stainless Cybertruck model and a black cap with a small red mark
-(Tesla merch), and space things: a taped planet poster, a model rocket and a
-moon lamp. The monitor shows TaipeiFlix, lit like a real screen. The essay
+(Tesla merch), and space things: a taped planet poster, a rocket lamp (a
+glowing shell on a rod, a lit porthole and an exhaust flame) and a
+colour-changing LED ball. The monitor shows TaipeiFlix, lit like a real screen. The essay
 journals and project prints below are his real covers and screenshots.
 
 ### Night

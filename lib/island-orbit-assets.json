@@ -184,7 +184,7 @@
     }
   },
   "writing": {
-    "src": "/blender/orbit-writing-a3a89e2c.glb",
+    "src": "/blender/orbit-writing-4b6f1c70.glb",
     "camera": {
       "position": [
         8.759362,
@@ -210,7 +210,7 @@
       610
     ],
     "surfaceAnchors": {
-      "signature": "[\"/blender/orbit-writing-a3a89e2c.glb\",{\"position\":[8.759362,16.156849,28.523783],\"up\":[-0.150284,0.868088,-0.473116],\"direction\":[-0.262806,-0.496411,-0.827351],\"fov\":19.45515864318851},[180,0,915,610],{\"landmark\":[[571.289,348.643]],\"spread\":[[523.946,329.207],[628.108,335.36],[513.513,361.734],[619.82,368.147]]},null]",
+      "signature": "[\"/blender/orbit-writing-4b6f1c70.glb\",{\"position\":[8.759362,16.156849,28.523783],\"up\":[-0.150284,0.868088,-0.473116],\"direction\":[-0.262806,-0.496411,-0.827351],\"fov\":19.45515864318851},[180,0,915,610],{\"landmark\":[[571.289,348.643]],\"spread\":[[523.946,329.207],[628.108,335.36],[513.513,361.734],[619.82,368.147]]},null]",
       "points": {
         "landmark": [
           [
@@ -329,6 +329,62 @@
         "watts": 7
       },
       {
+        "name": "Glow · lava lamp",
+        "position": [
+          2.18,
+          3.1825,
+          -1.44
+        ],
+        "color": [
+          1,
+          0.25,
+          0.4
+        ],
+        "watts": 8
+      },
+      {
+        "name": "Glow · violet cove wash",
+        "position": [
+          0.15,
+          2.86,
+          -1.8
+        ],
+        "color": [
+          0.46,
+          0.22,
+          1
+        ],
+        "watts": 12
+      },
+      {
+        "name": "Glow · violet cove wash",
+        "position": [
+          1.85,
+          2.86,
+          -1.8
+        ],
+        "color": [
+          0.46,
+          0.22,
+          1
+        ],
+        "watts": 12
+      },
+      {
+        "name": "Glow · violet sill wash",
+        "position": [
+          -1.96,
+          1.24,
+          -1.76
+        ],
+        "color": [
+          0.46,
+          0.22,
+          1
+        ],
+        "watts": 14
+      },
+      {
         "name": "Desk lamp illumination",
         "position": [
           -1.025875,
@@ -373,7 +429,7 @@
     ]
   },
   "projects": {
-    "src": "/blender/orbit-projects-4c65e789.glb",
+    "src": "/blender/orbit-projects-6d3aba79.glb",
     "camera": {
       "position": [
         9.701741,
@@ -399,7 +455,7 @@
       580
     ],
     "surfaceAnchors": {
-      "signature": "[\"/blender/orbit-projects-4c65e789.glb\",{\"position\":[9.701741,18.250803,31.553488],\"up\":[-0.150284,0.868088,-0.473116],\"direction\":[-0.262806,-0.496411,-0.827351],\"fov\":19.45515864318851},[220,0,870,580],{\"landmark\":[[641.143,300.343]],\"screen\":[[589.532,267.294],[694.648,273.966],[588.32,326.383],[692.532,333.25]]},null]",
+      "signature": "[\"/blender/orbit-projects-6d3aba79.glb\",{\"position\":[9.701741,18.250803,31.553488],\"up\":[-0.150284,0.868088,-0.473116],\"direction\":[-0.262806,-0.496411,-0.827351],\"fov\":19.45515864318851},[220,0,870,580],{\"landmark\":[[641.143,300.343]],\"screen\":[[589.532,267.294],[694.648,273.966],[588.32,326.383],[692.532,333.25]]},null]",
       "points": {
         "landmark": [
           [
@@ -476,6 +532,76 @@
         "watts": 52
       },
       {
+        "name": "Glow · gold bench wash",
+        "position": [
+          -1.263873,
+          1.62,
+          0.969651
+        ],
+        "color": [
+          1,
+          0.6,
+          0.1
+        ],
+        "watts": 28
+      },
+      {
+        "name": "Glow · gold bench wash",
+        "position": [
+          1.501654,
+          1.62,
+          0.531635
+        ],
+        "color": [
+          1,
+          0.6,
+          0.1
+        ],
+        "watts": 28
+      },
+      {
+        "name": "Glow · purple wall wash",
+        "position": [
+          -2,
+          3.67,
+          -1.44
+        ],
+        "color": [
+          0.45,
+          0.14,
+          1
+        ],
+        "watts": 30
+      },
+      {
+        "name": "Glow · purple wall wash",
+        "position": [
+          0.2,
+          3.67,
+          -1.44
+        ],
+        "color": [
+          0.45,
+          0.14,
+          1
+        ],
+        "watts": 30
+      },
+      {
+        "name": "Glow · purple wall wash",
+        "position": [
+          2.2,
+          3.67,
+          -1.44
+        ],
+        "color": [
+          0.45,
+          0.14,
+          1
+        ],
+        "watts": 30
+      },
+      {
         "name": "Workshop · bare bulb light",
         "position": [
           -0.48,
@@ -532,18 +658,32 @@
         "watts": 6
       },
       {
-        "name": "Moon lamp · glow",
+        "name": "Glow · rocket exhaust",
+        "position": [
+          2.38,
+          2.9086,
+          -1.5
+        ],
+        "color": [
+          1,
+          0.45,
+          0.12
+        ],
+        "watts": 9
+      },
+      {
+        "name": "Glow · LED ball",
         "position": [
           0.9,
           2.9686,
           -1.45
         ],
         "color": [
-          1,
-          0.86,
-          0.66
+          0.58,
+          0.28,
+          1
         ],
-        "watts": 6
+        "watts": 10
       },
       {
         "name": "Workshop · task strip",

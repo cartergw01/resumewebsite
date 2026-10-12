@@ -3211,7 +3211,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-a1ba9d12.webp",
+    "src": "/blender/island-writing-def18b05.webp",
     "spread": [
       [
         523.946,
@@ -3256,10 +3256,10 @@
       477.048,
       268.131
     ],
-    "darkSrc": "/blender/island-writing-dark-19309ed5.webp",
-    "liftedSrc": "/blender/island-writing-lifted-2bd1d0b8.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-fa5d9316.webp",
-    "depthSrc": "/blender/depth-writing-1af208d9.webp",
+    "darkSrc": "/blender/island-writing-dark-355e1d1b.webp",
+    "liftedSrc": "/blender/island-writing-lifted-b974ef92.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-ae4c08d1.webp",
+    "depthSrc": "/blender/depth-writing-98011111.webp",
     "life": {
       "lamp": [
         477.05,
@@ -3290,13 +3290,27 @@
           573.85,
           329.95
         ]
+      ],
+      "lava": [
+        [
+          812.85,
+          170.47
+        ],
+        [
+          813.85,
+          148.84
+        ],
+        [
+          820.02,
+          166.18
+        ]
       ]
     }
   },
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-6f47a37b.webp",
+    "src": "/blender/island-projects-88939573.webp",
     "screen": [
       [
         589.532,
@@ -3337,8 +3351,8 @@
         352.919
       ]
     ],
-    "darkSrc": "/blender/island-projects-dark-312e3f4b.webp",
-    "depthSrc": "/blender/depth-projects-89b56fc1.webp",
+    "darkSrc": "/blender/island-projects-dark-76c23a87.webp",
+    "depthSrc": "/blender/depth-projects-50a66f30.webp",
     "life": {
       "festoon": [
         [
@@ -3394,6 +3408,26 @@
         [
           542.9,
           229.41
+        ]
+      ],
+      "rocket": [
+        [
+          790.36,
+          251.07
+        ],
+        [
+          790.5,
+          229.03
+        ]
+      ],
+      "ball": [
+        [
+          666.2,
+          230.69
+        ],
+        [
+          675.36,
+          231.87
         ]
       ],
       "yard": [
