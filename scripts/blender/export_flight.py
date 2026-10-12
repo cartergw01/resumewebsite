@@ -39,7 +39,7 @@ scene.cycles.use_denoising = False
 # camera; dropping them keeps the budget for the shapes that read.
 SKIP = ('Night · ', 'Study · window glass', 'Iced latte · glass', 'Iced latte · ice', 'Terrain · clustered meadow blades', 'Rim · fine wild grass', 'Cliff · ', 'Rug · ',
         'Sheet · screw head', 'Street · lane marking', 'Street · zebra crossing', 'Tool panel · fine perforations',
-        'Lamp · tension spring', 'PCB · ', 'Bike · spoke', 'Poster · star')
+        'Lamp · tension spring', 'Poster · star')
 depsgraph = bpy.context.evaluated_depsgraph_get()
 parts = []
 for obj in list(scene.objects):

@@ -379,7 +379,7 @@ PLANS={
     'district':(3.4,(.95,1.02),[(math.radians(35),.5,.06),(math.radians(215),.5,.05)]),
     # A soft, rounded garden plot with a bulge where the reading garden sits.
     'garden':(2.0,(.94,1.02),[(math.radians(170),.55,.10),(math.radians(-60),.6,.05)]),
-    # A rough, broken lot: a jagged edge and a yard lobe where the bike stands.
+    # A rough, broken lot: a jagged edge and a yard lobe where the scooter stands.
     'lot':(2.3,(.80,1.07),[(math.radians(28),.42,.16),(math.radians(-150),.35,.08)]),
 }
 
@@ -1270,25 +1270,23 @@ def lava_lamp(x,y,z,k=1):
     light('Glow · lava lamp',(x,y-.12*k,z+.30*k),(1,.25,.40),5*k,.06)
 
 
-def rocket_lamp(x,y,z,k=1):
-    """A rocket lamp: a glowing shell lifted off its stand on a thin rod, red
-    fins, a lit porthole and an exhaust flame under the fins (the page makes
-    the flame flicker)."""
-    P['rocket_shell']=material('Glow · rocket lamp shell',(.92,.90,.86),rough=.35,emission=.22)
-    P['rocket_fin']=material('Glow · rocket lamp fins',(.85,.07,.05),rough=.4,emission=.5)
-    P['rocket_port']=material('Glow · rocket porthole',(.45,.78,1),emission=6)
-    P['rocket_flame']=material('Glow · rocket exhaust flame',(1,.46,.10),emission=12)
-    lift=.07*k;r=.045*k
-    cylinder('Model rocket · stand',(x,y,z+.012*k),.10*k,.024*k,'ink',32,bevel=.003)
-    rod('Model rocket · stand rod',(x,y+.03*k,z+.024*k),(x,y+.03*k,z+.10*k+lift),.006*k,'steel')
-    cylinder('Model rocket · body',(x,y,z+.24*k+lift),r,.40*k,'rocket_shell',32,bevel=.003)
-    cylinder('Model rocket · nose cone',(x,y,z+.50*k+lift),r,.13*k,'rocket_shell',32,top=.002,bevel=0)
-    for i in range(3):
-        a=i*math.tau/3-math.pi/2
-        box('Model rocket · fin',(x+math.cos(a)*.065*k,y+math.sin(a)*.065*k,z+.09*k+lift),(.075*k,.010*k,.15*k),'rocket_fin',.002,rot=a)
-    cylinder('Model rocket · porthole',(x,y-r-.001,z+.33*k+lift),.018*k,.006*k,'rocket_port',20,bevel=0).rotation_euler.x=math.pi/2
-    sphere('Model rocket · exhaust flame',(x,y,z+.035*k+lift),(.036*k,.036*k,.06*k),'rocket_flame',2)
-    light('Glow · rocket exhaust',(x,y-.12*k,z+.05*k+lift),(1,.45,.12),9*k,.03)
+def falcon9(x,y,z,height=.9):
+    """A display model of SpaceX's Falcon 9: a white first stage on its four
+    folded black landing legs, grid fins at its top, the black interstage, the
+    second stage and the payload fairing, on a round black base. Proportions
+    are a little stouter than the real rocket's so it reads at island scale."""
+    k=height/.9;r=.03*k
+    cylinder('Falcon 9 model · display base',(x,y,z+.012*k),.09*k,.024*k,'ink',40,bevel=.003)
+    cylinder('Falcon 9 · engine section',(x,y,z+.04*k),r*.92,.032*k,'ink',32,bevel=.002)
+    cylinder('Falcon 9 · first stage',(x,y,z+.30*k),r,.49*k,'paper',32,bevel=.002)
+    for i in range(4):
+        a=math.pi/4+i*math.pi/2
+        leg=box('Falcon 9 · folded landing leg',(x+math.cos(a)*(r+.004*k),y+math.sin(a)*(r+.004*k),z+.12*k),(.010*k,.007*k,.16*k),'ink',.001,rot=a+math.pi/2)
+        fin=box('Falcon 9 · grid fin',(x+math.cos(a+math.pi/4)*(r+.012*k),y+math.sin(a+math.pi/4)*(r+.012*k),z+.535*k),(.022*k,.004*k,.018*k),'ink',.001,rot=a+math.pi/4)
+    cylinder('Falcon 9 · interstage',(x,y,z+.575*k),r,.06*k,'ink',32,bevel=.001)
+    cylinder('Falcon 9 · second stage',(x,y,z+.65*k),r,.09*k,'paper',32,bevel=.001)
+    cylinder('Falcon 9 · fairing',(x,y,z+.745*k),r*1.25,.10*k,'paper',32,bevel=.002)
+    cylinder('Falcon 9 · fairing nose',(x,y,z+.845*k),r*1.25,.10*k,'paper',32,top=.003*k,bevel=0)
 
 
 def led_ball(x,y,z,radius):
@@ -1497,10 +1495,10 @@ def place(objects,x,y,z,angle):
     for obj in objects:obj.matrix_world=pose@obj.matrix_world
 
 
-def ipad_pro(x,y,z,angle):
+def ipad_pro(x,y,z,angle,wallpaper):
     """A 12.9-inch iPad Pro on a black Magic Keyboard: the keyboard and
     trackpad on the desk, the iPad floating on its cantilevered back plate,
-    its screen facing the room and showing Carter's latest essay."""
+    its screen facing the room and showing `wallpaper` (a path from ROOT)."""
     before=set(bpy.context.scene.objects)
     P['magic_keyboard']=material('Magic Keyboard · black polyurethane',(.018,.018,.02),rough=.6)
     P['ipad_body']=material('iPad Pro · space black aluminium',(.03,.03,.033),metal=.6,rough=.35)
@@ -1519,7 +1517,7 @@ def ipad_pro(x,y,z,angle):
     centre=Vector((0,.475,.26))
     ipad=box('iPad Pro · body',tuple(centre),(.56,.012,.43),'ipad_body',.008);ipad.rotation_euler.x=tilt
     bezel=box('iPad Pro · black bezel',tuple(centre+Vector((0,-.0065,0))),(.548,.001,.418),'ink',0);bezel.rotation_euler.x=tilt
-    image=bpy.data.images.load(str(ROOT/'public'/'essay-covers'/'the-cost-of-keeping-up.webp'),check_existing=True)
+    image=bpy.data.images.load(str(ROOT/wallpaper),check_existing=True)
     if not image.packed_file:image.pack()
     display=material('iPad Pro · Screen display',(.02,.02,.02),rough=.2)
     tex=display.node_tree.nodes.new('ShaderNodeTexImage');tex.image=image
@@ -1658,18 +1656,9 @@ def writing():
         image_panel('Journal cover · '+title,'essay-covers/'+slug+'.webp',(x,1.252,2.20),.44,.56)
         box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
         lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
-    # Night lights that stay on with the room's lamps off: violet LED strips
-    # framing the bookshelf (up both outer uprights and along its top,
-    # uplighting the wall) and under the window sill, washing the panelling
-    # below the galaxy. The lava lamp and an underglow are on the desk below.
-    P['violet_strip']=material('Glow · violet LED strip',(.45,.20,1),emission=3)
-    box('Glow · bookshelf cove strip',(1,1.84,2.832),(3.0,.016,.008),'violet_strip',0)
-    for bx in [.15,1.85]:light('Glow · violet cove wash',(bx,1.80,2.86),(.42,.18,1),20,.6,(bx,1.92,3.7))
-    for ux in [-.58,2.58]:
-        box('Glow · bookshelf upright strip',(ux,1.366,1.50),(.014,.008,2.56),'violet_strip',0)
-        light('Glow · upright wash',(ux,1.2,1.5),(.42,.18,1),8,.9,(ux,.2,.3))
-    box('Glow · window sill strip',(-1.96,1.75,1.272),(1.80,.016,.008),'violet_strip',0)
-    light('Glow · violet sill wash',(-1.96,1.76,1.24),(.42,.18,1),16,.7,(-1.96,1.92,.35))
+    # A lava lamp on the top shelf, the study's one night light: it stays on
+    # with the lamps off.
+    lava_lamp(2.18,1.56,2.8225,1.3)
     furniture=set(bpy.context.scene.objects)
     # Desk height 74cm, top 3cm; proportions use 2 scene units per metre.
     for x in [-1.46,1.66]:
@@ -1692,10 +1681,13 @@ def writing():
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
     # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
     iced_latte(-.62,-.30,1.61)
-    # Carter's iPad Pro on its Magic Keyboard, at the front of the desk.
-    ipad_pro(-1.02,-1.20,1.61,math.radians(14))
-    rod('Fountain pen',(.80,-1.18,1.634),(.75,-.87,1.634),.009,'ink',20)
-    rod('Fountain pen · silver nib',(.80,-1.18,1.634),(.807,-1.221,1.634),.004,'steel')
+    # A capped fountain pen beside the notebook: black lacquer, gold band and clip.
+    a,b=Vector((.84,-1.20,1.628)),Vector((.79,-.82,1.628))
+    rod('Fountain pen · black lacquer barrel',tuple(a),tuple(b),.016,'ink',24)
+    cap=a+(b-a)*.58
+    rod('Fountain pen · gold cap band',tuple(cap),tuple(cap+(b-a).normalized()*.018),.0172,'brass',24)
+    rod('Fountain pen · gold clip',tuple(cap+(b-a).normalized()*.03+Vector((0,0,.016))),tuple(b-(b-a).normalized()*.03+Vector((0,0,.016))),.004,'brass',8)
+    for end in [a,b]:sphere('Fountain pen · rounded end',tuple(end),(.016,.016,.016),'ink',2)
     for x in [1.13,1.31]:torus('Study · spectacles',(x,-1.05,1.632),.075,.0024,'brass')
     rod('Spectacles · bridge',(1.205,-1.05,1.632),(1.235,-1.05,1.632),.0024,'brass')
     for x in [1.055,1.385]:curve('Spectacles · temple',[(x,-1.05,1.632),(x-.02,-.84,1.637),(x-.04,-.81,1.63)],.0024,'brass')
@@ -1710,11 +1702,6 @@ def writing():
         for face in leaf.data.polygons:face.use_smooth=True
         for f,dz in [(1,0),(25,.006+j*.002),(49,0)]:leaf.location.z=dz;leaf.keyframe_insert(data_path='location',frame=f)
         ANIMATED.append(leaf)
-    # A lava lamp at the desk's far corner, and a violet strip under the front
-    # apron casting a glow across the rug.
-    lava_lamp(1.60,-.36,1.614,1.9)
-    box('Glow · desk underglow strip',(.1,-1.30,1.362),(3.0,.016,.008),'violet_strip',0)
-    for bx in [-.7,.9]:light('Glow · desk underglow',(bx,-1.40,1.30),(.42,.18,1),16,.9,(bx,-2.0,.16))
     chair(-.95,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
     light('Study · paper warmth',(.2,-1.15,2.75),(1,.74,.46),40,.8,(.1,-.8,1.65))
@@ -1733,47 +1720,48 @@ def hammer(x,y,z):
     curve('Hammer · claw',[(x+.10,y,z+.53),(x+.18,y,z+.50),(x+.21,y,z+.46)],.018,'steel')
 
 
-def bike(x,y,angle):
-    """A plain steel city bike on its kickstand: 26-inch wheels, flat bar.
+def ninebot_scooter(x,y,angle):
+    """A Segway-Ninebot MAX electric kick scooter on its kickstand: 10-inch
+    pneumatic tyres (a hub motor in the front), a long low deck with black
+    grip, the raked folding stem with its dashboard display and headlight, a
+    rear mudguard with a red brake light. Scene scale is 2 units a metre.
     Built with its tyres touching z=0, then pitched so both tyres sit on the
     ground where it stands and leaned a few degrees onto the kickstand."""
-    from mathutils import Euler, Matrix
+    from mathutils import Matrix
     before=set(bpy.context.scene.objects)
-    P.setdefault('bikeframe',material('Bike · enamelled steel frame',(.035,.075,.065),metal=.35,rough=.42))
-    r=.66;wb=2.08;z=r
-    rear=Vector((-wb/2,0,z));front=Vector((wb/2,0,z))
-    for c in [rear,front]:
-        torus('Bike · tyre',tuple(c),r,.034,'ink',(math.pi/2,0,0))
-        torus('Bike · rim',tuple(c),r-.045,.012,'steel',(math.pi/2,0,0))
-        cylinder('Bike · hub',tuple(c),.035,.09,'steel',16,bevel=0).rotation_euler.x=math.pi/2
-        for k in range(18):
-            a=k*math.tau/18
-            rod('Bike · spoke',tuple(c+Vector((0,.02*(1 if k%2 else -1),0))),tuple(c+Vector((math.cos(a)*(r-.05),0,math.sin(a)*(r-.05)))),.0028,'steel',4)
-    bb=Vector((-.08,0,z-.16));seat=Vector((-.42,0,z+.86));head_top=Vector((.62,0,z+.78));head_bot=Vector((.70,0,z+.52))
-    for a,b in [(bb,seat),(seat+Vector((.04,0,-.1)),head_top),(bb,head_bot),(head_bot,head_top)]:rod('Bike · frame tube',tuple(a),tuple(b),.026,'bikeframe',16)
-    for side in [-.055,.055]:
-        o=Vector((0,side,0))
-        rod('Bike · chainstay',tuple(bb+o*.5),tuple(rear+o),.016,'bikeframe',12)
-        rod('Bike · seatstay',tuple(seat+Vector((.03,0,-.12))+o*.4),tuple(rear+o),.014,'bikeframe',12)
-        rod('Bike · fork blade',tuple(head_bot+o*.6),tuple(front+o),.016,'bikeframe',12)
-    rod('Bike · seat post',tuple(seat),tuple(seat+Vector((-.04,0,.16))),.017,'steel',12)
-    box('Bike · leather saddle',tuple(seat+Vector((-.06,0,.19))),(.27,.13,.05),'leather',.02)
-    stem=head_top+Vector((-.02,0,.16))
-    rod('Bike · stem',tuple(head_top),tuple(stem),.018,'steel',12)
-    rod('Bike · flat bar',tuple(stem+Vector((0,-.30,0))),tuple(stem+Vector((0,.30,0))),.014,'steel',12)
-    for side in [-1,1]:rod('Bike · grip',tuple(stem+Vector((0,side*.30,0))),tuple(stem+Vector((0,side*.22,0))),.022,'ink',12)
-    torus('Bike · chainring',tuple(bb+Vector((0,.07,0))),.11,.010,'steel',(math.pi/2,0,0))
-    curve('Bike · chain',[tuple(bb+Vector((0,.07,.11))),tuple(rear+Vector((0,.07,.05)))],.006,'ink')
-    curve('Bike · chain',[tuple(bb+Vector((0,.07,-.11))),tuple(rear+Vector((0,.07,-.05)))],.006,'ink')
-    for side,phase in [(-1,0),(1,math.pi)]:
-        crank=bb+Vector((math.cos(phase+.6)*.17,side*.11,math.sin(phase+.6)*.17))
-        rod('Bike · crank',tuple(bb+Vector((0,side*.09,0))),tuple(crank),.012,'steel',8)
-        box('Bike · pedal',tuple(crank+Vector((0,side*.06,0))),(.10,.09,.022),'ink',.004)
-    # The kickstand reaches the ground on the side the bike leans toward (-y).
-    rod('Bike · kickstand',tuple(bb+Vector((-.1,-.06,0))),(bb.x-.30,-.20,.02),.011,'steel',8)
-    # Mudguards hug the top of each tyre, centred on its hub.
-    for c,(a0,a1) in [(rear,(.18,.80)),(front,(.20,.78))]:
-        curve('Bike · mudguard',[tuple(c+Vector((math.cos(a*math.pi)*(r+.06),0,math.sin(a*math.pi)*(r+.06)))) for a in [a0,(a0+a1)/2,a1]],.012,'bikeframe')
+    P.setdefault('scooter',material('Scooter · dark grey aluminium',(.055,.058,.062),metal=.45,rough=.38))
+    P.setdefault('scooter_red',material('Scooter · red brake light',(.7,.02,.02),rough=.3,emission=1.5))
+    P.setdefault('scooter_amber',material('Scooter · amber side reflector',(.9,.5,.05),rough=.3))
+    r=.255;wb=1.66
+    rear=Vector((-wb/2,0,r));front=Vector((wb/2,0,r))
+    for c,hub in [(rear,.10),(front,.15)]:
+        torus('Scooter · pneumatic tyre',tuple(c),r-.055,.055,'ink',(math.pi/2,0,0))
+        cylinder('Scooter · wheel hub',tuple(c),hub,.10,'scooter',32,bevel=.006).rotation_euler.x=math.pi/2
+    # The deck: long and low, black grip tape on top, a light lip round it.
+    box('Scooter · deck',(-.06,0,.36),(1.10,.38,.11),'scooter',.03)
+    box('Scooter · grip tape',(-.08,0,.418),(.98,.32,.006),'ink',.002)
+    # Rear: a short swingarm to the axle, the mudguard and its brake light.
+    for side in [-1,1]:
+        rod('Scooter · rear bracket',(-.58,side*.07,.34),tuple(rear+Vector((0,side*.07,0))),.022,'scooter',12)
+    curve('Scooter · rear mudguard',[tuple(rear+Vector((math.cos(a)*(r+.04),0,math.sin(a)*(r+.04)))) for a in [.25*math.pi,.55*math.pi,.92*math.pi]],.05,'ink')
+    box('Scooter · brake light',tuple(rear+Vector((-.27,0,.08))),(.03,.10,.035),'scooter_red',.006)
+    # The stem rakes back from the front axle: the fork, the folding joint
+    # where the deck meets it, the tall stem, the dashboard and the bars.
+    tilt=math.radians(13);up=Vector((-math.sin(tilt),0,math.cos(tilt)))
+    neck=front+up*.42;top=front+up*2.15
+    for side in [-1,1]:rod('Scooter · front fork',tuple(front+Vector((0,side*.075,0))),tuple(neck+Vector((0,side*.05,0))),.024,'scooter',12)
+    box('Scooter · folding joint',tuple(neck+Vector((-.10,0,-.02))),(.26,.13,.16),'scooter',.03)
+    rod('Scooter · stem',tuple(neck),tuple(top),.046,'scooter',24)
+    for side in [-1,1]:box('Scooter · side reflector',tuple(front+up*.24+Vector((0,side*.08,0))),(.08,.008,.03),'scooter_amber',.002)
+    box('Scooter · headlight',tuple(top+up*-.10+Vector((.045,0,0))),(.02,.07,.035),'light',.006)
+    dash=box('Scooter · dashboard',tuple(top+Vector((-.01,0,.03))),(.14,.12,.04),'ink',.012);dash.rotation_euler.y=-.35
+    screen=box('Scooter · dashboard display',tuple(top+Vector((-.02,0,.053))),(.06,.07,.004),'screen',.001);screen.rotation_euler.y=-.35
+    rod('Scooter · handlebar',tuple(top+Vector((0,-.25,.02))),tuple(top+Vector((0,.25,.02))),.02,'scooter',16)
+    for side in [-1,1]:
+        rod('Scooter · grip',tuple(top+Vector((0,side*.25,.02))),tuple(top+Vector((0,side*.15,.02))),.03,'ink',16)
+        rod('Scooter · brake lever',tuple(top+Vector((.03,side*.13,.03))),tuple(top+Vector((.07,side*.21,.0))),.008,'ink',8)
+    # The kickstand reaches the ground on the side the scooter leans toward (-y).
+    rod('Scooter · kickstand',(-.10,-.17,.31),(-.32,-.27,.02),.014,'ink',8)
     parts=set(bpy.context.scene.objects)-before
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
@@ -1791,7 +1779,7 @@ def bike(x,y,angle):
     pitch=-math.atan2(h_front-h_rear,wb)
     pose=Matrix.Translation(Vector((x,y,(h_rear+h_front)/2)))@Matrix.Rotation(angle,4,'Z')@Matrix.Rotation(math.radians(4),4,'X')@Matrix.Rotation(pitch,4,'Y')
     for obj in parts:obj.matrix_world=pose@obj.matrix_world
-    print(f'BIKE: rear ground {h_rear:.3f}, front ground {h_front:.3f}, pitch {math.degrees(pitch):.1f} deg',flush=True)
+    print(f'SCOOTER: rear ground {h_rear:.3f}, front ground {h_front:.3f}, pitch {math.degrees(pitch):.1f} deg',flush=True)
 
 
 def kobe_jersey(cx,y,cz):
@@ -1920,36 +1908,9 @@ def workshop():
     for loop,point in zip(uv.data,[(0,1),(1,1),(1,0),(0,0)]):loop.uv=point
     ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.085,(bottom+top)/2);ANCHORS['screenGlow']=(sx,sy-.22,sz+.02)
     light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.92,.86,.80),3,.7,(sx,sy-.50,sz))
-    # A partially assembled electronics instrument, with an open aluminium case.
-    box('Workshop · antistatic cutting mat',(-.69,-.11,1.799),(1.52,1.08,.006),'jade',.003)
-    for i in range(16):box('Cutting mat · fine grid',(-1.40+i*.095,-.11,1.803),(.0015,.995,.001),'leaf2',0)
-    for i in range(11):box('Cutting mat · fine grid',(-.69,-.59+i*.095,1.803),(1.43,.0015,.001),'leaf2',0)
-    box('Prototype · base plate',(-.68,-.10,1.829),(.65,.46,.012),'steel',.001)
-    for x in [-1,-.36]:box('Prototype · open case side',(x,-.10,1.896),(.012,.46,.146),'steel',.001)
-    box('Prototype · connector panel',(-.68,.125,1.90),(.65,.012,.15),'steel',.001)
-    box('Prototype · PCB',(-.68,-.10,1.857),(.57,.36,.009),'jade',.001)
-    for i in range(32):
-        x=-.92+(i%8)*.065;y=-.235+(i//8)*.08
-        box('PCB · SMD component',(x,y,1.869),(.025,.014,.010),'ink',.001)
-        for xx in [x-.013,x+.013]:box('PCB · solder pad',(xx,y,1.862),(.007,.018,.002),'steel',0)
-    box('PCB · processor',(-.70,-.10,1.885),(.105,.10,.016),'ink',.001)
-    for i in range(8):
-        for side in [-1,1]:box('PCB · processor pins',(-.744+i*.013,-.1+side*.059,1.877),(.004,.015,.004),'steel',0)
-    for j in range(5):
-        curve('Prototype · jumper cable',[(-.89+j*.027,-.22,1.887),(-.91+j*.04,-.15,1.96),(-.77+j*.035,.08,1.889)],.003,'clay' if j%2 else 'ink')
-    # Detached lid, hand tools and a digital caliper alongside the active work.
-    box('Prototype · removed lid',(.17,-.40,1.810),(.40,.55,.012),'steel',.002,rot=.13)
-    rod('Caliper · rule',(.03,-.55,1.829),(.37,-.52,1.829),.008,'steel')
-    box('Caliper · readout',(.16,-.539,1.846),(.083,.055,.036),'teal',.004)
-    box('Caliper · LCD',(.16,-.539,1.865),(.054,.035,.001),'screen',.001)
-    for x in [.04,.19]:rod('Caliper · jaws',(x,-.57,1.825),(x,-.65,1.825),.005,'steel')
-    # Soldering station, curled cable, brass sponge and task lighting.
-    box('Solder station',(-1.80,.24,1.902),(.35,.40,.20),'teal',.007)
-    box('Solder station · readout',(-1.83,.032,1.922),(.14,.008,.045),'screen',.002)
-    rod('Solder station · dial',(-1.69,.031,1.89),(-1.69,.019,1.89),.026,'ink',32)
-    rod('Iron · rubber grip',(-1.82,-.17,1.823),(-1.79,-.40,1.823),.016,'ink',24)
-    rod('Iron · steel tip',(-1.79,-.40,1.823),(-1.77,-.56,1.823),.005,'steel')
-    curve('Iron · flexible cable',[(-1.82,-.17,1.823),(-2.04,-.18,1.81),(-2.15,.20,1.81),(-1.96,.36,1.81),(-1.80,.35,1.89)],.005,'ink')
+    # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
+    # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
+    ipad_pro(-.72,-.58,1.79,math.radians(6),'artwork/blender/ipad-wallpaper-launch.jpg')
     practical=desk_lamp(-1.55,.77,1.792,.51)
     # Different working objects replace the three identical empty cases.
     box('Bench · shallow parts tray',(-.43,-.12,.55),(.82,.76,.05),'teal',.006)
@@ -1985,10 +1946,6 @@ def workshop():
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
     box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
     for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),30,.8,(bx,-1.45,.2))
-    # Night lights on the bench: a rocket lamp beside the monitor and a
-    # colour-changing LED ball behind the cutting mat.
-    rocket_lamp(2.02,.50,1.79,1.6)
-    led_ball(-1.02,.60,1.79,.16)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -2082,10 +2039,11 @@ def workshop():
     mesh('Pennant · gold stripe',[(px,2.010,pz),(px,2.010,pz-.075),(px+.55,2.010,pz-.155)],[(0,1,2)],'lakers_gold')
     box('Pennant · sleeve',(px-.015,2.011,pz-.15),(.04,.006,.32),'lakers_gold',.002)
     cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
-    # Carter's bike, on its stand in the yard; he gets around the city on it.
-    bike(3.15,-1.85,math.radians(-12))
-    # Space things: a taped planet poster here, and a rocket lamp and LED ball
-    # on the bench (above), the same sky the site floats in.
+    # Carter's Ninebot scooter, on its kickstand in the yard; he gets around
+    # the city on it.
+    ninebot_scooter(3.15,-1.85,math.radians(-12))
+    # Space things, taped and shelved: a planet poster, a Falcon 9 model and an
+    # LED ball, the same sky the site floats in.
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
     P['planet']=textured('Poster · banded planet',(.36,.20,.09),(.62,.42,.22),'plaster',rough=.8)
     px,pz=-2.50,3.22
@@ -2101,6 +2059,8 @@ def workshop():
         box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
+    falcon9(2.38,1.60,shelf,.95)
+    led_ball(.90,1.60,shelf,.12)
     # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
     cx,cy,cz=1.62,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
@@ -2280,20 +2240,35 @@ def camera_and_lights(scene):
 
 
 # What stays on when a room's lights are switched off: the moonlit night rig,
-# the night through the windows, screens, and the coloured night lights
-# (LED strips, the lava lamp, the rocket lamp and the LED ball, all "Glow ·").
-STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City','Glow')
-SCREENS=('Screen','Monitor','Window','display','Caliper','Solder')
+# the night through the windows, and screens. Everything else goes dark,
+# night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
+STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
+SCREENS=('Screen','Monitor','Window','display')
+# With the lights off, one spotlight picks out what each room is about: the
+# open notebook on the study's desk, the computer on the workshop's bench.
+# Points are in each turned furniture group's own space (see writing() and
+# workshop()), with where the lamp hangs relative to them.
+SPOTLIGHT={'writing':('Study · gently turned desk',(.16,-.80,1.614),(0,-.9,3.4),30,180),
+           'projects':('Workshop · turned workbench',(.90,.05,1.85),(0,-1.5,3.1),34,200)}
 
 
-def lights_out(scene):
+def lights_out(scene,world):
     """The same night with the room's lights switched off: lamps, bulbs,
-    festoons and their glow go dark; moonlight, windows and screens stay."""
+    festoons, night lights and their glow go dark; moonlight, windows and
+    screens stay, and a spotlight falls on the room's subject."""
     for obj in list(scene.objects):
         if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):
             bpy.data.objects.remove(obj,do_unlink=True)
+    if world in SPOTLIGHT:
+        group,point,offset,cone,energy=SPOTLIGHT[world]
+        target=bpy.data.objects[group].matrix_world@Vector(point)
+        data=bpy.data.lights.new('Spotlight · '+world,'SPOT')
+        data.color=(1,.90,.76);data.energy=energy;data.spot_size=math.radians(cone);data.spot_blend=.45;data.shadow_soft_size=.08
+        spot=bpy.data.objects.new('Spotlight · '+world,data);bpy.context.collection.objects.link(spot)
+        spot.location=target+Vector(offset)
+        spot.rotation_euler=(target-spot.location).to_track_quat('-Z','Y').to_euler()
     for mat in bpy.data.materials:
-        if not mat.use_nodes or mat.name.startswith('Glow') or any(word in mat.name for word in SCREENS):continue
+        if not mat.use_nodes or any(word in mat.name for word in SCREENS):continue
         bs=mat.node_tree.nodes.get('Principled BSDF')
         if bs and bs.inputs['Emission Strength'].default_value>0:
             bs.inputs['Emission Strength'].default_value=0
@@ -2389,7 +2364,7 @@ def main():
             if args.time.startswith('lifted'):
                 for obj in list(scene.objects):
                     if obj.name.startswith('Notebook'):bpy.data.objects.remove(obj,do_unlink=True)
-            if args.time.endswith('dark'):lights_out(scene)
+            if args.time.endswith('dark'):lights_out(scene,world)
             repeatable(scene)
             scene.render.filepath=str(args.output/f'{world}.png')
             unseen_lights(scene)

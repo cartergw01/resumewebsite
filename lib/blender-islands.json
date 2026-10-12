@@ -3211,7 +3211,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-744b00ca.webp",
+    "src": "/blender/island-writing-84f1b0ab.webp",
     "spread": [
       [
         523.946,
@@ -3256,10 +3256,10 @@
       477.048,
       268.131
     ],
-    "darkSrc": "/blender/island-writing-dark-4b4dab00.webp",
-    "liftedSrc": "/blender/island-writing-lifted-cb1dda10.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-2e16de58.webp",
-    "depthSrc": "/blender/depth-writing-81adcf8f.webp",
+    "darkSrc": "/blender/island-writing-dark-0770045d.webp",
+    "liftedSrc": "/blender/island-writing-lifted-8251f8c5.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-9d57d351.webp",
+    "depthSrc": "/blender/depth-writing-d2e2b5ec.webp",
     "life": {
       "lamp": [
         477.05,
@@ -3293,63 +3293,16 @@
       ],
       "lava": [
         [
-          711.27,
-          316.64
+          812.92,
+          168.93
         ],
         [
-          712.26,
-          282.52
+          814,
+          145.48
         ],
         [
-          722.61,
-          310.07
-        ]
-      ],
-      "strips": [
-        [
-          [
-            583.73,
-            149.35
-          ],
-          [
-            846.62,
-            181.82
-          ],
-          [
-            115,
-            51,
-            255
-          ]
-        ],
-        [
-          [
-            563.7,
-            375.46
-          ],
-          [
-            564.19,
-            168.8
-          ],
-          [
-            115,
-            51,
-            255
-          ]
-        ],
-        [
-          [
-            832.99,
-            414.26
-          ],
-          [
-            843.86,
-            203.89
-          ],
-          [
-            115,
-            51,
-            255
-          ]
+          820.69,
+          164.28
         ]
       ]
     }
@@ -3357,7 +3310,7 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-9dc7f524.webp",
+    "src": "/blender/island-projects-787e3ccd.webp",
     "screen": [
       [
         589.532,
@@ -3398,8 +3351,8 @@
         352.919
       ]
     ],
-    "darkSrc": "/blender/island-projects-dark-a5f341c4.webp",
-    "depthSrc": "/blender/depth-projects-f09069da.webp",
+    "darkSrc": "/blender/island-projects-dark-c7599b99.webp",
+    "depthSrc": "/blender/depth-projects-4b44f077.webp",
     "life": {
       "festoon": [
         [
@@ -3457,24 +3410,14 @@
           229.41
         ]
       ],
-      "rocket": [
-        [
-          731.51,
-          347.86
-        ],
-        [
-          732.23,
-          313.34
-        ]
-      ],
       "ball": [
         [
-          471.41,
-          325.7
+          666.17,
+          231.96
         ],
         [
-          484.5,
-          327.52
+          676.16,
+          233.24
         ]
       ],
       "yard": [

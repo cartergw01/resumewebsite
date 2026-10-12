@@ -145,6 +145,9 @@ const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
 const LEAF_STARTS = [0, 360, 650, 900, 1130, 1350, 1580];
 const LEAF_TURNS = [820, 760, 700, 680, 680, 720];
 const LAST_LEAF_TURN = 880;
+// The first leaf lifts just before the notebook comes to rest, so the flight
+// runs straight on into the riffle with no pause between them.
+const RIFFLE_OVERLAP = 150;
 // A landscape spread on wide screens; on a phone, a taller pocket notebook so
 // the essays still read at a comfortable size.
 const bookSize = () => {
@@ -159,6 +162,27 @@ const bookSize = () => {
 // physical lift and turn rather than blending two flat matrices.
 const bookPose = (x: number, y: number, angle: number, tilt: number, scale: number) =>
   `translate(${x}px, ${y}px) rotate(${angle}rad) rotateX(${tilt}rad) scale(${scale})`;
+// Eases in and out with no jolt at either end (smootherstep), and the same
+// eased over part of the way.
+const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
+const during = (t: number, from: number, to: number) => smooth(Math.max(0, Math.min(1, (t - from) / (to - from))));
+// The notebook's flight from the desk to reading distance, as finely sampled
+// keyframes of one motion: it travels a curve that first rises straight up
+// off the desk, then arcs over to the centre; it turns to face you once it's
+// clear of the desk; it grows steadily, swelling a little past reading size
+// near the end and settling back. Everything comes to rest together.
+function bookFlight(cx: number, cy: number, angle: number, tilt: number, scale: number, rise: number) {
+  const steps = 40, endX = innerWidth / 2, endY = innerHeight / 2, peak = cy - rise * 1.5;
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const t = i / steps, p = smooth(t), u = 1 - p;
+    const x = u * u * cx + 2 * u * p * cx + p * p * endX;
+    const y = u * u * cy + 2 * u * p * peak + p * p * endY;
+    const turn = during(t, .15, .9);
+    const near = 1 + .08 * Math.sin(Math.PI * during(t, .45, 1)) ** 2;
+    const size = scale * Math.pow(1 / scale, during(t, .05, .95)) * near;
+    return { transform: bookPose(x, y, angle * (1 - turn), tilt * (1 - turn), size), offset: t };
+  });
+}
 
 function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind"], sourceWidth: number, sourceHeight: number) {
   const matrix = source.getScreenCTM();
@@ -255,19 +279,13 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     shadow.style.transform = start;
     fader.before(shadow);
     current.animations.push(
-      // The island holds still while the notebook lifts straight up off the
-      // desk, still lying back as it was, and hovers a beat; then it swings
-      // up to face you and keeps coming, close enough to fill your view,
-      // before easing back to reading size. The island's own notebook is
-      // gone from the desk beneath it (the "lifted" still), so it's the one
-      // book, carried off.
-      screen.animate([
-        { transform: start, offset: 0, easing: "cubic-bezier(0.3, 0, 0.2, 1)" },
-        { transform: bookPose(cx, cy - rise, angle, tilt * .95, scale * 1.10), offset: .30, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
-        { transform: bookPose(cx, cy - rise * 1.08, angle * .9, tilt * .88, scale * 1.13), offset: .40, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
-        { transform: bookPose(innerWidth / 2, innerHeight / 2 + innerHeight * .015, 0, -.1, 1.17), offset: .80, easing: "cubic-bezier(0.35, 0, 0.25, 1)" },
-        { transform: rest, offset: 1 },
-      ], lift),
+      // The island holds still while the notebook lifts off the desk, still
+      // lying back as it was, swings up to face you as it comes, a touch
+      // closer than reading distance, and settles. It is one continuous
+      // motion, sampled finely, so it never stops part-way and starts again.
+      // The island's own notebook is gone from the desk beneath it (the
+      // "lifted" still), so it's the one book, carried off.
+      screen.animate(bookFlight(cx, cy, angle, tilt, scale, rise), { ...lift, easing: "linear" }),
       shadow.animate([
         { opacity: .7, transform: `${start} scale(1)`, easing: "ease-out" },
         { opacity: 0, transform: `${start} scale(1.25)`, offset: .35 },
@@ -284,7 +302,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
     const timing = (index: number) => {
       const last = index === leaves.length - 1;
-      return { delay: BOOK_LIFT + LEAF_STARTS[index], duration: last ? LAST_LEAF_TURN : LEAF_TURNS[index] };
+      return { delay: BOOK_LIFT - RIFFLE_OVERLAP + LEAF_STARTS[index], duration: last ? LAST_LEAF_TURN : LEAF_TURNS[index] };
     };
     leaves.forEach((leaf, index) => {
       const turn = { ...timing(index), fill: "both" } as const;
@@ -364,15 +382,16 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       if (kind === "book") {
         // The lamplight behind it fades with the notebook.
         arriveEntryLight(ENTRY_ARRIVAL_DURATION * .5);
-        // The last spread holds a beat, then the notebook dissolves before the
-        // page's rows rise into place (WritingWorld.module.css), so the
-        // essays on the pages never sit on top of the archive's titles.
+        // The last spread holds only a breath, then the notebook dissolves as
+        // the page's rows rise into place (WritingWorld.module.css); it is
+        // nearly gone before they appear, so the essays on the pages never
+        // sit on top of the archive's titles.
         document.documentElement.dataset[attribute] = "revealing";
         const open = { duration: ENTRY_ARRIVAL_DURATION, fill: "forwards" } as const;
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
         const dock = current.fader.animate([
           { opacity: 1, offset: 0 },
-          { opacity: 1, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+          { opacity: 1, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
           { opacity: 0, offset: .9 },
           { opacity: 0, offset: 1 },
         ], open);
@@ -380,11 +399,11 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
           dock,
           current.screen.animate([
             { transform: rest, offset: 0 },
-            { transform: rest, offset: .4, easing: "cubic-bezier(0.4, 0, 0.8, 1)" },
+            { transform: rest, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .9 },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: 1 },
           ], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .4 }, { opacity: 0, offset: .9 }, { opacity: 0 }], { ...open, easing: "ease-out" }),
+          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" }, { opacity: 0, offset: .9 }, { opacity: 0 }], open),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;

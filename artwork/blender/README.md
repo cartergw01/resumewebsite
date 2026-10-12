@@ -39,17 +39,16 @@ backplates are used.
   (walnut shelves on a slim black frame over a charcoal back panel, each shelf
   washed by a warm LED strip) and Carter's UC Santa Cruz degree framed on the
   side wall. Slim walnut furniture, a usable upholstered chair, a madder wool
-  rug, an open notebook, a 12.9-inch iPad Pro on a black Magic Keyboard showing
-  his latest essay's cover, an iced latte from Verve (the Santa Cruz roaster)
+  rug, an open notebook, an iced latte from Verve (the Santa Cruz roaster)
   in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
-  spectacles, a fountain pen and a task lamp; a reading garden and trellis sit
+  spectacles, a capped fountain pen beside the notebook and a task lamp; a
+  reading garden and trellis sit
   outside the side wall. Two scene units represent one metre.
 - **Projects:** the opposite of the study, an open, hand-built lean-to shed: a
   bare stud frame with mismatched plywood and OSB on its lower half, two
   patched sheets above and open bays to the night, no side wall, a sloping
   corrugated roof on two posts and a bare bulb on its flex. Inside, a
-  steel-framed bench, tool panel, labelled storage, an open
-  electronics enclosure, soldering station, caliper and a 27-inch monitor. The
+  steel-framed bench, tool panel, labelled storage and a 27-inch monitor. The
   workbench turns toward the visitor. Worn paving leads past reclaimed lumber
   and offcuts. It uses the same furniture scale.
 
@@ -62,13 +61,11 @@ corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
 study's window, between linen drapes, looks out on the site's own night sky,
-with an office clock above the shelves, violet LED strips framing the
-bookshelf (up its outer uprights and along its top, uplighting the wall), under
-the window sill and under the desk (a glow across the rug), and a lava lamp on
-the desk. The shed has festoon bulbs swagged along its roof beam,
-Lakers-coloured LED strips (purple along the roof beam and up both posts, gold
-along the bench's front edge), a rocket lamp and an LED ball on the bench, and
-a telescope on a tripod in the yard.
+with an office clock above the shelves and a lava lamp on the top shelf; the
+study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
+along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
+up both posts, gold along the bench's front edge), and a telescope on a tripod
+in the yard; Carter's Ninebot scooter stands on its kickstand by the deck.
 
 ### Depth parallax
 
@@ -107,14 +104,13 @@ light 2D flight.
 scene through its render camera and crop into `lib/blender-islands.json`
 (`life`): Taipei's traffic lanes (sampled along each avenue so traffic follows
 the perspective) and Taipei 101's face, the study lamp's light cone and lava
-lamp bottle, the shed's festoon bulbs, bare bulb, rocket lamp, LED ball and
-yard, and both rooms' LED strips (each one's ends and colour). `components/IslandLife.tsx` animates
+lamp bottle, the shed's festoon bulbs, bare bulb, LED ball and yard, and its
+visible LED strips (each one's ends and colour). `components/IslandLife.tsx` animates
 them on one small canvas at ~30fps, only while the island is settled: traffic
 (head/tail lights at night, cars by day), dust
 drifting in the lamplight, amber wax rising and sinking in the lava lamp,
-breathing festoon bulbs, a flickering bare bulb, the rocket lamp's flickering
-exhaust, the LED ball cycling through its colours, a soft light travelling
-along each LED strip, and fireflies. It follows the depth parallax so each detail stays on its surface.
+breathing festoon bulbs, a flickering bare bulb, the LED ball cycling through
+its colours, a soft light travelling along each LED strip, and fireflies. It follows the depth parallax so each detail stays on its surface.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
 in its New Year show: sprays from the front corners of each tier in turn,
 climbing the tower, then a shell off the spire; the launch points are the
@@ -159,11 +155,10 @@ small wall-plate button where Work has its sun and moon
 (`components/RoomLightSwitch.tsx`, `lib/room-lights.ts`). Off, the room is the
 same night without its lamps, bulbs and festoons: `--time dark` opens the saved
 night scene and `lights_out` in the build script removes every light but the
-moon rig and the coloured night lights, and switches off every glowing
-material but screens, windows and the night lights (the workshop's monitor
-stays on). Night lights are named `Glow ·` (lights and materials): the LED
-strips, the lava lamp, the rocket lamp and the LED ball, so a room with its
-lights off glows violet (the study) or purple and gold (the workshop). `export_variant.mjs` publishes it with the
+moon rig, switches off every glowing material but screens and windows (the
+LED strips, lava lamp and LED ball go dark too), and hangs one spotlight over
+the room's subject (`SPOTLIGHT`): the open notebook in the study, the computer
+in the workshop. `export_variant.mjs` publishes it with the
 night still's crop as `darkSrc`, so the switch is a pure 0.6s crossfade. The
 still is fetched when someone reaches for the switch (or at once if they left
 the lights off), the parallax blends to it, the lamp's dust, the festoon and
@@ -185,10 +180,11 @@ night closes in only once the notebook is in the air.
 
 ### Personal details
 
-Only facts already on the site, or details Carter asked for, are used: his bike
-on its kickstand at the edge of the workshop deck, rear tyre on the boards and
-front on the grass (he bikes around Taipei; `bike()` sets both tyres on
-whatever they stand on and leans it onto the stand), four sorted stacks of
+Only facts already on the site, or details Carter asked for, are used: his
+Segway-Ninebot MAX scooter on its kickstand at the edge of the workshop deck,
+rear tyre on the boards and front on the grass (he gets around Taipei on it;
+`ninebot_scooter()` sets both tyres on whatever they stand on and leans it onto
+the stand), four sorted stacks of
 poker chips with edge spots and a pair of face-down cards by the keyboard (he
 plays poker and built a poker odds calculator; the chips are drawn a little
 larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
@@ -196,9 +192,11 @@ larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
 trim and white piping, side stripes, LAKERS arched over 24) and a small
 purple-and-gold felt pennant, an orange basketball with a real ball's seams on
 the deck, a stainless Cybertruck model and a black cap with a small red mark
-(Tesla merch), and space things: a taped planet poster, and on the bench a
-rocket lamp (a glowing shell on a rod, red fins, a lit porthole and an exhaust
-flame) and a colour-changing LED ball. The monitor shows TaipeiFlix, lit like a real screen. The essay
+(Tesla merch), and space things: a taped planet poster, and on the shelf a
+SpaceX Falcon 9 display model and a colour-changing LED ball. The bench holds
+only what's his: the monitor, keyboard and trackpad, his iPad Pro on its Magic
+Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the
+poker chips and cards, and the desk lamp. The monitor shows TaipeiFlix, lit like a real screen. The essay
 journals and project prints below are his real covers and screenshots.
 
 ### Night
@@ -246,7 +244,7 @@ the timber stack. The three essay journals and the real project prints remain.
 
 Each island has its own plan (`PLANS` in the build script): Work is a broad,
 squarer district its street grid fills; Writing is a soft, rounded garden plot;
-Projects is a rough, jagged lot with a yard lobe for the bike. Every
+Projects is a rough, jagged lot with a yard lobe for the scooter. Every
 foundation otherwise uses the same proportions: the terrain is 35% wider and deeper
 in plan, and the cliff is 18% taller than the original earthy version. Buildings
 and furniture retain their size. The interiors use the extra land for soil and

@@ -103,8 +103,7 @@ elif opts.world == 'writing':
 else:
     life['festoon'] = centres('Festoon · bulb')
     life['bulb'] = centres('Workshop · bare bulb')[:1]
-    # The rocket lamp's flame and porthole, and the LED ball's centre and edge.
-    life['rocket'] = centres('Model rocket · exhaust flame') + centres('Model rocket · porthole')
+    # The LED ball's centre and edge.
     ball = next((o for o in scene.objects if o.name == 'LED ball'), None)
     if ball:
         centre = ball.matrix_world.translation

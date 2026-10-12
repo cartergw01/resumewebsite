@@ -5,15 +5,15 @@ import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { lightsOn } from "@/lib/room-lights";
 
 type Point = number[];
-export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; lava?: Point[]; rocket?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point } };
+export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; lava?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point } };
 export type ParallaxState = { x: number; y: number; focus: number; depth?: (x: number, y: number) => number };
 
 // Small things that move, placed with points projected from the Blender scene
 // (scripts/blender/export_life_anchors.py): Taipei's traffic,
 // dust in the study's lamplight and wax rising in its lava lamp, the shed's
-// festoon bulbs, rocket-lamp flame, colour-cycling LED ball and fireflies,
-// and a light travelling along each room's LED strips. The night lights (LED
-// strips, lava lamp, rocket, LED ball) stay on with a room's lights off.
+// festoon bulbs, colour-cycling LED ball and fireflies, and a light travelling
+// along the workshop's LED strips. With a room's lights off they all go dark
+// but the fireflies.
 // One canvas at ~30fps, only while the island is settled and visible; it
 // follows the depth parallax so the details stay on their surfaces.
 export default function IslandLife({ world, life, className }: { world: "work" | "writing" | "projects"; life: Life; className?: string }) {
@@ -127,7 +127,8 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           }
         }
       }
-      if (world === "writing" && life.lava && life.lava.length > 2) {
+      const roomLit = world !== "work" && lightsOn(world);
+      if (world === "writing" && roomLit && life.lava && life.lava.length > 2) {
         // Amber wax rising and sinking through the lava lamp's magenta liquid.
         const [[bx, by], [tx, ty], [ex, ey]] = life.lava;
         const width = Math.hypot(ex - (bx + tx) / 2, ey - (by + ty) / 2);
@@ -146,7 +147,7 @@ export default function IslandLife({ world, life, className }: { world: "work" |
         }
       }
       // A soft light travels along each LED strip, which breathes gently.
-      for (const [i, [a, b, rgb]] of (life.strips ?? []).entries()) {
+      for (const [i, [a, b, rgb]] of (roomLit ? life.strips ?? [] : []).entries()) {
         const color = rgb.join(","), length = Math.hypot(b[0] - a[0], b[1] - a[1]);
         const [ax, ay] = at(a[0], a[1]), [bx, by] = at(b[0], b[1]);
         context.strokeStyle = `rgba(${color},${(.12 + .06 * Math.sin(time * .8 + i)).toFixed(3)})`;
@@ -185,20 +186,8 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           const [x, y] = at(bx, by);
           glow(x, y, 14 * scale * 1.6, "255,206,140", .22 * flicker);
         }
-        // The rocket lamp's exhaust flickers and its porthole glows; sizes
-        // follow the rocket (flame to porthole).
-        const [flame, porthole] = life.rocket ?? [];
-        if (flame && porthole) {
-          const unit = size([flame, porthole]);
-          const flicker = .75 + .15 * Math.sin(time * 17) + .1 * Math.sin(time * 41 + 1.3);
-          const [x, y] = at(flame[0], flame[1] + unit * .04 * flicker);
-          blob(x, y, unit * .32 * flicker * scale, 1.7, "255,128,40", .6);
-          blob(x, y, unit * .13 * scale, 1.5, "255,226,170", .7 * flicker);
-          const [px, py] = at(porthole[0], porthole[1]);
-          glow(px, py, unit * .14 * scale, "140,210,255", .4 + .1 * Math.sin(time * 1.2));
-        }
         // The LED ball slowly cycles through its colours.
-        if (life.ball) {
+        if (roomLit && life.ball) {
           const unit = size(life.ball);
           const color = hue(time);
           const [x, y] = at(life.ball[0][0], life.ball[0][1]);
