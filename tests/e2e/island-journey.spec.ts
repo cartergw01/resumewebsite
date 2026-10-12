@@ -298,6 +298,8 @@ test("a scroll gesture never rests between islands, and keys move one stop", asy
 
 
 test("settled worlds survive refresh, browser Back, and the islands return link", async ({ page, isMobile }) => {
+  // Three full entries, reloads and history steps: ~35s on a laptop.
+  test.setTimeout(90_000);
   await page.goto("/#work");
   for (const world of ["Writing", "Projects", "Work"]) {
     const id = world.toLowerCase();
@@ -307,7 +309,9 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
     await page.reload();
     await expectScene(page, id);
     await page.getByRole("link", { name: new RegExp(`^${world},`) }).click();
-    await expect(page).toHaveURL(new RegExp(`/${id}$`));
+    // Each entry plays out before the route changes: Writing lifts its
+    // notebook and riffles the essays first (~4.4s), past the default wait.
+    await expect(page).toHaveURL(new RegExp(`/${id}$`), { timeout: 15_000 });
     await page.goBack();
     await expect(page).toHaveURL(new RegExp(`/#${id}$`));
     await expectScene(page, id);
