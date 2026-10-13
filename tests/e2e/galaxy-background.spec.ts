@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
 test("background video advances without scrolling, keeps playing across islands, and loops", async ({ page }) => {
   await page.goto("/");
@@ -34,8 +35,9 @@ test("background video advances without scrolling, keeps playing across islands,
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeLessThan(2);
   await expect(visual).toHaveAttribute("data-video-ready", "true");
   await page.getByRole("link", { name: /^Projects,/ }).focus();
+  await watchRocketLaunch(page);
   await page.keyboard.press("Enter");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(true);
   await expect(page).toHaveURL(/\/projects$/, { timeout: 15_000 });
 });
@@ -80,7 +82,8 @@ test("failed background video retains its poster and working island entry", asyn
   await expect.poll(() => visual.locator("img").evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
   await expect(visual.locator("picture")).toHaveCSS("opacity", "1");
   await expect(page.getByRole("heading", { name: "Work", exact: true })).toBeVisible();
+  await watchRocketLaunch(page);
   await page.getByRole("link", { name: /^Work,/ }).click();
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });
 });

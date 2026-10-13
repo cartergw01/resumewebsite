@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
 test("workshop screen and book pages respond locally to keyboard focus and hover", async ({ page }, testInfo) => {
   await page.goto("/#projects");
@@ -37,8 +38,9 @@ test("the workshop screen fans out every project and deals each into its row", a
   await page.goto("/#projects");
   const source = page.locator("#projects [data-workshop-screen]");
   const src = await source.getAttribute("data-src");
+  await watchRocketLaunch(page);
   await page.locator("#projects [data-island-link]").click();
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   const carry = page.locator("body > [data-workshop-transition]");
   await expect(carry).toHaveAttribute("data-workshop-transition", "entering");
   // A deck of every project, the monitor's own screen on top, all one size.

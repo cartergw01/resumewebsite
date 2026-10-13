@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
+import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
 test("the book opens the complete Writing archive without featuring an essay", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/#writing");
   await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
+  await watchRocketLaunch(page);
   await page.locator("#writing [data-island-link]").click();
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   // The island's open notebook lifts off to face you and is thumbed through,
   // past Carter's printed essays.
   const carry = page.locator("body > [data-book-transition]");

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
 async function scrollScreens(page: Page, screens: number) {
   await page.evaluate((distance) => {
@@ -112,9 +113,10 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll down to the Writing island" }).click();
   await expectScene(page, "writing");
   await page.getByRole("link", { name: /^Writing,/ }).focus();
+  await watchRocketLaunch(page);
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", "writing");
-  await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
   await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeVisible();
 });

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
 type CanvasProbeWindow = Window & typeof globalThis & { __rocketClears: number };
 
@@ -67,9 +68,10 @@ test("effects near viewport edges leave no canvas residue", async ({ page }, tes
   await page.mouse.move(1260, 680);
   // A decorative launch near the edge exercises clipped particle, flame, and
   // shockwave bounds without leaving the route or opening an outbound link.
+  await watchRocketLaunch(page);
   await page.locator("[data-island-page]").dispatchEvent("click", { clientX: 1260, clientY: 680 });
   const canvas = page.getByTestId("rocket-effects-canvas");
-  await expect(canvas).toHaveAttribute("data-transition-phase", "launching");
+  await expectRocketLaunched(page);
   await expect(canvas).toHaveAttribute("data-transition-phase", "idle");
   await expect(canvas).toHaveAttribute("data-animation-state", "idle");
   const hasResidue = await canvas.evaluate((element: HTMLCanvasElement) => {
