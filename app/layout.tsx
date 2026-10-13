@@ -11,14 +11,6 @@ import {
 } from "@/lib/seo";
 import "./globals.css";
 
-// One family at two widths: the headings use Archivo's expanded cut
-// (font-stretch 125% wherever --font-display is set), the text its normal one.
-const archivoDisplay = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
-  variable: "--font-display",
-  display: "swap",
-});
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -64,9 +56,14 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       data-theme="dark"
       data-scroll-behavior="smooth"
-      className={`dark ${archivoDisplay.variable} ${archivo.variable}`}
+      className={`dark ${archivo.variable}`}
+      style={{ "--font-display": "Panchang, system-ui, sans-serif" } as React.CSSProperties}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=panchang@400,500,600,700,800&display=swap" />
+      </head>
       <body className="min-h-screen font-sans antialiased">
         <script {...jsonLdScript([personJsonLd(), websiteJsonLd()])} />
         <ClientChrome />

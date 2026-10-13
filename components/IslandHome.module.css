@@ -81,7 +81,7 @@
   margin: 0;
   color: var(--cw-paper);
   font-family: var(--font-display); font-stretch: 125%;
-  font-size: clamp(3.5rem, 6.6vw, 6.6rem);
+  font-size: clamp(2.9rem, 5.4vw, 5.4rem);
   font-weight: 650;
   line-height: 1;
   letter-spacing: -0.025em;
@@ -383,7 +383,7 @@
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7.75rem; }
   .copy { max-width: 29rem; }
-  .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.025em; }
+  .copy h1, .copy h2 { max-width: none; font-size: clamp(2.25rem, 9vw, 3.7rem); letter-spacing: -0.025em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
   /* Even 1.5rem gaps between words, each a 44px target, aligned with the
      copy's left edge rather than spread across four equal columns. */
@@ -414,7 +414,7 @@
   .stage { --controls-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
-  .copy h1, .copy h2 { font-size: 2.75rem; }
+  .copy h1, .copy h2 { font-size: 2.25rem; }
   .island { max-height: 42dvh; }
   .art { height: calc(100% - 2.5rem); }
   .controls { gap: 0.35rem; }
@@ -422,7 +422,7 @@
 @media (max-height: 600px) and (min-width: 761px) {
   .stage { --controls-bottom: max(1rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; padding-bottom: 5rem; }
-  .copy h1, .copy h2 { max-width: none; font-size: 3.5rem; }
+  .copy h1, .copy h2 { max-width: none; font-size: 2.9rem; }
   .description { margin-top: 1rem; font-size: 0.8125rem; line-height: 1.6; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
