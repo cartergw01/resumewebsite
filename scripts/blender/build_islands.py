@@ -1504,7 +1504,7 @@ def ipad_pro(x,y,z,angle,wallpaper):
     P['ipad_body']=material('iPad Pro · space black aluminium',(.03,.03,.033),metal=.6,rough=.35)
     # Keyboard base, 28.5 x 24cm, with keys and a glass trackpad. The keys are
     # backlit: light shows between them and through each key's legend, and
-    # stays on with the room's lights off.
+    # dims with the room's lights off.
     P['key_backlight']=material('Magic Keyboard · key backlight',(.82,.88,1),emission=2.2)
     box('Magic Keyboard · base',(0,.24,.009),(.57,.48,.018),'magic_keyboard',.006)
     box('Magic Keyboard · backlight under the keys',(0,.17,.0182),(.55,.24,.0006),'key_backlight',0)
@@ -2249,20 +2249,22 @@ def camera_and_lights(scene):
 # night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
 SCREENS=('Screen','Monitor','Window','display','backlight')
-# Screens that dim rather than stay at full brightness with the lights off.
-DIMMED={'iPad Pro · Screen display':.35}
+# What dims rather than staying at full brightness with the lights off: the
+# iPad's screen (to a faint glow, its glass dark so the spotlight cannot
+# light its picture) and its Magic Keyboard's backlight.
+DIMMED={'iPad Pro · Screen display':.06,'Magic Keyboard · key backlight':.06}
 # With the lights off, one spotlight picks out what each room is about: the
 # open notebook on the study's desk, the computer on the workshop's bench.
 # Points are in each turned furniture group's own space (see writing() and
 # workshop()), with where the lamp hangs relative to them.
 SPOTLIGHT={'writing':('Study · gently turned desk',(.16,-.80,1.614),(0,-.9,3.4),30,180),
-           'projects':('Workshop · turned workbench',(.90,.05,1.85),(0,-1.5,3.1),34,200)}
+           'projects':('Workshop · turned workbench',(.90,.05,1.85),(0,-1.5,3.1),26,200)}
 
 
 def lights_out(scene,world):
     """The same night with the room's lights switched off: lamps, bulbs,
     festoons, night lights and their glow go dark; moonlight, windows and
-    screens stay (the iPad's dims) with the keyboard backlight, and a
+    screens stay (the iPad's and its keyboard backlight dim), and a
     spotlight falls on the room's subject."""
     for obj in list(scene.objects):
         if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):
@@ -2279,6 +2281,9 @@ def lights_out(scene,world):
         if mat.name in DIMMED:
             bs=mat.node_tree.nodes['Principled BSDF']
             bs.inputs['Emission Strength'].default_value*=DIMMED[mat.name]
+            # Only the glow carries the picture; the glass itself stays dark.
+            for link in list(bs.inputs['Base Color'].links):mat.node_tree.links.remove(link)
+            bs.inputs['Base Color'].default_value=(.02,.02,.022,1)
             continue
         if not mat.use_nodes or any(word in mat.name for word in SCREENS):continue
         bs=mat.node_tree.nodes.get('Principled BSDF')
