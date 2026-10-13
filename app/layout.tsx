@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Space_Grotesk } from "next/font/google";
+import { Archivo } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import ClientChrome from "@/components/ClientChrome";
 import {
@@ -11,17 +11,18 @@ import {
 } from "@/lib/seo";
 import "./globals.css";
 
-// Both styles: the island labels, cues and notebook titles are set in the
-// italic, which browsers otherwise fake by slanting the upright letters.
-const playfair = Playfair_Display({
+// One family at two widths: the headings use Archivo's expanded cut
+// (font-stretch 125% wherever --font-display is set), the text its normal one.
+const archivoDisplay = Archivo({
   subsets: ["latin"],
-  style: ["normal", "italic"],
+  axes: ["wdth"],
   variable: "--font-display",
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const archivo = Archivo({
   subsets: ["latin"],
+  axes: ["wdth"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -63,7 +64,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       data-theme="dark"
       data-scroll-behavior="smooth"
-      className={`dark ${playfair.variable} ${spaceGrotesk.variable}`}
+      className={`dark ${archivoDisplay.variable} ${archivo.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen font-sans antialiased">

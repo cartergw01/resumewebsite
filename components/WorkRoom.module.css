@@ -40,7 +40,7 @@
 .logo { flex: none; object-fit: contain; filter: brightness(0) invert(0.93) sepia(0.25); opacity: 0.9; }
 
 /* 886 uses the same heading shape as every other company, just larger. */
-.experienceHeading h3.current { gap: 0.8rem; font-family: var(--font-display); font-size: clamp(1.9rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; }
+.experienceHeading h3.current { gap: 0.8rem; font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.9rem, 3vw, 2.4rem); font-weight: 600; letter-spacing: -0.02em; }
 .current .logo { width: 0.85em; height: 0.85em; }
 .current a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.16em; transition: text-decoration-color 200ms ease; }
 .current a:hover { text-decoration-color: #efd2a299; }
@@ -73,7 +73,7 @@
 .story p { margin: 0; }
 .story p + p { margin-top: 1rem; }
 
-.closing { margin: 0; font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.65rem); line-height: 1.4; letter-spacing: -0.01em; }
+.closing { margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.35rem, 2vw, 1.65rem); line-height: 1.4; letter-spacing: -0.01em; }
 
 /* About me: three quick facts side by side, then the personal line. */
 .facts { display: flex; flex-wrap: wrap; gap: 1.25rem 3rem; margin: 0 0 1.5rem; }

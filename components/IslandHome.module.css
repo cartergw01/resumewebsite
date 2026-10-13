@@ -80,11 +80,11 @@
 .copy h1, .copy h2 {
   margin: 0;
   color: var(--cw-paper);
-  font-family: var(--font-display);
-  font-size: clamp(4rem, 7.5vw, 7.5rem);
-  font-weight: 700;
-  line-height: 1.04;
-  letter-spacing: -0.045em;
+  font-family: var(--font-display); font-stretch: 125%;
+  font-size: clamp(3.5rem, 6.6vw, 6.6rem);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 .copy h1 { max-width: 6ch; }
 /* Each stop's heading is also a way into its page. */
@@ -145,10 +145,11 @@
 .landmarkCue {
   position: absolute;
   color: #e9d4b6;
-  font-family: var(--font-display);
-  font-size: var(--type-annotation);
+  font-family: var(--font-display); font-stretch: 125%;
+  font-size: calc(var(--type-annotation) * 0.62);
   font-weight: 500;
-  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
   line-height: 1.5;
   opacity: calc(var(--cue-opacity, 1) * var(--cue-rest, 1));
   pointer-events: none;
@@ -239,7 +240,7 @@
    camera's first zoom targets its exact position. */
 .overviewIsland:not([data-overview-island="work"]) .overviewVisual { animation: overview-bob 9s ease-in-out infinite; }
 .overviewIsland[data-overview-island="projects"] .overviewVisual { animation-delay: -4.5s; }
-.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-size: var(--type-annotation); font-style: italic; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
+.overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-stretch: 125%; font-size: calc(var(--type-annotation) * 0.62); font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
 /* Labels leave with the other annotations as soon as the camera moves. */
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
 /* Labels sit just under each island's contained 3:2 art, at every width. */
@@ -382,7 +383,7 @@
   .stage { --controls-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .scene { display: grid; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 0.75rem; padding: max(5.75rem, calc(env(safe-area-inset-top) + 4.5rem)) 1.5rem 7.75rem; }
   .copy { max-width: 29rem; }
-  .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.04em; }
+  .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.025em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
   /* Even 1.5rem gaps between words, each a 44px target, aligned with the
      copy's left edge rather than spread across four equal columns. */
@@ -394,9 +395,9 @@
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9dvh, 5rem)); min-height: 0; margin-inline: -3rem; }
   .scene:has(.overview) .art { width: calc(100% + 3rem); height: 100%; margin-inline: -1.5rem; }
   .overview { max-height: 30rem; }
-  .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .9375rem; }
+  .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
   .island { max-height: 50dvh; }
-  .landmarkCue { font-size: 1rem; }
+  .landmarkCue { font-size: .6875rem; }
   .bookCue > span { top: -5%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   .chapters { width: 100%; }
@@ -516,11 +517,11 @@
   background-position: 0 100%;
   background-repeat: no-repeat;
   background-size: 0% 1px;
-  font-family: var(--font-display);
-  font-size: var(--type-annotation);
-  font-style: italic;
+  font-family: var(--font-display); font-stretch: 125%;
+  font-size: calc(var(--type-annotation) * 0.62);
   font-weight: 500;
-  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
   line-height: 1.2;
   white-space: nowrap;
   text-shadow: 0 0 2px #030611, 0 1px 12px #030611, 0 0 24px #eacb8838;
