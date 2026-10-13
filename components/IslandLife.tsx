@@ -5,15 +5,15 @@ import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { lightsOn } from "@/lib/room-lights";
 
 type Point = number[];
-export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; festoon?: Point[]; bulb?: Point[]; yard?: Point[]; lava?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point } };
+export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; lava?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point } };
 export type ParallaxState = { x: number; y: number; focus: number; depth?: (x: number, y: number) => number };
 
 // Small things that move, placed with points projected from the Blender scene
 // (scripts/blender/export_life_anchors.py): Taipei's traffic,
-// dust in the study's lamplight and wax rising in its lava lamp, the shed's
-// festoon bulbs, colour-cycling LED ball and fireflies, and a light travelling
-// along the workshop's LED strips. With a room's lights off they all go dark
-// but the fireflies.
+// dust in the study's lamplight and wax rising in its lava lamp, the
+// workshop's colour-cycling LED ball and its LED strips breathing. Nothing
+// floats free of what makes it: no glows hung over bulbs, no fireflies. With
+// a room's lights off they all go dark.
 // One canvas at ~30fps, only while the island is settled and visible; it
 // follows the depth parallax so the details stay on their surfaces.
 export default function IslandLife({ world, life, className }: { world: "work" | "writing" | "projects"; life: Life; className?: string }) {
@@ -37,7 +37,6 @@ export default function IslandLife({ world, life, className }: { world: "work" |
       tint: ["236,236,230", "214,218,222", "238,196,64", "180,186,194"][Math.floor(random(index + k * 5) * 4)],
     })));
     const motes = Array.from({ length: 18 }, (_, i) => ({ u: random(i), v: random(i + 40), phase: random(i + 80) * 6.28, speed: .5 + random(i + 120) }));
-    const flies = Array.from({ length: 5 }, (_, i) => ({ seed: i * 17.3, phase: random(i + 7) * 6.28 }));
     // Wax blobs: each rises and sinks on its own slow cycle.
     const wax = Array.from({ length: 4 }, (_, i) => ({ period: 16 + random(i + 200) * 12, phase: random(i + 230) * 6.28, size: .38 + random(i + 260) * .22, drift: random(i + 290) * 6.28 }));
 
@@ -146,20 +145,12 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           blob(x, y, r * .8, 1 + .45 * Math.abs(rising), "255,214,140", .35);
         }
       }
-      // A soft light travels along each LED strip, which breathes gently.
+      // Each LED strip breathes gently.
       for (const [i, [a, b, rgb]] of (roomLit ? life.strips ?? [] : []).entries()) {
-        const color = rgb.join(","), length = Math.hypot(b[0] - a[0], b[1] - a[1]);
         const [ax, ay] = at(a[0], a[1]), [bx, by] = at(b[0], b[1]);
-        context.strokeStyle = `rgba(${color},${(.12 + .06 * Math.sin(time * .8 + i)).toFixed(3)})`;
+        context.strokeStyle = `rgba(${rgb.join(",")},${(.12 + .06 * Math.sin(time * .8 + i)).toFixed(3)})`;
         context.lineWidth = Math.max(1.2, 3 * scale);
         context.beginPath(); context.moveTo(ax, ay); context.lineTo(bx, by); context.stroke();
-        // One pulse per ~250px of strip, moving at ~45px a second.
-        const pulses = Math.max(1, Math.round(length / 250));
-        for (let k = 0; k < pulses; k++) {
-          const u = ((time * 45 / Math.max(length, 1)) + k / pulses + i * .31) % 1;
-          const [x, y] = at(a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u);
-          glow(x, y, Math.max(10, Math.min(28, length * .08)) * scale, color, .5);
-        }
       }
       if (world === "writing" && life.lamp && life.cone && lightsOn("writing")) {
         // Dust drifting slowly through the lamp's cone of light.
@@ -173,37 +164,11 @@ export default function IslandLife({ world, life, className }: { world: "work" |
           const [x, y] = at(ix, iy);
           glow(x, y, 1.8 * scale * 1.6, "255,226,170", .5 * twinkle * Math.sin(Math.PI * v));
         }
-      } else if (world === "projects") {
-        // With the workshop's lights off only the fireflies are left.
-        const lit = lightsOn("projects");
-        for (const [i, [bx, by]] of (lit ? life.festoon ?? [] : []).entries()) {
-          const breath = .55 + .25 * Math.sin(time * 1.1 + i * 1.7) + .12 * Math.sin(time * 2.9 + i);
-          const [x, y] = at(bx, by);
-          glow(x, y, 6 * scale * 1.6, "255,214,150", .35 * breath);
-        }
-        for (const [bx, by] of lit ? life.bulb ?? [] : []) {
-          const flicker = .8 + .2 * Math.sin(time * 23) * Math.sin(time * 3.1);
-          const [x, y] = at(bx, by);
-          glow(x, y, 14 * scale * 1.6, "255,206,140", .22 * flicker);
-        }
-        // The LED ball slowly cycles through its colours.
-        if (roomLit && life.ball) {
-          const unit = size(life.ball);
-          const color = hue(time);
-          const [x, y] = at(life.ball[0][0], life.ball[0][1]);
-          glow(x, y, unit * 1.05 * scale, color, .6);
-          glow(x, y, unit * 3.2 * scale, color, .18);
-        }
-        const yard = life.yard ?? [];
-        for (const [i, fly] of flies.entries()) {
-          if (!yard.length) break;
-          const home = yard[i % yard.length];
-          const ix = home[0] + Math.sin(time * .45 + fly.seed) * 26 + Math.sin(time * 1.3 + fly.seed * 2) * 7;
-          const iy = home[1] - 10 + Math.cos(time * .38 + fly.seed) * 12;
-          const blink = Math.max(0, Math.sin(time * 1.6 + fly.phase)) ** 3;
-          const [x, y] = at(ix, iy);
-          glow(x, y, 2.6 * scale * 1.6, "214,255,140", .85 * blink);
-        }
+      } else if (world === "projects" && roomLit && life.ball) {
+        // The LED ball slowly cycles through its colours, tinting the ball
+        // itself rather than the air around it.
+        const [x, y] = at(life.ball[0][0], life.ball[0][1]);
+        glow(x, y, size(life.ball) * 1.05 * scale, hue(time), .6);
       }
       if (!live()) { cancelAnimationFrame(frame); frame = 0; last = 0; }
     };

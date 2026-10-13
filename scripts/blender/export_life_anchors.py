@@ -1,5 +1,5 @@
 """Project extra 3D points from a saved island scene into its cropped still,
-for the browser's live details (traffic, festoon bulbs, lamplight).
+for the browser's live details (traffic, lamplight, the LED ball and strips).
 
 blender -b artwork/blender/work.blend --python scripts/blender/export_life_anchors.py -- --world work
 
@@ -31,9 +31,6 @@ def project(point):
     x, y = v.x * 1200, (1 - v.y) * 800
     return [round((x - crop[0]) / crop[2] * 1200, 2), round((y - crop[1]) / crop[3] * 800, 2)]
 
-
-def centres(prefix):
-    return [project(obj.matrix_world.translation) for obj in scene.objects if obj.name.startswith(prefix)]
 
 
 life = {}
@@ -101,17 +98,14 @@ elif opts.world == 'writing':
         k = bottle.dimensions.z / .25
         life['lava'] = [project(base + Vector((0, 0, .02 * k))), project(base + Vector((0, 0, .23 * k))), project(base + Vector((.064 * k, 0, .07 * k)))]
 else:
-    life['festoon'] = centres('Festoon · bulb')
-    life['bulb'] = centres('Workshop · bare bulb')[:1]
     # The LED ball's centre and edge.
     ball = next((o for o in scene.objects if o.name == 'LED ball'), None)
     if ball:
         centre = ball.matrix_world.translation
         life['ball'] = [project(centre), project(centre + Vector((ball.scale.x, 0, 0)))]
-    life['yard'] = [project(p) for p in [(-3.6, -2.2, .25), (3.3, -1.6, .25), (-3.9, 1.0, .25), (2.6, -2.6, .25), (4.2, 0, .3)]]
 
 # The rooms' LED strips (named "Glow · … strip") the camera can see: each
-# one's two ends and its colour, for the light that travels along them on the
+# one's two ends and its colour, for the glow that breathes along them on the
 # page. A strip hidden behind something (the roof beam's, under the roof's
 # edge) is left out, so its light never floats over what hides it.
 strips = []

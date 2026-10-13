@@ -104,13 +104,15 @@ light 2D flight.
 scene through its render camera and crop into `lib/blender-islands.json`
 (`life`): Taipei's traffic lanes (sampled along each avenue so traffic follows
 the perspective) and Taipei 101's face, the study lamp's light cone and lava
-lamp bottle, the shed's festoon bulbs, bare bulb, LED ball and yard, and its
-visible LED strips (each one's ends and colour). `components/IslandLife.tsx` animates
+lamp bottle, and the shed's LED ball and visible LED strips (each one's ends
+and colour). `components/IslandLife.tsx` animates
 them on one small canvas at ~30fps, only while the island is settled: traffic
 (head/tail lights at night, cars by day), dust
 drifting in the lamplight, amber wax rising and sinking in the lava lamp,
-breathing festoon bulbs, a flickering bare bulb, the LED ball cycling through
-its colours, a soft light travelling along each LED strip, and fireflies. It follows the depth parallax so each detail stays on its surface.
+the LED ball cycling through its colours and the LED strips breathing. Every
+detail sits on the thing that makes it (no glows hung in the air over bulbs,
+no fireflies). It follows the depth parallax so each detail stays on its
+surface.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
 in its New Year show: sprays from the front corners of each tier in turn,
 climbing the tower, then a shell off the spire; the launch points are the
@@ -161,8 +163,9 @@ the room's subject (`SPOTLIGHT`): the open notebook in the study, the computer
 in the workshop. `export_variant.mjs` publishes it with the
 night still's crop as `darkSrc`, so the switch is a pure 0.6s crossfade. The
 still is fetched when someone reaches for the switch (or at once if they left
-the lights off), the parallax blends to it, the lamp's dust, the festoon and
-bulb glows and the reading lamp's pool go out, the desk's printed page dims,
+the lights off), the parallax blends to it, the lamp's dust, the lava lamp's
+wax, the LED ball and strips and the reading lamp's pool go out, the desk's
+printed page dims,
 and a turned 3D view dims its lamps and glows the same way. Each room
 remembers its own switch per visitor. The camera flights keep their baked,
 lit models.
