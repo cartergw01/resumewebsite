@@ -4,7 +4,7 @@
 
 @theme {
   --font-sans: var(--font-sans), system-ui, sans-serif;
-  --font-display: var(--font-display), Georgia, serif;
+  --font-display: var(--font-display), system-ui, sans-serif;
 }
 
 :root {
@@ -907,7 +907,7 @@ select {
 .world-intro h2 {
   margin: 0;
   color: var(--cw-paper);
-  font-family: var(--font-display);
+  font-family: var(--font-display); font-stretch: 125%;
   font-weight: 700;
   letter-spacing: 0;
   text-wrap: balance;
@@ -1086,7 +1086,7 @@ select {
 .constellation-heading h2 {
   margin: 0;
   color: var(--cw-paper);
-  font-family: var(--font-display);
+  font-family: var(--font-display); font-stretch: 125%;
   font-size: clamp(2.6rem, 5vw, 5rem);
   line-height: 0.92;
   letter-spacing: 0;
@@ -1445,7 +1445,7 @@ select {
 .fa-name {
   margin: 0;
   color: var(--cw-paper);
-  font-family: var(--font-display);
+  font-family: var(--font-display); font-stretch: 125%;
   font-size: clamp(1.4rem, 2.2vw, 1.85rem);
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -1702,7 +1702,7 @@ select {
 
 .archive-main strong {
   color: var(--cw-paper);
-  font-family: var(--font-display);
+  font-family: var(--font-display); font-stretch: 125%;
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 700;
   line-height: var(--leading-tight);
@@ -1852,7 +1852,7 @@ select {
 
 .project-row-copy strong {
   color: var(--cw-paper);
-  font-family: var(--font-display);
+  font-family: var(--font-display); font-stretch: 125%;
   font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   line-height: 1.12;
   overflow-wrap: break-word;
