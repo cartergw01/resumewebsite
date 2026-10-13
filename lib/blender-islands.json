@@ -3310,7 +3310,7 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-787e3ccd.webp",
+    "src": "/blender/island-projects-2c42c47e.webp",
     "screen": [
       [
         589.532,
@@ -3351,8 +3351,8 @@
         352.919
       ]
     ],
-    "darkSrc": "/blender/island-projects-dark-c7599b99.webp",
-    "depthSrc": "/blender/depth-projects-4b44f077.webp",
+    "darkSrc": "/blender/island-projects-dark-9c6ec345.webp",
+    "depthSrc": "/blender/depth-projects-0369d659.webp",
     "life": {
       "festoon": [
         [

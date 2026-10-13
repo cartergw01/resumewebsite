@@ -1502,11 +1502,16 @@ def ipad_pro(x,y,z,angle,wallpaper):
     before=set(bpy.context.scene.objects)
     P['magic_keyboard']=material('Magic Keyboard · black polyurethane',(.018,.018,.02),rough=.6)
     P['ipad_body']=material('iPad Pro · space black aluminium',(.03,.03,.033),metal=.6,rough=.35)
-    # Keyboard base, 28.5 x 24cm, with keys and a glass trackpad.
+    # Keyboard base, 28.5 x 24cm, with keys and a glass trackpad. The keys are
+    # backlit: light shows between them and through each key's legend, and
+    # stays on with the room's lights off.
+    P['key_backlight']=material('Magic Keyboard · key backlight',(.82,.88,1),emission=2.2)
     box('Magic Keyboard · base',(0,.24,.009),(.57,.48,.018),'magic_keyboard',.006)
+    box('Magic Keyboard · backlight under the keys',(0,.17,.0182),(.55,.24,.0006),'key_backlight',0)
     for row in range(5):
         for col in range(13):
             box('Magic Keyboard · key',(-.252+col*.042,.115+row*.040,.0195),(.034,.032,.004),'ink',.002)
+            box('Magic Keyboard · key legend',(-.252+col*.042,.117+row*.040,.0218),(.010,.008,.0004),'key_backlight',0)
     box('Magic Keyboard · space bar',(0,.075,.0195),(.21,.032,.004),'ink',.002)
     box('Magic Keyboard · trackpad',(0,.035,.0185),(.20,.05,.002),'ipad_body',.002)
     rod('Magic Keyboard · hinge',(-.27,.47,.016),(.27,.47,.016),.011,'magic_keyboard',16)
@@ -2243,7 +2248,9 @@ def camera_and_lights(scene):
 # the night through the windows, and screens. Everything else goes dark,
 # night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
-SCREENS=('Screen','Monitor','Window','display')
+SCREENS=('Screen','Monitor','Window','display','backlight')
+# Screens that dim rather than stay at full brightness with the lights off.
+DIMMED={'iPad Pro · Screen display':.35}
 # With the lights off, one spotlight picks out what each room is about: the
 # open notebook on the study's desk, the computer on the workshop's bench.
 # Points are in each turned furniture group's own space (see writing() and
@@ -2255,7 +2262,8 @@ SPOTLIGHT={'writing':('Study · gently turned desk',(.16,-.80,1.614),(0,-.9,3.4)
 def lights_out(scene,world):
     """The same night with the room's lights switched off: lamps, bulbs,
     festoons, night lights and their glow go dark; moonlight, windows and
-    screens stay, and a spotlight falls on the room's subject."""
+    screens stay (the iPad's dims) with the keyboard backlight, and a
+    spotlight falls on the room's subject."""
     for obj in list(scene.objects):
         if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):
             bpy.data.objects.remove(obj,do_unlink=True)
@@ -2268,6 +2276,10 @@ def lights_out(scene,world):
         spot.location=target+Vector(offset)
         spot.rotation_euler=(target-spot.location).to_track_quat('-Z','Y').to_euler()
     for mat in bpy.data.materials:
+        if mat.name in DIMMED:
+            bs=mat.node_tree.nodes['Principled BSDF']
+            bs.inputs['Emission Strength'].default_value*=DIMMED[mat.name]
+            continue
         if not mat.use_nodes or any(word in mat.name for word in SCREENS):continue
         bs=mat.node_tree.nodes.get('Principled BSDF')
         if bs and bs.inputs['Emission Strength'].default_value>0:
