@@ -5,9 +5,10 @@
 .screen.paper { border-radius: 1px; background: #ecdfc6; box-shadow: 0 24px 90px #0009; }
 .paper svg { display: block; width: 100%; height: 100%; }
 /* Writing: the island's open notebook lifts to face you and its leaves turn. */
-/* The fader carries the perspective and the fades; the notebook inside it
-   keeps a true 3D context, so leaves and pages sort by depth. */
-.fader { position: absolute; inset: 0; perspective: 3000px; will-change: opacity; }
+/* The fader carries the fades; the notebook inside it keeps a true 3D
+   context (its perspective travels with it, in lib/workshop-entry.ts), so
+   leaves and pages sort by depth. */
+.fader { position: absolute; inset: 0; will-change: opacity; }
 /* The shadow the notebook leaves on the desk as it lifts off. */
 .deskShadow { position: absolute; top: 0; left: 0; border-radius: 50%; background: radial-gradient(closest-side, #120a0499, #120a0440 60%, transparent); transform-origin: 50% 50%; pointer-events: none; will-change: transform, opacity; }
 .notebook { position: absolute; top: 0; left: 0; transform-style: preserve-3d; will-change: transform; }
@@ -45,15 +46,15 @@
 .essay p { margin: 0; }
 .masthead { position: absolute; top: calc(var(--u) * 29); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 15), 9px); font-style: italic; }
 .dated { position: absolute; top: calc(var(--u) * 70); left: calc(var(--u) * 32); font: max(calc(var(--u) * 9), 6px) Arial, sans-serif; letter-spacing: calc(var(--u) * 1.1); }
-/* Both pages share one grid: a 32u margin each side, the title and the
-   standfirst starting on the same line, each closed by the same short rule. */
+/* Every page is set on one grid: one essay to a page, a 32u margin each
+   side, the masthead, date, title, rule, standfirst and byline always in the
+   same places. */
 .body { position: absolute; top: calc(var(--u) * 94); left: calc(var(--u) * 32); right: calc(var(--u) * 32); }
-.headline { font-size: calc(var(--u) * 34); font-weight: 600; line-height: calc(var(--u) * 39); letter-spacing: calc(var(--u) * -1.1); }
+/* Every title takes two lines' room and sits at its foot, so a one-line
+   title's rule and standfirst line up with a two-line title's across the spread. */
+.headline { display: flex; align-items: flex-end; min-height: calc(var(--u) * 78); font-size: calc(var(--u) * 34); font-weight: 600; line-height: calc(var(--u) * 39); letter-spacing: calc(var(--u) * -1.1); }
 .rule { display: block; width: calc(var(--u) * 30); height: 1px; margin: calc(var(--u) * 16) 0 0; background: #8b7154; }
-.dek { display: -webkit-box; overflow: hidden; font: max(calc(var(--u) * 13), 8px) / max(calc(var(--u) * 19), 12px) Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
-/* The right-hand page: the essay's standfirst, set large, level with the title. */
-.standfirst { position: absolute; top: calc(var(--u) * 94); left: calc(var(--u) * 32); right: calc(var(--u) * 32); }
-.standfirst .dek { font: italic max(calc(var(--u) * 21), 11px) / max(calc(var(--u) * 30), 16px) var(--font-display), Georgia, serif; -webkit-line-clamp: 6; }
+.dek { display: -webkit-box; overflow: hidden; margin-top: calc(var(--u) * 18); font: italic max(calc(var(--u) * 17), 10px) / max(calc(var(--u) * 25), 15px) var(--font-display), Georgia, serif; -webkit-box-orient: vertical; -webkit-line-clamp: 6; }
 .byline { position: absolute; bottom: calc(var(--u) * 28); left: calc(var(--u) * 32); font-size: max(calc(var(--u) * 11), 7px); font-style: italic; }
 /* Projects: every poster card shares the laptop screen's look and size. */
 .deck { position: absolute; inset: 0; }

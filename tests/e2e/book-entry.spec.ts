@@ -15,7 +15,9 @@ test("the book opens the complete Writing archive without featuring an essay", a
   await expect(carry).toHaveAttribute("data-book-transition", "entering");
   // Record that the very same notebook crosses the route boundary and opens
   // onto the page upright, centred and with every leaf turned over the spine.
-  await carry.evaluate(node => {
+  const essays = JSON.parse(await page.locator("#writing [data-book-spread]").getAttribute("data-essays") ?? "[]").length;
+  await carry.evaluate((node, essays) => {
+    const expectedLeaves = Math.min(innerWidth < 760 ? 5 : 7, Math.floor((essays - 2) / 2));
     const observer = new MutationObserver(() => {
       if (document.documentElement.dataset.bookTransition !== "revealing") return;
       const leaves = Array.from(node.querySelectorAll("[data-notebook-leaf]"));
@@ -23,16 +25,18 @@ test("the book opens the complete Writing archive without featuring an essay", a
       const w = window as Window & { bookArrival?: { matched: boolean; turned: boolean; centred: boolean } };
       w.bookArrival = {
         matched: node.isConnected && location.pathname === "/writing",
-        turned: leaves.length === (innerWidth < 760 ? 5 : 7) && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
+        // One essay to a page: the spread holds two and every leaf two more,
+        // with only as many leaves as fill both faces (no blank pages).
+        turned: leaves.length === expectedLeaves && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
         centred: Math.abs(book.left + book.width / 2 - innerWidth / 2) < 2 && book.width > innerWidth * .6,
       };
       observer.disconnect();
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-book-transition"] });
-  });
+  }, essays);
   await expect(carry.locator("[data-notebook-page]")).toHaveCount(2);
   await expect(carry.locator("svg")).toHaveCount(0);
-  // It opens on the newest essay, one spread per essay; every page is one of
+  // It opens on the newest essay, one essay to a page; every page is one of
   // Carter's essays, with no reading-list roundups and no contents page.
   await expect(carry.locator('[data-notebook-page="left"]')).toContainText("The Cost of Keeping Up");
   await expect(carry.locator('[data-notebook-page="left"]')).toContainText("MAY 5, 2026");

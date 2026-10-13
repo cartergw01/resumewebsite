@@ -59,37 +59,32 @@ export type NotebookEssay = { title: string; date: string; subtitle: string };
 
 export function beginBookEntry(source: SVGGraphicsElement) {
   // The notebook is a bound collection of Carter's essays (not the reading
-  // lists), one spread each: the title page on the left, its standfirst set
-  // large on the right. Thumbing through it riffles past them, newest first,
-  // and it falls open on the last one, which dissolves into the Writing page.
+  // lists), one essay to a page, every page set the same way. Thumbing
+  // through it riffles past them, newest first, and it falls open on the
+  // last spread, which dissolves into the Writing page.
   const essays: NotebookEssay[] = JSON.parse(source.dataset.essays ?? "[]");
-  // Each leaf turns from one essay's spread to the next.
-  const leaves = Math.max(1, Math.min(bookLeaves(), essays.length - 1));
+  // Each leaf turns a page over: the spread shows essays 0 and 1, and every
+  // leaf brings two more. Only as many leaves as there are essays to fill
+  // both of their faces, so no page is ever blank.
+  const leaves = Math.max(0, Math.min(bookLeaves(), Math.floor((essays.length - 2) / 2)));
   const line = (className: string, text: string) => {
     const part = document.createElement("p");
     part.className = className;
     part.textContent = text;
     return part;
   };
-  // An essay's two pages, typeset like the page lying open on the island
-  // (EssayLeaf): the masthead, the date and the title on the left; the
-  // standfirst and the byline on the right.
-  const typeset = (essay: NotebookEssay, half: "title" | "standfirst") => {
+  // One essay's page, typeset like the page lying open on the island
+  // (EssayLeaf): the masthead and the date, the title closed by a short rule,
+  // the standfirst under it, and the byline at the foot.
+  const typeset = (essay: NotebookEssay) => {
     const sheet = document.createElement("div");
     sheet.className = styles.essay;
     const rule = document.createElement("span");
     rule.className = styles.rule;
-    if (half === "title") {
-      const body = document.createElement("div");
-      body.className = styles.body;
-      body.append(line(styles.headline, essay.title), rule);
-      sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body);
-    } else {
-      const body = document.createElement("div");
-      body.className = styles.standfirst;
-      body.append(line(styles.dek, essay.subtitle), rule);
-      sheet.append(body, line(styles.byline, "Carter Wang"));
-    }
+    const body = document.createElement("div");
+    body.className = styles.body;
+    body.append(line(styles.headline, essay.title), rule, line(styles.dek, essay.subtitle));
+    sheet.append(line(styles.masthead, "flying Arrows"), line(styles.dated, essay.date.toUpperCase()), body, line(styles.byline, "Carter Wang"));
     return sheet;
   };
   // A whole printed page. The two static pages are named for the arrival.
@@ -97,7 +92,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     const leaf = document.createElement("div");
     leaf.className = `${styles.leaf} ${styles[side]}`;
     if (named) leaf.dataset.notebookPage = side;
-    if (essay) leaf.append(typeset(essay, side === "left" ? "title" : "standfirst"));
+    if (essay) leaf.append(typeset(essay));
     return leaf;
   };
   // One face of a leaf: a whole page, front or back.
@@ -107,14 +102,14 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     pane.append(page(side, essay));
     return pane;
   };
-  // The spread opens on the newest essay; each leaf carries the right page
-  // of one essay on its front and the left page of the next on its back; the
-  // page under all the leaves is the last essay's right page.
+  // Pages run 0, 1, 2, ...: the spread opens on 0 and 1; leaf i carries page
+  // 2i + 1 on its front and 2i + 2 on its back; the page under all the leaves
+  // is the last right-hand page, 2 x leaves + 1.
   const spread = document.createDocumentFragment();
   spread.append(page("left", essays[0], true));
   // The right page lies under the leaves, so it comes first: in DOM order
   // too, so any engine that paints this flat keeps it under the leaves.
-  spread.append(page("right", essays[leaves], true));
+  spread.append(page("right", essays[2 * leaves + 1], true));
   for (let index = 0; index < leaves; index++) {
     // Each leaf is one stiff sheet, hinged on the spine. (Bending it in two
     // hinged halves made engines sort and shade the halves apart, which
@@ -122,7 +117,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     const leaf = document.createElement("div");
     leaf.className = styles.turn;
     leaf.dataset.notebookLeaf = String(index);
-    leaf.append(face("right", false, essays[index]), face("left", true, essays[index + 1]));
+    leaf.append(face("right", false, essays[2 * index + 1]), face("left", true, essays[2 * index + 2]));
     spread.append(leaf);
   }
   return beginEntry(source, spread, "book", 640, 400);
@@ -134,23 +129,23 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 const bookLeaves = () => innerWidth < 760 ? 5 : 7;
 // How long the notebook takes from the desk to reading distance.
 const BOOK_LIFT = 1800;
-// The notebook's perspective (WorkshopEntry.module.css .fader). A leaf lying a
+// The notebook's perspective (bookPose). A leaf lying a
 // few pixels proud of the spread is shrunk by exactly what that perspective
 // magnifies, so its printed words stay pixel-sharp at rest.
 const BOOK_PERSPECTIVE = 3000;
 const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
 // The riffle, like pages let go from under a thumb: the first leaves part
-// slowly, they come fastest through the middle with two or three in the air
-// at once, and the last are laid down gently. Seven leaves spread their
-// starts over RIFFLE_SPAN (fewer leaves, proportionally less); each turns in
-// LEAF_TURN, the last a little slower.
+// slowly, they come fastest through the middle, and the last is laid down
+// gently. Leaves start about LEAF_GAP apart (at most RIFFLE_SPAN for them
+// all), each turns in LEAF_TURN, the last a little slower.
 const RIFFLE_SPAN = 1500;
-const LEAF_TURN = 760;
-const LAST_LEAF_TURN = 920;
+const LEAF_GAP = 420;
+const LEAF_TURN = 820;
+const LAST_LEAF_TURN = 960;
 const leafStart = (index: number, count: number) => {
   if (count < 2) return 0;
   const x = index / (count - 1);
-  return RIFFLE_SPAN * (count - 1) / 6 * (x + .4 / (2 * Math.PI) * Math.sin(2 * Math.PI * x));
+  return Math.min(RIFFLE_SPAN, (count - 1) * LEAF_GAP) * (x + .4 / (2 * Math.PI) * Math.sin(2 * Math.PI * x));
 };
 // The first leaf lifts just before the notebook comes to rest, so the flight
 // runs straight on into the riffle with no pause between them.
@@ -166,9 +161,12 @@ const bookSize = () => {
   return { width, height: width / 1.6 };
 };
 // A pose as one consistent list of functions, so the browser interpolates a
-// physical lift and turn rather than blending two flat matrices.
+// physical lift and turn rather than blending two flat matrices. The
+// perspective is the notebook's own, centred on it wherever it is on screen:
+// one fixed at the screen's centre skewed it lopsided as it flew in from the
+// desk off to one side.
 const bookPose = (x: number, y: number, angle: number, tilt: number, scale: number) =>
-  `translate(${x}px, ${y}px) rotate(${angle}rad) rotateX(${tilt}rad) scale(${scale})`;
+  `translate(${x}px, ${y}px) perspective(${BOOK_PERSPECTIVE}px) rotate(${angle}rad) rotateX(${tilt}rad) scale(${scale})`;
 // Eases in and out with no jolt at either end (smootherstep), and the same
 // eased over part of the way.
 const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
