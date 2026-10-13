@@ -7,7 +7,10 @@ test("background video advances without scrolling, keeps playing across islands,
   const visual = page.locator("[data-background-visual]");
   await expect(visual).toHaveAttribute("data-video-ready", "true");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.currentTime)).toBeGreaterThan(0.1);
-  expect(await video.evaluate((node: HTMLVideoElement) => node.muted && node.autoplay && node.loop && node.playsInline)).toBe(true);
+  // Muted, looping and inline. It has no autoplay attribute: the code starts
+  // it once, outside any gesture, so in-app browsers that refuse inline
+  // autoplay keep the poster instead of opening a fullscreen player (1ab6317).
+  expect(await video.evaluate((node: HTMLVideoElement) => node.muted && node.loop && node.playsInline && node.hasAttribute("webkit-playsinline") && !node.autoplay)).toBe(true);
   expect(await video.evaluate((node: HTMLVideoElement) => node.duration)).toBeCloseTo(12, 1);
   const viewport = page.viewportSize()!;
   expect(await video.evaluate((node: HTMLVideoElement) => node.currentSrc)).toContain(`starfield-loop-${viewport.width <= viewport.height ? "mobile" : "desktop"}-v1.mp4`);

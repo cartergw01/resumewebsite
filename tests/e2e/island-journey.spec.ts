@@ -96,7 +96,11 @@ test("shooting star follows the full page proportionally in both directions", as
 
 test("scene controls, keyboard focus, and destination links work", async ({ page, isMobile }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Show Writing island" }).focus();
+  // The scene buttons stay disabled until the island track is ready; focusing
+  // one before then lands nowhere, and Enter does nothing.
+  const showWriting = page.getByRole("button", { name: "Show Writing island" });
+  await expect(showWriting).toBeEnabled();
+  await showWriting.focus();
   await page.keyboard.press("Enter");
   await expectScene(page, "writing");
   await expect(page.getByRole("link", { name: /^Writing,/ })).toBeVisible();
