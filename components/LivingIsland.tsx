@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
-import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
+import { towerFloors, type IslandArtworks, type IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
 import IslandOrbit from "./IslandOrbit";
@@ -141,6 +141,10 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
             <g className={`${motionStyles.towerWelcome} ${motionStyles.nightOnly}`} data-reads="city-tower:opacity" fill="#dfecff">
               <circle cx={city.tower[0]} cy={city.tower[1]} r="1.1" />
             </g>
+            {/* The Work entry spells its heading down Taipei 101 in light, as
+                the real tower spells its messages (lib/work-entry.ts). */}
+            {"Work".split("").map((letter, index) => <text key={letter} className={motionStyles.towerLetter} data-tower-letter={index}
+              x={towerFloors[index].x} y={towerFloors[index].y} fontSize={towerFloors[index].height * .72} textAnchor="middle" dominantBaseline="central">{letter}</text>)}
             <g data-city-entry-window data-corners={JSON.stringify(city.entryWindow)}>
               <path className={motionStyles.entryWindow} d={artworkOutline(city.entryWindow)} fill="#eacd96" />
             </g>

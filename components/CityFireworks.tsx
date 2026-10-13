@@ -21,7 +21,8 @@ const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)]
 // points are projected from the Blender tower (scripts/blender/export_life_anchors.py).
 // The canvas reaches well beyond the island so bursts are never cut off. It
 // draws only while sparks are alive, at most ~60fps, steps aside by day,
-// during entries and live 3D views, and respects reduced motion.
+// during entries (bar Work's own answering burst) and live 3D views, and
+// respects reduced motion.
 export default function CityFireworks({ tower, launch: from, className }: { tower: number[]; launch?: TowerLaunch; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -42,8 +43,13 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
 
     const allowed = () => !motion.matches && !document.hidden && currentCityTime() === "night"
       && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !visual.dataset.orbitLive;
-    const later = (ms: number, run: () => void) => {
-      const id = setTimeout(() => { pending.delete(id); if (allowed()) run(); }, ms);
+    // Entering Work at night, the tower answers the tap with one burst off
+    // its spire, the only fireworks an entry allows.
+    const answering = () => !motion.matches && !document.hidden && currentCityTime() === "night"
+      && stage.dataset.entering === "work" && !visual.dataset.orbitLive;
+    let answered = false;
+    const later = (ms: number, run: () => void, when = allowed) => {
+      const id = setTimeout(() => { pending.delete(id); if (when()) run(); }, ms);
       pending.add(id);
     };
     // The artwork is a 1200x800 render drawn with object-fit: contain in the
@@ -77,7 +83,7 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
       spray(right, 1, color, count, reach);
     };
     // The crown: a fountain straight up off the spire and a ring burst just above it.
-    const crown = (color: string, big = false) => {
+    const crown = (color: string, big = false, when = allowed) => {
       const now = performance.now();
       for (let i = 0; i < 14; i++) {
         const angle = -Math.PI / 2 + random(-.28, .28), speed = random(.1, .2);
@@ -90,7 +96,7 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
           sparks.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, born, life: random(1300, 1900), color, size: 1.3 });
         }
         start();
-      });
+      }, when);
       start();
     };
 
@@ -159,8 +165,12 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
       clearTimeout(timer); timer = undefined;
       if (!allowed()) {
         pending.forEach(clearTimeout); pending.clear();
-        sparks.length = 0; cancelAnimationFrame(frame); frame = 0; previous = 0; context.clearRect(0, 0, canvas.width, canvas.height); return;
+        sparks.length = 0; cancelAnimationFrame(frame); frame = 0; previous = 0; context.clearRect(0, 0, canvas.width, canvas.height);
+        if (answering() && !answered) { answered = true; crown(PALETTES[0], true, answering); }
+        if (!stage.dataset.entering) answered = false;
+        return;
       }
+      answered = false;
       timer = setTimeout(() => {
         if (!allowed()) return;
         show();

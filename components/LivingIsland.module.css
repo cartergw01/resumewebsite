@@ -42,6 +42,10 @@
    drawn: in Taipei 101's even curtain wall a lit pane read as a stray light. */
 .entryWindow { opacity: 0; }
 .citySign { opacity: calc(0.45 + var(--city-tower, 1) * 0.55); }
+/* Lit only by the Work entry, which animates them: gold light at night,
+   white by day. The heading's own face, so they can become it. */
+.towerLetter { opacity: 0; font-family: var(--font-display); font-weight: 600; fill: #ffe1ad; filter: drop-shadow(0 0 1.6px #ffb95c); }
+:global(html[data-city-time="day"]) .towerLetter { fill: #fffdf6; filter: drop-shadow(0 0 1.2px #8db6dc); }
 .windows { animation: windows 7s ease-in-out infinite; }
 .traffic { opacity: 0; animation: traffic 17s linear infinite; }
 .screenRefresh { animation: screen-light 12s ease-in-out infinite; }

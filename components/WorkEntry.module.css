@@ -1,11 +1,11 @@
 .overlay { position: fixed; inset: 0; z-index: 90; overflow: hidden; pointer-events: none; }
-/* The destination page, dissolving in over the push. */
+/* The destination page, arriving as the city dims behind the letters. */
 .dark { position: absolute; inset: 0; background: #070b10; opacity: 0; will-change: opacity; }
-.page { position: absolute; inset: 0; overflow: hidden; opacity: 0; transform-origin: 50% 40%; will-change: opacity, transform; }
-/* The hour's light, never brighter than a faint wash. */
-.wash { position: absolute; inset: 0; opacity: 0; will-change: opacity; }
-.overlay[data-time="night"] .wash { background: radial-gradient(ellipse at 50% 45%, #d9a8682e, #6a523314 55%, transparent 80%); }
-.overlay[data-time="day"] .wash { background: radial-gradient(ellipse at 50% 45%, #b8cadb33, #7890a31a 55%, transparent 80%); }
+.page { position: absolute; inset: 0; overflow: hidden; opacity: 0; will-change: opacity; }
+/* "Work", carried from Taipei 101 into the heading: the heading itself stays
+   hidden until the letters have landed on it. */
+.letter { position: absolute; margin: 0; white-space: pre; transform-origin: 50% 50%; will-change: transform, opacity; }
+.overlay[data-spelled] .page h1 { visibility: hidden; }
 :global(html[data-work-transition="entering"]) .arrival { visibility: hidden; }
 :global(html[data-work-transition="arriving"]) .arrival { pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {

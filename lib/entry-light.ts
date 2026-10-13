@@ -2,13 +2,14 @@ import styles from "@/components/EntryLight.module.css";
 import { ENTRY_APPROACH_DURATION, ENTRY_ARRIVAL_DURATION } from "./island-entry-motion";
 
 // Entering an island happens in four beats: the island answers (a puff of
-// stardust lifts off its landmark), the camera approaches, you pass through
-// the landmark's own light, and the page condenses out of that light.
+// stardust lifts off its landmark), the camera approaches, the landmark's
+// own object carries you through (Taipei's lit letters, the notebook, the
+// deck), and the page condenses out of it.
 // This module owns the shared light. Everything animates transform and
 // opacity only, so the compositor carries it and input stays responsive.
 
 export type EntryWorld = "work" | "writing" | "projects";
-type Light = { overlay: HTMLDivElement; bloom: HTMLDivElement; animations: Animation[]; arrived: boolean; dispose: () => void };
+type Light = { overlay: HTMLDivElement; bloom: HTMLDivElement | null; animations: Animation[]; arrived: boolean; dispose: () => void };
 
 // Each world's light: Taipei's lit windows (or a clear afternoon), the
 // reading lamp, the workshop monitor.
@@ -31,18 +32,17 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
   overlay.setAttribute("aria-hidden", "true");
   overlay.style.setProperty("--core", core);
   overlay.style.setProperty("--edge", edge);
-  // Writing and Projects carry their own object (the notebook, the deck)
-  // through the threshold, so their light glows behind it; Work's camera
-  // passes straight through the window, so its light is in front.
-  overlay.dataset.layer = world === "work" ? "front" : "behind";
-
-  const bloom = document.createElement("div");
-  bloom.className = styles.bloom;
-  overlay.append(bloom);
+  // Each island carries its own object (Taipei's letters, the notebook, the
+  // deck) through the threshold, so the light glows behind it. Taipei's
+  // letters carry their own light: it has no halo.
+  overlay.dataset.layer = "behind";
+  const bloom = world === "work" ? null : document.createElement("div");
+  if (bloom) { bloom.className = styles.bloom; overlay.append(bloom); }
 
   // Stardust: a handful of motes lift off the landmark and drift outward.
+  // Taipei by night answers with a burst off its spire instead (CityFireworks).
   const animations: Animation[] = [];
-  const count = coarse ? 9 : 16;
+  const count = world === "work" && !day ? 0 : coarse ? 9 : 16;
   for (let index = 0; index < count; index++) {
     const mote = document.createElement("span");
     mote.className = styles.mote;
@@ -61,17 +61,9 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
     ], { duration: 1150 + (index % 5) * 110, delay: (index % 4) * 45, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)", fill: "both" }));
   }
 
-  // The threshold: the light gathers late in the approach and holds until
-  // the destination page is in place beneath it.
-  // Work: the window's light opens until it fills the view, and the page is
-  // laid in beneath it. Writing and Projects: a halo of lamp or screen light
-  // grows behind the notebook or the deck.
-  const front = world === "work";
-  animations.push(bloom.animate(front ? [
-    { opacity: .001, transform: "translate(-50%, -50%) scale(.2)" },
-    { opacity: .001, transform: "translate(-50%, -50%) scale(.2)", offset: .55, easing: "cubic-bezier(0.55, 0, 0.45, 1)" },
-    { opacity: .9, transform: "translate(-50%, -50%) scale(3.6)" },
-  ] : [
+  // The threshold: a halo of lamp or screen light grows behind the notebook
+  // or the deck, and holds until the page is in place.
+  if (bloom) animations.push(bloom.animate([
     { opacity: 0, transform: "translate(-50%, -50%) scale(.3)" },
     { opacity: 0, transform: "translate(-50%, -50%) scale(.3)", offset: .3, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
     { opacity: .7, transform: "translate(-50%, -50%) scale(2.3)", offset: .8 },
@@ -107,14 +99,13 @@ export function arriveEntryLight(delay = 0) {
   const current = light;
   if (!current || current.arrived) return;
   current.arrived = true;
-  const front = current.overlay.dataset.layer === "front";
+  if (!current.bloom) { current.dispose(); return; }
   const from = getComputedStyle(current.bloom);
-  // Through Work's window the light slowly clears off the page; behind the
-  // notebook or deck it goes out with them, never lingering on the page.
+  // It goes out with what it carried, never lingering on the page.
   const fade = current.bloom.animate([
     { opacity: from.opacity, transform: from.transform === "none" ? "translate(-50%, -50%) scale(1.6)" : from.transform },
-    { opacity: 0, transform: `translate(-50%, -50%) scale(${front ? 4.4 : 1.8})` },
-  ], { duration: front ? ENTRY_ARRIVAL_DURATION : ENTRY_ARRIVAL_DURATION * .45, delay, easing: front ? "cubic-bezier(0.4, 0, 0.2, 1)" : "ease-out", fill: "forwards" });
+    { opacity: 0, transform: "translate(-50%, -50%) scale(1.8)" },
+  ], { duration: ENTRY_ARRIVAL_DURATION * .45, delay, easing: "ease-out", fill: "forwards" });
   current.animations.push(fade);
   void fade.finished.then(() => { if (light === current) current.dispose(); }).catch(() => {});
 }

@@ -102,8 +102,6 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     stage.setAttribute("aria-busy", "true");
     beginEntryLight(title.toLowerCase() as EntryWorld, landmarkPoint, document.documentElement.dataset.cityTime === "day");
 
-    // Work's page dissolves in over its push; the book and workshop open theirs.
-    const workEntry = city ? beginWorkEntry(visual) : null;
     // One continuous move: the curve dips back a touch as the island
     // answers, then glides in and slows into the landmark, never stopping
     // in between (a separate "breath" keyframe made the camera hesitate).
@@ -116,6 +114,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       { ...from, offset: .5, easing: "cubic-bezier(0.5, 0, 0.2, 1)" },
       { ...to, offset: 1 },
     ] : [from, to], { duration: ENTRY_APPROACH_DURATION, easing: book ? "linear" : city ? WORK_PUSH_EASING : "cubic-bezier(0.5, -0.06, 0.2, 1)", fill: "forwards" });
+    // Work's tower spells its name, and the letters fly into its page in step
+    // with this move; the book and workshop open theirs.
+    const workEntry = city ? beginWorkEntry(visual, zoom) : null;
 
     let arrivalFrame = 0;
     let recoveryTimer = 0;

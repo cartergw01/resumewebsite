@@ -1,9 +1,8 @@
-/* The shared light of an island entry (lib/entry-light.ts). Front: above the
-   page carried in through Work's window. Behind: under the notebook or the
-   deck, which pass through the light themselves. */
-.overlay { position: fixed; inset: 0; z-index: 95; overflow: hidden; pointer-events: none; contain: strict; }
-.overlay[data-layer="behind"] { z-index: 89; }
-/* Held inside the notebook's or deck's own overlay, between its dark and it. */
+/* The shared light of an island entry (lib/entry-light.ts), under the lit
+   glass, the notebook or the deck, which pass through the light themselves. */
+.overlay { position: fixed; inset: 0; z-index: 89; overflow: hidden; pointer-events: none; contain: strict; }
+/* Held inside the glass's, notebook's or deck's own overlay, between its
+   dark and it. */
 .overlay[data-layer="held"] { position: absolute; z-index: auto; }
 .bloom {
   position: absolute;

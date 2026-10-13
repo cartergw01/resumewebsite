@@ -16,8 +16,14 @@ async function holdEntry(page: Page) {
   });
 }
 const at = (page: Page, progress: number) => page.evaluate(([progress, ENTRY_APPROACH_DURATION]) => {
-  for (const animation of (window as Window & { held?: Animation[] }).held ?? []) {
-    animation.currentTime = Math.min(Number(animation.effect!.getTiming().duration), progress * ENTRY_APPROACH_DURATION);
+  const held = (window as Window & { held?: Animation[] }).held ??= [];
+  // The letters' flight is built a moment after the tap: hold it too.
+  for (const animation of document.getAnimations()) {
+    const target = (animation.effect as KeyframeEffect | null)?.target;
+    if (!held.includes(animation) && target?.closest("body > [data-work-transition]")) { animation.pause(); held.push(animation); }
+  }
+  for (const animation of held) {
+    animation.currentTime = Math.min(Number(animation.effect!.getComputedTiming().endTime), progress * ENTRY_APPROACH_DURATION);
   }
 }, [progress, ENTRY_APPROACH_DURATION] as const);
 const scaleOf = (page: Page) => page.locator("#work [data-island-visual]").evaluate(visual => {
@@ -54,11 +60,28 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
   const final = await scaleOf(page);
   expect(final).toBeGreaterThan(middle);
   expect(final).toBeLessThan(5.5);
+  // Taipei 101 spells the heading down its floors before the letters fly.
+  const letters = page.locator("#work [data-tower-letter]");
+  await expect(letters).toHaveText(["W", "o", "r", "k"]);
+  await at(page, .45);
+  for (const letter of await letters.all()) expect(Number(await letter.evaluate(node => getComputedStyle(node).opacity))).toBeGreaterThan(.9);
   // The words arrive only after the city has dimmed into the page's dark.
   await at(page, .55);
   expect(Number(await carry.locator("[data-work-preview]").evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(.05);
   await at(page, 1);
   await expect(carry.locator("[data-work-preview]")).toHaveCSS("opacity", "1");
+  // The letters land on the heading's own letters.
+  await expect(carry.locator(":scope > span")).toHaveCount(4);
+  const misses = await carry.evaluate(overlay => {
+    const text = overlay.querySelector("[data-work-preview] h1")!.firstChild!;
+    const range = document.createRange();
+    return Array.from(overlay.querySelectorAll<HTMLElement>(":scope > span"), (glyph, index) => {
+      range.setStart(text, index); range.setEnd(text, index + 1);
+      const target = range.getBoundingClientRect(), box = glyph.getBoundingClientRect();
+      return Math.max(Math.abs(box.left - target.left), Math.abs(box.top - target.top), Math.abs(box.width - target.width));
+    });
+  });
+  for (const miss of misses) expect(miss).toBeLessThan(1);
   const preview = (await carry.locator("h1").boundingBox())!;
   // Resume the journey from where it was held. play() on an animation held
   // at its end would rewind it to the start (auto-rewind), so finish those.
