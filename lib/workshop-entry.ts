@@ -87,7 +87,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     } else {
       const body = document.createElement("div");
       body.className = styles.standfirst;
-      body.append(rule, line(styles.dek, essay.subtitle));
+      body.append(line(styles.dek, essay.subtitle), rule);
       sheet.append(body, line(styles.byline, "Carter Wang"));
     }
     return sheet;
@@ -132,19 +132,26 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 // settles at reading distance, then is thumbed through, past the essays.
 // Phones turn fewer leaves: every face is its own layer.
 const bookLeaves = () => innerWidth < 760 ? 5 : 7;
-// When each leaf starts to turn after the notebook settles, and how long it
-// takes: a riffle under the thumb, the first a touch deliberate, picking up
-// pace through the middle with two or three leaves in the air at once, the
-// last laid down gently.
-const BOOK_LIFT = 1700;
+// How long the notebook takes from the desk to reading distance.
+const BOOK_LIFT = 1800;
 // The notebook's perspective (WorkshopEntry.module.css .fader). A leaf lying a
 // few pixels proud of the spread is shrunk by exactly what that perspective
 // magnifies, so its printed words stay pixel-sharp at rest.
 const BOOK_PERSPECTIVE = 3000;
 const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
-const LEAF_STARTS = [0, 360, 650, 900, 1130, 1350, 1580];
-const LEAF_TURNS = [820, 760, 700, 680, 680, 720];
-const LAST_LEAF_TURN = 880;
+// The riffle, like pages let go from under a thumb: the first leaves part
+// slowly, they come fastest through the middle with two or three in the air
+// at once, and the last are laid down gently. Seven leaves spread their
+// starts over RIFFLE_SPAN (fewer leaves, proportionally less); each turns in
+// LEAF_TURN, the last a little slower.
+const RIFFLE_SPAN = 1500;
+const LEAF_TURN = 760;
+const LAST_LEAF_TURN = 920;
+const leafStart = (index: number, count: number) => {
+  if (count < 2) return 0;
+  const x = index / (count - 1);
+  return RIFFLE_SPAN * (count - 1) / 6 * (x + .4 / (2 * Math.PI) * Math.sin(2 * Math.PI * x));
+};
 // The first leaf lifts just before the notebook comes to rest, so the flight
 // runs straight on into the riffle with no pause between them.
 const RIFFLE_OVERLAP = 150;
@@ -166,21 +173,52 @@ const bookPose = (x: number, y: number, angle: number, tilt: number, scale: numb
 // eased over part of the way.
 const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
 const during = (t: number, from: number, to: number) => smooth(Math.max(0, Math.min(1, (t - from) / (to - from))));
+// A CSS-style cubic-bezier easing, for motions sampled into keyframes.
+function bezier(x1: number, y1: number, x2: number, y2: number) {
+  const at = (s: number, a: number, b: number) => 3 * (1 - s) * (1 - s) * s * a + 3 * (1 - s) * s * s * b + s * s * s;
+  return (t: number) => {
+    let s = t;
+    for (let i = 0; i < 8; i++) {
+      const slope = 3 * (1 - s) * (1 - s) * x1 + 6 * (1 - s) * s * (x2 - x1) + 3 * s * s * (1 - x2);
+      if (Math.abs(slope) < 1e-6) break;
+      s = Math.max(0, Math.min(1, s - (at(s, x1, x2) - t) / slope));
+    }
+    return at(s, y1, y2);
+  };
+}
+// The approach: an unhurried start and a long, gentle arrival.
+const approach = bezier(.45, 0, .15, 1);
 // The notebook's flight from the desk to reading distance, as finely sampled
-// keyframes of one motion: it travels a curve that first rises straight up
-// off the desk, then arcs over to the centre; it turns to face you once it's
-// clear of the desk; it grows steadily, swelling a little past reading size
-// near the end and settling back. Everything comes to rest together.
+// keyframes of one motion. It is picked up first: it rises clear of the desk,
+// still lying back as it was, growing a little as it nears you. Then, already
+// on its way up, it comes to you: it swings to face you, travels to the
+// centre and grows to reading size, slowing all the while, so it settles into
+// place rather than rushing at you. Everything comes to rest together.
 function bookFlight(cx: number, cy: number, angle: number, tilt: number, scale: number, rise: number) {
-  const steps = 40, endX = innerWidth / 2, endY = innerHeight / 2, peak = cy - rise * 1.5;
+  const steps = 48, endX = innerWidth / 2, endY = innerHeight / 2;
   return Array.from({ length: steps + 1 }, (_, i) => {
-    const t = i / steps, p = smooth(t), u = 1 - p;
-    const x = u * u * cx + 2 * u * p * cx + p * p * endX;
-    const y = u * u * cy + 2 * u * p * peak + p * p * endY;
-    const turn = during(t, .15, .9);
-    const near = 1 + .08 * Math.sin(Math.PI * during(t, .45, 1)) ** 2;
-    const size = scale * Math.pow(1 / scale, during(t, .05, .95)) * near;
+    const t = i / steps;
+    const lifted = during(t, 0, .4);
+    const come = approach(Math.max(0, (t - .16) / .84));
+    const x = cx + (endX - cx) * come;
+    const y = (cy - rise * lifted) * (1 - come) + endY * come;
+    const turn = during(t, .14, .8);
+    const size = Math.exp(Math.log(scale * (1 + .5 * lifted)) * (1 - come));
     return { transform: bookPose(x, y, angle * (1 - turn), tilt * (1 - turn), size), offset: t };
+  });
+}
+// One leaf's turn, as finely sampled keyframes of one motion: the sheet lifts
+// off the stack, swings over through upright without pausing, arcs a little
+// towards you on the way and floats down onto the left-hand stack, flexing
+// slightly as it goes. Words stay pixel-sharp where it rests (see flat).
+const leafTurn = bezier(.42, 0, .3, 1);
+function leafFlight(below: number, above: number) {
+  const steps = 24;
+  return Array.from({ length: steps + 1 }, (_, i) => {
+    const f = leafTurn(i / steps);
+    const depth = below + (above - below) * f + 16 * Math.sin(Math.PI * f);
+    const flex = -1.2 * Math.sin(2 * Math.PI * f);
+    return { transform: `translateZ(${depth}px) rotateY(${-180 * f}deg) skewY(${flex}deg) scale(${flat(depth)})`, offset: i / steps };
   });
 }
 
@@ -269,7 +307,7 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
     // How far it rises off the desk before it turns: well clear of the desk,
     // in proportion to how large the book looks there.
-    const rise = Math.min(innerHeight * .2, Math.max(80, shown * 1.1));
+    const rise = Math.min(innerHeight * .2, Math.max(90, shown * 1.6));
     const start = bookPose(cx, cy, angle, tilt, scale);
     // Where it lay, a soft shadow stays on the desk and fades as it rises.
     const shadow = document.createElement("div");
@@ -279,12 +317,11 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     shadow.style.transform = start;
     fader.before(shadow);
     current.animations.push(
-      // The island holds still while the notebook lifts off the desk, still
-      // lying back as it was, swings up to face you as it comes, a touch
-      // closer than reading distance, and settles. It is one continuous
-      // motion, sampled finely, so it never stops part-way and starts again.
-      // The island's own notebook is gone from the desk beneath it (the
-      // "lifted" still), so it's the one book, carried off.
+      // The island holds still while the notebook is picked up off the desk
+      // and brought to you (bookFlight), one continuous motion that never
+      // stops part-way and starts again. The island's own notebook is gone
+      // from the desk beneath it (the "lifted" still), so it's the one book,
+      // carried off.
       screen.animate(bookFlight(cx, cy, angle, tilt, scale, rise), { ...lift, easing: "linear" }),
       shadow.animate([
         { opacity: .7, transform: `${start} scale(1)`, easing: "ease-out" },
@@ -295,24 +332,17 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
       backdrop.animate([{ opacity: 0 }, { opacity: 0, offset: .35, easing: "ease-in-out" }, { opacity: 1, offset: .75 }, { opacity: 1 }], lift),
     );
     // Then it is thumbed through, leaf by leaf, overlapping like pages under
-    // a thumb. A leaf turns the way paper does: the corner lifts first, the
-    // page swings over through upright, then floats down, slowing onto the
-    // left-hand stack; a slight skew in the air reads as the sheet flexing.
+    // a thumb, each in one unbroken motion (leafFlight).
     // No shading or cast shadows: they flickered as the pages turned.
     const leaves = Array.from(screen.querySelectorAll<HTMLElement>("[data-notebook-leaf]"));
     const timing = (index: number) => {
       const last = index === leaves.length - 1;
-      return { delay: BOOK_LIFT - RIFFLE_OVERLAP + LEAF_STARTS[index], duration: last ? LAST_LEAF_TURN : LEAF_TURNS[index] };
+      return { delay: BOOK_LIFT - RIFFLE_OVERLAP + leafStart(index, leaves.length), duration: last ? LAST_LEAF_TURN : LEAF_TURN };
     };
     leaves.forEach((leaf, index) => {
       const turn = { ...timing(index), fill: "both" } as const;
       const below = (leaves.length - index) * 2, above = (index + 1) * 2 + 2;
-      current.animations.push(leaf.animate([
-        { transform: `translateZ(${below}px) rotateY(0deg) skewY(0deg) scale(${flat(below)})`, easing: "cubic-bezier(0.45, 0, 0.7, 0.55)" },
-        { transform: `translateZ(${below + 6}px) rotateY(-24deg) skewY(-1.2deg) scale(1)`, offset: .24, easing: "cubic-bezier(0.3, 0.25, 0.55, 1)" },
-        { transform: `translateZ(${below + 14}px) rotateY(-122deg) skewY(1deg) scale(1)`, offset: .62, easing: "cubic-bezier(0.2, 0.45, 0.35, 1)" },
-        { transform: `translateZ(${above}px) rotateY(-180deg) skewY(0deg) scale(${flat(above)})` },
-      ], turn));
+      current.animations.push(leaf.animate(leafFlight(below, above), { ...turn, easing: "linear" }));
     });
     return current.dispose;
   }
