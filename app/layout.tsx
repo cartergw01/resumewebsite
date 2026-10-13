@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import { Archivo, Saira } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import ClientChrome from "@/components/ClientChrome";
 import {
@@ -11,9 +11,9 @@ import {
 } from "@/lib/seo";
 import "./globals.css";
 
-// One family at two widths: the headings use Archivo's expanded cut
-// (font-stretch 125% wherever --font-display is set), the text its normal one.
-const archivoDisplay = Archivo({
+// Headings in Saira's expanded cut (font-stretch 125% wherever --font-display
+// is set); the text stays in Archivo.
+const archivoDisplay = Saira({
   subsets: ["latin"],
   axes: ["wdth"],
   variable: "--font-display",
