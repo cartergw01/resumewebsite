@@ -104,32 +104,7 @@ test("Work pushes in on its sharp render and dissolves into the same page", asyn
   expect(errors).toEqual([]);
 });
 
-test("a turned 3D view settles back into its render, and Escape restores it", async ({ page }) => {
-  test.setTimeout(90_000);
-  await page.goto("/#work");
-  const link = page.locator("#work [data-island-link]");
-  await link.focus();
-  await expect(page.locator('[data-island-orbit="work"]')).toHaveAttribute("data-orbit-ready", "true", { timeout: 60_000 });
-  await page.keyboard.press("ArrowRight");
-  await page.keyboard.press("ArrowRight");
-  const visual = page.locator("#work [data-island-visual]");
-  await expect(visual).toHaveAttribute("data-orbit-live", "true");
-  await holdEntry(page);
-  await page.keyboard.press("Enter");
-  await expect(visual).toHaveAttribute("data-entry-still", "true");
-  // The render shows beneath the turned view, which fades away early.
-  await expect(visual.locator("> img:not([data-city-time]):not([data-work-sharp])")).toHaveCSS("opacity", "1");
-  await at(page, .35);
-  await expect(page.locator('[data-island-orbit="work"]')).toHaveCSS("opacity", "0");
-  await page.keyboard.press("Escape");
-  await expect(page.locator("body > [data-work-transition]")).toHaveCount(0);
-  await expect(visual).not.toHaveAttribute("data-entry-still");
-  await expect(visual.locator("> img[data-work-sharp]")).toHaveCount(0);
-  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
-});
-
-test("an immediate Work entry needs no 3D download", async ({ page }) => {
-  await page.route("**/orbit-*.glb", route => route.abort());
+test("an immediate Work entry plays through to the page", async ({ page }) => {
   await page.goto("/#work");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
   await expect(page.locator("#work [data-island-link]")).toBeVisible();

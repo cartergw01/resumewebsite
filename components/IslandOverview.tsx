@@ -3,10 +3,8 @@ import { overviewOrder } from "@/lib/island-overview";
 import { islandArtwork as islands, islandLandmarks } from "@/lib/island-artwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import { ownEssays, projects } from "@/content/portfolio";
-import orbitAssets from "@/lib/island-orbit-assets.json";
 import { projectPosters } from "@/lib/project-posters";
 import IslandLink from "./IslandLink";
-import IslandOrbit from "./IslandOrbit";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import styles from "./IslandHome.module.css";
 
@@ -43,7 +41,6 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
                   </PerspectiveArtwork>
                 </g> : null}
               </svg>
-              {id === "work" ? <IslandOrbit world="work" asset={orbitAssets.work} anchors={{ landmark: [islands.work.landmark], entryWindow: islands.work.entryWindow }} interactive={false} /> : null}
             </span>
           </IslandLink>
         );

@@ -64,8 +64,7 @@ test("landing text links go straight to their pages", async ({ page }) => {
   }
 });
 
-test("an immediate Work entry needs no 3D download and Escape restores the overview", async ({ page }) => {
-  await page.route("**/orbit-*.glb", route => route.abort());
+test("an immediate Work entry plays, and Escape restores the overview", async ({ page }) => {
   for (const scene of ["intro", "hello"]) {
     await page.goto(scene === "intro" ? "/" : "/#hello");
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", scene);

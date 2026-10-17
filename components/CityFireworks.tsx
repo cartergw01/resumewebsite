@@ -20,9 +20,9 @@ const pick = <T,>(items: T[]) => items[Math.floor(Math.random() * items.length)]
 // about twelve seconds, ends on a finale, rests, and starts again. Launch
 // points are projected from the Blender tower (scripts/blender/export_life_anchors.py).
 // The canvas reaches well beyond the island so bursts are never cut off. It
-// draws only while sparks are alive, at most ~60fps, steps aside by day,
-// during entries (bar Work's own answering burst) and live 3D views, and
-// respects reduced motion.
+// draws only while sparks are alive, at most ~60fps, steps aside by day and
+// during entries (bar Work's own answering burst), and respects reduced
+// motion.
 export default function CityFireworks({ tower, launch: from, className }: { tower: number[]; launch?: TowerLaunch; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -42,11 +42,11 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
     let width = 0, height = 0, ratio = 1, artWidth = 0, artHeight = 0, offsetX = 0, offsetY = 0;
 
     const allowed = () => !motion.matches && !document.hidden && currentCityTime() === "night"
-      && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !visual.dataset.orbitLive;
+      && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
     // Entering Work at night, the tower answers the tap with one burst off
     // its spire, the only fireworks an entry allows.
     const answering = () => !motion.matches && !document.hidden && currentCityTime() === "night"
-      && stage.dataset.entering === "work" && !visual.dataset.orbitLive;
+      && stage.dataset.entering === "work";
     let answered = false;
     const later = (ms: number, run: () => void, when = allowed) => {
       const id = setTimeout(() => { pending.delete(id); if (when()) run(); }, ms);
@@ -181,7 +181,6 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
     const observer = new MutationObserver(schedule);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
-    observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
     const sizes = new ResizeObserver(resize);
     sizes.observe(canvas);
     sizes.observe(visual);

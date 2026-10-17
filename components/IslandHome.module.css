@@ -161,17 +161,6 @@
 .scene[data-cue-seen="true"] { --cue-rest: 0; }
 .islandLink:focus-visible .landmarkCue { opacity: var(--cue-opacity, 1); }
 .landmarkCue > span { position: absolute; white-space: nowrap; }
-.orbitPrompt, .touchPrompt { display: none; }
-/* The orbit hint joins the call to action as a quieter second line; the
-   prompt and its arrow stay, since they are the way in. */
-.islandLink[data-orbit-hint] .orbitPrompt { display: block; margin-top: 0.15em; font-size: 0.8em; opacity: 0.7; }
-.islandLink[data-orbit-hint] .landmarkCue { opacity: var(--cue-opacity, 1); }
-/* The book's arrow leaves from under its words; it rests while the hint is up. */
-.islandLink[data-orbit-hint] .bookCue svg { opacity: 0; }
-@media (pointer: coarse) {
-  .mousePrompt { display: none; }
-  .touchPrompt { display: inline; }
-}
 .landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
 .landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
 .landmarkCue path[data-arrow="phone"] { display: none; }
@@ -212,12 +201,10 @@
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
 .island > img, .island > video, .overviewImage { filter: var(--island-grade); }
-.island[data-orbit-live="true"]:not([data-entry-still]) > img, .island[data-orbit-live="true"]:not([data-entry-still]) > video, .island[data-orbit-live="true"]:not([data-entry-still]) > svg { opacity: 0 !important; }
 .projects .island { width: 91%; max-height: 100%; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
 .scene[data-active="true"] .island { animation: island-float 7s ease-in-out infinite; }
-.island:has([data-orbit-dragging="true"]) { animation-play-state: paused; }
 .stage[data-travelling="true"] .island, .stage[data-entering] .island { animation-play-state: paused; }
 @keyframes island-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
 @media (prefers-reduced-motion: reduce) { .scene[data-active="true"] .island { animation: none; } }
@@ -656,7 +643,7 @@
 .parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); }
 .life { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .island[data-parallax="on"]:not([data-entry-still]) > img { opacity: 0 !important; transition: none !important; }
-.island[data-orbit-live="true"] > .parallax, .island[data-entry-still] > .parallax { opacity: 0; }
+.island[data-entry-still] > .parallax { opacity: 0; }
 
 /* Real 3D flights between islands (lib/island-flight.ts): drawn over the sky,
    under the copy and controls, only while a crossing is in progress. */

@@ -1,4 +1,4 @@
-// Optional 3D (island flights and orbits) needs a real GPU. Software WebGL —
+// Optional 3D (island flights and depth parallax) needs a real GPU. Software WebGL —
 // what Chrome falls back to on a blocklisted GPU, in VMs and remote desktops —
 // builds these scenes in seconds on the main thread, freezing the page; the
 // stills and 2D crossings are the better experience there.

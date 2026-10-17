@@ -14,7 +14,7 @@ if (!input || !["work", "writing", "projects"].includes(world) || !Object.keys(K
   throw new Error("Use: export_variant.mjs RAW_DIRECTORY work|writing|projects day|dark|lifted|lifted-dark");
 }
 const root = path.resolve(import.meta.dirname, "../..");
-const [x, y, width, height] = JSON.parse(await readFile(path.join(root, "lib/island-orbit-assets.json"), "utf8"))[world].crop;
+const [x, y, width, height] = JSON.parse(await readFile(path.join(root, "lib/island-cameras.json"), "utf8"))[world].crop;
 const source = path.join(input, `${world}.png`);
 const { width: rawWidth, height: rawHeight } = await sharp(source).metadata();
 const scale = rawWidth / 1200;

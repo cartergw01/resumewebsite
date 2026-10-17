@@ -39,40 +39,6 @@ test("navigation keeps the camera on the current scroll frame and accepts a new 
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-navigating");
 });
 
-test("optional island models wait until scrolling inside a hold is quiet", async ({ page }) => {
-  await page.addInitScript(() => Object.defineProperty(navigator, "connection", {
-    configurable: true, value: Object.assign(new EventTarget(), { saveData: true }),
-  }));
-  const models: string[] = [];
-  await page.route("**/orbit-*.glb", route => { models.push(route.request().url()); return route.abort(); });
-  await page.goto("/#work");
-  // Phones load a model only on intent; desktops preload Taipei.
-  await page.locator("#work [data-island-link]").focus();
-  const stage = page.locator("[data-island-stage]");
-  // A slow drag inside the hold, finger down: touch screens snap to the stop
-  // only once a gesture ends, so set positions run with snapping paused.
-  await page.evaluate(() => { document.documentElement.style.scrollSnapType = "none"; scrollBy({ top: 1, behavior: "instant" }); });
-  await expect(stage).toHaveAttribute("data-scrolling", "true");
-  await page.evaluate(async () => {
-    const connection = (navigator as Navigator & { connection: EventTarget & { saveData: boolean } }).connection;
-    connection.saveData = false;
-    connection.dispatchEvent(new Event("change"));
-    const start = scrollY;
-    const began = performance.now();
-    await new Promise<void>(resolve => {
-      const step = (now: number) => {
-        const t = Math.min(1, (now - began) / 600);
-        scrollTo({ top: start + t * 35, behavior: "instant" });
-        if (t < 1) requestAnimationFrame(step); else resolve();
-      };
-      requestAnimationFrame(step);
-    });
-  });
-  expect(models).toEqual([]);
-  await expect.poll(() => models.length).toBeGreaterThan(0);
-  expect(models.every(url => url.includes("orbit-work-"))).toBe(true);
-});
-
 test("downward pointer movement does not flip the rocket from side to side", async ({ page, isMobile }) => {
   test.skip(isMobile, "Requires a fine pointer.");
   await page.goto("/writing");

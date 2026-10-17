@@ -31,11 +31,10 @@
 :global([data-island-link]:focus-visible) .details { opacity: var(--island-lights, 1); }
 @media (hover: hover) and (pointer: fine) { :global([data-island-link]:hover) .details { opacity: var(--island-lights, 1); } }
 .cityDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-/* Live fireworks out of Taipei 101 (night only); hidden whenever the 3D view
-   takes over. The canvas reaches well past the island, above all, so bursts
-   off the spire are never cut off at the island's edge. */
+/* Live fireworks out of Taipei 101 (night only). The canvas reaches well
+   past the island, above all, so bursts off the spire are never cut off at
+   the island's edge. */
 .fireworks { position: absolute; left: -30%; top: -60%; width: 160%; height: 175%; max-width: none; pointer-events: none; }
-:global([data-orbit-live="true"]) > .fireworks { opacity: 0; }
 .cityBlocks { opacity: calc(var(--city-windows, 1) * 0.65); }
 .towerWelcome { opacity: var(--city-tower, 1); }
 /* The Work entry's window keeps its corners for the approach, but is not

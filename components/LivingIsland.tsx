@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import { towerFloors, type IslandArtworks, type IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
-import IslandOrbit from "./IslandOrbit";
 import CityTimeToggle from "./CityTimeToggle";
 import RoomLightSwitch from "./RoomLightSwitch";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
@@ -17,8 +16,6 @@ import { prepareWorkEntry } from "@/lib/work-entry";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
-import type { OrbitProjection } from "@/lib/island-orbit";
-import orbitAssets from "@/lib/island-orbit-assets.json";
 
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
@@ -26,11 +23,6 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   const city = artwork.work;
   const workshop = artwork.projects;
   const traffic = city.traffic;
-  const orbitAnchors = useMemo(() => {
-    const anchors: OrbitProjection = { landmark: [island.landmark] };
-    anchors[world === "work" ? "entryWindow" : "screen"] = world === "work" ? city.entryWindow : workshop.screen;
-    return anchors;
-  }, [city, island, workshop, world]);
   // The opening view shows light previews; full islands wait for travel.
   const [warm, setWarm] = useState(false);
   // Taipei's daytime still waits until day is chosen, or someone reaches for
@@ -175,7 +167,6 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
           <path data-touch-surface={world === "work" ? "entryWindow" : "screen"} d={artworkOutline(world === "work" ? city.entryWindow : workshop.screen)} />
         </svg>
-        {warm ? <IslandOrbit world={world} asset={orbitAssets[world]} anchors={orbitAnchors} /> : null}
       </span>
     </IslandLink>
     {world === "work" ? <CityTimeToggle /> : <RoomLightSwitch world="projects" />}

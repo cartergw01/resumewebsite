@@ -9,11 +9,11 @@
 #
 # In order, for each island: model and render the night still (this also saves
 # artwork/blender/<world>.blend, which the later steps open), crop and publish
-# it, export the rotatable model, render and publish Work's daytime still
+# it, record its camera and crop, render and publish Work's daytime still
 # (the study's and workshop's lights-off still),
 # render the parallax depth map, project the live details, bake the flight
-# model(s); then recompress every model with meshopt, re-bake the orbit
-# surface anchors, and delete published files nothing references any more.
+# model(s); then recompress every model with meshopt and delete published
+# files nothing references any more.
 #
 # Exporting a still replaces that island's manifest entry, so the day, depth
 # and live-detail steps must always follow it; run them through this script.
@@ -58,7 +58,6 @@ blender() {
 }
 
 for w in "${worlds[@]}"; do
-  faces=$([ "$w" = work ] && echo 160000 || ([ "$w" = writing ] && echo 70000 || echo 80000))
   step "$w: model and render the night still (${width}px, $samples samples)"
   blender "$w-night" -b --factory-startup --python scripts/blender/build_islands.py -- \
     --world "$w" --time night --output "$out/night" --width "$width" --samples "$samples" --device "$device"
@@ -66,11 +65,11 @@ for w in "${worlds[@]}"; do
   node scripts/blender/prepare_islands.mjs "$out/night" "$out/web" --world "$w" | tee "$out/$w-prepare.log"
   node scripts/blender/export_islands.mjs "$out/web" --world "$w"
   crop=$(sed -nE "s/^$w: cropped ([0-9]+)×([0-9]+) at ([0-9]+),([0-9]+).*/\3 \4 \1 \2/p" "$out/$w-prepare.log")
-  step "$w: rotatable model (crop $crop, $faces faces)"
+  step "$w: camera and crop (crop $crop)"
   # shellcheck disable=SC2086
-  blender "$w-orbit" -b "artwork/blender/$w.blend" --threads 6 --python scripts/blender/export_orbit.py -- \
-    --world "$w" --crop $crop --faces "$faces"
-  grep "ORBIT:.*glb" "$out/$w-orbit.log"
+  blender "$w-camera" -b "artwork/blender/$w.blend" --python scripts/blender/export_camera.py -- \
+    --world "$w" --crop $crop
+  grep "CAMERA" "$out/$w-camera.log"
   if [ "$w" = work ]; then
     step "work: daytime still"
     blender work-day -b --factory-startup --python scripts/blender/build_islands.py -- \
@@ -102,9 +101,8 @@ for w in "${worlds[@]}"; do
   grep "FLIGHT.*MiB" "$out/$w-flight.log"
 done
 
-step "Compress models, bake orbit anchors, remove unreferenced files"
+step "Compress models, remove unreferenced files"
 node scripts/blender/compress_models.mjs
-node scripts/blender/bake-orbit-anchors.mjs
 for f in public/blender/*; do
   n=$(basename "$f")
   grep -rq "$n" lib components app || { git rm -q "$f" 2>/dev/null || rm "$f"; echo "removed $n"; }

@@ -92,10 +92,8 @@ export function beginWorkEntry(visual: HTMLElement, camera?: Animation) {
     sharpened.dataset.workSharp = "true";
     still.after(sharpened);
   }
-  // The push draws the still itself, not the parallax canvas; a turned 3D
-  // view settles back into the render it was turned from.
+  // The push draws the still itself, not the parallax canvas.
   visual.dataset.entryStill = "true";
-  const orbit = visual.dataset.orbitLive === "true" ? visual.querySelector<HTMLCanvasElement>("[data-island-orbit]") : null;
 
   const timing = { duration: ENTRY_APPROACH_DURATION, fill: "forwards" as const };
   const letters = Array.from(visual.querySelectorAll<SVGTextElement>("[data-tower-letter]"));
@@ -137,7 +135,6 @@ export function beginWorkEntry(visual: HTMLElement, camera?: Animation) {
       { opacity: .001, offset: spelled ? .76 : .78, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
       { opacity: 1, offset: 1 },
     ], timing),
-    ...(orbit ? [orbit.animate([{ opacity: 1 }, { opacity: 0, offset: .3 }, { opacity: 0 }], timing)] : []),
   ];
   // The letters' flight, built once the page is laid in to measure where
   // its heading sits, and kept in step with the camera.

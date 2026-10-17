@@ -66,7 +66,7 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       // Decimation merges Taipei's lit windows, so its night model is lifted
       // a little to read like its still.
       const { group, gltf } = await load(island.src, offset, EXPOSURE.night * (island.id === "work" ? 1.4 : 1), island.traffic);
-      // The still's camera, aimed where the orbit view aims it.
+      // The still's camera, aimed at the middle of the island.
       const camera = new Vector3().fromArray(island.camera.position);
       const direction = new Vector3().fromArray(island.camera.direction).normalize();
       const center = new Box3().setFromObject(gltf.scene).getCenter(new Vector3());

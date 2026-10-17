@@ -2395,14 +2395,6 @@ def main():
         if args.time=='day':daylight(scene)
         scene.frame_set(1)
         export_anchors(scene,world,args.output/f'{world}.json')
-        if world=='work':
-            # The rotatable model lights the same tower window in 3D: its
-            # corners in Three's coordinates (Blender X, Z, -Y), kept in step
-            # with the tower here rather than copied by hand.
-            assets=ROOT/'lib'/'island-orbit-assets.json'
-            manifest=json.loads(assets.read_text())
-            manifest.setdefault('work',{})['entryWindow3D']=[[round(x,8),round(z,8),round(-y,8)] for x,y,z in ANCHORS['entryWindow']]
-            assets.write_text(json.dumps(manifest,indent=2)+'\n')
         scene.render.filepath=str(args.output/f'{world}.png')
         unseen_lights(scene)
         if args.time=='night':bpy.ops.wm.save_as_mainfile(filepath=str(sources/f'{world}.blend'),compress=True)

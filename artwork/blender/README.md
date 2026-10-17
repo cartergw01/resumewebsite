@@ -121,8 +121,8 @@ climbing the tower, then a shell off the spire; the launch points are the
 Every traffic lane sample is ray-cast from the render camera: where a building
 hides the road, the lane carries 0 and cars fade out there instead of being
 drawn across the building. The exporter also writes each lane's 3D run of road
-into `lib/island-orbit-assets.json` (`work.traffic`), so the rotatable model
-and the camera flights carry the same traffic, hidden by real depth.
+into `lib/island-cameras.json` (`work.traffic`), so the camera flights carry
+the same traffic, hidden by real depth.
 
 ### Taipei by day
 
@@ -143,11 +143,8 @@ signs (saturated by day, lit at night), and a small neighbourhood temple with
 a vermilion hall and an orange glazed swallowtail roof. Work renders at 2880px
 wide with 96 samples.
 
-The browser model is the night scene without its night-only extras;
-`setDaylight` in `lib/island-orbit.ts` blends its lights, lamp glow and pane
-colour between the two rigs. Toggling the time of day is a direct 0.6s
-crossfade between the two stills (and the two rigs, when a turned view is
-showing), with no sunrise or sunset in between.
+Toggling the time of day is a direct 0.6s crossfade between the two stills,
+with no sunrise or sunset in between.
 
 
 ### Room lights
@@ -303,13 +300,12 @@ scripts/blender/pipeline.sh work --quick    # 1440px, 24 samples, for a look
 
 For each island it renders the night still (2880px, 96 samples, Metal; this
 also saves the `.blend`), crops it and its anchors (`prepare_islands.mjs`) and
-publishes them (`export_islands.mjs`), exports the rotatable model
-(`export_orbit.py`, with the crop the still was given), renders and publishes
+publishes them (`export_islands.mjs`), records its camera and the crop it was
+given (`export_camera.py`), renders and publishes
 Work's daytime still and the rooms' lights-off stills (`export_variant.mjs`), the depth map (`render_depth.py`,
 `export_depth.mjs`), the live-detail anchors (`export_life_anchors.py`) and
 the flight model(s) (`export_flight.py`). Then it recompresses every model with
-meshopt (`compress_models.mjs`), re-bakes the orbit surface anchors
-(`bake-orbit-anchors.mjs`) and deletes published files nothing references.
+meshopt (`compress_models.mjs`) and deletes published files nothing references.
 Logs go to `.blender-build/pipeline/`; a failed step stops the run and prints
 its log. Exporting a still replaces that island's manifest entry, so always
 run the later steps after it, which the script does.
@@ -341,69 +337,38 @@ surfaces and carries the same perspective into the destination transition.
 work in both Chromium and WebKit. Entry animations use the corresponding CSS
 projective matrix. The regression test checks all four corners of a tilted plane.
 
-Work's entry (`lib/work-entry.ts`) is a camera push in the rendered still, not
-a dive into the model: the island eases toward Taipei 101 at the shared entry
-pace, close enough for the tower and its neighbours to fill the view (about
-2.4x on a laptop, 3x on a phone) but never past what the render resolves. The
-full 2880px still is fetched on intent (hover, focus or a touch) and laid over
-the resized one for the push. A turned 3D view crossfades back to the render.
-The `/work` page, rendered from the same components, dissolves in over the
-second half with a faint wash of the hour's light (lamplight at night, steel by
-day), then hands off to the real page. Reduced motion skips the approach;
-Escape, resize and back cancel it. `tests/e2e/work-entry.spec.ts` checks the
-push, sharpness swap, content continuity and interruption.
+Work's entry (`lib/work-entry.ts`) is a camera push in the rendered still,
+never past what the render resolves (about 2.4x on a laptop, 3x on a phone),
+while Taipei 101 spells "Work" down four floors in light (`towerFloors` in
+`lib/island-artwork.ts`, from the tower's eave corners). The letters then lift
+off and glide onto the `/work` page's heading as the city dims behind them;
+at night the tower answers the tap with a burst off its spire. The full 2880px
+still is fetched on intent (hover, focus or a touch) and laid over the resized
+one for the push. Reduced motion skips the approach; Escape, resize and back
+cancel it. `tests/e2e/work-entry.spec.ts` checks the push, the letters landing
+on the heading, content continuity and interruption.
 
-`lib/island-orbit-assets.json` stores the tower window's four world-space
-corners in Three coordinates (Blender X, Z, -Y), which the rotatable model
-projects for the entry, and `lib/blender-islands.json` stores their 1200×800
-projection for the still. The window is not lit or drawn anywhere: it is just
-the pane of Taipei 101's even curtain wall the entry flies toward. The night render writes both from
-`taipei101` in `build_islands.py`, so they follow any change to the tower.
+`lib/blender-islands.json` stores the tower window's 1200×800 projection for
+the still. The window is not lit or drawn anywhere: it is just a pane of
+Taipei 101's even curtain wall. The night render writes it from `taipei101` in
+`build_islands.py`, so it follows any change to the tower.
 
 The Writing video pauses offscreen, in hidden tabs, and for reduced-motion or
 save-data preferences. The still remains the playback fallback. The background
 video, scrolling journeys and rocket effect are independent.
 
-## Interactive angles
+## Cameras
 
-The homepage's three detailed islands also have compressed GLB versions.
-`components/IslandOrbit.tsx` loads the active world's model on intent, not on
-arrival: hovering or focusing the island, or the first horizontal swipe on a
-phone. Only Taipei preloads, and only on desktop, because its click flies
-through the real model. Its poster/video stays visible until a drag or arrow-key interaction.
-Horizontal touch drags turn the model; vertical swipes retain native scrolling.
-Drag release never opens a page. Click or Enter still uses the landmark entry
-and rocket. R or the reset button restores the original rendered view.
+`lib/island-cameras.json` holds each island's render camera (in Three's
+coordinates) and the crop its published still was given, written by
+`export_camera.py`, plus Work's traffic lanes. The 3D flights between islands
+(`lib/island-flight.ts`) use the camera and crop to start and end on each
+still's exact framing; `export_variant.mjs` and `export_depth.mjs` use the crop
+to place the day, lights-off and depth variants over the night still.
 
-Regenerate a model from its editable Blender source:
-
-`scripts/blender/pipeline.sh` exports them (`export_orbit.py`, at 160000
-faces for Work, 70000 for Writing and 80000 for Projects), saving an
-intermediate scene under `.blender-build/orbit` and updating
-`lib/island-orbit-assets.json`; the original `.blend` stays untouched.
-
-The exporter joins detailed geometry, bakes procedural base colors and
-preserves image planes and surface roughness. `compress_models.mjs` then
-rewrites each model with meshopt and quantized vertices: smaller than Draco
-once served with Brotli, several times faster to decode on a phone, and with a
-~20 KB decoder (bundled with Three) instead of Draco's ~250 KB. The exporter also records
-the scene's warm practical lamps as `practicals`, which `lib/island-orbit.ts`
-adds as point lights beside the same moon, rim and bounce rig. Lighting and
-fine wood/stone grain run in the browser; they approximate the offline Cycles
-render, so a live angle is not pixel-identical to the still. Models currently
-are about 1.5 MiB each as served. They load per active world and render only
-on input or resize, except that on a desktop with real graphics a turned
-Taipei keeps drawing at ~30fps so its traffic drives (stopping when it returns
-to the render, the tab hides or motion is reduced; phones move the cars on only
-as the view turns). They release GPU resources when another world finishes
-arriving.
-Save-data, unsupported WebGL, failed downloads, or context loss retain the
-original artwork and normal navigation. Manual rotation also works with reduced
-motion, with no automatic orbit or inertial spin.
-
-`lib/island-orbit.ts` recovers the 3D surface beneath each projected landmark by
-raycasting, then updates the annotation and entry corners while turning. The
-workshop's project preview stays attached to its screen. Tests in
-`tests/e2e/island-orbit.spec.ts` cover drag/click separation, all three destinations,
-keyboard controls, reset, reduced motion, failed downloads, and native touch
-scrolling.
+The islands used to have rotatable 3D versions (drag or swipe to look
+around). They were removed on 2026-10-17: each model was 2.5-3.3 MB and
+stalled the page for about a quarter of a second as it built, a sideways
+swipe competed with scrolling on phones, the real-time lighting only
+approximated the Cycles stills, and every scene change had to be re-exported
+to match.

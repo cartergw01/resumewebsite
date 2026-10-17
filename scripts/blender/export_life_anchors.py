@@ -5,7 +5,7 @@ blender -b artwork/blender/work.blend --python scripts/blender/export_life_ancho
 
 Points come from the scene's own objects or known street centrelines, go
 through the render camera, then through the same crop as the still
-(lib/island-orbit-assets.json), and are written to lib/blender-islands.json
+(lib/island-cameras.json), and are written to lib/blender-islands.json
 under "life".
 """
 import argparse
@@ -23,7 +23,7 @@ args.add_argument('--world', required=True, choices=['work', 'writing', 'project
 opts = args.parse_args(sys.argv[sys.argv.index('--') + 1:])
 scene = bpy.context.scene
 camera = scene.camera
-crop = json.loads((ROOT / 'lib' / 'island-orbit-assets.json').read_text())[opts.world]['crop']
+crop = json.loads((ROOT / 'lib' / 'island-cameras.json').read_text())[opts.world]['crop']
 
 
 def project(point):
@@ -66,10 +66,10 @@ if opts.world == 'work':
     def run(a, b, offset, axis):
         ends = [(a[0], a[1] + offset) if axis == 'x' else (a[0] + offset, a[1]), (b[0], b[1] + offset) if axis == 'x' else (b[0] + offset, b[1])]
         return [[round(x, 5), .052, round(-y, 5)] for x, y in ends]
-    orbit_path = ROOT / 'lib' / 'island-orbit-assets.json'
-    orbit = json.loads(orbit_path.read_text())
-    orbit.setdefault('work', {})['traffic'] = {'lanes': [run(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]}
-    orbit_path.write_text(json.dumps(orbit, indent=2) + '\n')
+    cameras_path = ROOT / 'lib' / 'island-cameras.json'
+    cameras = json.loads(cameras_path.read_text())
+    cameras.setdefault('work', {})['traffic'] = {'lanes': [run(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]}
+    cameras_path.write_text(json.dumps(cameras, indent=2) + '\n')
     # Where Taipei 101's fireworks fire from, as in its New Year show: the two
     # front corners at the top of each of the eight tiers, and the spire tip.
     # (Tower centre, tier tops and widths as built by taipei101 in

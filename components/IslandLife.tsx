@@ -40,7 +40,7 @@ export default function IslandLife({ world, life, className }: { world: "work" |
     // Wax blobs: each rises and sinks on its own slow cycle.
     const wax = Array.from({ length: 4 }, (_, i) => ({ period: 16 + random(i + 200) * 12, phase: random(i + 230) * 6.28, size: .38 + random(i + 260) * .22, drift: random(i + 290) * 6.28 }));
 
-    const live = () => !document.hidden && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !visual.dataset.orbitLive;
+    const live = () => !document.hidden && scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering;
     const place = () => {
       const scale = Math.min(width / 1200, height / 800);
       return { scale, left: (width - 1200 * scale) / 2, top: (height - 800 * scale) / 2 };
@@ -179,7 +179,6 @@ export default function IslandLife({ world, life, className }: { world: "work" |
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
-    observer.observe(visual, { attributes: true, attributeFilter: ["data-orbit-live"] });
     const sizes = new ResizeObserver(resize); sizes.observe(canvas);
     motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);

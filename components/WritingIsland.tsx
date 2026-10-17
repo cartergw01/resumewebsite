@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
-import IslandOrbit from "./IslandOrbit";
 import ParallaxStill from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
-import orbitAssets from "@/lib/island-orbit-assets.json";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
@@ -17,7 +15,6 @@ import type { NotebookEssay } from "@/lib/workshop-entry";
 import styles from "./IslandHome.module.css";
 
 export default function WritingIsland({ artwork: island, landmark, essay, pages }: { artwork: IslandArtworks["writing"]; landmark: IslandLandmark; essay: EssayPreview; pages: NotebookEssay[] }) {
-  const orbitAnchors = useMemo(() => ({ landmark: [island.landmark], spread: island.spread }), [island]);
   const visualRef = useRef<HTMLSpanElement>(null);
   const [warm, setWarm] = useState(false);
   // The desk without its notebook, shown while the Writing entry lifts the
@@ -103,7 +100,6 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
           <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
             <path data-touch-surface="spread" d={artworkOutline(island.spread)} />
           </svg>
-          {warm ? <IslandOrbit world="writing" asset={orbitAssets.writing} anchors={orbitAnchors} /> : null}
         </span>
       </IslandLink>
       <RoomLightSwitch world="writing" />

@@ -8,7 +8,7 @@ import sharp from "sharp";
 const [input, only] = process.argv.slice(2);
 if (!input) throw new Error("Pass the raw depth render directory.");
 const root = path.resolve(import.meta.dirname, "../..");
-const crops = JSON.parse(await readFile(path.join(root, "lib/island-orbit-assets.json"), "utf8"));
+const crops = JSON.parse(await readFile(path.join(root, "lib/island-cameras.json"), "utf8"));
 const manifestPath = path.join(root, "lib/blender-islands.json");
 const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
 const output = path.join(root, "public/blender");

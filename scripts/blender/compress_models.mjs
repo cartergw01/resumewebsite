@@ -4,10 +4,9 @@
 // Blender exports Draco. Meshopt's output is smaller once served with Brotli
 // (which Vercel applies to .glb), decodes several times faster on a phone,
 // and its decoder is ~20 KB instead of Draco's ~250 KB. Every model listed in
-// lib/island-orbit-assets.json and lib/island-flight-assets.json that is not
-// yet meshopt-compressed is rewritten under a new fingerprinted name, its
-// manifest entry updated and the old file removed. Run before
-// bake-orbit-anchors.mjs, whose cached anchors are keyed to each model's path.
+// lib/island-flight-assets.json that is not yet meshopt-compressed is
+// rewritten under a new fingerprinted name, its manifest entry updated and
+// the old file removed.
 import { readFile, writeFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -44,7 +43,7 @@ async function compress(src) {
   return `/blender/${name}`;
 }
 
-for (const manifestName of ["island-orbit-assets.json", "island-flight-assets.json"]) {
+for (const manifestName of ["island-flight-assets.json"]) {
   const manifestPath = path.join(root, "lib", manifestName);
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   for (const asset of Object.values(manifest)) {
