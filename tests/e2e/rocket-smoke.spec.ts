@@ -33,8 +33,11 @@ function consoleGuard() {
 
         const location = message.location().url;
         const isExpectedLocalAnalyticsMiss = location
-          ? new URL(location).pathname === "/_vercel/insights/script.js"
-            && ["127.0.0.1", "localhost"].includes(new URL(location).hostname)
+          ? (new URL(location).pathname === "/_vercel/insights/script.js"
+            && ["127.0.0.1", "localhost"].includes(new URL(location).hostname))
+            // In development Vercel Analytics loads its debug script from
+            // Vercel's CDN, which can refuse a headless browser (403).
+            || new URL(location).hostname === "va.vercel-scripts.com"
           : false;
 
         // `next start` cannot serve Vercel's injected production analytics
@@ -561,7 +564,9 @@ for (const outboundPage of outboundPages) {
     const listingCount = await listingRows.count();
     expect(listingCount).toBeGreaterThan(0);
 
-    const outboundLinks = page.locator("a[href^='http://'], a[href^='https://']");
+    // The links a visitor can see: the phone-only contact links at the foot of
+    // each page are hidden (0x0) on desktop and can't be clicked there.
+    const outboundLinks = page.locator("a[href^='http://']:visible, a[href^='https://']:visible");
     const outboundCount = await outboundLinks.count();
     expect(outboundCount).toBeGreaterThanOrEqual(listingCount);
 

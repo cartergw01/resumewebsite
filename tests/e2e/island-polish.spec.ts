@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { hydrated } from "./hydrated";
 
 test("city and workshop details animate only while active and respect reduced motion", async ({ page }) => {
   await page.goto("/");
@@ -33,6 +34,7 @@ test("each island scene restores directly and Projects opens on the working scre
   page.on("pageerror", (error) => errors.push(error.message));
   for (const world of ["projects", "writing", "work"]) {
     await page.goto(`/${world}`);
+    await hydrated(page);
     // Home leads back to the islands. Phones drop it,
     // since Back to islands already sits in the corner.
     const home = page.locator(".site-nav-home");
@@ -56,6 +58,7 @@ test("each island scene restores directly and Projects opens on the working scre
     await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo((["work", "writing", "projects"].indexOf(world) + 1.11) / 4.5, 3);
     await expect(page.locator(`#${world} [data-island-link]`)).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await hydrated(page);
   }
   expect(errors).toEqual([]);
 });

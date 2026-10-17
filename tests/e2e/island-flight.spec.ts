@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import artwork from "../../lib/blender-islands.json" with { type: "json" };
+import { hydrated } from "./hydrated";
 
 // Positions are set directly, as a finger mid-drag would hold them. Touch
 // screens snap natively to each stop once a gesture ends (app/globals.css),
@@ -83,6 +84,9 @@ test("island settles before its lights, heading, and annotation arrive", async (
 });
 
 test("book and workshop entry centers their landmarks", async ({ page }) => {
+  // The dev server compiles a route on its first visit and Next then reloads
+  // it, which would cut across the next journey (production never reloads).
+  for (const route of ["/writing", "/projects"]) { await page.goto(route); await hydrated(page); }
   for (const [world, name, midFlight] of [
     ["writing", "open book", false],
     ["projects", "workshop screen", false],
@@ -117,6 +121,7 @@ test("book and workshop entry centers their landmarks", async ({ page }) => {
     // WebKit may expose the new URL before the destination has mounted. Wait
     // for the visible arrival before starting the next independent journey.
     await expect(page.getByRole("heading", { name: world[0].toUpperCase() + world.slice(1), level: 1, exact: true })).toBeVisible();
+    await hydrated(page);
   }
 });
 
@@ -132,7 +137,10 @@ test("the opening view zooms into its Work island instead of flying past it", as
     ]);
     // The distant island and the arriving one share position and size.
     expect(Math.abs(overview!.x + overview!.width / 2 - (island!.x + island!.width / 2))).toBeLessThan(3);
-    expect(Math.abs(overview!.width - island!.width)).toBeLessThan(3);
+    // Both islands are 3:2 stills contained in their boxes; compare the
+    // islands themselves (a short phone leaves the boxes wider than them).
+    const shown = (box: { width: number; height: number }) => Math.min(box.width, box.height * 1.5);
+    expect(Math.abs(shown(overview!) - shown(island!))).toBeLessThan(3);
   }
   await cross(page, 0, 1);
   expect((await pose(page, "work")).scale).toBeCloseTo(1, 3);
