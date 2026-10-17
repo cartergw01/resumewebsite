@@ -1299,29 +1299,91 @@ def led_ball(x,y,z,radius):
     light('Glow · LED ball',(x,y-radius*1.6,z+radius),(.58,.28,1),14,.12)
 
 
-def desk_lamp(x,y,z,scale=1):
-    cylinder('Lamp · cast iron foot',(x,y,z+.035*scale),.27*scale,.07*scale,'teal',64,bevel=.008)
-    torus('Lamp · foot ring',(x,y,z+.065*scale),.225*scale,.007*scale,'steel')
-    a=(x,y,z+.08*scale); b=(x-.24*scale,y,z+.85*scale); c=(x+.32*scale,y,z+1.45*scale)
-    for off in [-.042,.042]:
-        rod('Lamp · lower articulated rail',(a[0]+off,y,a[2]),(b[0]+off,y,b[2]),.014*scale,'teal')
-        rod('Lamp · upper articulated rail',(b[0]+off,y,b[2]),(c[0]+off,y,c[2]),.014*scale,'teal')
-    for j,p in enumerate([a,b,c]):
-        rod('Lamp · hinge barrel',(p[0],y-.045*scale,p[2]),(p[0],y+.045*scale,p[2]),.044*scale,'teal',24)
-        rod('Lamp · hinge screw',(p[0],y-.052*scale,p[2]),(p[0],y-.047*scale,p[2]),.021*scale,'steel',24)
-    # Closely wound mechanical springs are visible between the articulated rails.
-    for dx in [-.046,.046]:
-        pts=[(x+dx+.017*math.cos(i*math.tau/8)*scale,y+.018*math.sin(i*math.tau/8)*scale,z+(.17+i*.006)*scale) for i in range(44)]
-        curve('Lamp · tension spring',pts,.003*scale,'steel')
-    curve('Lamp · fabric power cable',[(x-.08,y+.05,z+.10),(b[0]-.055,y+.04,b[2]),(c[0],y+.04,c[2])],.008*scale,'ink')
-    shade=(c[0]+.09*scale,y,c[2]-.12*scale)
-    cylinder('Lamp · spun metal shade',shade,.28*scale,.29*scale,'teal',64,top=.09*scale,bevel=.008)
-    torus('Lamp · rolled shade lip',(shade[0],y,shade[2]-.145*scale),.279*scale,.009*scale,'steel')
-    bulb=(shade[0],y,shade[2]-.15*scale)
-    cylinder('Lamp · frosted diffuser',bulb,.25*scale,.009*scale,'light',64,bevel=0)
-    practical=light('Desk lamp illumination',(bulb[0],bulb[1],bulb[2]-.07),(1,.72,.42),22*scale,.22*scale)
+def spot(name,loc,target,color,energy,cone,blend=.5,soft=.04):
+    """A spotlight at `loc` aimed at `target`: a fixture's own light, falling
+    where its shade or opening sends it, with a soft (`blend`) edge."""
+    data=bpy.data.lights.new(name,'SPOT');data.color=color;data.energy=energy
+    data.spot_size=math.radians(cone);data.spot_blend=blend;data.shadow_soft_size=soft
+    obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj);obj.location=loc
+    obj.rotation_euler=(Vector(target)-Vector(loc)).to_track_quat('-Z','Y').to_euler()
+    return obj
+
+
+def shell(name,loc,profile,mat,segments=48):
+    """A turned shell from (radius, height) pairs, rim first: open at the rim
+    (a lamp shade lets its light out), closed at the crown."""
+    verts=[(r*math.cos(i*math.tau/segments),r*math.sin(i*math.tau/segments),z) for r,z in profile for i in range(segments)]
+    rings=len(profile)
+    faces=[tuple(range((rings-1)*segments,rings*segments))]
+    faces+=[(k*segments+i,k*segments+(i+1)%segments,(k+1)*segments+(i+1)%segments,(k+1)*segments+i) for k in range(rings-1) for i in range(segments)]
+    obj=mesh(name,verts,faces,mat);obj.location=loc
+    for face in list(obj.data.polygons)[1:]:face.use_smooth=True
+    return obj
+
+
+# The rooms' lamps are In Common With designs (incommonwith.com), modelled at
+# their catalogue proportions in the rooms' 2-units-per-metre scale. Each room
+# is lit by its fixtures: every pool, beam and glow has a source you can see.
+WARM=(1,.72,.44)
+
+
+def arundel_table_lamp(x,y,z,energy,k=1):
+    """In Common With's Arundel Table Lamp: a domed enamel shade on a slender
+    stem over a round foot, in sage. Its light falls in a pool beneath the
+    dome and lights the inside of the shade."""
+    P['sage']=material('Arundel · sage enamel',(.19,.25,.18),rough=.45)
+    cylinder('Arundel lamp · round foot',(x,y,z+.014*k),.15*k,.028*k,'sage',48,bevel=.008)
+    rod('Arundel lamp · stem',(x,y,z+.02*k),(x,y,z+.86*k),.011*k,'sage',16)
+    rim=z+.70*k
+    shell('Arundel lamp · domed shade',(x,y,rim),[(.36*k,0),(.356*k,.022*k),(.335*k,.065*k),(.29*k,.11*k),(.21*k,.148*k),(.11*k,.172*k),(.03*k,.182*k)],'sage')
+    bulb=(x,y,rim+.11*k)
+    sphere('Lamp · frosted diffuser',bulb,(.055*k,.055*k,.045*k),'light',2)
+    light('Arundel lamp · light in the shade',(x,y,rim+.03*k),WARM,energy*.06,.10*k)
     ANCHORS['lamp']=bulb
-    return practical
+    return spot('Arundel lamp · pool of light',(x,y,rim+.05*k),(x,y,z),WARM,energy,125,.55,.06*k)
+
+
+def up_down_sconce(x,y,z,energy,k=1):
+    """In Common With's Up Down Sconce on a wall whose face is at `y`: a short
+    enamel cylinder on a round wall plate, open at both ends, glowing at each
+    and throwing one beam up the wall and one down it."""
+    P['moss']=material('Up Down Sconce · moss enamel',(.09,.13,.07),rough=.5)
+    plate=cylinder('Up Down Sconce · wall plate',(x,y-.012*k,z),.07*k,.024*k,'ink',32,bevel=.004);plate.rotation_euler.x=math.pi/2
+    rod('Up Down Sconce · arm',(x,y-.02*k,z),(x,y-.13*k,z),.014*k,'ink',12)
+    body=(x,y-.17*k,z)
+    cylinder('Up Down Sconce · body',body,.075*k,.46*k,'moss',40,bevel=.006)
+    for side in (1,-1):
+        cylinder('Up Down Sconce · lit opening',(x,body[1],z+side*.231*k),.066*k,.004*k,'light',40,bevel=0)
+        spot('Up Down Sconce · beam '+('up' if side>0 else 'down'),(x,body[1],z+side*.24*k),(x,y-.05*k,z+side*1.8*k),WARM,energy,44,.35,.03*k)
+
+
+def luca_wall_sconce(x,y,z,energy,k=1):
+    """In Common With's Luca Wall Sconce on a wall whose face is at `y`: a
+    dark steel box that hides its lamp and throws a fan of light down the
+    wall beneath it."""
+    P['luca']=material('Luca sconce · blackened steel',(.025,.024,.022),metal=.4,rough=.5)
+    box('Luca sconce · body',(x,y-.075*k,z),(.26*k,.15*k,.36*k),'luca',.008)
+    box('Luca sconce · lit underside',(x,y-.075*k,z-.181*k),(.23*k,.12*k,.004),'light',0)
+    return spot('Luca sconce · wash down the wall',(x,y-.05*k,z-.19*k),(x,y-.01*k,z-2.0*k),WARM,energy,100,.6,.04*k)
+
+
+def gemma_table_lamp(x,y,z,energy,k=1):
+    """In Common With's Gemma Portable Table Lamp: a small translucent bell of
+    a shade, ringed with beads at its rim, on a short stem over a round foot;
+    the shade glows warm all over and drops a small pool round its foot."""
+    P['gemma']=material('Gemma lamp · amber translucent shade',(.85,.38,.14),rough=.35,emission=.45)
+    P['gemma_foot']=material('Gemma lamp · bronze',(.20,.12,.06),metal=.7,rough=.4)
+    cylinder('Gemma lamp · round foot',(x,y,z+.012*k),.085*k,.024*k,'gemma_foot',40,bevel=.006)
+    rod('Gemma lamp · stem',(x,y,z+.02*k),(x,y,z+.17*k),.016*k,'gemma_foot',16)
+    rim=z+.16*k
+    shell('Gemma lamp · bell shade',(x,y,rim),[(.17*k,0),(.165*k,.04*k),(.14*k,.12*k),(.11*k,.20*k),(.075*k,.25*k),(.03*k,.27*k)],'gemma')
+    for i in range(14):
+        a=i*math.tau/14
+        sphere('Gemma lamp · rim bead',(x+.172*k*math.cos(a),y+.172*k*math.sin(a),rim+.012*k),(.018*k,.018*k,.018*k),'gemma_foot',2)
+    glow=(x,y,rim+.10*k)
+    light('Gemma lamp · glow',glow,WARM,energy*.25,.06*k)
+    ANCHORS['lamp']=glow
+    return spot('Gemma lamp · pool of light',(x,y,rim+.03*k),(x,y,z),WARM,energy,140,.6,.05*k)
 
 
 def book_stack(x,y,z):
@@ -1664,6 +1726,9 @@ def writing():
     # A lava lamp on the top shelf, the study's one night light: it stays on
     # with the lamps off.
     lava_lamp(2.18,1.56,2.8225,1.3)
+    # In Common With's Up Down Sconce on the strip of wall between the window
+    # and the bookcase: one beam up the wall, one down to the desk.
+    up_down_sconce(-.86,1.92,2.48,110)
     furniture=set(bpy.context.scene.objects)
     # Desk height 74cm, top 3cm; proportions use 2 scene units per metre.
     for x in [-1.46,1.66]:
@@ -1679,13 +1744,14 @@ def writing():
         value=ANCHORS[key]
         convert=lambda v:tuple(Vector((.16,-.80,1.614))+(Vector(v)-Vector((.16,-.80,1.614)))*1.22)
         ANCHORS[key]=[convert(v) for v in value] if isinstance(value,list) else convert(value)
-    practical=desk_lamp(-1.17,-.14,1.614,.55)
-    practical.data.color=(1,.66,.36);practical.data.shadow_soft_size=.08
-    for f,e in [(1,58),(25,63),(49,58)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
+    # In Common With's Arundel Table Lamp behind the notebook: its pool of
+    # light is what lights the desk and the open pages.
+    practical=arundel_table_lamp(-.02,-.10,1.614,320)
+    for f,e in [(1,320),(25,340),(49,320)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
     # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
-    iced_latte(-.62,-.30,1.61)
+    iced_latte(-1.28,-.58,1.61)
     # A capped fountain pen beside the notebook: black lacquer, gold band and clip.
     a,b=Vector((.84,-1.20,1.628)),Vector((.79,-.82,1.628))
     rod('Fountain pen · black lacquer barrel',tuple(a),tuple(b),.016,'ink',24)
@@ -1709,9 +1775,6 @@ def writing():
         ANIMATED.append(leaf)
     chair(-.95,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
-    light('Study · paper warmth',(.2,-1.15,2.75),(1,.74,.46),40,.8,(.1,-.8,1.65))
-    # Lamplight spilling onto the floor and the lower shelves.
-    light('Study · lamplight on the room',(-.6,-.4,2.6),(1,.68,.40),60,2.2,(-.2,.4,.4))
     plant(-2.65,.57,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
     woven_rug()
@@ -1916,7 +1979,8 @@ def workshop():
     # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
     # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
     ipad_pro(-.72,-.58,1.79,math.radians(6),'artwork/blender/ipad-wallpaper-launch.jpg')
-    practical=desk_lamp(-1.55,.77,1.792,.51)
+    # In Common With's Gemma Portable Table Lamp at the back of the bench.
+    gemma_table_lamp(-1.50,.60,1.792,90)
     # Different working objects replace the three identical empty cases.
     box('Bench · shallow parts tray',(-.43,-.12,.55),(.82,.76,.05),'teal',.006)
     for x in [-.84,-.02]:box('Tray · side',(x,-.12,.63),(.015,.76,.14),'teal',.003)
@@ -2015,17 +2079,16 @@ def workshop():
     roof=mesh('Workshop · corrugated lean-to roof',verts,faces,'corrugated')
     roof.modifiers.new('Sheet thickness','SOLIDIFY').thickness=.012
     # Lakers purple: LED strips along the front of the roof beam and up both
-    # posts frame the shed in neon; the beam's washes the back wall.
+    # posts frame the shed in neon; their light stays close to the strips.
     P['purple_strip']=material('Glow · purple LED strip',(.46,.12,1),emission=4)
     box('Glow · roof beam strip',(-.09,front[0]+.012,front[1]-.075),(6.0,.008,.016),'purple_strip',0)
-    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),30,.8,(bx,2.0,2.2))
+    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),10,.3,(bx,2.0,3.3))
     for px2 in [-3.05,2.86]:
         box('Glow · post strip',(px2,front[0]+.012,(front[1]-.12+.22)/2),(.016,.008,front[1]-.34),'purple_strip',0)
-        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),12,.9,(px2,front[0]-1.4,.2))
-    # A bare bulb hung from the beam on its own flex.
-    curve('Workshop · bulb flex',[(-.55,front[0]+.05,front[1]-.09),(-.50,front[0]-.05,front[1]-.4),(-.48,front[0]-.10,front[1]-.78)],.006,'ink')
-    sphere('Workshop · bare bulb',(-.48,front[0]-.10,front[1]-.86),(.045,.045,.06),'light',2)
-    light('Workshop · bare bulb light',(-.48,front[0]-.18,front[1]-.92),(1,.70,.42),26,.05)
+        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),5,.3,(px2,front[0]-.8,1.2))
+    # In Common With's Luca Wall Sconce on the patched sheet above the tool
+    # wall, fanning its light down over the tools.
+    luca_wall_sconce(.33,2.017,3.05,150)
     # A string of festoon bulbs swagged along the roof beam.
     P['festoon']=material('Festoon · warm bulb',(1,.74,.44),emission=6)
     hangs=[-3.0,-1.0,.95,2.82];fy=front[0]+.0;fz=front[1]-.10
@@ -2129,8 +2192,6 @@ def workshop():
     box('Workshop · practical LED strip',(1.56,1.44,1.61),(2.04,.025,.015),'light',.003)
     ANCHORS['bulbs']=[(1.10,1.44,1.61),(2.0,1.44,1.61)]
     light('Workshop · task strip',(1.56,1.35,1.58),(1,.76,.52),26,1.0,(1.1,.6,1.1))
-    practical.data.color=(1,.66,.36);practical.data.energy=52;practical.data.shadow_soft_size=.08
-    light('Workshop · lamplight on the room',(-1.2,-.3,2.6),(1,.68,.40),55,2.2,(-.8,.6,.3))
     plant(-2.98,.95,.16,.64)
 
 
@@ -2289,8 +2350,9 @@ def lights_out(scene,world):
         bs=mat.node_tree.nodes.get('Principled BSDF')
         if bs and bs.inputs['Emission Strength'].default_value>0:
             bs.inputs['Emission Strength'].default_value=0
-            # An unlit bulb is frosted glass, not a white-hot one.
-            bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
+            # An unlit bulb is frosted glass, not a white-hot one; a coloured
+            # shade keeps its colour.
+            if not mat.name.startswith('Gemma lamp'):bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
 
 
 def daylight(scene):
