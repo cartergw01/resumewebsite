@@ -54,7 +54,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
 
   return (
     <>
-      <IslandLink href="/writing" title="Writing" prompt="read my writing" landmark={landmark} book>
+      <IslandLink href="/writing" title="Writing" prompt="click to read my writing" landmark={landmark} book>
         <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-reads="island-light:filter">
           {warm ? <Image
             src={island.src} alt="" width={island.width} height={island.height}

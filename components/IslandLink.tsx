@@ -6,7 +6,7 @@ import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry, bookOpened } from "@/lib/workshop-entry";
 import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
-import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY } from "@/lib/island-entry-motion";
+import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY, entryPace } from "@/lib/island-entry-motion";
 import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-light";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
@@ -124,13 +124,14 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     let handedOff = false;
     let cancelScreen: (() => void) | null = workEntry?.dispose ?? null;
     let cancelled = false;
+    const pace = entryPace();
     if (workshop || book) {
       screenTimer = window.setTimeout(() => {
         const screen = visual.querySelector<SVGGraphicsElement>("[data-workshop-screen]");
         if (!cancelled && screen) cancelScreen = beginWorkshopEntry(screen);
         const spread = visual.querySelector<SVGGraphicsElement>("[data-book-spread]");
         if (!cancelled && spread) cancelScreen = beginBookEntry(spread);
-      }, ENTRY_LIFT_DELAY);
+      }, ENTRY_LIFT_DELAY / pace);
     }
     const reset = () => {
       cancelled = true;
@@ -139,6 +140,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       window.removeEventListener("pointerdown", hurry, true);
       window.removeEventListener("keydown", hurryKey, true);
       cancelAnimationFrame(hurryFrame);
+      // Once handed off, the pace carries on through the destination's reveal.
+      if (!handedOff) cancelAnimationFrame(paceFrame);
       window.removeEventListener("keydown", escape);
       window.removeEventListener("resize", interrupted);
       window.removeEventListener("popstate", interrupted);
@@ -187,6 +190,19 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       window.addEventListener("pointerdown", hurry, true);
       window.addEventListener("keydown", hurryKey, true);
     });
+    // Phones keep the whole journey at their faster pace (entryPace), through
+    // the destination's reveal, unless a tap has hurried it further.
+    let paceFrame = 0;
+    if (pace > 1) {
+      const began = performance.now();
+      const keepPace = () => {
+        for (const animation of document.getAnimations()) if (animation.playState === "running" && animation.playbackRate < pace) animation.playbackRate = pace;
+        const flags = document.documentElement.dataset;
+        const journeying = !handedOff || flags.islandEntering || flags.bookTransition || flags.workshopTransition || flags.workTransition;
+        paceFrame = (handedOff || !cancelled) && journeying && performance.now() - began < 8000 ? requestAnimationFrame(keepPace) : 0;
+      };
+      keepPace();
+    }
     window.addEventListener("keydown", escape);
     window.addEventListener("resize", interrupted);
     window.addEventListener("popstate", interrupted);

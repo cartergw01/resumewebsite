@@ -65,6 +65,9 @@ function externalLinkProps(href: string) {
 
 export default function SiteNav({ active = "home", hidePrimary = false }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
+  // On phones a page's bar steps out of the way as you read down it and comes
+  // back as soon as you scroll up (styles in app/globals.css).
+  const [tucked, setTucked] = useState(false);
   const destination = active !== "home";
   const island = active === "resume" ? "work" : active;
   const [returnHref, setReturnHref] = useState(`/#${island}`);
@@ -74,9 +77,16 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
   useEffect(() => {
     if (!destination) return;
     let previous = false;
+    let lastY = window.scrollY, hidden = false;
     const sync = () => {
-      const next = window.scrollY > 16;
+      const y = window.scrollY;
+      const next = y > 16;
       if (next !== previous) { previous = next; setScrolled(next); }
+      // A few pixels of travel either way decide; near the top it always shows.
+      const delta = y - lastY;
+      const hide = y < 80 ? false : delta > 8 ? true : delta < -8 ? false : hidden;
+      if (Math.abs(delta) > 8 || y < 80) lastY = y;
+      if (hide !== hidden) { hidden = hide; setTucked(hide); }
     };
     sync();
     window.addEventListener("scroll", sync, { passive: true });
@@ -84,7 +94,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
   }, [destination]);
 
   return (
-    <header className={`site-nav${destination && active !== "resume" ? ` ${styles.destinationNav}` : ""}`} data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled}>
+    <header className={`site-nav${destination && active !== "resume" ? ` ${styles.destinationNav}` : ""}`} data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled} data-tucked={tucked || undefined}>
       {/* Every subpage returns to its island from the same upper-left spot. */}
       {destination && (
         <Link href={returnHref} scroll={false} className="site-nav-return" aria-label="Back to islands">

@@ -1,9 +1,9 @@
 import renders from "./blender-islands.json";
 
 export const islandArtwork = {
-  work: { ...renders.work, title: "Work", prompt: "learn about my work" },
-  writing: { ...renders.writing, title: "Writing", prompt: "read my writing" },
-  projects: { ...renders.projects, title: "Projects", prompt: "see what i’ve built" },
+  work: { ...renders.work, title: "Work", prompt: "click to learn about my work" },
+  writing: { ...renders.writing, title: "Writing", prompt: "click to read my writing" },
+  projects: { ...renders.projects, title: "Projects", prompt: "click to see what i’ve built" },
 } as const;
 
 export type IslandArtworks = typeof islandArtwork;

@@ -10,3 +10,9 @@ export const ENTRY_LIFT_DELAY = ENTRY_APPROACH_DURATION * .1;
 export const ENTRY_LIFT_DURATION = ENTRY_APPROACH_DURATION - ENTRY_LIFT_DELAY;
 export const ENTRY_HANDOFF_DURATION = ENTRY_ARRIVAL_DURATION * .2;
 export const ENTRY_STAGGER_DURATION = ENTRY_ARRIVAL_DURATION * .2;
+// Phones play the whole journey faster (about 2s instead of 3.4s; Writing's
+// notebook about 2.5s): lovely the first time, slow every time after, and a
+// phone is held for quick looks. Every animation the entry runs, including
+// the ones it starts later, plays at this rate (components/IslandLink.tsx).
+export const PHONE_ENTRY_PACE = 1.8;
+export const entryPace = () => matchMedia("(max-width: 760px)").matches ? PHONE_ENTRY_PACE : 1;

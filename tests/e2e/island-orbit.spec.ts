@@ -121,7 +121,7 @@ test("rotation help borrows the existing annotation once and leaves no extra row
   await page.goto('/#work');
   const link = page.locator('#work [data-island-link]');
   const cue = link.locator('[data-island-cue]');
-  const destination = cue.getByText('learn about my work', { exact: true });
+  const destination = cue.getByText('click to learn about my work', { exact: true });
   await expect(destination).toBeVisible();
   await expect(page.locator('[data-orbit-controls]')).toHaveCount(0);
   await expect(link).toHaveAttribute('data-orbit-hint', 'true', { timeout: 60_000 });

@@ -88,7 +88,7 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
   }
 });
 
-test("destination navigation stays readable on scroll and the matching island restores", async ({ page }) => {
+test("destination navigation stays readable on scroll and the matching island restores", async ({ page, isMobile }) => {
   for (const world of ["work", "writing", "projects"]) {
     await page.goto(`/${world}`);
     const nav = page.locator(".site-nav");
@@ -96,6 +96,14 @@ test("destination navigation stays readable on scroll and the matching island re
     await expect(nav).toHaveAttribute("data-scrolled", "false");
     await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
     await expect(nav).toHaveAttribute("data-scrolled", "true");
+    if (isMobile) {
+      // Phones tuck the bar away while you read down, and bring it straight
+      // back as soon as you scroll up.
+      await expect(nav).toHaveAttribute("data-tucked", "true");
+      await expect(nav).not.toBeInViewport();
+      await page.evaluate(() => window.scrollBy({ top: -60, behavior: "instant" }));
+      await expect(nav).not.toHaveAttribute("data-tucked");
+    }
     await expect(nav).toBeInViewport({ ratio: 1 });
     await expect(nav).toHaveCSS("position", "fixed");
     const backdrop = await nav.evaluate(node => getComputedStyle(node, "::before").backgroundImage);
@@ -110,7 +118,9 @@ test("destination navigation stays readable on scroll and the matching island re
 
 
 test("arrival invites entering before hover and recedes after discovery", async ({ page }, testInfo) => {
-  await page.goto("/#work");
+  // From the opening view, so each tab travels (on phones, tapping the tab
+  // you're already on opens its island instead).
+  await page.goto("/");
   for (const world of ["Work", "Writing", "Projects"]) {
     const id = world.toLowerCase();
     await page.getByRole("button", { name: `Show ${world} island` }).click();

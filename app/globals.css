@@ -402,6 +402,12 @@ select {
   border-radius: 999px;
 }
 
+/* The islands snap natively on touch screens, one stop per fling (snap
+   points: .snapStop in IslandHome.module.css), except while a scripted glide
+   (a tab, a key, the scroll cue) is carrying the camera to a stop. */
+html[data-island-snap="true"] { scroll-snap-type: y mandatory; }
+html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: none; }
+
 /* Shared navigation */
 .site-nav {
   position: fixed;
@@ -2050,6 +2056,11 @@ select {
   .site-nav[data-destination-nav] .site-nav-primary { grid-column: 2; }
   .site-nav[data-destination-nav] .site-nav-social { grid-column: 4; }
   .site-nav a.site-nav-return { min-width: 32px; margin-left: -8px; padding: 0 8px; }
+  /* Reading down a page tucks the bar away; scrolling up (or focusing it)
+     brings it straight back. */
+  .site-nav[data-destination-nav] { transition: translate 280ms var(--cw-ease), opacity 220ms ease; }
+  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) { translate: 0 calc(-100% - var(--nav-top) - 1.5rem); opacity: 0; pointer-events: none; }
+  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) :is(a, nav) { pointer-events: none; }
   /* The arrow already goes home, so phones drop Home to give the routes room. */
   .site-nav[data-destination-nav] .site-nav-home { display: none; }
   .site-nav-return-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

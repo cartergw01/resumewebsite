@@ -49,7 +49,9 @@ test("optional island models wait until scrolling inside a hold is quiet", async
   // Phones load a model only on intent; desktops preload Taipei.
   await page.locator("#work [data-island-link]").focus();
   const stage = page.locator("[data-island-stage]");
-  await page.evaluate(() => scrollBy({ top: 1, behavior: "instant" }));
+  // A slow drag inside the hold, finger down: touch screens snap to the stop
+  // only once a gesture ends, so set positions run with snapping paused.
+  await page.evaluate(() => { document.documentElement.style.scrollSnapType = "none"; scrollBy({ top: 1, behavior: "instant" }); });
   await expect(stage).toHaveAttribute("data-scrolling", "true");
   await page.evaluate(async () => {
     const connection = (navigator as Navigator & { connection: EventTarget & { saveData: boolean } }).connection;

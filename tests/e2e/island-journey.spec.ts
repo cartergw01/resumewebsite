@@ -1,7 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
+// Positions are set directly, as a finger mid-drag would hold them. Touch
+// screens snap natively to each stop once a gesture ends (app/globals.css),
+// which would pull a set mid-flight position to a stop, so it's paused here.
+async function pauseSnap(page: Page) {
+  await page.evaluate(() => { document.documentElement.style.scrollSnapType = "none"; });
+}
+
 async function scrollScreens(page: Page, screens: number) {
+  await pauseSnap(page);
   await page.evaluate((distance) => {
     window.scrollTo({ top: window.innerHeight * distance, behavior: "instant" });
   }, screens);
@@ -59,6 +67,7 @@ test("scroll advances and reverses three islands inside one viewport", async ({ 
 test("shooting star follows the full page proportionally in both directions", async ({ page }) => {
   await page.goto("/");
   const comet = page.locator("[data-scene-comet]");
+  await pauseSnap(page);
 
   for (const reducedMotion of ["no-preference", "reduce"] as const) {
     await page.emulateMedia({ reducedMotion });
@@ -72,8 +81,10 @@ test("shooting star follows the full page proportionally in both directions", as
           const rect = button.getBoundingClientRect();
           return rect.left + rect.width / 2;
         });
-        // The opening and closing views rest the star on the track's end points.
-        const ends = Array.from(document.querySelectorAll("[data-track-end]")).map((end) => {
+        // The opening and closing views rest the star on the track's end
+        // points, or on phones' Home and Say hi tabs where the bar shows them.
+        const edges = Array.from(document.querySelectorAll<HTMLElement>("[data-edge-tab]")).filter(tab => tab.offsetParent);
+        const ends = (edges.length ? edges : Array.from(document.querySelectorAll("[data-track-end]"))).map((end) => {
           const rect = end.getBoundingClientRect();
           return rect.left + rect.width / 2;
         });
@@ -110,7 +121,8 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expectScene(page, "hello");
   await expect(page.locator("#hello").getByRole("link", { name: "Email" })).toHaveAttribute("href", "mailto:cartergw01@gmail.com");
-  await page.getByRole("button", { name: "Back to the start" }).click();
+  // Phones go back from the tab bar's Home; the scroll cue steps aside there.
+  await page.getByRole("button", { name: isMobile ? "Go to the start" : "Back to the start" }).click();
   await expectScene(page, "intro");
   await page.getByRole("button", { name: isMobile ? "Show Work island" : "Scroll down to the Work island" }).click();
   await expectScene(page, "work");
@@ -214,7 +226,8 @@ test("resize preserves the current island and compact viewports stay usable", as
   }
 });
 
-test("scene controls only select worlds, including repeated activation", async ({ page }) => {
+test("scene controls only select worlds, including repeated activation", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Phones' tab bar opens the current island; see the next test.");
   await page.goto("/#writing");
   await expectScene(page, "writing");
   const tab = page.getByRole("button", { name: "Show Writing island" });
@@ -227,6 +240,30 @@ test("scene controls only select worlds, including repeated activation", async (
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await page.getByRole("heading", { name: "Writing", exact: true }).getByRole("link").click();
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
+});
+
+test("on phones a quick double tap only travels; tapping the arrived tab opens its island", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "The tab bar is the phone layout.");
+  await page.goto("/#work");
+  await expectScene(page, "work");
+  const tab = page.getByRole("button", { name: "Show Writing island" });
+  await tab.click();
+  await tab.click();
+  await expectScene(page, "writing");
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
+  await expect(page).toHaveURL(/\/#writing$/);
+  // The bar also reaches the opening and closing views.
+  await page.getByRole("button", { name: "Go to say hi" }).click();
+  await expectScene(page, "hello");
+  await page.getByRole("button", { name: "Go to the start" }).click();
+  await expectScene(page, "intro");
+  await page.getByRole("button", { name: "Show Projects island" }).click();
+  await expectScene(page, "projects");
+  // Once the glide has landed (a tap mid-glide only travels), the same tab opens it.
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-navigating");
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
+  await page.getByRole("button", { name: "Show Projects island" }).click();
+  await expect(page).toHaveURL(/\/projects$/, { timeout: 15_000 });
 });
 
 test("off-screen islands prepare after the opening view, before anyone travels", async ({ page }) => {
@@ -333,12 +370,15 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
   if (isMobile) await page.keyboard.press("End");
   else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expect(page).toHaveURL(/#hello$/);
-  await page.getByRole("button", { name: "Back to the start" }).click();
+  // Phones go back from the tab bar's Home; the scroll cue steps aside there.
+  await page.getByRole("button", { name: isMobile ? "Go to the start" : "Back to the start" }).click();
   await expect(page).toHaveURL(/:\d+\/$/);
 });
 
 test("navigation labels sit above the curved light path with comfortable targets", async ({ page }) => {
-  await page.goto("/#work");
+  // From the opening view, so each tab travels (on phones, tapping the tab
+  // you're already on opens its island instead).
+  await page.goto("/");
   for (const world of ["Work", "Writing", "Projects"]) {
     const button = page.getByRole("button", { name: `Show ${world} island` });
     await button.click();

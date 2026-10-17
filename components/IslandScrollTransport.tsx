@@ -53,6 +53,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const buttons = Array.from(track.querySelectorAll<HTMLButtonElement>("[data-scene-button]"));
     const buttonScene = buttons.map((button) => Number(button.dataset.sceneIndex));
     const tabFor = (index: number) => buttons[buttonScene.indexOf(index)];
+    // Phones' tab bar adds the opening view (Home) and the closing one (Say
+    // hi) at its ends; they're hidden on wider screens, where the curve's
+    // ends stand for them.
+    const edgeTabs = Array.from(track.querySelectorAll<HTMLButtonElement>("[data-edge-tab]"));
+    const shown = (node: HTMLElement) => node.offsetParent !== null;
+    const edgeFor = (index: number) => edgeTabs.find(tab => Number(tab.dataset.sceneIndex) === index && shown(tab));
+    const dots = Array.from(track.querySelectorAll<HTMLElement>("[data-scene-dot]"));
+    const snapStops = Array.from(track.querySelectorAll<HTMLElement>("[data-snap-stop]"));
     const sceneNav = track.querySelector<HTMLElement>("[data-scene-nav]")!;
     const galaxy = stage.querySelector<HTMLElement>("[data-galaxy-camera]")!;
     const middleStars = stage.querySelector<HTMLElement>('[data-depth-stars="middle"]')!;
@@ -287,7 +295,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
       const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
       comet.place(starX, now);
-      comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) : undefined);
+      comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) ?? edgeFor(current) : undefined);
       const boundary = progress < .001 ? "start" : progress > .999 ? "end" : "none";
       if (sceneNav.dataset.boundary !== boundary) sceneNav.dataset.boundary = boundary;
 
@@ -312,6 +320,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           else button.removeAttribute("aria-current");
           button.setAttribute("aria-label", `Show ${title} island`);
         });
+        edgeTabs.forEach(tab => {
+          if (Number(tab.dataset.sceneIndex) === current) tab.setAttribute("aria-current", "step");
+          else tab.removeAttribute("aria-current");
+        });
+        dots.forEach((dot, index) => { if (index === current) dot.dataset.current = "true"; else delete dot.dataset.current; });
         const upcoming = worlds[current + 1];
         // On touch screens the gesture is a swipe up, so the cue says so.
         const verb = touchScroll.matches ? "swipe up" : "scroll down";
@@ -385,8 +398,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         .map((end) => end.offsetLeft + end.offsetWidth / 2);
       starStops = worlds.map((_, index) => {
         const tab = buttonScene.indexOf(index);
-        return tab >= 0 ? centers[tab] : index < buttonScene[0] ? trackStart : trackEnd;
+        if (tab >= 0) return centers[tab];
+        const edge = edgeFor(index);
+        if (edge) return edge.offsetLeft + edge.offsetWidth / 2;
+        return index < buttonScene[0] ? trackStart : trackEnd;
       });
+      // Phones snap natively to each stop: one marker per stop, at the scroll
+      // offset where that stop's shot sits (relative to the track's top).
+      snapStops.forEach((marker, index) => { marker.style.top = `${stopProgress(index) * travel}px`; });
       schedule();
     };
     // Glides are driven here rather than by the browser's smooth scroll, so
@@ -397,7 +416,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // settle: on touch screens a tap is also a touch, and its settle check
     // would otherwise pull the camera back to the island it just left.
     let cancelSettle = () => {};
-    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; };
+    // Scripted glides (tabs, keys, the scroll cue) step the scroll every frame;
+    // native snapping would pull each step back to a stop, so it rests until
+    // the glide has landed on one.
+    const gliding = (on: boolean) => {
+      if (on) document.documentElement.dataset.islandGliding = "true";
+      else delete document.documentElement.dataset.islandGliding;
+    };
+    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; gliding(false); };
     const jump = (index: number, instant = false) => {
       cancelSettle();
       entryPending = false;
@@ -421,6 +447,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const length = Math.min(900, 450 + Math.abs(to - from) * duration * 180);
       const began = performance.now();
       stage.dataset.navigating = "true";
+      gliding(true);
       const step = (now: number) => {
         // A frame's timestamp can precede the call that started the glide.
         const t = clamp((now - began) / length);
@@ -434,7 +461,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         // the scroll event here left the art a frame behind the navigation.
         cancelAnimationFrame(frame);
         render(now, true);
-        if (t >= 1) { delete stage.dataset.navigating; window.dispatchEvent(new Event("scrollend")); }
+        if (t >= 1) { delete stage.dataset.navigating; gliding(false); window.dispatchEvent(new Event("scrollend")); }
       };
       glideFrame = window.requestAnimationFrame(step);
     };
@@ -444,8 +471,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (motion.matches) { stopGlide(); cameraProgress = null; }
       schedule();
     };
-    // Scene controls always travel. Only islands and headings enter a page.
-    jumpRef.current = (index: number) => jump(index);
+    // Scene controls travel; islands and headings enter a page. On phones'
+    // tab bar, tapping the tab you're already on, once its island has
+    // arrived, opens that island, exactly as tapping the island does.
+    // Elsewhere scene controls only ever travel (a double click never enters).
+    jumpRef.current = (index: number) => {
+      const island = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
+      const tabBar = edgeTabs.some(shown);
+      if (tabBar && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
+        island.click();
+        return;
+      }
+      jump(index);
+    };
     const advance = () => jump(activeIndex === scenes.length - 1 ? 0 : activeIndex + 1);
     const followHash = () => {
       const hash = window.location.hash.slice(1);
@@ -605,6 +643,24 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // No gesture yet: page timers start at zero, so 0 would read as "just now".
     let intentAt = Number.NEGATIVE_INFINITY;
     const nativeScrollEnd = "onscrollend" in window;
+    // On touch screens the browser snaps each fling to the next stop itself
+    // (CSS scroll-snap, app/globals.css), with the phone's own momentum: one
+    // motion, rather than a scripted glide picking up where the finger left off.
+    const syncSnap = () => {
+      if (touchScroll.matches && !motion.matches) document.documentElement.dataset.islandSnap = "true";
+      else delete document.documentElement.dataset.islandSnap;
+    };
+    syncSnap();
+    touchScroll.addEventListener("change", syncSnap);
+    motion.addEventListener("change", syncSnap);
+    const snapping = () => document.documentElement.dataset.islandSnap === "true";
+    // The position dots show while the page moves, and a moment after.
+    let dotsTimer = 0;
+    const showDots = () => {
+      if (stage.dataset.dots !== "true") stage.dataset.dots = "true";
+      window.clearTimeout(dotsTimer);
+      dotsTimer = window.setTimeout(() => { delete stage.dataset.dots; }, 1400);
+    };
     let touching = false;
     let settling = false;
     let settleTimer = 0;
@@ -628,7 +684,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       jump(index);
     };
     const settle = () => {
-      if (touching || stage.dataset.entering) return;
+      if (touching || stage.dataset.entering || snapping()) return;
       const here = place();
       const nearest = nearestStop();
       if (Math.abs(stopAt(nearest) - here) < 0.04) {
@@ -641,6 +697,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       glideTo(ahead < 0 ? scenes.length - 1 : ahead);
     };
     const onGestureScroll = () => {
+      if (!peeking) showDots();
       // Even a hold is still part of a scroll gesture. Keep optional model
       // decoding out of it, then let it resume once momentum is quiet.
       if (stage.dataset.scrolling !== "true") stage.dataset.scrolling = "true";
@@ -720,7 +777,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let peekTimer = 0;
     let peekFrame = 0;
     let interacted = false;
-    const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; } peeking = false; };
+    const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; gliding(false); } peeking = false; };
     const peekSeen = () => { try { return sessionStorage.getItem("islands-peek") === "1"; } catch { return false; } };
     const peek = () => {
       if (interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
@@ -729,6 +786,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const depth = travel * (0.46 / duration);
       const out = 750, hold = 180, back = 850, began = performance.now();
       peeking = true;
+      gliding(true);
       const step = (now: number) => {
         const t = now - began;
         const k = t < out ? 1 - Math.pow(1 - t / out, 3)
@@ -736,7 +794,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           : t < out + hold + back ? 1 - ease((t - out - hold) / back) : 0;
         window.scrollTo({ top: start + depth * k, behavior: "instant" });
         if (t < out + hold + back) peekFrame = requestAnimationFrame(step);
-        else { peekFrame = 0; peeking = false; }
+        else { peekFrame = 0; peeking = false; gliding(false); }
       };
       peekFrame = requestAnimationFrame(step);
     };
@@ -749,6 +807,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       stopPeek();
       peekIntents.forEach(type => window.removeEventListener(type, stopPeek, { capture: true }));
       delete document.documentElement.dataset.islandsQuiet;
+      delete document.documentElement.dataset.islandSnap;
+      delete document.documentElement.dataset.islandGliding;
+      touchScroll.removeEventListener("change", syncSnap);
+      motion.removeEventListener("change", syncSnap);
+      window.clearTimeout(dotsTimer);
       history.scrollRestoration = previousRestoration;
       window.removeEventListener("wheel", markIntent);
       window.removeEventListener("touchstart", onTouchStart);
@@ -836,6 +899,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
               </g>
             </svg>
             <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
+            <button type="button" className={styles.edgeTab} data-edge-tab data-scene-index={0} disabled={!ready} aria-label="Go to the start" onClick={() => jumpRef.current(0)}>
+              <span className={styles.chapterStar} aria-hidden="true" />
+              <span className={styles.chapterLabel}>Home</span>
+            </button>
             {worlds.map((world, index) => world.title ? (
               <button
                 type="button"
@@ -850,13 +917,22 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
                 <span className={styles.chapterLabel}>{world.title}</span>
               </button>
             ) : null)}
+            <button type="button" className={styles.edgeTab} data-edge-tab data-scene-index={worlds.length - 1} disabled={!ready} aria-label="Go to say hi" onClick={() => jumpRef.current(worlds.length - 1)}>
+              <span className={styles.chapterStar} aria-hidden="true" />
+              <span className={styles.chapterLabel}>Say hi</span>
+            </button>
             <span className={styles.trackEnd} data-track-end="end" aria-hidden="true" />
             <span className={styles.shootingStar} data-scene-comet aria-hidden="true">
               <span className={styles.cometHead} />
             </span>
           </nav>
         </div>
+        {/* Phones: where you are among the stops, shown while the page moves. */}
+        <div className={styles.dots} aria-hidden="true">
+          {worlds.map((world) => <span key={world.id} data-scene-dot />)}
+        </div>
       </div>
+      {worlds.map((world) => <span key={world.id} className={styles.snapStop} data-snap-stop aria-hidden="true" />)}
     </main>
   );
 }
