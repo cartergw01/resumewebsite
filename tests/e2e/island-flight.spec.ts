@@ -1,8 +1,12 @@
 import { expect, test, type Page } from "@playwright/test";
 import artwork from "../../lib/blender-islands.json" with { type: "json" };
 
+// Positions are set directly, as a finger mid-drag would hold them. Touch
+// screens snap natively to each stop once a gesture ends (app/globals.css),
+// which would pull a set mid-flight position to a stop, so it's paused here.
 async function cross(page: Page, journey: number, progress: number) {
   await page.evaluate(({ journey, progress }) => {
+    document.documentElement.style.scrollSnapType = "none";
     const position = (journey + 0.34 + progress * 0.54) / 4.5;
     scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * position, behavior: "instant" });
   }, { journey, progress });
