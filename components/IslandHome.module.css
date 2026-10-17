@@ -436,6 +436,9 @@
   .copy h1, .copy h2 { font-size: 2.75rem; }
   .island { max-height: 42dvh; }
   .art { height: calc(100% - 2.5rem); }
+  /* The overviews' art fills its row (above), so it ends a little short
+     here: the lowest island's label must clear the scroll button's tap area. */
+  .scene:has(.overview) .art { height: calc(100% - 0.75rem); }
   .controls { gap: 0.35rem; }
 }
 @media (max-height: 600px) and (min-width: 761px) {
