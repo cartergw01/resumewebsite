@@ -340,6 +340,11 @@
 .chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }
 .chapters button[data-arriving] .chapterLabel { animation: chapter-arrival 900ms ease-out; }
+/* On the opening and closing views the islands carry their own names; the
+   bar's labels show at the islands (or as soon as a keyboard reaches them). */
+.chapterLabel { transition: color 220ms ease, text-shadow 220ms ease, opacity 400ms ease; }
+.track:is([data-scene="intro"], [data-scene="hello"]) .chapterLabel { opacity: 0; }
+.track:is([data-scene="intro"], [data-scene="hello"]) .chapters:focus-within .chapterLabel { opacity: 1; }
 @keyframes chapter-arrival { 0% { color: #fffdf3; text-shadow: 0 0 15px #ffe5b3aa, 0 0 28px #c1dbff44; } 100% { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; } }
 /* Native snap points for touch scrolling, one per stop (positioned by
    IslandScrollTransport; snapping is switched on in app/globals.css). */
