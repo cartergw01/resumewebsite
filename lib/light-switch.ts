@@ -1,7 +1,7 @@
 // One flip of a room's switch, played out fixture by fixture: each light
 // source comes on (or goes off) in its own way, as real ones do. The Arundel
 // lamp's bulb warms up, the sconce's LEDs snap, the shelf strips run along
-// their length, the lava lamp glows in slowly; off plays the same in reverse,
+// their length, the lava lamp glows in last; off plays the same in reverse,
 // and then the spotlight finds the room's subject.
 //
 // Blender renders each source's share of the light at every pixel
@@ -21,12 +21,14 @@ const LAMP: Timing = { on: { delay: 90, duration: 520 }, off: { delay: 40, durat
 const SNAP: Timing = { on: { delay: 40, duration: 70 }, off: { delay: 0, duration: 70 } };
 const STRIP: Timing = { on: { delay: 200, duration: 150, sweep: 260 }, off: { delay: 30, duration: 110, sweep: 180 } };
 const GLOW: Timing = { on: { delay: 320, duration: 1300 }, off: { delay: 100, duration: 900 } };
+// The lava lamp glows in last, but quickly enough to read as part of the flip.
+const LAVA: Timing = { on: { delay: 220, duration: 550 }, off: { delay: 60, duration: 400 } };
 export const TIMINGS: Record<string, Timing> = {
   lamp: LAMP, gemma: LAMP,
   sconce: SNAP, luca: SNAP, task: SNAP,
   shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 260 }, off: STRIP.off },
   festoon: { on: { delay: 140, duration: 90, sweep: 420 }, off: { delay: 60, duration: 90, sweep: 300 } },
-  lava: GLOW, ball: GLOW,
+  lava: LAVA, ball: GLOW,
   devices: { on: { delay: 0, duration: 260 }, off: { delay: 0, duration: 320 } },
   spot: { on: { delay: 0, duration: 220 }, off: { delay: 480, duration: 520 } },
 };
