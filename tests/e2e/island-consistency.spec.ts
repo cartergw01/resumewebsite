@@ -25,8 +25,10 @@ test("island artwork stays consistent from overview through forward and reverse 
     await page.getByRole("button", { name: `Show ${name} island` }).click();
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     const visual = page.locator(`#${world} [data-island-visual]`);
-    // Work also carries a daytime still; the night render is the default view.
-    const still = visual.locator("img:not([data-city-time])");
+    // Work also carries a daytime still, and the rooms their lights-off and
+    // lifted stills (loaded once the room is settled); the night render is
+    // the default view.
+    const still = visual.locator("img:not([data-city-time]):not([data-lights-off]):not([data-book-lifted])");
     // Stills are resized per device by next/image; the source file must match.
     await expect.poll(() => still.evaluate((node: HTMLImageElement) => {
       const url = new URL(node.src);

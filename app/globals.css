@@ -3137,9 +3137,9 @@ html[data-projects-lights="off"] [data-lights-off="projects"] { opacity: 1; }
 [data-lights-on] { transition: opacity 0s; }
 html[data-writing-lights="off"] [data-lights-on="writing"],
 html[data-projects-lights="off"] [data-lights-on="projects"] { opacity: 0; transition: opacity 0s 600ms; }
-[data-room-light] { transition: opacity 520ms cubic-bezier(.45, 0, .55, 1) 90ms; }
+[data-room-light] { transition: opacity var(--light-on, 520ms) cubic-bezier(.45, 0, .55, 1) var(--light-on-delay, 90ms); }
 html[data-writing-lights="off"] [data-room-light="writing"],
-html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; transition-duration: 380ms; transition-delay: 40ms; }
+html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; transition-duration: var(--light-off, 380ms); transition-delay: var(--light-off-delay, 40ms); }
 [data-room-dim] { transition: filter 520ms cubic-bezier(.45, 0, .55, 1) 90ms; }
 html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); transition-duration: 380ms; transition-delay: 40ms; }
 @media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light], [data-room-dim] { transition: none; } }

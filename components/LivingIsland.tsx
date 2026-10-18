@@ -13,9 +13,20 @@ import RoomLightSwitch from "./RoomLightSwitch";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
+import { TIMINGS } from "@/lib/light-switch";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
+
+// A festoon bulb's switch timing at `x` along the string.
+function festoonTiming(xs: number[], x: number) {
+  const { on, off } = TIMINGS.festoon;
+  const left = Math.min(...xs), along = (x - left) / Math.max(1, Math.max(...xs) - left);
+  return {
+    "--light-on": `${on.duration}ms`, "--light-on-delay": `${on.delay + along * (on.sweep ?? 0)}ms`,
+    "--light-off": `${off.duration}ms`, "--light-off-delay": `${off.delay + (1 - along) * (off.sweep ?? 0)}ms`,
+  } as CSSProperties;
+}
 
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
@@ -147,8 +158,11 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
           <g className={motionStyles.lamp} fill="#ffd38b" data-room-light="projects">
             <ellipse cx={workshop.lamp[0]} cy={workshop.lamp[1]} rx="15" ry="8" />
           </g>
-          <g className={motionStyles.bulbs} fill="#fff0c6" data-room-light="projects">
-            {workshop.bulbs.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.9" />)}
+          <g className={motionStyles.bulbs} fill="#fff0c6">
+            {/* Each bulb pops on along the string, as the festoon does in the
+                staged switch (lib/light-switch.ts). */}
+            {workshop.bulbs.map(([x, y], index) => <circle key={index} cx={x} cy={y} r="0.9" data-room-light="projects"
+              style={festoonTiming(workshop.bulbs.map(([bx]) => bx), x)} />)}
           </g>
         </svg>}
         {world === "projects" && preview && warm ? <svg className={motionStyles.screenResponse} viewBox="0 0 1200 800" aria-hidden="true">

@@ -1397,6 +1397,7 @@ def luca_wall_sconce(x,y,z,energy,k=1):
     P['luca']=material('Luca sconce · blackened steel',(.025,.024,.022),metal=.4,rough=.5)
     box('Luca sconce · body',(x,y-.075*k,z),(.26*k,.15*k,.36*k),'luca',.008)
     box('Luca sconce · lit underside',(x,y-.075*k,z-.181*k),(.23*k,.12*k,.004),'light',0)
+    haze('Luca sconce · haze',(x,y-.09*k,z-.19*k),(x,y-.16*k,z-1.3*k),64,.055)
     return spot('Luca sconce · wash down the wall',(x,y-.05*k,z-.19*k),(x,y-.01*k,z-2.0*k),WARM,energy,100,.6,.04*k)
 
 
