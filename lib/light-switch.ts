@@ -24,7 +24,7 @@ const GLOW: Timing = { on: { delay: 320, duration: 1300 }, off: { delay: 100, du
 // The lava lamp glows in last, but quickly enough to read as part of the flip.
 const LAVA: Timing = { on: { delay: 220, duration: 550 }, off: { delay: 60, duration: 400 } };
 export const TIMINGS: Record<string, Timing> = {
-  lamp: LAMP, gemma: LAMP,
+  lamp: LAMP,
   sconce: SNAP, luca: SNAP, task: SNAP,
   shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 260 }, off: STRIP.off },
   festoon: { on: { delay: 140, duration: 90, sweep: 420 }, off: { delay: 60, duration: 90, sweep: 300 } },

@@ -1401,23 +1401,24 @@ def luca_wall_sconce(x,y,z,energy,k=1):
     return spot('Luca sconce · wash down the wall',(x,y-.05*k,z-.19*k),(x,y-.01*k,z-2.0*k),WARM,energy,100,.6,.04*k)
 
 
-def gemma_table_lamp(x,y,z,energy,k=1):
-    """In Common With's Gemma Portable Table Lamp: a small translucent bell of
-    a shade, ringed with beads at its rim, on a short stem over a round foot;
-    the shade glows warm all over and drops a small pool round its foot."""
-    P['gemma']=material('Gemma lamp · amber translucent shade',(.85,.38,.14),rough=.35,emission=.45)
-    P['gemma_foot']=material('Gemma lamp · bronze',(.20,.12,.06),metal=.7,rough=.4)
-    cylinder('Gemma lamp · round foot',(x,y,z+.012*k),.085*k,.024*k,'gemma_foot',40,bevel=.006)
-    rod('Gemma lamp · stem',(x,y,z+.02*k),(x,y,z+.17*k),.016*k,'gemma_foot',16)
-    rim=z+.16*k
-    shell('Gemma lamp · bell shade',(x,y,rim),[(.17*k,0),(.165*k,.04*k),(.14*k,.12*k),(.11*k,.20*k),(.075*k,.25*k),(.03*k,.27*k)],'gemma')
-    for i in range(14):
-        a=i*math.tau/14
-        sphere('Gemma lamp · rim bead',(x+.172*k*math.cos(a),y+.172*k*math.sin(a),rim+.012*k),(.018*k,.018*k,.018*k),'gemma_foot',2)
-    glow=(x,y,rim+.10*k)
-    light('Gemma lamp · glow',glow,WARM,energy*.25,.06*k)
-    ANCHORS['lamp']=glow
-    return spot('Gemma lamp · pool of light',(x,y,rim+.03*k),(x,y,z),WARM,energy,140,.6,.05*k)
+def eave_table_lamp(x,y,z,energy,k=1):
+    """In Common With's Eave Table Lamp in black steel: a straight-sided cone
+    of a shade (12in across) on a slim stem over a round weighted foot, 17 3/4in
+    tall. The bulb glows under the shade, whose pale enamel inside catches its
+    light, and throws a pool of light down onto the bench."""
+    P['eave']=material('Eave lamp · black steel',(.018,.018,.02),metal=.55,rough=.42)
+    P['eave_inside']=material('Eave lamp · bone enamel inside',(.78,.74,.66),rough=.55)
+    cylinder('Eave lamp · round foot',(x,y,z+.018*k),.13*k,.036*k,'eave',48,bevel=.006)
+    rod('Eave lamp · stem',(x,y,z+.03*k),(x,y,z+.84*k),.012*k,'eave',16)
+    rim=z+.56*k
+    cone=[(.305*k,0),(.30*k,.006*k),(.22*k,.09*k),(.13*k,.185*k),(.045*k,.275*k),(.03*k,.285*k)]
+    shell('Eave lamp · cone shade',(x,y,rim),cone,'eave')
+    shell('Eave lamp · shade inside',(x,y,rim+.004*k),[(r-.006*k,h) for r,h in cone],'eave_inside')
+    bulb=(x,y,rim+.17*k)
+    sphere('Eave lamp · bulb',bulb,(.045*k,.045*k,.04*k),'light',2)
+    light('Eave lamp · light in the shade',(x,y,rim+.10*k),WARM,energy*.08,.08*k)
+    ANCHORS['lamp']=bulb
+    return spot('Eave lamp · pool of light',(x,y,rim+.12*k),(x,y,z),WARM,energy,120,.55,.06*k)
 
 
 def book_stack(x,y,z):
@@ -2013,8 +2014,9 @@ def workshop():
     # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
     # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
     ipad_pro(-.72,-.58,1.79,math.radians(6),'artwork/blender/ipad-wallpaper-launch.jpg')
-    # In Common With's Gemma Portable Table Lamp at the back of the bench.
-    gemma_table_lamp(-1.50,.60,1.792,90)
+    # In Common With's Eave Table Lamp, in black steel, at the back of the
+    # bench: a workbench lamp's pool of light.
+    eave_table_lamp(-1.50,.60,1.792,125,.8)
     # Different working objects replace the three identical empty cases.
     box('Bench · shallow parts tray',(-.43,-.12,.55),(.82,.76,.05),'teal',.006)
     for x in [-.84,-.02]:box('Tray · side',(x,-.12,.63),(.015,.76,.14),'teal',.003)
@@ -2399,9 +2401,8 @@ def lights_out(scene,world):
         bs=mat.node_tree.nodes.get('Principled BSDF')
         if bs and bs.inputs['Emission Strength'].default_value>0:
             bs.inputs['Emission Strength'].default_value=0
-            # An unlit bulb is frosted glass, not a white-hot one; a coloured
-            # shade keeps its colour.
-            if not mat.name.startswith('Gemma lamp'):bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
+            # An unlit bulb is frosted glass, not a white-hot one.
+            bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
 
 
 # What a room's switch turns on and off, grouped as the site times them
@@ -2410,7 +2411,7 @@ def lights_out(scene,world):
 LIGHT_SOURCES={
     'writing':[('lamp',('Arundel lamp','Lamp · frosted diffuser')),('sconce',('Up Down Sconce',)),
                ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),('spot',('Spotlight',))],
-    'projects':[('gemma',('Gemma lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
+    'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
                 ('task',('Workshop · task strip','Workshop · practical LED strip')),('ball',('LED ball','Glow · LED ball')),
                 ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box')),('spot',('Spotlight',))],
