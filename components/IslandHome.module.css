@@ -96,7 +96,8 @@
   max-width: 35ch;
   margin: 1.75rem 0 0;
   color: #fff7ead9;
-  font-size: clamp(1rem, 1.2vw, 1.125rem);
+  /* Large enough to hold its own beside a 6rem heading on wide screens. */
+  font-size: clamp(1.0625rem, 1.4vw, 1.3125rem);
   line-height: 1.7;
   text-wrap: pretty;
 }
@@ -110,7 +111,7 @@
 .facts a { color: var(--cw-paper); text-decoration: underline; text-decoration-color: #fff7ea40; text-underline-offset: 0.22em; transition: text-decoration-color 180ms ease; }
 .facts a:hover, .facts a:focus-visible { text-decoration-color: #fff7eab3; }
 .factMeta { color: #fff7ea8c; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
-.contact { display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; }
+.contact { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; font-size: clamp(1rem, 1.2vw, 1.125rem); }
 /* A full 44px touch target around each short contact link, without moving it. */
 .contact a { position: relative; }
 .contact a::after { content: ""; position: absolute; inset: -12px -10px; }
@@ -148,10 +149,11 @@
   position: absolute;
   color: #e9d4b6;
   font-family: var(--font-display); font-stretch: 125%;
-  font-size: calc(var(--type-annotation) * 0.62);
+  /* The way into each page: readable at a glance, not fine print. */
+  font-size: calc(var(--type-annotation) * 0.76);
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   line-height: 1.5;
   opacity: calc(var(--cue-opacity, 1) * var(--cue-rest, 1));
   pointer-events: none;
@@ -167,7 +169,7 @@
 /* Stacked layouts (phones, portrait tablets) move Work's words below the city,
    into open sky: over the cliff they were hard to read. */
 @media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
-  .cityCue > span { left: auto; right: 14%; bottom: auto; top: 100%; transform: rotate(-3deg); text-align: right; }
+  .cityCue > span { left: auto; right: 11%; bottom: auto; top: 100%; transform: rotate(-3deg); text-align: right; }
   .cityCue path[data-arrow="wide"] { display: none; }
   .cityCue path[data-arrow="phone"] { display: inline; }
 }
@@ -401,7 +403,7 @@
   .overview { max-height: 30rem; }
   .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
   .island { max-height: 50dvh; }
-  .landmarkCue { font-size: .6875rem; }
+  .landmarkCue { font-size: .75rem; letter-spacing: .08em; }
   .bookCue > span { top: -5%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   /* The three islands' names float over the stars on the comet's arc. */
