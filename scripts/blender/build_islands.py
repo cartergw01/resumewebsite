@@ -1635,6 +1635,124 @@ def ipad_pro(x,y,z,angle,wallpaper):
     place(set(bpy.context.scene.objects)-before,x,y,z,angle)
 
 
+def poker_chip_case(x,y,z,angle):
+    """An aluminium poker chip case, open on its back hinge: five rows of
+    chips on edge in black felt, one colour to a row, with two decks of
+    cards, a dealer button and five dice beside them. Uses the desk chips'
+    clay colours, so it is built after them."""
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    P['chip-white']=material('Poker chip · white clay',(.70,.68,.62),rough=.45)
+    P['poker_felt']=material('Chip case · black felt',(.010,.010,.012),rough=.98)
+    W,D,H,t=.78,.50,.10,.012
+    box('Chip case · aluminium floor',(0,0,t/2),(W,D,t),'steel',.003)
+    for s in (-1,1):
+        box('Chip case · aluminium end',(s*(W-t)/2,0,H/2),(t,D,H),'steel',.003)
+        box('Chip case · aluminium side',(0,s*(D-t)/2,H/2),(W-2*t,t,H),'steel',.003)
+        box('Chip case · black rim trim',(0,s*(D/2+.002),H-.004),(W+.006,.006,.012),'ink',.002)
+        box('Chip case · latch',(s*.22,-D/2-.006,H-.025),(.05,.010,.035),'steel',.003)
+    felt=t+.048
+    box('Chip case · felt chip tray',(0,0,felt/2+t/2),(W-2*t,D-2*t,felt-t),'poker_felt',0)
+    # Each row is 26 chips on edge, half sunk in its felt channel.
+    r,thick,n=.040,.0125,26
+    for row,color in enumerate(['white','red','blue','green','black']):
+        ry=-.176+row*.088
+        for k in range(n):
+            chip=cylinder('Chip case · clay chip',(-W/2+.04+thick/2+k*thick,ry,felt),r,thick-.0008,'chip-'+color,24,bevel=.0015)
+            chip.rotation_euler.y=math.pi/2
+    # Cards, the dealer button and dice in the compartment at the right.
+    for k,(cy,back) in enumerate([(-.10,'redcloth'),(.10,'chip-blue')]):
+        box('Chip case · deck of cards',(.24,cy,felt+.02),(.13,.18,.04),'paper',.003)
+        box('Chip case · card back',(.24,cy,felt+.0405),(.11,.16,.001),back,0)
+    cylinder('Chip case · dealer button',(.34,.17,felt+.006),.035,.012,'paper',24,bevel=.002)
+    for k in range(5):box('Chip case · red die',(.34,-.19+k*.075,felt+.013),(.026,.026,.026),'chip-red',.004,rot=k*.4)
+    # The lid, built closed about its hinge and swung open past upright.
+    lid_before=set(bpy.context.scene.objects)
+    lh=.05
+    box('Chip case · aluminium lid',(0,-D/2,lh-t/2),(W,D,t),'steel',.003)
+    for s in (-1,1):
+        box('Chip case · lid end',(s*(W-t)/2,-D/2,lh/2),(t,D,lh),'steel',.003)
+        box('Chip case · lid side',(0,-D/2+s*(D-t)/2,lh/2),(W-2*t,t,lh),'steel',.003)
+    box('Chip case · lid foam',(0,-D/2,lh-t-.008),(W-2*t,D-2*t,.016),'ink',0)
+    box('Chip case · handle',(0,-D-.012,lh/2),(.20,.022,.022),'ink',.006)
+    bpy.context.view_layer.update()
+    hinge=Matrix.Translation(Vector((0,D/2,H)))@Matrix.Rotation(math.radians(-100),4,'X')
+    for obj in set(bpy.context.scene.objects)-lid_before:obj.matrix_world=hinge@obj.matrix_world
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
+def airpods_max(x,y,z,angle):
+    """Apple AirPods Max in blue, set down upright on their ear cups: two
+    anodised aluminium cups with knit cushions facing each other, steel
+    arms and a knit canopy arched over the top."""
+    before=set(bpy.context.scene.objects)
+    P['airpods_blue']=material('AirPods Max · blue anodised aluminium',(.11,.20,.42),metal=.7,rough=.35)
+    P['airpods_knit']=textured('AirPods Max · pale blue knit mesh',(.22,.28,.38),(.34,.40,.50),'fabric',rough=.95)
+    for s in (-1,1):
+        # Cup and cushion are 9 x 7.5cm ovals, axes facing in.
+        cup=cylinder('AirPods Max · ear cup',(s*.135,0,.09),.075,.07,'airpods_blue',32,bevel=.018)
+        cup.scale=(1.2,1,1);cup.rotation_euler.y=math.pi/2
+        cushion=cylinder('AirPods Max · ear cushion',(s*.075,0,.09),.072,.05,'airpods_knit',32,bevel=.016)
+        cushion.scale=(1.2,1,1);cushion.rotation_euler.y=math.pi/2
+        rod('AirPods Max · stainless arm',(s*.135,0,.17),(s*.135,0,.25),.006,'steel')
+    box('AirPods Max · digital crown',(.135,.045,.175),(.024,.024,.012),'airpods_blue',.004)
+    arch=[(.135*math.cos(math.pi*i/8),0,.25+.135*math.sin(math.pi*i/8)) for i in range(9)]
+    curve('AirPods Max · stainless headband frame',arch,.008,'steel')
+    curve('AirPods Max · knit canopy',[(px,0,pz-.012) for px,_,pz in arch],.022,'airpods_knit')
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
+def watch_box(x,y,z,angle):
+    """A six-watch box, 33 x 22cm: walnut, its glass-topped lid open on a
+    back hinge, and six watches on cream suede cushions in two rows of
+    three, each dial facing up and set to ten past ten."""
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    P['watch_suede']=material('Watch box · cream suede lining',(.52,.45,.34),rough=.95)
+    P['watch_glass']=glass_material('Watch box · lid glass',(.92,.95,.96),rough=.05)
+    P['watch_crystal']=glass_material('Watch · sapphire crystal',rough=.02)
+    W,D,H,t=.66,.44,.17,.02
+    iw,id=W-2*t,D-2*t
+    box('Watch box · walnut floor',(0,0,t/2),(W,D,t),'wood',.004)
+    for s in (-1,1):
+        box('Watch box · walnut end',(s*(W-t)/2,0,H/2),(t,D,H),'wood',.004)
+        box('Watch box · walnut side',(0,s*(D-t)/2,H/2),(iw,t,H),'wood',.004)
+        box('Watch box · compartment divider',(s*iw/6,0,t+.055),(.008,id,.11),'watch_suede',.002)
+        rod('Watch box · brass hinge',(s*.20-.03,D/2,H),(s*.20+.03,D/2,H),.007,'brass')
+    box('Watch box · suede floor',(0,0,t+.003),(iw,id,.006),'watch_suede',0)
+    box('Watch box · compartment divider',(0,0,t+.055),(iw,.008,.11),'watch_suede',.002)
+    box('Watch box · brass clasp',(0,-D/2-.003,H-.02),(.04,.006,.03),'brass',.002)
+    # Dial colour, strap material; the back row first, left to right.
+    watches=[((.012,.012,.014),'steel'),((.02,.06,.20),'leather'),((.80,.78,.72),'ink'),
+             ((.03,.14,.08),'steel'),((.40,.42,.44),'leather'),((.012,.012,.014),'steel')]
+    top=t+.006+.085
+    for i,(dial,strap) in enumerate(watches):
+        cx=(i%3-1)*iw/3;cy=id/4 if i<3 else -id/4
+        box('Watch box · suede cushion',(cx,cy,t+.006+.0425),(.15,.12,.085),'watch_suede',.035)
+        box('Watch · strap over the cushion',(cx,cy,top+.003),(.040,.125,.006),strap,.002)
+        for s in (-1,1):box('Watch · strap down the cushion',(cx,cy+s*.063,top-.03),(.040,.006,.06),strap,.002)
+        cz=top+.006+.011
+        cylinder('Watch · steel case',(cx,cy,cz),.040,.022,'steel',32,bevel=.004)
+        rod('Watch · crown',(cx+.039,cy,cz),(cx+.050,cy,cz),.006,'steel')
+        P['watch_dial_'+str(i)]=material('Watch · dial '+str(i+1),dial,rough=.35)
+        cylinder('Watch · dial',(cx,cy,cz+.0115),.033,.002,'watch_dial_'+str(i),32,bevel=0)
+        hand='ink' if sum(dial)>1 else 'paper'
+        for length,a in [(.022,math.radians(150)),(.029,math.radians(30))]:
+            box('Watch · hand',(cx+math.cos(a)*length/2,cy+math.sin(a)*length/2,cz+.0130),(length,.003,.0008),hand,0,rot=a)
+        cylinder('Watch · crystal',(cx,cy,cz+.0145),.035,.003,'watch_crystal',32,bevel=.001)
+    # The lid, built closed about its hinge and then swung up past upright.
+    lid_before=set(bpy.context.scene.objects)
+    fw,lt=.04,.035
+    box('Watch box · lid front rail',(0,-D+fw/2,lt/2),(W,fw,lt),'wood',.004)
+    box('Watch box · lid back rail',(0,-fw/2,lt/2),(W,fw,lt),'wood',.004)
+    for s in (-1,1):box('Watch box · lid side rail',(s*(W-fw)/2,-D/2,lt/2),(fw,D-2*fw,lt),'wood',.004)
+    box('Watch box · lid glass',(0,-D/2,lt/2),(W-2*fw+.004,D-2*fw+.004,.004),'watch_glass',0)
+    bpy.context.view_layer.update()
+    hinge=Matrix.Translation(Vector((0,D/2,H)))@Matrix.Rotation(math.radians(-102),4,'X')
+    for obj in set(bpy.context.scene.objects)-lid_before:obj.matrix_world=hinge@obj.matrix_world
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
 def iced_latte(x,y,z):
     """An iced latte from Verve, the Santa Cruz roaster, in a clear glass:
     milk below, espresso settling through it above, ice, a straw, the VERVE
@@ -2018,17 +2136,10 @@ def workshop():
     # bench: a workbench lamp's pool of light.
     eave_table_lamp(-1.50,.60,1.792,125,.8)
     # Different working objects replace the three identical empty cases.
-    box('Bench · shallow parts tray',(-.43,-.12,.55),(.82,.76,.05),'teal',.006)
-    for x in [-.84,-.02]:box('Tray · side',(x,-.12,.63),(.015,.76,.14),'teal',.003)
-    for y in [-.50,.26]:box('Tray · end',(-.43,y,.63),(.82,.015,.14),'teal',.003)
-    for i in range(3):box('Tray · compartment divider',(-.66+i*.23,-.12,.62),(.008,.74,.12),'steel',.002)
-    for i in range(12):
-        x=-.74+(i%4)*.20;y=-.36+(i//4)*.21
-        cylinder('Tray · spare fitting',(x,y,.60),.034,.055,'brass' if i%3 else 'steel',12,bevel=.002)
+    # Carter asked for a six-watch box on the lower shelf.
+    watch_box(-.43,-.14,.5175,math.radians(4))
     for i in range(5):torus('Bench · coiled extension lead',(.64,-.04,.55+i*.017),.28-i*.012,.012,'ink')
     box('Bench · cable connector',(.78,-.35,.575),(.055,.11,.050),'teal',.006)
-    box('Bench · folded canvas tool roll',(1.50,.05,.60),(.65,.65,.15),'linen',.025,rot=.10)
-    for x in [1.28,1.69]:box('Tool roll · leather strap',(x,.05,.68),(.045,.68,.014),'leather',.003,rot=.10)
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
     # Each stack is one colour, like a sorted stack at the table; the chips
@@ -2046,6 +2157,10 @@ def workshop():
     for k,(cx,cy,rot) in enumerate([(1.50,-.56,.30),(1.57,-.53,.52)]):
         box('Poker · face-down card',(cx,cy,1.792+k*.002),(.125,.175,.002),'paper',.001,rot=rot)
         box('Poker · card back',(cx,cy,1.7935+k*.002),(.105,.155,.0006),'redcloth',0,rot=rot)
+    # Carter asked for a poker chip set on the lower shelf and blue AirPods
+    # Max on the bench.
+    poker_chip_case(1.55,.02,.5175,math.radians(-5))
+    airpods_max(-1.68,-.30,1.792,math.radians(14))
     # Lakers gold: an LED strip along the bench's front edge, washing the
     # drawers and the deck below.
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)

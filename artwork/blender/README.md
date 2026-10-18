@@ -251,9 +251,11 @@ The notebook has 22 curved sheets per side, uneven cut edges, a recessed cloth
 spine and a gently lifting corner. Its projected live content stays anchored to
 the fixed readable part of the page. The rug has a soft, irregular selvedge,
 visible warp, loose fringe and a crossing weave shader. Sawn board ends use ring
-grain. The workshop replaces repeated empty bins with a compartmented parts
-tray, cable coil and canvas tool roll; one drawer is open and offcuts lie beside
-the timber stack. The three essay journals and the real project prints remain.
+grain. The bench's lower shelf holds a walnut six-watch box with its glass lid
+open, a cable coil and an open aluminium poker chip case (five rows of chips,
+cards, a dealer button and dice), and blue AirPods Max sit on the bench by the
+lamp, all at Carter's request; one drawer is open and offcuts lie beside the
+timber stack. The three essay journals and the real project prints remain.
 
 Each island has its own plan (`PLANS` in the build script): Work is a broad,
 squarer district its street grid fills; Writing is a soft, rounded garden plot;
