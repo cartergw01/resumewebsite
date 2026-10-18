@@ -330,9 +330,6 @@
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }
 .chapters button[data-arriving] .chapterLabel { animation: chapter-arrival 900ms ease-out; }
 @keyframes chapter-arrival { 0% { color: #fffdf3; text-shadow: 0 0 15px #ffe5b3aa, 0 0 28px #c1dbff44; } 100% { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; } }
-/* Phones' tab bar adds Home and Say hi at its ends; wider screens keep the
-   curve's ends for them. */
-.edgeTab { display: none; }
 /* Native snap points for touch scrolling, one per stop (positioned by
    IslandScrollTransport; snapping is switched on in app/globals.css). */
 .snapStop { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; scroll-snap-align: start; scroll-snap-stop: always; }
@@ -397,28 +394,16 @@
   .island { max-height: 50dvh; }
   .landmarkCue { font-size: .6875rem; }
   .bookCue > span { top: -5%; }
-  .controls { right: 1rem; left: 1rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
-  /* The tab bar: a slim pane of night sky holding all five stops, the comet
-     gliding along a shallow arc under the labels as you travel. */
-  .chapters {
-    width: 100%;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    padding: 0 4px;
-    border-radius: 30px;
-    background: linear-gradient(180deg, #0c1326b8, #060a17d9);
-    box-shadow: inset 0 0 0 1px #fff1d714, inset 0 1px 0 #ffffff0f, 0 12px 32px #0009;
-  }
-  .edgeTab { position: relative; display: block; min-width: 0; min-height: 60px; text-align: center; }
+  .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  /* The three islands' names float over the stars on the comet's arc. */
+  .chapters { width: 100%; }
   .chapters button { min-width: 0; }
-  .chapterLabel { font-size: 0.78125rem; letter-spacing: 0.02em; }
-  .chapters button[aria-current] .chapterLabel { color: #fff1d7; }
-  .chapters :is(.edgeTab, button):active .chapterLabel { color: #fff4df; }
-  .cometLight { border-radius: 30px; }
-  /* Just the falling star, no words: it says "this moves" and steps aside
-     once you've swiped (the tab bar and dots take over from there). */
-  .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0; color: #fff7eae6; }
-  .controls .scrollHint [data-next-label], .controls .scrollHint .scrollArrow + [data-next-label] + .scrollArrow { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .stage[data-explored] .scrollHint:not(:focus-visible) { visibility: hidden; pointer-events: none; }
+  .chapterLabel { font-size: 0.8125rem; }
+  /* "Swipe up" is just the falling star: it says "this moves" and steps aside
+     once you've swiped. The last stop still offers "back to the start". */
+  .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0.4rem; color: #fff7eae6; font-size: 0.9375rem; }
+  .controls .scrollHint:not([data-last="true"]) :is([data-next-label], .scrollArrow + [data-next-label] + .scrollArrow) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
   .scrollArrow { width: 12px; height: 30px; }
   .dots { position: absolute; z-index: 6; top: 50%; right: 7px; display: flex; flex-direction: column; gap: 9px; transform: translateY(-50%); opacity: 0; transition: opacity 400ms ease; pointer-events: none; }
   .dots span { width: 4px; height: 4px; border-radius: 50%; background: #fff1d74d; transition: background 300ms ease, box-shadow 300ms ease, transform 300ms ease; }

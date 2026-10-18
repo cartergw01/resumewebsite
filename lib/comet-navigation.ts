@@ -1,6 +1,4 @@
-// A narrow bar (phones) gets a shallower arc, so its labels read as one row.
-const arc = (width: number) => width < 560 ? 14 : 36;
-const curveY = (x: number, width: number) => 46 - arc(width) * (x / width) * (1 - x / width);
+const curveY = (x: number, width: number) => 46 - 36 * (x / width) * (1 - x / width);
 
 // The head is positioned by scroll, never by easing. Only the trailing light
 // has inertia, on a short-lived frame loop independent of the island camera.
@@ -52,8 +50,8 @@ export function createCometNavigation(nav: HTMLElement, motion: MediaQueryList) 
     measure() {
       width = Math.max(1, nav.clientWidth);
       svg.setAttribute("viewBox", `0 0 ${width} 60`);
-      rail.setAttribute("d", `M0 46Q${width / 2} ${46 - arc(width) / 2} ${width} 46`);
-      nav.querySelectorAll<HTMLElement>("[data-scene-button], [data-edge-tab]").forEach(button => {
+      rail.setAttribute("d", `M0 46Q${width / 2} 28 ${width} 46`);
+      nav.querySelectorAll<HTMLElement>("[data-scene-button]").forEach(button => {
         const center = button.offsetLeft + button.offsetWidth / 2;
         button.style.setProperty("--stop-y", `${curveY(center, width)}px`);
       });

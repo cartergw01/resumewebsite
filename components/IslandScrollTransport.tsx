@@ -53,12 +53,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const buttons = Array.from(track.querySelectorAll<HTMLButtonElement>("[data-scene-button]"));
     const buttonScene = buttons.map((button) => Number(button.dataset.sceneIndex));
     const tabFor = (index: number) => buttons[buttonScene.indexOf(index)];
-    // Phones' tab bar adds the opening view (Home) and the closing one (Say
-    // hi) at its ends; they're hidden on wider screens, where the curve's
-    // ends stand for them.
-    const edgeTabs = Array.from(track.querySelectorAll<HTMLButtonElement>("[data-edge-tab]"));
-    const shown = (node: HTMLElement) => node.offsetParent !== null;
-    const edgeFor = (index: number) => edgeTabs.find(tab => Number(tab.dataset.sceneIndex) === index && shown(tab));
     const dots = Array.from(track.querySelectorAll<HTMLElement>("[data-scene-dot]"));
     const snapStops = Array.from(track.querySelectorAll<HTMLElement>("[data-snap-stop]"));
     const sceneNav = track.querySelector<HTMLElement>("[data-scene-nav]")!;
@@ -295,7 +289,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
       const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
       comet.place(starX, now);
-      comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) ?? edgeFor(current) : undefined);
+      comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) : undefined);
       const boundary = progress < .001 ? "start" : progress > .999 ? "end" : "none";
       if (sceneNav.dataset.boundary !== boundary) sceneNav.dataset.boundary = boundary;
 
@@ -319,10 +313,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           if (selected) button.setAttribute("aria-current", "step");
           else button.removeAttribute("aria-current");
           button.setAttribute("aria-label", `Show ${title} island`);
-        });
-        edgeTabs.forEach(tab => {
-          if (Number(tab.dataset.sceneIndex) === current) tab.setAttribute("aria-current", "step");
-          else tab.removeAttribute("aria-current");
         });
         dots.forEach((dot, index) => { if (index === current) dot.dataset.current = "true"; else delete dot.dataset.current; });
         const upcoming = worlds[current + 1];
@@ -398,10 +388,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         .map((end) => end.offsetLeft + end.offsetWidth / 2);
       starStops = worlds.map((_, index) => {
         const tab = buttonScene.indexOf(index);
-        if (tab >= 0) return centers[tab];
-        const edge = edgeFor(index);
-        if (edge) return edge.offsetLeft + edge.offsetWidth / 2;
-        return index < buttonScene[0] ? trackStart : trackEnd;
+        return tab >= 0 ? centers[tab] : index < buttonScene[0] ? trackStart : trackEnd;
       });
       // Phones snap natively to each stop: one marker per stop, at the scroll
       // offset where that stop's shot sits (relative to the track's top).
@@ -471,14 +458,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (motion.matches) { stopGlide(); cameraProgress = null; }
       schedule();
     };
-    // Scene controls travel; islands and headings enter a page. On phones'
-    // tab bar, tapping the tab you're already on, once its island has
+    // Scene controls travel; islands and headings enter a page. On phones,
+    // tapping the label of the island you're already on, once it has
     // arrived, opens that island, exactly as tapping the island does.
     // Elsewhere scene controls only ever travel (a double click never enters).
     jumpRef.current = (index: number) => {
       const island = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
-      const tabBar = edgeTabs.some(shown);
-      if (tabBar && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
+      const phone = matchMedia("(max-width: 760px)").matches;
+      if (phone && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
         island.click();
         return;
       }
@@ -899,10 +886,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
               </g>
             </svg>
             <span className={styles.trackEnd} data-track-end="start" aria-hidden="true" />
-            <button type="button" className={styles.edgeTab} data-edge-tab data-scene-index={0} disabled={!ready} aria-label="Go to the start" onClick={() => jumpRef.current(0)}>
-              <span className={styles.chapterStar} aria-hidden="true" />
-              <span className={styles.chapterLabel}>Home</span>
-            </button>
             {worlds.map((world, index) => world.title ? (
               <button
                 type="button"
@@ -917,10 +900,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
                 <span className={styles.chapterLabel}>{world.title}</span>
               </button>
             ) : null)}
-            <button type="button" className={styles.edgeTab} data-edge-tab data-scene-index={worlds.length - 1} disabled={!ready} aria-label="Go to say hi" onClick={() => jumpRef.current(worlds.length - 1)}>
-              <span className={styles.chapterStar} aria-hidden="true" />
-              <span className={styles.chapterLabel}>Say hi</span>
-            </button>
             <span className={styles.trackEnd} data-track-end="end" aria-hidden="true" />
             <span className={styles.shootingStar} data-scene-comet aria-hidden="true">
               <span className={styles.cometHead} />

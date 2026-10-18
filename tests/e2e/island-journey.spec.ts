@@ -81,10 +81,8 @@ test("shooting star follows the full page proportionally in both directions", as
           const rect = button.getBoundingClientRect();
           return rect.left + rect.width / 2;
         });
-        // The opening and closing views rest the star on the track's end
-        // points, or on phones' Home and Say hi tabs where the bar shows them.
-        const edges = Array.from(document.querySelectorAll<HTMLElement>("[data-edge-tab]")).filter(tab => tab.offsetParent);
-        const ends = (edges.length ? edges : Array.from(document.querySelectorAll("[data-track-end]"))).map((end) => {
+        // The opening and closing views rest the star on the track's end points.
+        const ends = Array.from(document.querySelectorAll("[data-track-end]")).map((end) => {
           const rect = end.getBoundingClientRect();
           return rect.left + rect.width / 2;
         });
@@ -121,8 +119,7 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expectScene(page, "hello");
   await expect(page.locator("#hello").getByRole("link", { name: "Email" })).toHaveAttribute("href", "mailto:cartergw01@gmail.com");
-  // Phones go back from the tab bar's Home; the scroll cue steps aside there.
-  await page.getByRole("button", { name: isMobile ? "Go to the start" : "Back to the start" }).click();
+  await page.getByRole("button", { name: "Back to the start" }).click();
   await expectScene(page, "intro");
   await page.getByRole("button", { name: isMobile ? "Show Work island" : "Scroll down to the Work island" }).click();
   await expectScene(page, "work");
@@ -242,8 +239,8 @@ test("scene controls only select worlds, including repeated activation", async (
   await expect(page).toHaveURL(/\/writing$/, { timeout: 15_000 });
 });
 
-test("on phones a quick double tap only travels; tapping the arrived tab opens its island", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "The tab bar is the phone layout.");
+test("on phones a quick double tap only travels; tapping the arrived island's label opens it", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Tapping the current label opens its island on phones only.");
   await page.goto("/#work");
   await expectScene(page, "work");
   const tab = page.getByRole("button", { name: "Show Writing island" });
@@ -252,14 +249,9 @@ test("on phones a quick double tap only travels; tapping the arrived tab opens i
   await expectScene(page, "writing");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-entering");
   await expect(page).toHaveURL(/\/#writing$/);
-  // The bar also reaches the opening and closing views.
-  await page.getByRole("button", { name: "Go to say hi" }).click();
-  await expectScene(page, "hello");
-  await page.getByRole("button", { name: "Go to the start" }).click();
-  await expectScene(page, "intro");
   await page.getByRole("button", { name: "Show Projects island" }).click();
   await expectScene(page, "projects");
-  // Once the glide has landed (a tap mid-glide only travels), the same tab opens it.
+  // Once the glide has landed (a tap mid-glide only travels), the same label opens it.
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-navigating");
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
   await page.getByRole("button", { name: "Show Projects island" }).click();
@@ -370,8 +362,7 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
   if (isMobile) await page.keyboard.press("End");
   else await page.getByRole("button", { name: "Scroll down to the end" }).click();
   await expect(page).toHaveURL(/#hello$/);
-  // Phones go back from the tab bar's Home; the scroll cue steps aside there.
-  await page.getByRole("button", { name: isMobile ? "Go to the start" : "Back to the start" }).click();
+  await page.getByRole("button", { name: "Back to the start" }).click();
   await expect(page).toHaveURL(/:\d+\/$/);
 });
 
