@@ -158,14 +158,27 @@ moon rig, switches off every glowing material but screens and windows (the
 LED strips, lava lamp and LED ball go dark too), and hangs one spotlight over
 the room's subject (`SPOTLIGHT`): the open notebook in the study, the computer
 in the workshop. `export_variant.mjs` publishes it with the
-night still's crop as `darkSrc`, so the switch is a pure 0.6s crossfade. The
-still is fetched when someone reaches for the switch (or at once if they left
-the lights off), the parallax blends to it, the lamp's dust, the lava lamp's
-wax, the LED ball and strips and the reading lamp's pool go out, the desk's
-printed page dims,
-and a turned 3D view dims its lamps and glows the same way. Each room
-remembers its own switch per visitor. The camera flights keep their baked,
-lit models.
+night still's crop as `darkSrc`.
+
+One flip plays out fixture by fixture (`lib/light-switch.ts`): the lamp warms
+up, the sconce snaps on, the shelf strips run along their length, the lava
+lamp glows in last; off reverses, and then the spotlight comes up. For that,
+`--time masks` renders each of the room's light sources alone (its lamps and
+glowing parts on, everything else dark; the groups are `LIGHT_SOURCES`) and
+stores each one's share of every pixel's light, three sources to an RGB image;
+`export_light_masks.mjs` crops them like the still and publishes them as
+`lightMasks`. The page's WebGL canvas (`ParallaxStill`) eases each pixel
+between the lit and dark stills at the pace of the sources lighting it, so
+both ends are exactly the renders. On phones it starts when someone settles on
+the room; without WebGL, or with reduced motion, the stills crossfade. The
+lamp's dust, the lava lamp's wax, the LED ball and strips follow their
+fixtures, the reading lamp's pool goes out and the desk's printed page dims.
+Each room remembers its own switch per visitor. The camera flights keep their
+baked, lit models.
+
+Every lamp burns the same warm white (`WARM`, about 2700K), and the beams of
+the study's lamp and sconce hang in a faint haze (`haze`), cleared with the
+lights off.
 
 ### Writing's entry: the notebook lifts off the desk
 
@@ -302,7 +315,8 @@ For each island it renders the night still (2880px, 96 samples, Metal; this
 also saves the `.blend`), crops it and its anchors (`prepare_islands.mjs`) and
 publishes them (`export_islands.mjs`), records its camera and the crop it was
 given (`export_camera.py`), renders and publishes
-Work's daytime still and the rooms' lights-off stills (`export_variant.mjs`), the depth map (`render_depth.py`,
+Work's daytime still and the rooms' lights-off stills (`export_variant.mjs`)
+and light masks (`export_light_masks.mjs`), the depth map (`render_depth.py`,
 `export_depth.mjs`), the live-detail anchors (`export_life_anchors.py`) and
 the flight model(s) (`export_flight.py`). Then it recompresses every model with
 meshopt (`compress_models.mjs`) and deletes published files nothing references.

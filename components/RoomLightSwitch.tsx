@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
 import styles from "./IslandHome.module.css";
 
 // A light switch beside the study or the workshop, in the same spot and style
 // as Taipei's sun and moon: its rocker is up while the lights are on. The room
-// crossfades to moonlight and back, and each room remembers its own switch.
+// goes dark fixture by fixture and back (lib/light-switch.ts), and each room
+// remembers its own switch.
 export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [on, setOn] = useState(true);
   useEffect(() => {
     const stored = storedLightsOn(world);
@@ -19,6 +21,30 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
   }, [world]);
   const [pending, setPending] = useState(false);
   const intent = () => window.dispatchEvent(new CustomEvent(ROOM_LIGHTS_INTENT, { detail: world }));
+  // Someone who settles on the room may well reach for its switch: fetch
+  // what the switch needs then, so the first tap on a phone plays at once.
+  useEffect(() => {
+    const scene = buttonRef.current?.closest<HTMLElement>("[data-island-scene]");
+    const stage = buttonRef.current?.closest<HTMLElement>("[data-island-stage]");
+    if (!scene || !stage) return;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const settled = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !document.hidden;
+    const sync = () => {
+      clearTimeout(timer);
+      if (connection?.saveData || !settled()) return;
+      timer = setTimeout(() => {
+        if (!settled()) return;
+        window.dispatchEvent(new CustomEvent(ROOM_LIGHTS_INTENT, { detail: world }));
+        observer.disconnect();
+      }, 1200);
+    };
+    const observer = new MutationObserver(sync);
+    observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
+    sync();
+    return () => { clearTimeout(timer); observer.disconnect(); };
+  }, [world]);
   const toggle = async () => {
     if (!on) { setLights(world, true); return; }
     intent();
@@ -30,6 +56,7 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
   const room = world === "writing" ? "study" : "workshop";
   return (
     <button
+      ref={buttonRef}
       type="button"
       className={`${styles.cityTime} ${styles.lightSwitch}`}
       data-reads="cue-opacity:opacity"
