@@ -21,9 +21,12 @@ const socialLinks = [
   {
     label: "X",
     href: "https://x.com/CarterKoWang",
+    // X's mark with its wide stroke filled in: the hollow stroke of the full
+    // logo reads as a thin double line at icon size, lighter than the solid
+    // marks beside it. The view box trims the mark's margins to match them.
     icon: (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      <svg width="14" height="14" viewBox="1 1 22 22" fill="currentColor" aria-hidden="true">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631z" />
       </svg>
     ),
   },
