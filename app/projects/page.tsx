@@ -57,7 +57,7 @@ export default function ProjectsPage() {
                   style={{ animationDelay: `${0.08 + index * 0.045}s` }}
                   data-workshop-reveal
                 >
-                  <ProjectShot src={project.image} title={project.title} dock={index === 0} mobilePreview={project.mobilePreview} />
+                  <ProjectShot src={project.image} title={project.title} dock={index === 0} eager={index < 3} mobilePreview={project.mobilePreview} />
                   <span className="project-row-copy">
                     <strong>{project.title}</strong>
                     <span>{project.description}</span>

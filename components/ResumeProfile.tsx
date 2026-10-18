@@ -44,8 +44,8 @@ function EssayRow({ essay, index }: { essay: EssayPreview; index: number }) {
         <span className="essay-link-title block text-sm font-semibold leading-6 text-[var(--foreground)]">
           {essay.title}
         </span>
-        <span className="essay-link-subtitle block overflow-hidden text-xs leading-5 text-[var(--muted)]">
-          {essay.subtitle}
+        <span className="essay-link-subtitle text-xs leading-5 text-[var(--muted)]">
+          <span>{essay.subtitle}</span>
         </span>
       </span>
       <span className="essay-link-arrow relative z-10 shrink-0 text-base text-[var(--accent)]" aria-hidden="true">

@@ -285,9 +285,15 @@ body {
 }
 
 .essay-link-subtitle {
-  max-height: 0;
+  display: grid;
+  grid-template-rows: 0fr;
   opacity: 0;
-  transition: max-height 0.22s ease, opacity 0.18s ease, margin-top 0.18s ease;
+  transition: grid-template-rows 0.22s ease, opacity 0.18s ease;
+}
+
+.essay-link-subtitle > span {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .essay-link-arrow {
@@ -320,8 +326,7 @@ body {
 
 .essay-link-row:hover .essay-link-subtitle,
 .essay-link-row:focus-visible .essay-link-subtitle {
-  max-height: 4rem;
-  margin-top: 0.1875rem;
+  grid-template-rows: 1fr;
   opacity: 1;
 }
 
@@ -1348,40 +1353,6 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
     radial-gradient(circle at 82% 16%, rgba(71, 154, 255, 0.18), transparent 29rem),
     radial-gradient(circle at 58% 80%, rgba(153, 112, 62, 0.1), transparent 30rem),
     linear-gradient(135deg, #06111f 0%, #070d1c 48%, #040814 100%);
-}
-
-.subpage-writing.cosmic-subpage::before {
-  opacity: 0.18;
-  background:
-    linear-gradient(rgba(244, 210, 163, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(244, 210, 163, 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
-  transform: none;
-}
-
-.subpage-projects.cosmic-subpage::before {
-  opacity: 0.25;
-  background:
-    linear-gradient(rgba(92, 154, 255, 0.065) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(92, 154, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(135deg, transparent 0 48%, rgba(183, 211, 255, 0.045) 49% 51%, transparent 52% 100%);
-  background-size: 34px 34px, 34px 34px, 220px 220px;
-  transform: none;
-}
-
-.subpage-writing.cosmic-subpage::after {
-  background:
-    radial-gradient(circle at 18% 12%, rgba(202, 152, 96, 0.18), transparent 24rem),
-    linear-gradient(180deg, rgba(18, 13, 18, 0.7), rgba(7, 8, 19, 0.34) 42%, rgba(5, 6, 16, 0.92)),
-    linear-gradient(90deg, rgba(16, 10, 14, 0.9), rgba(9, 9, 18, 0.42) 54%, rgba(5, 6, 16, 0.84));
-}
-
-.subpage-projects.cosmic-subpage::after {
-  background:
-    radial-gradient(circle at 16% 12%, rgba(92, 154, 255, 0.24), transparent 24rem),
-    radial-gradient(circle at 86% 30%, rgba(183, 211, 255, 0.12), transparent 22rem),
-    linear-gradient(180deg, rgba(5, 16, 31, 0.78), rgba(5, 10, 24, 0.34) 42%, rgba(3, 6, 15, 0.95)),
-    linear-gradient(90deg, rgba(3, 11, 24, 0.92), rgba(6, 12, 28, 0.42) 54%, rgba(3, 7, 17, 0.86));
 }
 
 .subpage-writing .subpage-main {
