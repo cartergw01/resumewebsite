@@ -1,8 +1,8 @@
 // One flip of a room's switch, played out fixture by fixture: each light
 // source comes on (or goes off) in its own way, as real ones do. The Arundel
 // lamp's bulb warms up, the sconce's LEDs snap, the shelf strips run along
-// their length, the lava lamp glows in last; off plays the same in reverse,
-// and then the spotlight finds the room's subject.
+// their length, the lava lamp glows in last. Off is near-instant, as real
+// lights are, and then the spotlight finds the room's subject.
 //
 // Blender renders each source's share of the light at every pixel
 // (build_islands.py light_masks); ParallaxStill eases each pixel between the
@@ -17,20 +17,20 @@ type Timing = { on: Phase; off: Phase };
 
 // Levels are 1 when the source looks as in the lights-on still. The spot is
 // the lights-off spotlight, so its level falls as it comes up.
-const LAMP: Timing = { on: { delay: 90, duration: 520 }, off: { delay: 40, duration: 380 } };
-const SNAP: Timing = { on: { delay: 40, duration: 70 }, off: { delay: 0, duration: 70 } };
-const STRIP: Timing = { on: { delay: 200, duration: 150, sweep: 260 }, off: { delay: 30, duration: 110, sweep: 180 } };
-const GLOW: Timing = { on: { delay: 320, duration: 1300 }, off: { delay: 100, duration: 900 } };
+const LAMP: Timing = { on: { delay: 60, duration: 380 }, off: { delay: 0, duration: 120 } };
+const SNAP: Timing = { on: { delay: 30, duration: 70 }, off: { delay: 0, duration: 60 } };
+const STRIP: Timing = { on: { delay: 120, duration: 120, sweep: 160 }, off: { delay: 0, duration: 70, sweep: 60 } };
+const GLOW: Timing = { on: { delay: 160, duration: 360 }, off: { delay: 0, duration: 150 } };
 // The lava lamp glows in last, but quickly enough to read as part of the flip.
-const LAVA: Timing = { on: { delay: 220, duration: 550 }, off: { delay: 60, duration: 400 } };
+const LAVA: Timing = { on: { delay: 180, duration: 340 }, off: { delay: 0, duration: 140 } };
 export const TIMINGS: Record<string, Timing> = {
   lamp: LAMP,
   sconce: SNAP, luca: SNAP, task: SNAP,
-  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 260 }, off: STRIP.off },
-  festoon: { on: { delay: 140, duration: 90, sweep: 420 }, off: { delay: 60, duration: 90, sweep: 300 } },
+  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 160 }, off: STRIP.off },
+  festoon: { on: { delay: 80, duration: 80, sweep: 260 }, off: { delay: 0, duration: 70, sweep: 60 } },
   lava: LAVA, ball: GLOW,
-  devices: { on: { delay: 0, duration: 260 }, off: { delay: 0, duration: 320 } },
-  spot: { on: { delay: 0, duration: 220 }, off: { delay: 480, duration: 520 } },
+  devices: { on: { delay: 0, duration: 200 }, off: { delay: 0, duration: 120 } },
+  spot: { on: { delay: 0, duration: 160 }, off: { delay: 160, duration: 360 } },
 };
 
 export const timing = (source: string) => TIMINGS[source] ?? LAMP;
