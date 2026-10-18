@@ -1259,7 +1259,7 @@ def lathe(name,loc,profile,mat,segments=32):
 
 def lava_lamp(x,y,z,k=1):
     """A small lava lamp: chrome cone base and cap round a tapered bottle of
-    magenta liquid; it stays on as a night light. Only the wax pooled at the
+    magenta liquid, on the room's switch. Only the wax pooled at the
     bottom is modelled: the page animates the drops rising (IslandLife)."""
     P['lava_liquid']=material('Glow · lava lamp liquid',(.90,.06,.45),rough=.15,emission=.6)
     P['lava_wax']=material('Glow · lava lamp wax',(1,.48,.08),rough=.3,emission=3)
@@ -1324,13 +1324,42 @@ def shell(name,loc,profile,mat,segments=48):
 # The rooms' lamps are In Common With designs (incommonwith.com), modelled at
 # their catalogue proportions in the rooms' 2-units-per-metre scale. Each room
 # is lit by its fixtures: every pool, beam and glow has a source you can see.
-WARM=(1,.72,.44)
+# Every lamp burns the same warm white, about 2700K, so the room reads as lit
+# by one family of bulbs.
+WARM=(1,.64,.36)
 
 
-def arundel_table_lamp(x,y,z,energy,k=1):
+def haze(name,apex,target,cone,density=.035):
+    """A faint haze in a lamp's beam, so the light shows in the air between
+    the fixture and where it lands: a cone of thin warm scattering volume
+    from `apex` toward `target`, `cone` degrees wide. Named for its fixture,
+    it switches with it (and is cleared when the room is dark)."""
+    if 'haze' not in P:
+        mat=bpy.data.materials.new('Beam haze');mat.use_nodes=True
+        nodes=mat.node_tree.nodes
+        nodes.remove(nodes['Principled BSDF'])
+        volume=nodes.new('ShaderNodeVolumePrincipled')
+        volume.inputs['Color'].default_value=(1,.92,.84,1);volume.inputs['Anisotropy'].default_value=.45
+        mat.node_tree.links.new(volume.outputs[0],nodes['Material Output'].inputs['Volume'])
+        P['haze']=mat
+    apex,target=Vector(apex),Vector(target)
+    length=(target-apex).length;radius=length*math.tan(math.radians(cone/2))
+    segments=32
+    verts=[(0,0,0)]+[(radius*math.cos(i*math.tau/segments),radius*math.sin(i*math.tau/segments),-length) for i in range(segments)]
+    faces=[tuple(range(segments,0,-1))]+[(0,i+1,(i+1)%segments+1) for i in range(segments)]
+    obj=mesh(name,verts,faces,P['haze'].copy())
+    obj.data.materials[0].node_tree.nodes['Principled Volume'].inputs['Density'].default_value=density
+    obj.location=apex
+    obj.rotation_euler=(target-apex).to_track_quat('-Z','Y').to_euler()
+    obj.visible_shadow=False
+    return obj
+
+
+def arundel_table_lamp(x,y,z,energy,k=1,toward=None):
     """In Common With's Arundel Table Lamp: a domed enamel shade on a slender
     stem over a round foot, in sage. Its light falls in a pool beneath the
-    dome and lights the inside of the shade."""
+    dome, leaning a little `toward` a point on the surface if given, and
+    lights the inside of the shade."""
     P['sage']=material('Arundel · sage enamel',(.19,.25,.18),rough=.45)
     cylinder('Arundel lamp · round foot',(x,y,z+.014*k),.15*k,.028*k,'sage',48,bevel=.008)
     rod('Arundel lamp · stem',(x,y,z+.02*k),(x,y,z+.86*k),.011*k,'sage',16)
@@ -1340,7 +1369,9 @@ def arundel_table_lamp(x,y,z,energy,k=1):
     sphere('Lamp · frosted diffuser',bulb,(.055*k,.055*k,.045*k),'light',2)
     light('Arundel lamp · light in the shade',(x,y,rim+.03*k),WARM,energy*.06,.10*k)
     ANCHORS['lamp']=bulb
-    return spot('Arundel lamp · pool of light',(x,y,rim+.05*k),(x,y,z),WARM,energy,125,.55,.06*k)
+    target=(*toward,z) if toward else (x,y,z)
+    haze('Arundel lamp · haze',(x,y,rim+.04*k),target,96,.022)
+    return spot('Arundel lamp · pool of light',(x,y,rim+.05*k),target,WARM,energy,125,.55,.06*k)
 
 
 def up_down_sconce(x,y,z,energy,k=1):
@@ -1355,6 +1386,8 @@ def up_down_sconce(x,y,z,energy,k=1):
     for side in (1,-1):
         cylinder('Up Down Sconce · lit opening',(x,body[1],z+side*.231*k),.066*k,.004*k,'light',40,bevel=0)
         spot('Up Down Sconce · beam '+('up' if side>0 else 'down'),(x,body[1],z+side*.24*k),(x,y-.05*k,z+side*1.8*k),WARM,energy,44,.35,.03*k)
+        # The haze stops short of the wall's top and the desk.
+        haze('Up Down Sconce · haze '+('up' if side>0 else 'down'),(x,body[1],z+side*.24*k),(x,y-.09*k,z+side*(.85 if side>0 else 1.1)*k),36,.05)
 
 
 def luca_wall_sconce(x,y,z,energy,k=1):
@@ -1697,7 +1730,7 @@ def writing():
     # dark back panel, each shelf washed from above by a warm LED strip.
     rng=random.Random(940)
     P['shelf_panel']=material('Bookshelf · charcoal back panel',(.028,.028,.032),rough=.8)
-    P['led_strip']=material('Bookshelf · LED strip',(1,.84,.62),emission=9)
+    P['led_strip']=material('Bookshelf · LED strip',(1,.74,.48),emission=9)
     box('Bookshelf · back panel',(1,1.885,1.50),(3.20,.02,2.62),'shelf_panel',.002)
     for x in [-.58,1.0,2.58]:box('Study · bookcase upright',(x,1.62,1.49),(.03,.50,2.60),'ink',.002)
     for z in [.20,1.04,1.90,2.80]:
@@ -1705,7 +1738,7 @@ def writing():
         if z>.5:
             # The strip sits under the front lip of the shelf above the books.
             box('Bookshelf · LED strip',(1,1.37,z-.026),(3.10,.016,.006),'led_strip',0)
-            for bx in [.21,1.79]:light('Bookshelf · LED wash',(bx,1.55,z-.05),(1,.84,.62),7,.05,(bx,1.62,z-.6))
+            for bx in [.21,1.79]:light('Bookshelf · LED wash',(bx,1.55,z-.05),(1,.74,.48),7,.05,(bx,1.62,z-.6))
         if z>2.7:continue
         for start,end in [(-.53,.90),(1.08,2.53)]:
             x=start
@@ -1723,8 +1756,7 @@ def writing():
         image_panel('Journal cover · '+title,'essay-covers/'+slug+'.webp',(x,1.252,2.20),.44,.56)
         box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
         lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
-    # A lava lamp on the top shelf, the study's one night light: it stays on
-    # with the lamps off.
+    # A lava lamp on the top shelf.
     lava_lamp(2.18,1.56,2.8225,1.3)
     # In Common With's Up Down Sconce on the strip of wall between the window
     # and the bookcase: one beam up the wall, one down to the desk.
@@ -1744,14 +1776,15 @@ def writing():
         value=ANCHORS[key]
         convert=lambda v:tuple(Vector((.16,-.80,1.614))+(Vector(v)-Vector((.16,-.80,1.614)))*1.22)
         ANCHORS[key]=[convert(v) for v in value] if isinstance(value,list) else convert(value)
-    # In Common With's Arundel Table Lamp behind the notebook: its pool of
-    # light is what lights the desk and the open pages.
-    practical=arundel_table_lamp(-.02,-.10,1.614,320)
-    for f,e in [(1,320),(25,340),(49,320)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
+    # In Common With's Arundel Table Lamp at the back left of the desk: its
+    # pool of light, leaning toward the notebook, lights the desk and the
+    # open pages.
+    practical=arundel_table_lamp(-1.22,-.20,1.614,420,toward=(-.55,-.62))
+    for f,e in [(1,420),(25,445),(49,420)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
     # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
-    iced_latte(-1.28,-.58,1.61)
+    iced_latte(-.70,-.30,1.61)
     # A capped fountain pen beside the notebook: black lacquer, gold band and clip.
     a,b=Vector((.84,-1.20,1.628)),Vector((.79,-.82,1.628))
     rod('Fountain pen · black lacquer barrel',tuple(a),tuple(b),.016,'ink',24)
@@ -2264,7 +2297,8 @@ def camera_and_lights(scene):
     rotation=camera.rotation_euler.to_matrix(); inverse=rotation.transposed()
     coords=[]
     for obj in scene.objects:
-        if obj.type not in {'MESH','CURVE'}:continue
+        # Beam haze is air, not part of the island's silhouette.
+        if obj.type not in {'MESH','CURVE'} or '· haze' in obj.name:continue
         coords.extend(inverse@(obj.matrix_world@Vector(v)) for v in obj.bound_box)
     xmin,xmax=min(c.x for c in coords),max(c.x for c in coords)
     ymin,ymax=min(c.y for c in coords),max(c.y for c in coords)
@@ -2322,22 +2356,36 @@ SPOTLIGHT={'writing':('Study · gently turned desk',(.16,-.80,1.614),(0,-.9,3.4)
            'projects':('Workshop · turned workbench',(.90,.05,1.85),(0,-1.5,3.1),26,200)}
 
 
+def subject_spotlight(world):
+    """The spotlight that picks out a room's subject with its lights off."""
+    if world not in SPOTLIGHT:return
+    group,point,offset,cone,energy=SPOTLIGHT[world]
+    target=bpy.data.objects[group].matrix_world@Vector(point)
+    data=bpy.data.lights.new('Spotlight · '+world,'SPOT')
+    data.color=(1,.90,.76);data.energy=energy;data.spot_size=math.radians(cone);data.spot_blend=.45;data.shadow_soft_size=.08
+    spot=bpy.data.objects.new('Spotlight · '+world,data);bpy.context.collection.objects.link(spot)
+    spot.location=target+Vector(offset)
+    spot.rotation_euler=(target-spot.location).to_track_quat('-Z','Y').to_euler()
+
+
+def switched(mat):
+    """Whether switching the room's lights off changes this material's glow."""
+    if not mat or not mat.use_nodes:return False
+    if mat.name in DIMMED:return True
+    if any(word in mat.name for word in SCREENS):return False
+    bs=mat.node_tree.nodes.get('Principled BSDF')
+    return bool(bs and bs.inputs['Emission Strength'].default_value>0)
+
+
 def lights_out(scene,world):
     """The same night with the room's lights switched off: lamps, bulbs,
     festoons, night lights and their glow go dark; moonlight, windows and
     screens stay (the iPad's and its keyboard backlight dim), and a
     spotlight falls on the room's subject."""
     for obj in list(scene.objects):
-        if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):
+        if (obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT)) or '· haze' in obj.name:
             bpy.data.objects.remove(obj,do_unlink=True)
-    if world in SPOTLIGHT:
-        group,point,offset,cone,energy=SPOTLIGHT[world]
-        target=bpy.data.objects[group].matrix_world@Vector(point)
-        data=bpy.data.lights.new('Spotlight · '+world,'SPOT')
-        data.color=(1,.90,.76);data.energy=energy;data.spot_size=math.radians(cone);data.spot_blend=.45;data.shadow_soft_size=.08
-        spot=bpy.data.objects.new('Spotlight · '+world,data);bpy.context.collection.objects.link(spot)
-        spot.location=target+Vector(offset)
-        spot.rotation_euler=(target-spot.location).to_track_quat('-Z','Y').to_euler()
+    subject_spotlight(world)
     for mat in bpy.data.materials:
         if mat.name in DIMMED:
             bs=mat.node_tree.nodes['Principled BSDF']
@@ -2353,6 +2401,93 @@ def lights_out(scene,world):
             # An unlit bulb is frosted glass, not a white-hot one; a coloured
             # shade keeps its colour.
             if not mat.name.startswith('Gemma lamp'):bs.inputs['Base Color'].default_value=(.32,.30,.27,1)
+
+
+# What a room's switch turns on and off, grouped as the site times them
+# (lib/light-switch.ts), each by the names its lights and glowing parts start
+# with. 'spot' is the lights-off spotlight on the room's subject.
+LIGHT_SOURCES={
+    'writing':[('lamp',('Arundel lamp','Lamp · frosted diffuser')),('sconce',('Up Down Sconce',)),
+               ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),('spot',('Spotlight',))],
+    'projects':[('gemma',('Gemma lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
+                ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
+                ('task',('Workshop · task strip','Workshop · practical LED strip')),('ball',('LED ball','Glow · LED ball')),
+                ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box')),('spot',('Spotlight',))],
+}
+
+
+def light_masks(scene,world,output):
+    """Each light source's share of the room's light, pixel by pixel, so one
+    switch can bring each fixture on in its own way: the site eases every
+    pixel between the lights-on and lights-off stills at the pace of the
+    sources lighting it. Every source group is rendered alone (its lamps
+    and glowing parts on, everything else dark), and its share is its
+    luminance over all the groups', smoothed. Written as RGB PNGs, three
+    groups each, with a JSON list of the groups in channel order."""
+    import numpy as np
+    subject_spotlight(world)
+    groups=LIGHT_SOURCES[world]
+    group_of=lambda name:next((g for g,prefixes in groups if name.startswith(prefixes)),None)
+    # Flickers are keyframed; each group is rendered at its frame-1 strength.
+    scene.frame_set(1)
+    lights,glows={},{}
+    for obj in scene.objects:
+        if obj.type=='LIGHT' and not obj.name.startswith(STAYS_LIT):lights[obj]=obj.data.energy
+        elif obj.type in {'MESH','CURVE'}:
+            for slot in obj.material_slots:
+                if not switched(slot.material):continue
+                # A copy for this object alone, so each glow can be lit alone.
+                mat=slot.material.copy();slot.link='OBJECT';slot.material=mat
+                if mat.node_tree.animation_data:mat.node_tree.animation_data_clear()
+                bs=mat.node_tree.nodes['Principled BSDF'];glows.setdefault(obj,[]).append((bs,bs.inputs['Emission Strength'].default_value))
+    for obj in lights:
+        if obj.data.animation_data:obj.data.animation_data_clear()
+    unassigned=sorted({o.name.split('.')[0] for o in [*lights,*glows] if group_of(o.name) is None})
+    if unassigned:raise ValueError('Light sources with no group in LIGHT_SOURCES: '+', '.join(unassigned))
+    # Everything else is dark: the night rig, the sky and every other glow.
+    for obj in scene.objects:
+        if obj.type=='LIGHT' and obj not in lights:obj.hide_render=True
+    background=scene.world.node_tree.nodes.get('Background') if scene.world and scene.world.use_nodes else None
+    if background:background.inputs[1].default_value=0
+    owned={bs for parts in glows.values() for bs,_ in parts}
+    for mat in bpy.data.materials:
+        bs=mat.node_tree.nodes.get('Principled BSDF') if mat.use_nodes else None
+        if bs and bs not in owned:bs.inputs['Emission Strength'].default_value=0
+    unseen_lights(scene)
+    scene.render.image_settings.file_format='OPEN_EXR';scene.render.image_settings.color_depth='32'
+    luminance=[]
+    for name,_ in groups:
+        for obj,energy in lights.items():obj.data.energy=energy if group_of(obj.name)==name else 0
+        for obj,parts in glows.items():
+            for bs,strength in parts:bs.inputs['Emission Strength'].default_value=strength if group_of(obj.name)==name else 0
+        path=output/f'{world}-light-{name}.exr'
+        scene.render.filepath=str(path)
+        bpy.ops.render.render(write_still=True)
+        image=bpy.data.images.load(str(path))
+        w,h=image.size
+        pixels=np.array(image.pixels[:],dtype=np.float32).reshape(h,w,4)[::-1]
+        bpy.data.images.remove(image)
+        l=np.clip(pixels[...,0]*.2126+pixels[...,1]*.7152+pixels[...,2]*.0722,0,None)
+        # A few box passes: the shares are read as soft regions, not grain.
+        for _ in range(3):
+            padded=np.pad(l,2,mode='edge')
+            l=sum(padded[dy:dy+h,dx:dx+w] for dy in range(5) for dx in range(5))/25
+        luminance.append(l)
+    total=sum(luminance)
+    floor=.03*float(np.percentile(total[total>0],99)) if (total>0).any() else 1
+    shares=[l/np.maximum(total,floor) for l in luminance]
+    files=[]
+    for i in range(0,len(shares),3):
+        chunk=shares[i:i+3]+[np.zeros_like(shares[0])]*(3-len(shares[i:i+3]))
+        rgba=np.dstack([*chunk,np.ones_like(chunk[0])])[::-1].astype(np.float32)
+        image=bpy.data.images.new(f'{world}-light-masks-{i//3}',w,h,alpha=False)
+        image.colorspace_settings.name='Non-Color'
+        image.pixels[:]=rgba.ravel()
+        path=output/f'{world}-light-masks-{i//3}.png'
+        image.filepath_raw=str(path);image.file_format='PNG';image.save()
+        files.append(path.name)
+    (output/f'{world}-light-masks.json').write_text(json.dumps({'sources':[g for g,_ in groups],'files':files},indent=2)+'\n')
+    print(f'MASKS {world}: {", ".join(g for g,_ in groups)}',flush=True)
 
 
 def daylight(scene):
@@ -2421,7 +2556,8 @@ def main():
     # relight the saved night scene, so they share its geometry and camera.
     # lifted and lifted-dark are the study with its notebook lifted away (lights
     # on or off): what stays on the desk while the Writing entry carries it off.
-    parser.add_argument('--time',choices=['night','day','dark','lifted','lifted-dark'],default='night')
+    # masks renders each light source alone for the site's light switch.
+    parser.add_argument('--time',choices=['night','day','dark','lifted','lifted-dark','masks'],default='night')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True,exist_ok=True)
     sources=ROOT/'artwork'/'blender'
@@ -2445,6 +2581,9 @@ def main():
                     if obj.name.startswith('Notebook'):bpy.data.objects.remove(obj,do_unlink=True)
             if args.time.endswith('dark'):lights_out(scene,world)
             repeatable(scene)
+            if args.time=='masks':
+                light_masks(scene,world,args.output)
+                continue
             scene.render.filepath=str(args.output/f'{world}.png')
             unseen_lights(scene)
             bpy.ops.render.render(write_still=True)

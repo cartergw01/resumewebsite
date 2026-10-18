@@ -14,7 +14,7 @@ import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
 import CityFireworks from "./CityFireworks";
-import ParallaxStill from "./ParallaxStill";
+import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
 
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
@@ -116,7 +116,8 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="lazy" data-city-time="day"
           quality={75} draggable={false} className={`${motionStyles.image} ${motionStyles.dayImage}`} /> : null}
-        {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} room={world === "projects" ? "projects" : undefined} className={styles.parallax} /> : null}
+        {warm && "depthSrc" in island && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc as string} focus={island.landmark} room={world === "projects" ? "projects" : undefined}
+          masks={world === "projects" && "lightMasks" in island ? island.lightMasks as LightMasks : undefined} className={styles.parallax} /> : null}
         {warm && "life" in island && island.life ? <IslandLife world={world} life={island.life as Life} className={styles.life} /> : null}
         {world === "work" ? <>
           <svg className={`${motionStyles.details} ${motionStyles.nightOnly}`} data-reads="island-lights:opacity:.4" viewBox="0 0 1200 800" aria-hidden="true">

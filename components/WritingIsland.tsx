@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import IslandLink from "./IslandLink";
-import ParallaxStill from "./ParallaxStill";
+import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import { artworkOutline } from "@/lib/artwork-perspective";
@@ -73,7 +73,8 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
             sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}
             className={styles.writingPoster} data-book-lifted="dark"
           /> : null}
-          {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} room="writing" className={styles.parallax} /> : null}
+          {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} room="writing"
+            masks={"lightMasks" in island ? island.lightMasks as LightMasks : undefined} className={styles.parallax} /> : null}
           {warm && island.life ? <IslandLife world="writing" life={island.life as Life} className={styles.life} /> : null}
           <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response data-book-surface>
             <defs>

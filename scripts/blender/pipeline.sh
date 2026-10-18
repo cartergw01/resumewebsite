@@ -10,7 +10,8 @@
 # In order, for each island: model and render the night still (this also saves
 # artwork/blender/<world>.blend, which the later steps open), crop and publish
 # it, record its camera and crop, render and publish Work's daytime still
-# (the study's and workshop's lights-off still),
+# (the study's and workshop's lights-off still, and the light masks that
+# stage their switches),
 # render the parallax depth map, project the live details, bake the flight
 # model(s); then recompress every model with meshopt and delete published
 # files nothing references any more.
@@ -80,6 +81,10 @@ for w in "${worlds[@]}"; do
     blender "$w-dark" -b --factory-startup --python scripts/blender/build_islands.py -- \
       --world "$w" --time dark --output "$out/dark" --width "$width" --samples "$samples" --device "$device"
     node scripts/blender/export_variant.mjs "$out/dark" "$w" dark
+    step "$w: light masks"
+    blender "$w-masks" -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world "$w" --time masks --output "$out/masks" --width 960 --samples 64 --device "$device"
+    node scripts/blender/export_light_masks.mjs "$out/masks" "$w"
   fi
   if [ "$w" = writing ]; then
     # The study with its notebook lifted away, lit and dark, for the entry.

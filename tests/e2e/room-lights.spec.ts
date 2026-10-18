@@ -27,3 +27,17 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     expect(errors).toEqual([]);
   });
 }
+
+test("settling on the study readies its staged switch, on phones too", async ({ page }) => {
+  await page.goto("/#writing");
+  const visual = page.locator("#writing [data-island-visual]");
+  // The lights-off still and the light masks load once the room is settled,
+  // and the canvas that plays the switch takes over from the images.
+  await expect(visual).toHaveAttribute("data-lights-gl", "ready", { timeout: 30_000 });
+  await expect(visual).toHaveAttribute("data-parallax", "on");
+  await expect(page.locator('img[data-lights-off="writing"]')).toHaveCount(1);
+  await page.getByRole("button", { name: "Turn the study lights off" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
+  // The switch didn't wait: everything it needed was already there.
+  await expect(page.getByRole("button", { name: "Turn the study lights on" })).not.toHaveAttribute("aria-busy", "true");
+});
