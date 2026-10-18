@@ -399,12 +399,14 @@
   .chapters { width: 100%; }
   .chapters button { min-width: 0; }
   .chapterLabel { font-size: 0.8125rem; }
-  /* "Swipe up" is just the falling star: it says "this moves" and steps aside
-     once you've swiped. The last stop still offers "back to the start". */
-  .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0.4rem; color: #fff7eae6; font-size: 0.9375rem; }
-  .controls .scrollHint:not([data-last="true"]) :is([data-next-label], .scrollArrow + [data-next-label] + .scrollArrow) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  /* "Swipe up" between two falling stars, bright and softly lit so it reads
+     against the starfield; it steps aside once you've swiped. The last stop
+     offers "back to the start". */
+  .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0.55rem; color: #fff7ea; font-size: 1rem; font-weight: 500; letter-spacing: 0.02em; text-shadow: 0 0 14px #ffe3ad66, 0 1px 6px #030611; }
   .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
-  .scrollArrow { width: 12px; height: 30px; }
+  .scrollArrow { width: 14px; height: 34px; }
+  .scrollStar { width: 2.5px; height: 20px; margin-left: -1.25px; background: linear-gradient(#bddbff00, #bddbff99 45%, #fff6dc); }
+  .scrollStar::after { bottom: -3.5px; width: 7px; height: 7px; margin-left: -3.5px; background: radial-gradient(circle, #fffdf3 0 1.6px, #ffe3ade6 2.6px, transparent 3.4px); filter: drop-shadow(0 0 6px #d6e8ff); }
   .dots { position: absolute; z-index: 6; top: 50%; right: 7px; display: flex; flex-direction: column; gap: 9px; transform: translateY(-50%); opacity: 0; transition: opacity 400ms ease; pointer-events: none; }
   .dots span { width: 4px; height: 4px; border-radius: 50%; background: #fff1d74d; transition: background 300ms ease, box-shadow 300ms ease, transform 300ms ease; }
   .dots span[data-current] { background: #fff1d7; box-shadow: 0 0 6px #ffe3adaa, 0 0 12px #b9d9ff55; transform: scale(1.5); }
