@@ -6,6 +6,7 @@ import IslandOverview from "./IslandOverview";
 import LivingIsland from "./LivingIsland";
 import WritingIsland from "./WritingIsland";
 import IslandLine from "./IslandLine";
+import WorkNumbers from "./WorkNumbers";
 import { WorkWindowPreview } from "./WorkRoom";
 import { essays, ownEssays } from "@/content/portfolio";
 import { projectPosters, projectScreenPreview } from "@/lib/project-posters";
@@ -42,6 +43,7 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
       return <>
         <h2 id="work-heading"><a href="/work" data-enter-island>Work</a></h2>
         <p className={styles.description}><IslandLine id="work" /></p>
+        <WorkNumbers className={styles.numbers} />
       </>;
     case "writing":
       return <>
