@@ -47,7 +47,11 @@ float share(int i, vec2 q) {
 float depthAt(vec2 p) { vec4 s = textureLod(depth, p, 2.5); return s.a > .004 ? s.r / s.a : 0.; }
 void main() {
   vec2 p = (uv - fit.zw) / fit.xy;
-  if (p.x < 0. || p.y < 0. || p.x > 1. || p.y > 1.) { color = vec4(0); return; }
+  // Outside the still is cleared at the end, not by returning early: an early
+  // return left the texture lookups along its edge without derivatives, so
+  // they sampled the smallest mip and drew a line of the still's average
+  // colour across the canvas above and below the island.
+  bool inside = p.x >= 0. && p.y >= 0. && p.x <= 1. && p.y <= 1.;
   vec2 q = p + shift * (depthAt(p) - focus);
   q = p + shift * (depthAt(q) - focus);
   float dark = daylight;
@@ -66,7 +70,7 @@ void main() {
     }
     dark = 1. - (sum + (1. - min(total, 1.)) * plain / float(sources));
   }
-  color = mix(texture(night, q), texture(day, q), dark);
+  color = mix(texture(night, q), texture(day, q), dark) * float(inside);
 }`;
 
 export type LightMasks = { sources: string[]; src: string[]; extents: number[][] };
