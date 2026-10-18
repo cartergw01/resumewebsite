@@ -320,7 +320,14 @@
 }
 .scrollHint:hover .scrollStar, .scrollHint:focus-visible .scrollStar { animation-duration: 1.3s; }
 .stage[data-travelling="true"] .scrollStar { animation-play-state: paused; }
-@media (prefers-reduced-motion: reduce) { .scrollStar { animation: none; top: 10px; } }
+@media (prefers-reduced-motion: reduce) { .scrollStar { animation: none; top: 10px; } .scrollHint [data-next-label] { animation: none !important; } }
+/* Phones' "swipe up" lifts, glows a little brighter and settles, in step with
+   its falling stars: a nudge that catches the eye without bouncing. */
+@keyframes swipe-nudge {
+  0%, 55%, 100% { translate: 0 0; text-shadow: 0 0 14px #ffe3ad66, 0 1px 6px #030611; }
+  22% { translate: 0 -6px; text-shadow: 0 0 18px #ffe3adb3, 0 0 30px #ffe3ad40, 0 1px 6px #030611; }
+  40% { translate: 0 1px; }
+}
 /* One fine trail ties the labels together, with room above for readable text. */
 .chapters { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(30rem, 48vw); height: 60px; padding: 0 18px; box-sizing: border-box; }
 .chapters button { position: relative; min-width: 0; min-height: 60px; text-align: center; }
@@ -404,6 +411,8 @@
      offers "back to the start". */
   .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0.55rem; color: #fff7ea; font-size: 1rem; font-weight: 500; letter-spacing: 0.02em; text-shadow: 0 0 14px #ffe3ad66, 0 1px 6px #030611; }
   .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
+  .controls .scrollHint:not([data-last="true"]) [data-next-label] { display: inline-block; animation: swipe-nudge 2.4s cubic-bezier(0.45, 0, 0.25, 1) infinite; }
+  .stage[data-travelling="true"] .scrollHint [data-next-label] { animation-play-state: paused; }
   .scrollArrow { width: 14px; height: 34px; }
   .scrollStar { width: 2.5px; height: 20px; margin-left: -1.25px; background: linear-gradient(#bddbff00, #bddbff99 45%, #fff6dc); }
   .scrollStar::after { bottom: -3.5px; width: 7px; height: 7px; margin-left: -3.5px; background: radial-gradient(circle, #fffdf3 0 1.6px, #ffe3ade6 2.6px, transparent 3.4px); filter: drop-shadow(0 0 6px #d6e8ff); }
