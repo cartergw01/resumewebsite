@@ -266,7 +266,10 @@
   .islandLink:hover .pageLight { opacity: 0.65; }
   .islandLink:hover .pageEdges { opacity: 0.85; transform: translateY(-2px); }
 }
-.islandLink:focus-visible { outline: 2px solid #fff7eae6; outline-offset: -1rem; border-radius: 50%; }
+/* Keyboard focus shows as the island lifting and glowing, with its "click
+   to ..." prompt brightened (below and above), not a ring: an outline round
+   the link's wide box crossed the sky above and below the island as lines. */
+.islandLink:focus-visible { outline: none; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 @media (hover: hover) and (pointer: fine) {
   .islandLink:hover .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
@@ -277,7 +280,6 @@
 .stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after, .stage[data-entering="work"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
-.stage[data-entering="work"] .islandLink:focus-visible { outline-color: transparent; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
 .stage[data-entering] .controls { animation: entry-copy 700ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
