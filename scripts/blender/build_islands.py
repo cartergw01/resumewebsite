@@ -1592,6 +1592,19 @@ def glass_material(name,color=(1,1,1),rough=.02,transmission=1.0):
     return mat
 
 
+def lay_down(objects,axis,degrees):
+    """Tip objects built upright around the origin onto their side (turned
+    `degrees` about `axis`), then lower them until their lowest point rests
+    on z=0, ready to place() on a surface."""
+    from mathutils import Matrix
+    bpy.context.view_layer.update()
+    turn=Matrix.Rotation(math.radians(degrees),4,axis)
+    for obj in objects:obj.matrix_world=turn@obj.matrix_world
+    bpy.context.view_layer.update()
+    low=min((obj.matrix_world@Vector(corner)).z for obj in objects if obj.type in {'MESH','CURVE'} for corner in obj.bound_box)
+    for obj in objects:obj.matrix_world=Matrix.Translation((0,0,-low))@obj.matrix_world
+
+
 def place(objects,x,y,z,angle):
     """Move objects built around the origin to (x, y, z), turned about Z."""
     from mathutils import Matrix
@@ -1690,9 +1703,10 @@ def poker_chip_case(x,y,z,angle):
 
 
 def airpods_max(x,y,z,angle):
-    """Apple AirPods Max in blue, set down upright on their ear cups: two
-    anodised aluminium cups with knit cushions facing each other, steel
-    arms and a knit canopy arched over the top."""
+    """Apple AirPods Max in blue, laid down flat the way you'd put them on a
+    desk: two anodised aluminium cups with knit cushions facing each other,
+    resting on their edges, and the steel-framed knit headband lying flat
+    behind them."""
     before=set(bpy.context.scene.objects)
     P['airpods_blue']=material('AirPods Max · blue anodised aluminium',(.11,.20,.42),metal=.7,rough=.35)
     P['airpods_knit']=textured('AirPods Max · pale blue knit mesh',(.22,.28,.38),(.34,.40,.50),'fabric',rough=.95)
@@ -1707,7 +1721,9 @@ def airpods_max(x,y,z,angle):
     arch=[(.135*math.cos(math.pi*i/8),0,.25+.135*math.sin(math.pi*i/8)) for i in range(9)]
     curve('AirPods Max · stainless headband frame',arch,.008,'steel')
     curve('AirPods Max · knit canopy',[(px,0,pz-.012) for px,_,pz in arch],.022,'airpods_knit')
-    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+    built=set(bpy.context.scene.objects)-before
+    lay_down(built,'X',-90)
+    place(built,x,y,z,angle)
 
 
 def watch_box(x,y,z,angle):
@@ -2069,24 +2085,21 @@ def kobe_jersey(cx,y,cz):
 
 
 def blackpink_lightstick(x,y,z,angle,k=1.3):
-    """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2) in its pink
-    stand: a toy-hammer shape, a black cylindrical handle with a pink button
+    """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2), lying on its
+    side: a toy-hammer shape, a black cylindrical handle with a pink button
     and a pink band near the top, and a head of two pink silicone hearts, one
     at each end. Lit, the hearts and the band glow pink. Catalogue size is
     155 x 87 x 253mm; it's drawn `k` times life size so it reads at the
-    island's scale. Its head runs along local y, so one heart faces the
-    camera."""
+    island's scale. Built upright, then laid down resting on a heart's edge
+    and the end of the handle."""
     before=set(bpy.context.scene.objects)
     u=.002*k  # one millimetre
     P.setdefault('bp_black',material('Lightstick · black handle',(.012,.012,.014),rough=.35))
-    P.setdefault('bp_pink',material('Lightstick · pink stand',(.85,.32,.48),rough=.45))
+    P.setdefault('bp_pink',material('Lightstick · pink button',(.85,.32,.48),rough=.45))
     P.setdefault('bp_glow',material('Lightstick · pink heart',(.95,.10,.42),rough=.5,emission=.55))
     P.setdefault('bp_band',material('Lightstick · pink band',(.95,.10,.42),rough=.4,emission=.55))
-    # The stand: a round pink foot and a collar the handle sits in.
-    cylinder('Lightstick · pink stand foot',(0,0,6*u),46*u,12*u,'bp_pink',48,bevel=3*u)
-    cylinder('Lightstick · pink stand collar',(0,0,26*u),20*u,30*u,'bp_pink',32,top=18*u,bevel=2*u)
-    # Handle: 30mm across, from the stand to the head.
-    hb,ht=16*u,176*u
+    # Handle: 30mm across, from its end cap to the head.
+    hb,ht=0,160*u
     cylinder('Lightstick · black handle',(0,0,(hb+ht)/2),15*u,ht-hb,'bp_black',32,bevel=2*u)
     cylinder('Lightstick · pink band',(0,0,ht-16*u),15.6*u,9*u,'bp_band',32,bevel=0)
     b=cylinder('Lightstick · pink button',(0,-15.2*u,(hb+ht)/2+8*u),6*u,3*u,'bp_pink',24,bevel=1*u);b.rotation_euler.x=math.pi/2
@@ -2112,7 +2125,11 @@ def blackpink_lightstick(x,y,z,angle,k=1.3):
         for f in heart.data.polygons:f.use_smooth=True
     # Its own pink glow on the shelf around it.
     light('Lightstick · pink glow',(0,-.12*k,hz),(1,.32,.66),5*k,.08*k)
-    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+    built=set(bpy.context.scene.objects)-before
+    # The head (about 87mm) is thicker than the handle (30mm), so lying down
+    # the stick tips a few degrees: heart edge and handle end both touch.
+    lay_down(built,'Y',90-math.degrees(math.atan((43.5-15)/(hz/u))))
+    place(built,x,y,z,angle)
 
 
 # The workshop stool, in front of the monitor.
@@ -2273,8 +2290,8 @@ def workshop():
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
     # Carter asked for BLACKPINK's official light stick, lit, on the lower
-    # shelf (where a coiled extension lead was).
-    blackpink_lightstick(.64,-.10,.5175,math.radians(-8))
+    # shelf, lying along its front edge with a heart turned to the room.
+    blackpink_lightstick(-.97,-.44,.5175,math.radians(-4))
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
     # Each stack is one colour, like a sorted stack at the table; the chips
