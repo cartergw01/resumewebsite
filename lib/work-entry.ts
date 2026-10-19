@@ -208,22 +208,15 @@ function flyLetters(overlay: HTMLElement, page: HTMLElement, letters: SVGTextEle
     const glyph = document.createElement("span");
     glyph.className = styles.letter;
     glyph.textContent = text.textContent![index];
-    glyph.style.cssText = `left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px;font:${style.fontWeight} ${style.fontSize}/${target.height}px ${style.fontFamily};letter-spacing:${style.letterSpacing};color:${style.color}`;
+    // Set in the heading's own face, width included (Archivo at 125%): the
+    // font shorthand alone resets the width, and narrower letters landed
+    // spaced out and jumped as the real heading took their place.
+    glyph.style.cssText = `left:${target.left}px;top:${target.top}px;width:${target.width}px;height:${target.height}px;font:${style.fontWeight} ${style.fontSize}/${target.height}px ${style.fontFamily};font-stretch:${style.fontStretch};font-variation-settings:${style.fontVariationSettings};font-optical-sizing:${style.fontOpticalSizing};letter-spacing:${style.letterSpacing};color:${style.color}`;
     overlay.append(glyph);
     const dx = source.x - (target.left + target.width / 2), dy = source.y - (target.top + target.height / 2);
     const scale = source.size / size;
-    // Each lifts off the tower toward you, brightening, then travels in a
-    // gentle arc and settles into the line.
-    const arc = Math.min(70, Math.hypot(dx, dy) * .12);
-    const lift = scale * 1.35;
     const timing = { delay: FLY * ENTRY_APPROACH_DURATION + index * 55, duration: (1 - FLY) * ENTRY_APPROACH_DURATION - 3 * 55, fill: "both" as const };
-    const animation = glyph.animate([
-      { opacity: 0, transform: `translate(${dx}px, ${dy}px) scale(${scale})`, color: source.color, textShadow: `0 0 18px rgb(${glow} / .9)`, offset: 0 },
-      { opacity: 1, transform: `translate(${dx}px, ${dy}px) scale(${scale})`, color: source.color, textShadow: `0 0 18px rgb(${glow} / .9)`, offset: .001, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
-      { opacity: 1, transform: `translate(${dx}px, ${dy - 8}px) scale(${lift})`, color: source.color, textShadow: `0 0 26px rgb(${glow} / 1)`, offset: .18, easing: "cubic-bezier(0.45, 0, 0.25, 1)" },
-      { opacity: 1, transform: `translate(${dx * .45}px, ${dy * .45 - arc}px) scale(${lift + (1 - lift) * .6})`, offset: .6 },
-      { opacity: 1, transform: "none", color: style.color, textShadow: `0 0 0 rgb(${glow} / 0)`, offset: 1 },
-    ], timing);
+    const animation = glyph.animate(letterFlight(dx, dy, scale, source.color, style.color, glow), timing);
     // In step with the camera: same time, same pace (a second tap hurries both).
     animation.playbackRate = camera.playbackRate;
     animation.currentTime = camera.currentTime;
@@ -231,6 +224,53 @@ function flyLetters(overlay: HTMLElement, page: HTMLElement, letters: SVGTextEle
     animations.push(animation);
   });
   return animations;
+}
+
+// A CSS-style cubic-bezier easing, for motions sampled into keyframes.
+function bezier(x1: number, y1: number, x2: number, y2: number) {
+  const at = (s: number, a: number, b: number) => 3 * (1 - s) * (1 - s) * s * a + 3 * (1 - s) * s * s * b + s * s * s;
+  return (t: number) => {
+    let s = t;
+    for (let i = 0; i < 8; i++) {
+      const slope = 3 * (1 - s) * (1 - s) * x1 + 6 * (1 - s) * s * (x2 - x1) + 3 * s * s * (1 - x2);
+      if (Math.abs(slope) < 1e-6) break;
+      s = Math.max(0, Math.min(1, s - (at(s, x1, x2) - t) / slope));
+    }
+    return at(s, y1, y2);
+  };
+}
+// Unhurried out of the tower, then a long, soft landing.
+const glide = bezier(.42, 0, .18, 1);
+const rgb = (color: string) => (color.match(/[\d.]+/g) ?? ["255", "255", "255"]).slice(0, 3).map(Number);
+
+// One letter's flight from the tower into the heading, as finely sampled
+// keyframes of one motion, so it never changes pace with a jolt: it rises
+// off the tower towards you, swelling and brightening, travels in a gentle
+// arc and settles into the line, cooling from the tower's light to the
+// page's ink as it comes.
+function letterFlight(dx: number, dy: number, scale: number, from: string, to: string, glow: string) {
+  const steps = 40;
+  const arc = Math.min(70, Math.hypot(dx, dy) * .12);
+  // The arc's control point: above the way between, so it rises and lands.
+  const cx = dx * .45, cy = dy * .45 - arc * 2;
+  const [r0, g0, b0] = rgb(from), [r1, g1, b1] = rgb(to);
+  const frames: Keyframe[] = [{ opacity: 0, offset: 0 }];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, p = glide(t), q = 1 - p;
+    const x = q * q * dx + 2 * q * p * cx, y = q * q * dy + 2 * q * p * cy;
+    const size = Math.exp(Math.log(scale) * q) * (1 + .22 * Math.sin(Math.PI * p));
+    const cool = Math.max(0, Math.min(1, (p - .25) / .75));
+    const mix = (a: number, b: number) => Math.round(a + (b - a) * cool);
+    const shine = Math.sin(Math.PI * Math.min(1, p * 2.5)) * .25 + .9 * (1 - cool);
+    frames.push({
+      opacity: 1,
+      transform: i === steps ? "none" : `translate(${x}px, ${y}px) scale(${size})`,
+      color: `rgb(${mix(r0, r1)}, ${mix(g0, g1)}, ${mix(b0, b1)})`,
+      textShadow: `0 0 ${18 + 8 * Math.sin(Math.PI * Math.min(1, p * 2.5))}px rgb(${glow} / ${Math.min(1, shine).toFixed(3)})`,
+      offset: Math.max(.001, t),
+    });
+  }
+  return frames;
 }
 
 export function arriveAtWork(content: HTMLElement) {
