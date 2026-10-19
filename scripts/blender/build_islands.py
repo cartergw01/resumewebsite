@@ -519,6 +519,16 @@ def terrain_path(name,points,width,seed,mat='stone',step=.28):
             box(name,(p.x,p.y,z+(.012 if city else .041)),(max(.004,delta.length/count-(.002 if city else .025)),width*rng.uniform(.96,1.01) if city else width*rng.uniform(.89,1.04),.018 if city else .065),mat,.001 if city else .018,angle+rng.uniform(-.008 if city else -.035,.008 if city else .035))
 
 
+# The workshop's half-court: a poured pad in the yard lobe right of the shed,
+# (x0, x1, y0, y1) in island units. Nothing else is planted or stacked on it.
+COURT=(3.35,4.35,-1.35,2.15)
+
+
+def on_court(world,x,y,margin=.12):
+    x0,x1,y0,y1=COURT
+    return world=='projects' and x0-margin<x<x1+margin and y0-margin<y<y1+margin
+
+
 def landscape(world,seed):
     rng=random.Random(seed+18)
     # Raycast the actual soil cap, including its notches. An ideal ellipse
@@ -535,6 +545,7 @@ def landscape(world,seed):
         return pos.z if pos.z>-.03 else None
     # A few embedded mineral outcrops and dense planted pockets create scale.
     for x,y in [(-4.35,.85),(3.95,1.87),(-2.85,-2.75),(2.65,-2.84),(4.55,-.55)]:
+        if on_court(world,x,y,.5):continue
         z=surface(x,y)
         if z is None:continue
         size=.16 if world=='work' else 1
@@ -553,6 +564,7 @@ def landscape(world,seed):
         if abs(x)<2 and y<-2.5:continue
         for j in range(45):
             xx=x+rng.gauss(0,.13);yy=y+rng.gauss(0,.10)
+            if on_court(world,xx,yy):continue
             z=surface(xx,yy)
             if z is None:continue
             z+=.012;h=rng.uniform(.05,.16)*(.16 if world=='work' else 1)
@@ -603,12 +615,8 @@ def landscape(world,seed):
         for i in range(5):
             sawn_ends(box('Yard · loose sawn offcut',(-3.57+i*.14,-1.61+.06*(i%2),.045+i*.013),(.12,.32+i*.09,.035),'floorwood',.002,rot=-.25+i*.13),'Y')
         for x in [-3.98,-3.65]:box('Yard · stack bearer',(x,-.48,.07),(.13,1.95,.10),'wood',.003)
-        box('Yard · material crate',(3.64,.45,.24),(.65,.85,.46),'wood',.008)
-        for x in [3.40,3.63,3.86]:box('Yard · crate slat',(x,.01,.26),(.16,.024,.42),'oak',.003)
-        for i in range(4):
-            box('Yard · aluminium offcut',(3.58+i*.07,.44,.75),(.022,.027,.94-i*.09),'steel',.001,rot=.05*i)
-        cylinder('Yard · cable reel',(3.62,-.83,.22),.27,.35,'wood',40,bevel=.01)
-        for z in [.065,.365]:cylinder('Reel · flange',(3.62,-.83,z),.33,.035,'oak',40,bevel=.006)
+        # The crate, offcuts and cable reel that stood here made way for the
+        # half-court (see half_court()).
 
 
 def tree(x,y,scale=1,base=0):
@@ -2059,6 +2067,65 @@ def kobe_jersey(cx,y,cz):
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
+def half_court():
+    """Carter's a Lakers fan, and the workshop's yard is a half-court: a
+    poured concrete pad painted Lakers purple with a gold key and white
+    lines, a hoop on a black steel pole at its far end, and a cool LED
+    floodlight on the pole. The hoop stands about as tall as the shed's roof,
+    so the island reads as the workshop with the court from far away; the
+    floodlight is outdoor lighting, not on the room's switch (it stays lit)."""
+    x0,x1,y0,y1=COURT;cx=(x0+x1)/2;top=.26
+    P['court']=material('Court · Lakers purple acrylic',(.09,.025,.22),rough=.6)
+    P['key']=material('Court · Lakers gold key',(.70,.42,.03),rough=.6)
+    P['line']=material('Court · white line paint',(.80,.80,.78),rough=.6)
+    P['rim']=material('Hoop · orange rim',(.85,.22,.02),metal=.4,rough=.35)
+    P['board']=material('Hoop · white backboard',(.78,.80,.82),rough=.3)
+    box('Court · poured concrete pad',(cx,(y0+y1)/2,top/2-.06),(x1-x0,y1-y0,top+.12),'stone',.012)
+    box('Court · painted surface',(cx,(y0+y1)/2,top+.001),(x1-x0-.06,y1-y0-.06,.002),'court',0)
+    # Baseline under the hoop, sidelines, the key and the free-throw circle.
+    base=y1-.10;ft=base-1.00;lz=top+.004
+    def line(a,b,w=.024):
+        (ax,ay),(bx,by)=a,b
+        box('Court · painted line',((ax+bx)/2,(ay+by)/2,lz),(abs(bx-ax)+w,abs(by-ay)+w,.002),'line',0)
+    box('Court · painted key',(cx,(base+ft)/2,top+.003),(.46,base-ft,.002),'key',0)
+    line((x0+.05,base),(x1-.05,base))
+    for x in [x0+.05,x1-.05]:line((x,y0+.05),(x,base))
+    line((x0+.05,y0+.05),(x1-.05,y0+.05))
+    for x in [cx-.23,cx+.23]:line((x,ft),(x,base))
+    line((cx-.23,ft),(cx+.23,ft))
+    curve('Court · free-throw circle',[(cx+.23*math.cos(a*math.tau/24),ft+.23*math.sin(a*math.tau/24),lz) for a in range(24)],.009,'line',cyclic=True)
+    # The three-point arc around the hoop, where it fits on the pad.
+    hx,hy=cx,base-.30;arc=[]
+    for i in range(61):
+        a=math.pi+i*math.pi/60;x=hx+1.30*math.cos(a);y=hy+1.30*math.sin(a)
+        if x0+.05<x<x1-.05:arc.append((x,y,lz))
+    if len(arc)>2:curve('Court · three-point arc',arc,.009,'line')
+    # The hoop: pole behind the baseline, an arm, the board, rim and net.
+    px,py=cx,y1+.32;rim_z=3.40
+    cylinder('Hoop · concrete footing',(px,py,.12),.16,.30,'stone',24,bevel=.01)
+    rod('Hoop · black steel pole',(px,py,.10),(px,py,rim_z+.62),.055,'ink',20)
+    rod('Hoop · arm',(px,py,rim_z+.20),(px,base+.08,rim_z+.20),.032,'ink',12)
+    board_y=base+.06
+    box('Hoop · backboard',(px,board_y,rim_z+.30),(1.20,.035,.74),'board',.01)
+    for z,h in [(rim_z+.665,.02),(rim_z-.065,.02)]:box('Hoop · board edge',(px,board_y-.019,z),(1.20,.004,h),'rim',0)
+    for x in [px-.59,px+.59]:box('Hoop · board edge',(x,board_y-.019,rim_z+.30),(.02,.004,.74),'rim',0)
+    for z,h in [(rim_z+.42,.018),(rim_z+.07,.018)]:box('Hoop · target square',(px,board_y-.019,z),(.44,.004,h),'rim',0)
+    for x in [px-.22,px+.22]:box('Hoop · target square',(x,board_y-.019,rim_z+.245),(.018,.004,.37),'rim',0)
+    ry=board_y-.02-.30
+    box('Hoop · rim bracket',(px,board_y-.08,rim_z),(.18,.13,.03),'rim',.004)
+    torus('Hoop · orange rim',(px,ry,rim_z),.28,.018,'rim')
+    for k in range(14):
+        a=k*math.tau/14;b=a+math.tau/28
+        rod('Hoop · net cord',(px+.28*math.cos(a),ry+.28*math.sin(a),rim_z-.01),(px+.17*math.cos(b),ry+.17*math.sin(b),rim_z-.40),.005,'paper',6)
+    for z,r in [(rim_z-.20,.225),(rim_z-.39,.175)]:torus('Hoop · net loop',(px,ry,z),r,.004,'paper')
+    # A cool-white LED floodlight on top of the pole, aimed down the court.
+    P['flood']=material('Floodlight · LED panel',(.80,.88,1),emission=8)
+    box('Floodlight · housing',(px,py-.05,rim_z+.70),(.30,.12,.18),'ink',.01).rotation_euler.x=math.radians(-35)
+    box('Floodlight · LED panel',(px,py-.115,rim_z+.66),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-35)
+    spot('Night · court floodlight',(px,py-.20,rim_z+.62),(cx,(y0+y1)/2-.2,top),(.78,.86,1),280,78,.6,.10)
+    ANCHORS['hoop']=(px,ry,rim_z)
+
+
 def workshop():
     foundation(107,'lot');landscape('projects',107);floorboards()
     # A practical studio wall, with a small tool rail rather than a giant toy pegboard.
@@ -2128,13 +2195,13 @@ def workshop():
     uv=glass.data.uv_layers.new(name='Screen coordinates')
     for loop,point in zip(uv.data,[(0,1),(1,1),(1,0),(0,0)]):loop.uv=point
     ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.085,(bottom+top)/2);ANCHORS['screenGlow']=(sx,sy-.22,sz+.02)
-    light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.92,.86,.80),3,.7,(sx,sy-.50,sz))
+    light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.72,.82,1),5,.7,(sx,sy-.50,sz))
     # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
     # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
     ipad_pro(-.72,-.58,1.79,math.radians(6),'artwork/blender/ipad-wallpaper-launch.jpg')
     # In Common With's Eave Table Lamp, in black steel, at the back of the
     # bench: a workbench lamp's pool of light.
-    eave_table_lamp(-1.50,.60,1.792,125,.8)
+    eave_table_lamp(-1.50,.60,1.792,80,.8)
     # Different working objects replace the three identical empty cases.
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
@@ -2165,7 +2232,7 @@ def workshop():
     # drawers and the deck below.
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
     box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
-    for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),30,.8,(bx,-1.45,.2))
+    for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),12,.8,(bx,-1.45,.2))
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -2231,17 +2298,20 @@ def workshop():
     roof.modifiers.new('Sheet thickness','SOLIDIFY').thickness=.012
     # Lakers purple: LED strips along the front of the roof beam and up both
     # posts frame the shed in neon; their light stays close to the strips.
+    # They (with the cool task strip, the screen and the court's floodlight)
+    # carry the workshop's light, so from a distance it reads cool beside
+    # the study's warm lamplight; its warm lamps are accents.
     P['purple_strip']=material('Glow · purple LED strip',(.46,.12,1),emission=4)
     box('Glow · roof beam strip',(-.09,front[0]+.012,front[1]-.075),(6.0,.008,.016),'purple_strip',0)
-    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),10,.3,(bx,2.0,3.3))
+    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),24,.3,(bx,2.0,3.3))
     for px2 in [-3.05,2.86]:
         box('Glow · post strip',(px2,front[0]+.012,(front[1]-.12+.22)/2),(.016,.008,front[1]-.34),'purple_strip',0)
-        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),5,.3,(px2,front[0]-.8,1.2))
+        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),12,.3,(px2,front[0]-.8,1.2))
     # In Common With's Luca Wall Sconce on the patched sheet above the tool
     # wall, fanning its light down over the tools.
-    luca_wall_sconce(.33,2.017,3.05,150)
+    luca_wall_sconce(.33,2.017,3.05,90)
     # A string of festoon bulbs swagged along the roof beam.
-    P['festoon']=material('Festoon · warm bulb',(1,.74,.44),emission=6)
+    P['festoon']=material('Festoon · warm bulb',(1,.74,.44),emission=3.5)
     hangs=[-3.0,-1.0,.95,2.82];fy=front[0]+.0;fz=front[1]-.10
     for a,b in zip(hangs,hangs[1:]):
         pts=[(a+(b-a)*t/8,fy,fz-.16*math.sin(math.pi*t/8)) for t in range(9)]
@@ -2249,7 +2319,7 @@ def workshop():
         for t in [1,3,5,7]:
             px2,_,pz2=pts[t]
             sphere('Festoon · bulb',(px2,fy,pz2-.05),(.028,.028,.036),'festoon',2)
-    for xx in [-2.0,0,1.9]:light('Festoon · glow',(xx,fy-.15,fz-.25),(1,.72,.42),6,.3)
+    for xx in [-2.0,0,1.9]:light('Festoon · glow',(xx,fy-.15,fz-.25),(1,.72,.42),2.5,.3)
     # A small purple-and-gold pennant for the Lakers, pinned by the prints.
     P['lakers_purple']=material('Felt pennant · purple',(.14,.045,.24),rough=.95)
     P['lakers_gold']=material('Felt pennant · gold',(.62,.40,.07),rough=.95)
@@ -2258,9 +2328,9 @@ def workshop():
     mesh('Pennant · gold stripe',[(px,2.010,pz),(px,2.010,pz-.075),(px+.55,2.010,pz-.155)],[(0,1,2)],'lakers_gold')
     box('Pennant · sleeve',(px-.015,2.011,pz-.15),(.04,.006,.32),'lakers_gold',.002)
     cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
-    # Carter's Ninebot scooter, on its kickstand in the yard; he gets around
-    # the city on it.
-    ninebot_scooter(3.15,-1.85,math.radians(-12))
+    # Carter's Ninebot scooter, on its kickstand in the front yard left of
+    # the step, clear of the court; he gets around the city on it.
+    ninebot_scooter(-1.20,-2.65,math.radians(8))
     # Space things, taped and shelved: a planet poster, a Falcon 9 model and an
     # LED ball, the same sky the site floats in.
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
@@ -2301,7 +2371,7 @@ def workshop():
     # right angles and two curved seams either side, the ball tipped at rest.
     from mathutils import Euler, Matrix
     P['basketball']=textured('Basketball · pebbled leather',(.62,.17,.025),(.80,.27,.05),'fabric',rough=.72)
-    br=.24;bx,by,bz=-2.22,-1.52,.151+.24
+    br=.24;bx,by,bz=COURT[0]+.32,.62,.262+.24
     ball=sphere('Basketball',(bx,by,bz),(br,br,br),'basketball',4)
     for f in ball.data.polygons:f.use_smooth=True
     tip=Matrix.Translation(Vector((bx,by,bz)))@Euler((.5,.35,.9)).to_matrix().to_4x4()
@@ -2342,8 +2412,9 @@ def workshop():
     # Under-shelf task strip provides a soft local pool of light.
     box('Workshop · practical LED strip',(1.56,1.44,1.61),(2.04,.025,.015),'light',.003)
     ANCHORS['bulbs']=[(1.10,1.44,1.61),(2.0,1.44,1.61)]
-    light('Workshop · task strip',(1.56,1.35,1.58),(1,.76,.52),26,1.0,(1.1,.6,1.1))
+    light('Workshop · task strip',(1.56,1.35,1.58),(.80,.88,1),26,1.0,(1.1,.6,1.1))
     plant(-2.98,.95,.16,.64)
+    half_court()
 
 
 def unseen_lights(scene):
@@ -2461,7 +2532,7 @@ def camera_and_lights(scene):
 # the night through the windows, and screens. Everything else goes dark,
 # night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
-SCREENS=('Screen','Monitor','Window','display','backlight')
+SCREENS=('Screen','Monitor','Window','display','backlight','Floodlight')
 # What dims rather than staying at full brightness with the lights off: the
 # iPad's screen (to a faint glow, its glass dark so the spotlight cannot
 # light its picture) and its Magic Keyboard's backlight.
