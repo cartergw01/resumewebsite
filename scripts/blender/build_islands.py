@@ -1934,7 +1934,8 @@ def writing():
         for face in leaf.data.polygons:face.use_smooth=True
         for f,dz in [(1,0),(25,.006+j*.002),(49,0)]:leaf.location.z=dz;leaf.keyframe_insert(data_path='location',frame=f)
         ANIMATED.append(leaf)
-    chair(-.95,-2.0)
+    # The chair is pulled up to the open notebook, where you'd sit to write.
+    chair(.16,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
     plant(-2.65,.57,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
@@ -2067,21 +2068,83 @@ def kobe_jersey(cx,y,cz):
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
+def blackpink_lightstick(x,y,z,angle,k=1.3):
+    """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2) in its pink
+    stand: a toy-hammer shape, a black cylindrical handle with a pink button
+    and a pink band near the top, and a head of two pink silicone hearts, one
+    at each end. Lit, the hearts and the band glow pink. Catalogue size is
+    155 x 87 x 253mm; it's drawn `k` times life size so it reads at the
+    island's scale. Its head runs along local y, so one heart faces the
+    camera."""
+    before=set(bpy.context.scene.objects)
+    u=.002*k  # one millimetre
+    P.setdefault('bp_black',material('Lightstick · black handle',(.012,.012,.014),rough=.35))
+    P.setdefault('bp_pink',material('Lightstick · pink stand',(.85,.32,.48),rough=.45))
+    P.setdefault('bp_glow',material('Lightstick · pink heart',(.95,.10,.42),rough=.5,emission=.55))
+    P.setdefault('bp_band',material('Lightstick · pink band',(.95,.10,.42),rough=.4,emission=.55))
+    # The stand: a round pink foot and a collar the handle sits in.
+    cylinder('Lightstick · pink stand foot',(0,0,6*u),46*u,12*u,'bp_pink',48,bevel=3*u)
+    cylinder('Lightstick · pink stand collar',(0,0,26*u),20*u,30*u,'bp_pink',32,top=18*u,bevel=2*u)
+    # Handle: 30mm across, from the stand to the head.
+    hb,ht=16*u,176*u
+    cylinder('Lightstick · black handle',(0,0,(hb+ht)/2),15*u,ht-hb,'bp_black',32,bevel=2*u)
+    cylinder('Lightstick · pink band',(0,0,ht-16*u),15.6*u,9*u,'bp_band',32,bevel=0)
+    b=cylinder('Lightstick · pink button',(0,-15.2*u,(hb+ht)/2+8*u),6*u,3*u,'bp_pink',24,bevel=1*u);b.rotation_euler.x=math.pi/2
+    # Head: a black hub across the top of the handle, a heart at each end.
+    hz=ht+38*u
+    hub=cylinder('Lightstick · black hub',(0,0,hz),24*u,40*u,'bp_black',32,bevel=3*u);hub.rotation_euler.x=math.pi/2
+    cylinder('Lightstick · black neck',(0,0,ht+12*u),13*u,26*u,'bp_black',24,bevel=2*u)
+    # A heart outline (the classic parametric heart), 87mm across, extruded
+    # 55mm outward from each side of the hub.
+    outline=[]
+    for i in range(56):
+        t=i*math.tau/56
+        hx=16*math.sin(t)**3;hy=13*math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t)
+        outline.append((hx*43.5*u/16,(hy+2.5)*43.5*u/16))
+    n=len(outline)
+    for side in [-1,1]:
+        y0,y1=side*20*u,side*75*u
+        verts=[(ox,y0,hz+oz) for ox,oz in outline]+[(ox,y1,hz+oz) for ox,oz in outline]
+        faces=[tuple(range(n)) if side>0 else tuple(reversed(range(n))),tuple(reversed(range(n,2*n))) if side>0 else tuple(range(n,2*n))]
+        faces+=[(i,(i+1)%n,(i+1)%n+n,i+n) if side>0 else (i,i+n,(i+1)%n+n,(i+1)%n) for i in range(n)]
+        heart=mesh('Lightstick · pink silicone heart',verts,faces,'bp_glow')
+        finish(heart,heart.name,None,4*u)
+        for f in heart.data.polygons:f.use_smooth=True
+    # Its own pink glow on the shelf around it.
+    light('Lightstick · pink glow',(0,-.12*k,hz),(1,.32,.66),5*k,.08*k)
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
+# The workshop stool, in front of the monitor.
+STOOL=(1.17,-1.15)
+
+
 def half_court():
     """Carter's a Lakers fan, and the workshop's yard is a half-court: a
     poured concrete pad painted Lakers purple with a gold key and white
     lines, a hoop on a black steel pole at its far end, and a cool LED
     floodlight on the pole. The hoop stands about as tall as the shed's roof,
-    so the island reads as the workshop with the court from far away; the
-    floodlight is outdoor lighting, not on the room's switch (it stays lit)."""
+    so the island reads as the workshop with the court from far away. The
+    floodlight is on the room's switch (with the task strip, both LEDs)."""
     x0,x1,y0,y1=COURT;cx=(x0+x1)/2;top=.26
-    P['court']=material('Court · Lakers purple acrylic',(.09,.025,.22),rough=.6)
-    P['key']=material('Court · Lakers gold key',(.70,.42,.03),rough=.6)
-    P['line']=material('Court · white line paint',(.80,.80,.78),rough=.6)
+    P['maple']=textured('Court · varnished maple strip',(.20,.10,.035),(.38,.21,.08),'wood',rough=.72,grain=(40,1.2,6))
+    P['maple2']=textured('Court · varnished maple strip, darker',(.16,.08,.03),(.31,.17,.065),'wood',rough=.72,grain=(40,1.2,6))
+    P['court']=material('Court · Lakers purple border',(.09,.025,.22),rough=.7)
+    P['key']=material('Court · Lakers gold key',(.62,.36,.02),rough=.7)
+    P['line']=material('Court · white line paint',(.80,.80,.78),rough=.4)
     P['rim']=material('Hoop · orange rim',(.85,.22,.02),metal=.4,rough=.35)
     P['board']=material('Hoop · white backboard',(.78,.80,.82),rough=.3)
     box('Court · poured concrete pad',(cx,(y0+y1)/2,top/2-.06),(x1-x0,y1-y0,top+.12),'stone',.012)
-    box('Court · painted surface',(cx,(y0+y1)/2,top+.001),(x1-x0-.06,y1-y0-.06,.002),'court',0)
+    # A purple border all round, then the playing floor: maple strips (about
+    # 6cm wide, like a real court's) running the length of the court.
+    box('Court · painted border',(cx,(y0+y1)/2,top+.001),(x1-x0-.02,y1-y0-.02,.002),'court',0)
+    strips=9;inner=x1-x0-.14;w=inner/strips;rng=random.Random(2424)
+    for i in range(strips):
+        sx=x0+.07+w*(i+.5);y=y0+.07
+        while y<y1-.07-.01:
+            length=min(rng.uniform(.55,1.05),y1-.07-y)
+            box('Court · maple strip',(sx,y+length/2,top+.0022),(w-.004,length-.004,.002),'maple' if rng.random()<.6 else 'maple2',0)
+            y+=length
     # Baseline under the hoop, sidelines, the key and the free-throw circle.
     base=y1-.10;ft=base-1.00;lz=top+.004
     def line(a,b,w=.024):
@@ -2103,7 +2166,7 @@ def half_court():
     # The hoop: pole behind the baseline, an arm, the board, rim and net.
     px,py=cx,y1+.32;rim_z=3.40
     cylinder('Hoop · concrete footing',(px,py,.12),.16,.30,'stone',24,bevel=.01)
-    rod('Hoop · black steel pole',(px,py,.10),(px,py,rim_z+.62),.055,'ink',20)
+    rod('Hoop · black steel pole',(px,py,.10),(px,py,rim_z+.90),.055,'ink',20)
     rod('Hoop · arm',(px,py,rim_z+.20),(px,base+.08,rim_z+.20),.032,'ink',12)
     board_y=base+.06
     box('Hoop · backboard',(px,board_y,rim_z+.30),(1.20,.035,.74),'board',.01)
@@ -2119,10 +2182,14 @@ def half_court():
         rod('Hoop · net cord',(px+.28*math.cos(a),ry+.28*math.sin(a),rim_z-.01),(px+.17*math.cos(b),ry+.17*math.sin(b),rim_z-.40),.005,'paper',6)
     for z,r in [(rim_z-.20,.225),(rim_z-.39,.175)]:torus('Hoop · net loop',(px,ry,z),r,.004,'paper')
     # A cool-white LED floodlight on top of the pole, aimed down the court.
-    P['flood']=material('Floodlight · LED panel',(.80,.88,1),emission=8)
-    box('Floodlight · housing',(px,py-.05,rim_z+.70),(.30,.12,.18),'ink',.01).rotation_euler.x=math.radians(-35)
-    box('Floodlight · LED panel',(px,py-.115,rim_z+.66),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-35)
-    spot('Night · court floodlight',(px,py-.20,rim_z+.62),(cx,(y0+y1)/2-.2,top),(.78,.86,1),280,78,.6,.10)
+    P['flood']=material('Court floodlight · LED panel',(.80,.88,1),emission=8)
+    # It reaches over the top of the backboard on an arm, so the board
+    # doesn't shade the court.
+    fy,fz=board_y-.18,rim_z+.88
+    rod('Court floodlight · arm',(px,py,rim_z+.86),(px,fy+.06,fz+.02),.022,'ink',10)
+    box('Court floodlight · housing',(px,fy,fz),(.30,.12,.18),'ink',.01).rotation_euler.x=math.radians(-50)
+    box('Court floodlight · LED panel',(px,fy-.05,fz-.05),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-50)
+    spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.78,.86,1),2000,70,.6,.10)
     ANCHORS['hoop']=(px,ry,rim_z)
 
 
@@ -2205,8 +2272,9 @@ def workshop():
     # Different working objects replace the three identical empty cases.
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
-    for i in range(5):torus('Bench · coiled extension lead',(.64,-.04,.55+i*.017),.28-i*.012,.012,'ink')
-    box('Bench · cable connector',(.78,-.35,.575),(.055,.11,.050),'teal',.006)
+    # Carter asked for BLACKPINK's official light stick, lit, on the lower
+    # shelf (where a coiled extension lead was).
+    blackpink_lightstick(.64,-.10,.5175,math.radians(-8))
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
     # Each stack is one colour, like a sorted stack at the table; the chips
@@ -2362,10 +2430,11 @@ def workshop():
         for side in [-1,1]:
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
     P['teslared']=material('Cap · red embroidered mark',(.55,.03,.03),rough=.8)
-    cap=sphere('Cap · black crown',(2.75,-.78,1.142),(.15,.15,.10),'ink',3)
-    box('Cap · brim',(2.75,-.94,1.15),(.20,.14,.012),'ink',.02)
-    box('Cap · mark',(2.75,-.905,1.21),(.06,.004,.012),'teslared',0).rotation_euler.x=-.6
-    box('Cap · mark',(2.75,-.904,1.19),(.012,.004,.045),'teslared',0).rotation_euler.x=-.6
+    stx,sty=STOOL
+    cap=sphere('Cap · black crown',(stx,sty,1.142),(.15,.15,.10),'ink',3)
+    box('Cap · brim',(stx,sty-.16,1.15),(.20,.14,.012),'ink',.02)
+    box('Cap · mark',(stx,sty-.125,1.21),(.06,.004,.012),'teslared',0).rotation_euler.x=-.6
+    box('Cap · mark',(stx,sty-.124,1.19),(.012,.004,.045),'teslared',0).rotation_euler.x=-.6
     # A basketball left on the deck.
     # Orange pebbled leather; its black channels are two great circles at
     # right angles and two curved seams either side, the ball tipped at rest.
@@ -2405,10 +2474,13 @@ def workshop():
     rod('Telescope · eyepiece',tuple(base_pt+aim*.08),tuple(base_pt+aim*.08+Vector((0,0,.09))),.014,'ink',12)
     rod('Telescope · finder',tuple(base_pt+aim*.25+Vector((0,0,.07))),tuple(base_pt+aim*.48+Vector((0,0,.07))),.012,'steel',12)
     # A low stool with metal legs and a modest padded seat.
+    # It stands in front of the monitor (the bench is turned 9 degrees, so
+    # that's at about (1.17, -1.15) here), where you'd sit to work.
+    stx,sty=STOOL
     for xx in [-.27,.27]:
-        for yy in [-.27,.27]:rod('Stool · splayed steel leg',(2.75+xx*1.25,-.78+yy*1.25,.16),(2.75+xx,-.78+yy,1.08),.021,'teal',20)
-    cylinder('Stool · padded seat',(2.75,-.78,1.10),.37,.085,'leather',64,bevel=.020)
-    torus('Stool · foot ring',(2.75,-.78,.43),.33,.012,'steel')
+        for yy in [-.27,.27]:rod('Stool · splayed steel leg',(stx+xx*1.25,sty+yy*1.25,.16),(stx+xx,sty+yy,1.08),.021,'teal',20)
+    cylinder('Stool · padded seat',(stx,sty,1.10),.37,.085,'leather',64,bevel=.020)
+    torus('Stool · foot ring',(stx,sty,.43),.33,.012,'steel')
     # Under-shelf task strip provides a soft local pool of light.
     box('Workshop · practical LED strip',(1.56,1.44,1.61),(2.04,.025,.015),'light',.003)
     ANCHORS['bulbs']=[(1.10,1.44,1.61),(2.0,1.44,1.61)]
@@ -2532,7 +2604,7 @@ def camera_and_lights(scene):
 # the night through the windows, and screens. Everything else goes dark,
 # night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
-SCREENS=('Screen','Monitor','Window','display','backlight','Floodlight')
+SCREENS=('Screen','Monitor','Window','display','backlight')
 # What dims rather than staying at full brightness with the lights off: the
 # iPad's screen (to a faint glow, its glass dark so the spotlight cannot
 # light its picture) and its Magic Keyboard's backlight.
@@ -2599,7 +2671,7 @@ LIGHT_SOURCES={
                ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),('spot',('Spotlight',))],
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
-                ('task',('Workshop · task strip','Workshop · practical LED strip')),('ball',('LED ball','Glow · LED ball')),
+                ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('LED ball','Glow · LED ball','Lightstick')),
                 ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box')),('spot',('Spotlight',))],
 }
 

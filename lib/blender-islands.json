@@ -3211,7 +3211,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-ccd67e36.webp",
+    "src": "/blender/island-writing-d113b8f9.webp",
     "spread": [
       [
         523.946,
@@ -3256,7 +3256,7 @@
       450.521,
       255.332
     ],
-    "darkSrc": "/blender/island-writing-dark-0265cd25.webp",
+    "darkSrc": "/blender/island-writing-dark-a4c9b362.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -3266,8 +3266,8 @@
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-801e25ba.webp",
-        "/blender/light-writing-1-9b00f576.webp"
+        "/blender/light-writing-0-d0ed7c56.webp",
+        "/blender/light-writing-1-b9284fc1.webp"
       ],
       "extents": [
         [
@@ -3279,22 +3279,22 @@
           0.487
         ],
         [
-          0.347,
-          0.733
+          0.337,
+          0.737
         ],
         [
-          0.435,
+          0.41,
           0.732
         ],
         [
-          0.383,
+          0.382,
           0.567
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-8aa5cb86.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-8df3c507.webp",
-    "depthSrc": "/blender/depth-writing-3168c344.webp",
+    "liftedSrc": "/blender/island-writing-lifted-9473aecf.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-ae077e21.webp",
+    "depthSrc": "/blender/depth-writing-7ed56ea0.webp",
     "life": {
       "lamp": [
         450.52,
@@ -3345,7 +3345,7 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-44f7ee28.webp",
+    "src": "/blender/island-projects-1a027ee4.webp",
     "screen": [
       [
         589.532,
@@ -3390,7 +3390,7 @@
       922.487,
       219.897
     ],
-    "darkSrc": "/blender/island-projects-dark-a66c91df.webp",
+    "darkSrc": "/blender/island-projects-dark-bc9f209b.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -3404,50 +3404,50 @@
         "spot"
       ],
       "src": [
-        "/blender/light-projects-0-2208ba12.webp",
-        "/blender/light-projects-1-f2bff595.webp",
-        "/blender/light-projects-2-73eeec7f.webp"
+        "/blender/light-projects-0-ed5e92cb.webp",
+        "/blender/light-projects-1-9af33a9d.webp",
+        "/blender/light-projects-2-c8805827.webp"
       ],
       "extents": [
         [
-          0.252,
-          0.462
+          0.272,
+          0.457
         ],
         [
-          0.417,
-          0.637
+          0.423,
+          0.547
         ],
         [
-          0.215,
-          0.778
+          0.217,
+          0.697
         ],
         [
-          0.315,
-          0.668
+          0.305,
+          0.618
         ],
         [
-          0.253,
-          0.777
+          0.28,
+          0.67
         ],
         [
-          0.285,
-          0.693
+          0.46,
+          0.837
         ],
         [
-          0.372,
-          0.788
+          0.37,
+          0.623
         ],
         [
-          0.302,
-          0.548
+          0.347,
+          0.535
         ],
         [
           0.478,
-          0.57
+          0.567
         ]
       ]
     },
-    "depthSrc": "/blender/depth-projects-e9409e92.webp",
+    "depthSrc": "/blender/depth-projects-ddffdabd.webp",
     "life": {
       "ball": [
         [
