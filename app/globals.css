@@ -3102,17 +3102,17 @@ html[data-island-entering] .site-nav {
    WebGL stages the switch fixture by fixture (ParallaxStill), the canvas
    replaces this crossfade; the glows and the page keep the lamp's timing
    (lib/light-switch.ts): it warms up coming on and goes out almost at once. */
-[data-lights-off] { opacity: 0; transition: opacity 440ms cubic-bezier(.45, 0, .25, 1); }
+[data-lights-off] { opacity: 0; transition: opacity 220ms cubic-bezier(.45, 0, .25, 1); }
 html[data-writing-lights="off"] [data-lights-off="writing"],
-html[data-projects-lights="off"] [data-lights-off="projects"] { opacity: 1; transition-duration: 120ms; }
+html[data-projects-lights="off"] [data-lights-off="projects"] { opacity: 1; transition-duration: 70ms; }
 [data-lights-on] { transition: opacity 0s; }
 html[data-writing-lights="off"] [data-lights-on="writing"],
-html[data-projects-lights="off"] [data-lights-on="projects"] { opacity: 0; transition: opacity 0s 120ms; }
-[data-room-light] { transition: opacity var(--light-on, 380ms) cubic-bezier(.45, 0, .55, 1) var(--light-on-delay, 60ms); }
+html[data-projects-lights="off"] [data-lights-on="projects"] { opacity: 0; transition: opacity 0s 70ms; }
+[data-room-light] { transition: opacity var(--light-on, 200ms) cubic-bezier(.45, 0, .55, 1) var(--light-on-delay, 30ms); }
 html[data-writing-lights="off"] [data-room-light="writing"],
-html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; transition-duration: var(--light-off, 120ms); transition-delay: var(--light-off-delay, 0ms); }
-[data-room-dim] { transition: filter 380ms cubic-bezier(.45, 0, .55, 1) 60ms; }
-html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); transition-duration: 120ms; transition-delay: 0ms; }
+html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; transition-duration: var(--light-off, 70ms); transition-delay: var(--light-off-delay, 0ms); }
+[data-room-dim] { transition: filter 200ms cubic-bezier(.45, 0, .55, 1) 30ms; }
+html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); transition-duration: 70ms; transition-delay: 0ms; }
 @media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light], [data-room-dim] { transition: none; } }
 
 /* Writing's entry carries the island's notebook off its desk: under it the

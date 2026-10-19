@@ -17,20 +17,20 @@ type Timing = { on: Phase; off: Phase };
 
 // Levels are 1 when the source looks as in the lights-on still. The spot is
 // the lights-off spotlight, so its level falls as it comes up.
-const LAMP: Timing = { on: { delay: 60, duration: 380 }, off: { delay: 0, duration: 120 } };
-const SNAP: Timing = { on: { delay: 30, duration: 70 }, off: { delay: 0, duration: 60 } };
-const STRIP: Timing = { on: { delay: 120, duration: 120, sweep: 160 }, off: { delay: 0, duration: 70, sweep: 60 } };
-const GLOW: Timing = { on: { delay: 160, duration: 360 }, off: { delay: 0, duration: 150 } };
+const LAMP: Timing = { on: { delay: 30, duration: 200 }, off: { delay: 0, duration: 70 } };
+const SNAP: Timing = { on: { delay: 15, duration: 50 }, off: { delay: 0, duration: 40 } };
+const STRIP: Timing = { on: { delay: 60, duration: 70, sweep: 90 }, off: { delay: 0, duration: 40, sweep: 30 } };
+const GLOW: Timing = { on: { delay: 80, duration: 180 }, off: { delay: 0, duration: 80 } };
 // The lava lamp glows in last, but quickly enough to read as part of the flip.
-const LAVA: Timing = { on: { delay: 180, duration: 340 }, off: { delay: 0, duration: 140 } };
+const LAVA: Timing = { on: { delay: 90, duration: 170 }, off: { delay: 0, duration: 80 } };
 export const TIMINGS: Record<string, Timing> = {
   lamp: LAMP,
   sconce: SNAP, luca: SNAP, task: SNAP,
-  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 160 }, off: STRIP.off },
-  festoon: { on: { delay: 80, duration: 80, sweep: 260 }, off: { delay: 0, duration: 70, sweep: 60 } },
+  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 80 }, off: STRIP.off },
+  festoon: { on: { delay: 40, duration: 50, sweep: 140 }, off: { delay: 0, duration: 40, sweep: 30 } },
   lava: LAVA, ball: GLOW,
-  devices: { on: { delay: 0, duration: 200 }, off: { delay: 0, duration: 120 } },
-  spot: { on: { delay: 0, duration: 160 }, off: { delay: 160, duration: 360 } },
+  devices: { on: { delay: 0, duration: 110 }, off: { delay: 0, duration: 70 } },
+  spot: { on: { delay: 0, duration: 90 }, off: { delay: 80, duration: 180 } },
 };
 
 export const timing = (source: string) => TIMINGS[source] ?? LAMP;
