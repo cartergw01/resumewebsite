@@ -2290,8 +2290,9 @@ def workshop():
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
     # Carter asked for BLACKPINK's official light stick, lit, on the lower
-    # shelf, lying along its front edge with a heart turned to the room.
-    blackpink_lightstick(-.97,-.44,.5175,math.radians(-4))
+    # shelf, right of the watch box with its head toward it, a heart
+    # turned to the room.
+    blackpink_lightstick(.80,-.28,.5175,math.radians(176))
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
     # Each stack is one colour, like a sorted stack at the table; the chips
