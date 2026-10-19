@@ -663,6 +663,35 @@ def plant(x,y,z,scale=1):
         curve('Plant · central leaf vein',[verts[j*3+1] for j in range(9)],.0018*scale,'moss')
 
 
+def faux_snake_plant(x,y,z,scale=1):
+    """A faux snake plant (sansevieria) in a white matte ceramic pot: stiff,
+    upright sword leaves, dark green banded with a yellow edge. It's fake, so
+    unlike the living plant it never stirs in the breeze."""
+    rng=random.Random(int((x+12)*173+(y+7)*131))
+    P.setdefault('ceramic',material('Faux plant · white matte ceramic pot',(.72,.71,.68),rough=.7))
+    P.setdefault('faux_leaf',textured('Faux snake plant · banded green blade',(.03,.075,.035),(.09,.17,.07),'fabric',rough=.55))
+    P.setdefault('faux_edge',material('Faux snake plant · yellow leaf edge',(.55,.50,.12),rough=.55))
+    k=scale
+    cylinder('Faux plant · white ceramic pot',(x,y,z+.075*k),.085*k,.15*k,'ceramic',48,top=.095*k,bevel=.008*k)
+    cylinder('Faux plant · faux moss top',(x,y,z+.142*k),.088*k,.008,'soil',40,bevel=0)
+    for i in range(9):
+        a=i*2.399+rng.uniform(-.2,.2);r=rng.uniform(.0,.045)*k
+        base=Vector((x+math.cos(a)*r,y+math.sin(a)*r,z+.14*k))
+        h=rng.uniform(.30,.48)*k;w=rng.uniform(.030,.042)*k
+        lean=Vector((math.cos(a),math.sin(a),0))*rng.uniform(.02,.07)*k
+        face=Vector((-math.sin(a+.9),math.cos(a+.9),0))
+        verts=[];faces=[]
+        for j in range(7):
+            t=j/6;c=base+lean*t+Vector((0,0,h*t));half=w*(1-t**1.6)*(1 if j<6 else 0)
+            verts.extend([c-face*half,c,c+face*half])
+        for j in range(6):
+            n=j*3;faces.extend([(n,n+3,n+4,n+1),(n+1,n+4,n+5,n+2)])
+        blade=mesh('Faux snake plant · stiff blade',verts,faces,'faux_leaf')
+        sol=blade.modifiers.new('Blade thickness','SOLIDIFY');sol.thickness=.004*k
+        for poly in blade.data.polygons:poly.use_smooth=True
+        for side in (0,2):curve('Faux snake plant · yellow edge',[verts[j*3+side] for j in range(7)],.0016*k,'faux_edge')
+
+
 def window_grid(x,y,width,depth,height,seed,base=.10,spacing=.075):
     rng=random.Random(seed); verts=[]; faces=[]; mats=[]
     cols=max(3,int(width/spacing)); rows=max(3,int(height/.038))
@@ -1921,8 +1950,10 @@ def writing():
         image_panel('Journal cover · '+title,'essay-covers/'+slug+'.webp',(x,1.252,2.20),.44,.56)
         box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
         lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
-    # A lava lamp on the top shelf.
+    # A lava lamp on the top shelf, and at its other end a faux snake plant
+    # (Carter asked for a fake plant on the shelf).
     lava_lamp(2.18,1.56,2.8225,1.3)
+    faux_snake_plant(.20,1.58,2.8225,1.1)
     # In Common With's Up Down Sconce on the strip of wall between the window
     # and the bookcase: one beam up the wall, one down to the desk.
     up_down_sconce(-.86,1.92,2.48,110)
@@ -2253,6 +2284,9 @@ def half_court():
     box('Court floodlight · LED panel',(px,fy-.05,fz-.05),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-50)
     spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.78,.86,1),2000,70,.6,.10)
     ANCHORS['hoop']=(px,ry,rim_z)
+    # Carter's navy JBL Charge 4, on the court's back corner by the pole:
+    # music while he shoots.
+    jbl_charge4(x1-.30,y1-.24,top+.004,math.radians(90))
 
 
 def workshop():
@@ -2476,11 +2510,10 @@ def workshop():
     falcon9(2.38,1.60,shelf,.95)
     # Carter asked for BLACKPINK's official light stick, lit, on the top
     # shelf (on the lower one the stool hid it), lying with a heart turned to
-    # the room, and his navy JBL Charge 4 beside the Cybertruck.
-    blackpink_lightstick(.60,1.60,shelf,0,k=1.2)
-    jbl_charge4(1.93,1.60,shelf,0)
+    # the room. His navy JBL Charge 4 is out on the court (half_court()).
+    blackpink_lightstick(.70,1.60,shelf,0,k=1.2)
     # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
-    cx,cy,cz=1.42,1.60,shelf
+    cx,cy,cz=1.62,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
     tv=[(cx+u,cy+side*.085,cz+v) for side in [-1,1] for u,v in profile]
     m=len(profile)
