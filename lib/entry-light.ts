@@ -58,7 +58,7 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
       { transform: "translate(-50%, -50%) scale(.2)", opacity: 0 },
       { transform: `translate(calc(-50% + ${x * .45}px), calc(-50% + ${y * .45}px)) scale(${size})`, opacity: 1, offset: .25 },
       { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y - 26}px)) scale(${size * .55})`, opacity: 0 },
-    ], { duration: 1150 + (index % 5) * 110, delay: (index % 4) * 45, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)", fill: "both" }));
+    ], { duration: 640 + (index % 5) * 60, delay: (index % 4) * 25, easing: "cubic-bezier(0.2, 0.7, 0.3, 1)", fill: "both" }));
   }
 
   // The threshold: a halo of lamp or screen light grows behind the notebook

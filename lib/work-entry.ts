@@ -215,7 +215,7 @@ function flyLetters(overlay: HTMLElement, page: HTMLElement, letters: SVGTextEle
     overlay.append(glyph);
     const dx = source.x - (target.left + target.width / 2), dy = source.y - (target.top + target.height / 2);
     const scale = source.size / size;
-    const timing = { delay: FLY * ENTRY_APPROACH_DURATION + index * 55, duration: (1 - FLY) * ENTRY_APPROACH_DURATION - 3 * 55, fill: "both" as const };
+    const timing = { delay: FLY * ENTRY_APPROACH_DURATION + index * 35, duration: (1 - FLY) * ENTRY_APPROACH_DURATION - 3 * 35, fill: "both" as const };
     const animation = glyph.animate(letterFlight(dx, dy, scale, source.color, style.color, glow), timing);
     // In step with the camera: same time, same pace (a second tap hurries both).
     animation.playbackRate = camera.playbackRate;

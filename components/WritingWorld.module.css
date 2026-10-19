@@ -33,11 +33,11 @@
 /* The rows' own load animation owns their opacity, so their contents carry
    the stagger: the ruled lines arrive with the section, then each row's words
    settle onto them. */
-.page :global(.archive-row) > * { transition: opacity 360ms ease, translate 520ms var(--cw-ease); }
+.page :global(.archive-row) > * { transition: opacity 260ms ease, translate 360ms var(--cw-ease); }
 :global(html[data-book-transition="entering"]) .page :global(.archive-row) > *,
 :global(html[data-book-transition="arriving"]) .page :global(.archive-row) > * { opacity: 0; translate: 0 10px; }
-:global(html[data-book-transition="revealing"]) .page [data-book-reveal] { transition: opacity 480ms ease 700ms, translate 700ms var(--cw-ease) 700ms; }
-:global(html[data-book-transition="revealing"]) .page :global(.archive-row) > * { transition-delay: calc(760ms + var(--row, 0) * 55ms); }
+:global(html[data-book-transition="revealing"]) .page [data-book-reveal] { transition: opacity 300ms ease 380ms, translate 420ms var(--cw-ease) 380ms; }
+:global(html[data-book-transition="revealing"]) .page :global(.archive-row) > * { transition-delay: calc(420ms + var(--row, 0) * 35ms); }
 @media (prefers-reduced-motion: reduce) {
   .page [data-book-reveal], .page :global(.archive-row) > *, .lamplight { transition: none; }
 }

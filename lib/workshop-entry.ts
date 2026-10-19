@@ -128,7 +128,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 // Phones turn fewer leaves: every face is its own layer.
 const bookLeaves = () => innerWidth < 760 ? 5 : 7;
 // How long the notebook takes from the desk to reading distance.
-const BOOK_LIFT = 1800;
+const BOOK_LIFT = 1000;
 // The notebook's perspective (bookPose): a camera about one and a half
 // spreads away, close enough that the notebook foreshortens as it turns and
 // grows as a real thing does when it's brought towards you. A leaf lying a
@@ -140,10 +140,10 @@ const flat = (depth: number) => (bookPerspective - depth) / bookPerspective;
 // slowly, they come fastest through the middle, and the last is laid down
 // gently. Leaves start about LEAF_GAP apart (at most RIFFLE_SPAN for them
 // all), each turns in LEAF_TURN, the last a little slower.
-const RIFFLE_SPAN = 1500;
-const LEAF_GAP = 420;
-const LEAF_TURN = 820;
-const LAST_LEAF_TURN = 960;
+const RIFFLE_SPAN = 820;
+const LEAF_GAP = 230;
+const LEAF_TURN = 460;
+const LAST_LEAF_TURN = 540;
 const leafStart = (index: number, count: number) => {
   if (count < 2) return 0;
   const x = index / (count - 1);
@@ -151,7 +151,7 @@ const leafStart = (index: number, count: number) => {
 };
 // The first leaf lifts just before the notebook comes to rest, so the flight
 // runs straight on into the riffle with no pause between them.
-const RIFFLE_OVERLAP = 150;
+const RIFFLE_OVERLAP = 90;
 // A landscape spread on wide screens; on a phone, a taller pocket notebook so
 // the essays still read at a comfortable size.
 const bookSize = () => {

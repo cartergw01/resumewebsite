@@ -255,7 +255,7 @@
 .scene[data-active="false"] .overviewVisual { animation-play-state: paused; }
 .stage[data-entering] .overviewVisual { transition: none; will-change: transform; }
 .stage[data-entering] .overviewIsland:not([data-entering]),
-.stage[data-entering] .overviewLabel { animation: entry-copy 700ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
+.stage[data-entering] .overviewLabel { animation: entry-copy 420ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
 .overviewIsland[data-entering] { z-index: 3; filter: none; outline-color: transparent; transition: none; }
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
@@ -278,16 +278,16 @@
 }
 .stage::after { content: ""; position: absolute; inset: 0; z-index: 10; background: #030611; opacity: 0; pointer-events: none; }
 .stage[data-entering] { position: fixed; z-index: 60; }
-.stage[data-entering]::after { animation: entry-cover 1000ms ease-in both; }
+.stage[data-entering]::after { animation: entry-cover 600ms ease-in both; }
 .stage[data-entering="projects"]::after, .stage[data-entering="writing"]::after, .stage[data-entering="work"]::after { animation: none; }
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
 .stage[data-entering] .landmarkCue,
-.stage[data-entering] .controls { animation: entry-copy 700ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
-.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 2500ms) cubic-bezier(0.5, 0, 0.75, 0.4) forwards; }
+.stage[data-entering] .controls { animation: entry-copy 420ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
+.stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 1350ms) cubic-bezier(0.5, 0, 0.75, 0.4) forwards; }
 /* The island answers: its own light swells as the journey begins. */
-.stage[data-entering] .scene[data-active="true"] .artGlow { opacity: 1 !important; transform: scale(1.25); transition: opacity 500ms ease-out, transform 1600ms cubic-bezier(0.2, 0.6, 0.3, 1); }
+.stage[data-entering] .scene[data-active="true"] .artGlow { opacity: 1 !important; transform: scale(1.25); transition: opacity 300ms ease-out, transform 900ms cubic-bezier(0.2, 0.6, 0.3, 1); }
 .stage[data-entering] .flightStars, .stage[data-entering] .middleStars { opacity: 0 !important; }
 .stage[data-entering] .island { transition: none; filter: none; will-change: transform; }
 /* The page's words step aside rather than vanish. */
