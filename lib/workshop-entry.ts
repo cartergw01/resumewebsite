@@ -129,11 +129,13 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 const bookLeaves = () => innerWidth < 760 ? 5 : 7;
 // How long the notebook takes from the desk to reading distance.
 const BOOK_LIFT = 1800;
-// The notebook's perspective (bookPose). A leaf lying a
+// The notebook's perspective (bookPose): a camera about one and a half
+// spreads away, close enough that the notebook foreshortens as it turns and
+// grows as a real thing does when it's brought towards you. A leaf lying a
 // few pixels proud of the spread is shrunk by exactly what that perspective
 // magnifies, so its printed words stay pixel-sharp at rest.
-const BOOK_PERSPECTIVE = 3000;
-const flat = (depth: number) => (BOOK_PERSPECTIVE - depth) / BOOK_PERSPECTIVE;
+let bookPerspective = 1600;
+const flat = (depth: number) => (bookPerspective - depth) / bookPerspective;
 // The riffle, like pages let go from under a thumb: the first leaves part
 // slowly, they come fastest through the middle, and the last is laid down
 // gently. Leaves start about LEAF_GAP apart (at most RIFFLE_SPAN for them
@@ -164,9 +166,11 @@ const bookSize = () => {
 // physical lift and turn rather than blending two flat matrices. The
 // perspective is the notebook's own, centred on it wherever it is on screen:
 // one fixed at the screen's centre skewed it lopsided as it flew in from the
-// desk off to one side.
-const bookPose = (x: number, y: number, angle: number, tilt: number, scale: number) =>
-  `translate(${x}px, ${y}px) perspective(${BOOK_PERSPECTIVE}px) rotate(${angle}rad) rotateX(${tilt}rad) scale(${scale})`;
+// desk off to one side. Its size on screen comes from its distance, not a
+// scale: far off on the desk it is small and nearly flat, and as it comes
+// towards you it grows and its near edge looms larger than its far one.
+const bookPose = (x: number, y: number, angle: number, tilt: number, size: number, yaw = 0) =>
+  `translate(${x}px, ${y}px) perspective(${bookPerspective}px) translateZ(${bookPerspective * (1 - 1 / size)}px) rotate(${angle}rad) rotateY(${yaw}rad) rotateX(${tilt}rad) scale(1)`;
 // Eases in and out with no jolt at either end (smootherstep), and the same
 // eased over part of the way.
 const smooth = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
@@ -187,22 +191,29 @@ function bezier(x1: number, y1: number, x2: number, y2: number) {
 // The approach: an unhurried start and a long, gentle arrival.
 const approach = bezier(.45, 0, .15, 1);
 // The notebook's flight from the desk to reading distance, as finely sampled
-// keyframes of one motion. It is picked up first: it rises clear of the desk,
-// still lying back as it was, growing a little as it nears you. Then, already
-// on its way up, it comes to you: it swings to face you, travels to the
-// centre and grows to reading size, slowing all the while, so it settles into
-// place rather than rushing at you. Everything comes to rest together.
+// keyframes of one motion. It is picked up first: it rises just clear of the
+// desk, still lying back as it was. Then, already on its way up, it comes
+// out of the room towards you: it pitches up and turns in to face you, its
+// edges catching the eye as it swings, travels to the centre and grows to
+// reading size as it closes in, slowing all the while, so it settles into
+// place rather than rushing at you. It tips a breath past upright and
+// settles back, as a held book does. Everything comes to rest together.
 function bookFlight(cx: number, cy: number, angle: number, tilt: number, scale: number, rise: number) {
-  const steps = 48, endX = innerWidth / 2, endY = innerHeight / 2;
+  const steps = 60, endX = innerWidth / 2, endY = innerHeight / 2;
+  const side = Math.sign(cx - endX);
   return Array.from({ length: steps + 1 }, (_, i) => {
     const t = i / steps;
-    const lifted = during(t, 0, .4);
-    const come = approach(Math.max(0, (t - .16) / .84));
+    const lifted = during(t, 0, .3);
+    const come = approach(Math.max(0, (t - .1) / .9));
     const x = cx + (endX - cx) * come;
     const y = (cy - rise * lifted) * (1 - come) + endY * come;
-    const turn = during(t, .14, .8);
-    const size = Math.exp(Math.log(scale * (1 + .5 * lifted)) * (1 - come));
-    return { transform: bookPose(x, y, angle * (1 - turn), tilt * (1 - turn), size), offset: t };
+    const turn = during(t, .1, .85);
+    const settle = -.07 * Math.sin(Math.PI * during(t, .6, 1));
+    // Turned in towards the middle of the screen, where you are, while it's
+    // off to one side, and square to you once it's in front of you.
+    const yaw = -.22 * side * Math.sin(Math.PI * Math.min(1, come * 1.15)) * (1 - during(t, .7, 1));
+    const size = Math.exp(Math.log(scale * (1 + .2 * lifted)) * (1 - come));
+    return { transform: bookPose(x, y, angle * (1 - turn), tilt * (1 - turn) + settle, size, yaw), offset: t };
   });
 }
 // One leaf's turn, as finely sampled keyframes of one motion: the sheet lifts
@@ -244,6 +255,15 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     screen.style.margin = `${-layoutHeight / 2}px 0 0 ${-layoutWidth / 2}px`;
     // The printed pages are set like the island's 320 x 400 page, scaled to fit.
     screen.style.setProperty("--u", `${Math.min(layoutWidth / 2 / 320, layoutHeight / 400)}px`);
+    bookPerspective = Math.max(layoutWidth, layoutHeight) * 1.5;
+    // The block of pages under the spread, as deep as a real notebook's half:
+    // its edges show as the notebook tips and turns.
+    screen.style.setProperty("--thickness", `${Math.max(10, Math.min(30, layoutWidth * .026))}px`);
+    for (const side of ["top", "bottom", "left", "right"] as const) {
+      const edge = document.createElement("div");
+      edge.className = `${styles.edge} ${styles[side]}`;
+      screen.append(edge);
+    }
   }
   const projected: number[][] = JSON.parse(source.dataset.corners ?? "[]");
   if (projected.length !== 4) return null;
@@ -303,9 +323,9 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
     const lift = { duration: BOOK_LIFT, fill: "forwards" } as const;
     const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
-    // How far it rises off the desk before it turns: well clear of the desk,
-    // in proportion to how large the book looks there.
-    const rise = Math.min(innerHeight * .2, Math.max(90, shown * 1.6));
+    // How far it rises off the desk before it comes to you: just clear of
+    // it, in proportion to how large the book looks there.
+    const rise = Math.min(innerHeight * .08, Math.max(30, shown * .5));
     const start = bookPose(cx, cy, angle, tilt, scale);
     // Where it lay, a soft shadow stays on the desk and fades as it rises.
     const shadow = document.createElement("div");

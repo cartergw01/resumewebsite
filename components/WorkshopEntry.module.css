@@ -13,7 +13,17 @@
 .deskShadow { position: absolute; top: 0; left: 0; border-radius: 50%; background: radial-gradient(closest-side, #120a0499, #120a0440 60%, transparent); transform-origin: 50% 50%; pointer-events: none; will-change: transform, opacity; }
 .notebook { position: absolute; top: 0; left: 0; transform-style: preserve-3d; will-change: transform; }
 /* The bound body under the pages: a cloth cover just proud of the paper. */
-.notebook::before { content: ""; position: absolute; inset: -1.6% -1.2%; border-radius: 6px; background: linear-gradient(90deg, #3a2a1d, #4a3524 48%, #2c1f15 50%, #4a3524 52%, #3a2a1d); box-shadow: 0 30px 90px #000b, 0 2px 6px #0008; transform: translateZ(-2px); }
+.notebook::before { content: ""; position: absolute; inset: -1.6% -1.2%; border-radius: 6px; background: linear-gradient(90deg, #3a2a1d, #4a3524 48%, #2c1f15 50%, #4a3524 52%, #3a2a1d); box-shadow: 0 30px 90px #000b, 0 2px 6px #0008; transform: translateZ(calc(var(--thickness, 2px) * -1 - 1px)); }
+/* The edges of the block of pages, from the spread back to the cover: fine
+   lines of stacked paper, shaded into the gutter at the spine. Each faces
+   outwards, so only the ones turned towards you are drawn. */
+.edge { position: absolute; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.edge.top, .edge.bottom { left: 0; right: 0; height: var(--thickness); background: linear-gradient(90deg, #0000 40%, #5a432a80 50%, #0000 60%), repeating-linear-gradient(to bottom, #efe4cb 0 1.5px, #cbb893 1.5px 3px); }
+.edge.top { bottom: 100%; transform-origin: 50% 100%; transform: rotateX(90deg); filter: brightness(.8); }
+.edge.bottom { top: 100%; transform-origin: 50% 0; transform: rotateX(-90deg); }
+.edge.left, .edge.right { top: 0; bottom: 0; width: var(--thickness); background: repeating-linear-gradient(to right, #efe4cb 0 1.5px, #cbb893 1.5px 3px); filter: brightness(.88); }
+.edge.left { right: 100%; transform-origin: 100% 50%; transform: rotateY(-90deg); }
+.edge.right { left: 100%; transform-origin: 0 50%; transform: rotateY(90deg); }
 /* A leaf is one sheet hinged on the spine: a page on each face. */
 .turn { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; transform-origin: 0 50%; transform-style: preserve-3d; }
 .face { position: absolute; inset: 0; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
