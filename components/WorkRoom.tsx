@@ -41,7 +41,7 @@ const highlights: { heading?: string; story: ReactNode[] }[] = [
   {
     story: [
       <><Out href="https://886studios.com/programs">ikigai Launchpad</Out> is our accelerator in Taipei and the main way we back startups. Every team gets funding, hands-on mentorship from our partners, and access to our network across Taiwan and Silicon Valley to help them go further, faster.</>,
-      "I was on the core team that built it and helped shape how we pick teams, the design of the program, and then worked with 15+ portfolio teams through workshops and partnerships.",
+      "I was on the core team that built it and helped shape how we pick teams and design the program, then worked with 15+ portfolio teams through workshops and partnerships.",
     ],
   },
   {
