@@ -60,7 +60,7 @@ I build web apps and tools for fun. I've built TaipeiFlix for movie showtimes, T
 
 ## Writing
 
-I write essays on Substack about technology, attention, identity, and work.
+I enjoy writing essays on Substack about how technology and human nature intertwine to shape culture.
 
 [Read my writing](/writing)
 
