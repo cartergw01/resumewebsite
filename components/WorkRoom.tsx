@@ -6,7 +6,6 @@ import { siteConfig } from "@/lib/seo";
 import { workPageBio, workPageExperience } from "@/content/portfolio";
 import batchPhoto from "@/public/ikigai-batch.jpg";
 import IslandLine from "./IslandLine";
-import WorkNumbers from "./WorkNumbers";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
@@ -170,7 +169,6 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
             <p className={styles.date}>June 2024 - September 2024</p>
           </div>
         </header>
-        <WorkNumbers className={styles.numbers} />
         <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
         <div className={styles.contributions}>
           {highlights.map((item) => (

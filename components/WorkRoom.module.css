@@ -49,10 +49,6 @@
 .tenure + .tenure { margin-top: .3rem; }
 .tenure .role { min-width: 9.25rem; }
 
-/* The three numbers from the stories below, on one ruled line under the roles. */
-.numbers { display: grid; gap: .35rem; margin: 1.75rem 0 0; padding: 1.1rem 0 0; border-top: 1px solid #e6c79433; list-style: none; color: var(--quiet); font-size: 1rem; line-height: 1.5; }
-.numbers li { display: grid; grid-template-columns: 4.75rem 1fr; align-items: baseline; }
-.numbers strong { color: var(--gold); font-family: var(--font-display); font-stretch: 125%; font-size: 1.375rem; font-weight: 600; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 .mission { margin: 2rem 0 0; color: #f1e9da; font-size: 1.25rem; line-height: 1.7; }
 .contributions { display: grid; gap: 2.5rem; margin-top: 2.75rem; }
 .contributions h4 { margin: 0 0 .65rem; color: var(--paper); font-size: 1.1875rem; font-weight: 600; line-height: 1.4; }
