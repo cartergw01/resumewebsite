@@ -48,7 +48,7 @@ const highlights: { heading: string; story: ReactNode[] }[] = [
   {
     heading: "Finding founders",
     story: [
-      <>I run deal sourcing for our <Out href="https://withikigai.com">accelerator</Out>. I&apos;ve screened and interviewed 350+ early-stage startups, gone deep on diligence with 100+ of them, and built the admissions process that decides who gets in.</>,
+      <>I lead deal sourcing for our <Out href="https://withikigai.com">accelerator</Out> and manage the pipeline end to end, from first outreach to final decision. I find founders through cold outreach, events, referrals, community initiatives, and an AI agent I built to spot early builders online. I&apos;m currently building a team of scouts to help us reach founders in places we can&apos;t cover ourselves.</>,
     ],
   },
   {
