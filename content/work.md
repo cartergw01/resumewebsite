@@ -30,7 +30,7 @@ I lead deal sourcing for our [accelerator](https://withikigai.com) and manage th
 
 ### Community & content
 
-I built *[Launch Station](https://886studios.com/programs/launch-station)*, our residency for founders who move faster alongside ambitious peers, with 20+ founders.
+I built *[Launch Station](https://www.886studios.com/launch-station)*, a residency with over 20 builders.
 
 I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our [website](https://www.886studios.com/). I also write our [newsletter](https://886studios.substack.com/).
 
