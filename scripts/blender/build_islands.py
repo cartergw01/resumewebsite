@@ -1297,16 +1297,6 @@ def falcon9(x,y,z,height=.9):
     cylinder('Falcon 9 · fairing nose',(x,y,z+.845*k),r*1.25,.10*k,'paper',32,top=.003*k,bevel=0)
 
 
-def led_ball(x,y,z,radius):
-    """A colour-changing LED ball on a wooden cup; the page cycles its colour."""
-    P['ledball']=textured('Glow · LED ball shell',(.62,.60,.66),(.80,.78,.84),'stone',rough=.9)
-    bs=P['ledball'].node_tree.nodes['Principled BSDF']
-    bs.inputs['Emission Color'].default_value=(.60,.28,1,1);bs.inputs['Emission Strength'].default_value=.7
-    cylinder('LED ball · wooden base',(x,y,z+.025),radius*.55,.05,'oak',32,bevel=.004)
-    sphere('LED ball',(x,y,z+.03+radius*.95),(radius,radius,radius),'ledball',3)
-    light('Glow · LED ball',(x,y-radius*1.6,z+radius),(.58,.28,1),14,.12)
-
-
 def spot(name,loc,target,color,energy,cone,blend=.5,soft=.04):
     """A spotlight at `loc` aimed at `target`: a fixture's own light, falling
     where its shade or opening sends it, with a soft (`blend`) edge."""
@@ -1656,6 +1646,34 @@ def ipad_pro(x,y,z,angle,wallpaper):
     place(set(bpy.context.scene.objects)-before,x,y,z,angle)
 
 
+def spotted_chip(color):
+    """A clay chip's material with its six white edge spots, so chips on
+    edge in a row read as chips, not a solid bar: the spots are bands of
+    angle around the chip's own axis (object space)."""
+    key='spotted-'+color
+    if key in P:return key
+    base=P['chip-'+color]
+    mat=bpy.data.materials.new(base.name+' · edge spots');mat.use_nodes=True
+    nodes,links=mat.node_tree.nodes,mat.node_tree.links
+    bs=nodes['Principled BSDF'];bs.inputs['Roughness'].default_value=.45
+    coords=nodes.new('ShaderNodeTexCoord')
+    angle=nodes.new('ShaderNodeTexGradient');angle.gradient_type='RADIAL'
+    links.new(coords.outputs['Object'],angle.inputs['Vector'])
+    times=nodes.new('ShaderNodeMath');times.operation='MULTIPLY';times.inputs[1].default_value=6
+    links.new(angle.outputs['Fac'],times.inputs[0])
+    frac=nodes.new('ShaderNodeMath');frac.operation='FRACT'
+    links.new(times.outputs[0],frac.inputs[0])
+    spot=nodes.new('ShaderNodeMath');spot.operation='GREATER_THAN';spot.inputs[1].default_value=.70
+    links.new(frac.outputs[0],spot.inputs[0])
+    mix=nodes.new('ShaderNodeMix');mix.data_type='RGBA'
+    links.new(spot.outputs[0],mix.inputs[0])
+    mix.inputs[6].default_value=base.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value[:]
+    mix.inputs[7].default_value=(.86,.84,.78,1) if color!='white' else (.50,.04,.05,1)
+    links.new(mix.outputs[2],bs.inputs['Base Color'])
+    P[key]=mat
+    return key
+
+
 def poker_chip_case(x,y,z,angle):
     """An aluminium poker chip case, open on its back hinge: five rows of
     chips on edge in black felt, one colour to a row, with two decks of
@@ -1675,11 +1693,14 @@ def poker_chip_case(x,y,z,angle):
     felt=t+.048
     box('Chip case · felt chip tray',(0,0,felt/2+t/2),(W-2*t,D-2*t,felt-t),'poker_felt',0)
     # Each row is 26 chips on edge, half sunk in its felt channel.
-    r,thick,n=.040,.0125,26
+    r,thick,n=.040,.0125,26;crng=random.Random(5252)
     for row,color in enumerate(['white','red','blue','green','black']):
         ry=-.176+row*.088
         for k in range(n):
-            chip=cylinder('Chip case · clay chip',(-W/2+.04+thick/2+k*thick,ry,felt),r,thick-.0008,'chip-'+color,24,bevel=.0015)
+            chip=cylinder('Chip case · clay chip',(-W/2+.04+thick/2+k*thick,ry,felt),r,thick-.0008,spotted_chip(color),24,bevel=.0015)
+            # Each chip turned at random about its own axis (Z, applied
+            # first), so the spots scatter as in a real rack; then on edge.
+            chip.rotation_mode='ZYX';chip.rotation_euler.z=crng.uniform(0,math.tau)
             chip.rotation_euler.y=math.pi/2
     # Cards, the dealer button and dice in the compartment at the right.
     for k,(cy,back) in enumerate([(-.10,'redcloth'),(.10,'chip-blue')]):
@@ -2084,6 +2105,30 @@ def kobe_jersey(cx,y,cz):
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
+def jbl_charge4(x,y,z,angle):
+    """A JBL Charge 4 in navy, lying on its foot: a 220 x 95mm cylinder of
+    fabric grille between rubber end caps, a passive radiator in each end, a
+    rubber foot along the bottom, buttons along the top and the orange JBL
+    badge on the front. Life size (2 units a metre); its length runs along x."""
+    before=set(bpy.context.scene.objects)
+    P.setdefault('jbl_grille',textured('JBL Charge 4 · navy fabric grille',(.018,.03,.075),(.05,.07,.15),'fabric',rough=.95))
+    P.setdefault('jbl_rubber',material('JBL Charge 4 · navy rubber',(.016,.024,.06),rough=.6))
+    P.setdefault('jbl_radiator',material('JBL Charge 4 · passive radiator',(.03,.035,.05),metal=.2,rough=.4))
+    P.setdefault('jbl_orange',material('JBL Charge 4 · orange badge',(.85,.30,.02),rough=.5))
+    r,L,cap=.095,.36,.04;cz=r+.006
+    def along_x(obj):obj.rotation_euler.y=math.pi/2;return obj
+    along_x(cylinder('JBL Charge 4 · fabric body',(0,0,cz),r,L,'jbl_grille',48,bevel=.004))
+    for s in (-1,1):
+        along_x(cylinder('JBL Charge 4 · rubber end cap',(s*(L/2+cap/2),0,cz),r+.002,cap,'jbl_rubber',48,bevel=.012))
+        along_x(cylinder('JBL Charge 4 · passive radiator',(s*(L/2+cap-.002),0,cz),r*.70,.006,'jbl_radiator',40,bevel=.002))
+        torus('JBL Charge 4 · radiator ring',(s*(L/2+cap+.001),0,cz),r*.74,.006,'jbl_rubber',(0,math.pi/2,0))
+    box('JBL Charge 4 · rubber foot',(0,0,.006),(L*.78,.07,.012),'jbl_rubber',.004)
+    box('JBL Charge 4 · button strip',(0,0,cz+r-.002),(.17,.034,.012),'jbl_rubber',.005)
+    box('JBL Charge 4 · JBL badge',(0,-r+.004,cz+.012),(.08,.012,.034),'jbl_orange',.003).rotation_euler.x=math.radians(-8)
+    lettering('JBL Charge 4 · JBL logo','JBL',(0,-r-.003,cz+.012),.024,'paper',(math.pi/2-math.radians(8),0,0))
+    place(set(bpy.context.scene.objects)-before,x,y,z,angle)
+
+
 def blackpink_lightstick(x,y,z,angle,k=1.3):
     """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2), lying on its
     side: a toy-hammer shape, a black cylindrical handle with a pink button
@@ -2289,10 +2334,6 @@ def workshop():
     # Different working objects replace the three identical empty cases.
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
-    # Carter asked for BLACKPINK's official light stick, lit, on the lower
-    # shelf, right of the watch box with its head toward it, a heart
-    # turned to the room.
-    blackpink_lightstick(.80,-.28,.5175,math.radians(176))
     # Carter plays poker and built a poker odds calculator: a short stack of
     # chips and a pair of cards wait beside the keyboard.
     # Each stack is one colour, like a sorted stack at the table; the chips
@@ -2331,9 +2372,6 @@ def workshop():
             box('Parts · smoked drawer',(x,1.51,z),(.317,.32,.170),'glass2',.003)
             box('Parts · paper label',(x,1.342,z),(.105,.002,.030),'paper',.001)
             box('Parts · small handle',(x,1.329,z-.036),(.074,.024,.012),'steel',.002)
-    for i in range(4):
-        box('Storage · labelled carton',(.75+i*.49,1.61,3.19),(.44,.43,.38),'wood',.003)
-        box('Carton · label',(.75+i*.49,1.39,3.19),(.14,.002,.08),'paper',0)
     bpy.context.view_layer.update()
     transform_objects(set(bpy.context.scene.objects)-rear_storage,scale=(1,1,.72),origin=(0,0,.16))
     # Unlike the study's finished room, the workshop is an open lean-to shed:
@@ -2389,10 +2427,10 @@ def workshop():
     # the study's warm lamplight; its warm lamps are accents.
     P['purple_strip']=material('Glow · purple LED strip',(.46,.12,1),emission=4)
     box('Glow · roof beam strip',(-.09,front[0]+.012,front[1]-.075),(6.0,.008,.016),'purple_strip',0)
-    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),24,.3,(bx,2.0,3.3))
+    for bx in [-2.0,.2,2.2]:light('Glow · purple wall wash',(bx,front[0]+.12,front[1]-.13),(.45,.14,1),10,.3,(bx,2.0,3.3))
     for px2 in [-3.05,2.86]:
         box('Glow · post strip',(px2,front[0]+.012,(front[1]-.12+.22)/2),(.016,.008,front[1]-.34),'purple_strip',0)
-        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),12,.3,(px2,front[0]-.8,1.2))
+        light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),5,.3,(px2,front[0]-.8,1.2))
     # In Common With's Luca Wall Sconce on the patched sheet above the tool
     # wall, fanning its light down over the tools.
     luca_wall_sconce(.33,2.017,3.05,90)
@@ -2417,8 +2455,9 @@ def workshop():
     # Carter's Ninebot scooter, on its kickstand in the front yard left of
     # the step, clear of the court; he gets around the city on it.
     ninebot_scooter(-1.20,-2.65,math.radians(8))
-    # Space things, taped and shelved: a planet poster, a Falcon 9 model and an
-    # LED ball, the same sky the site floats in.
+    # Space things, taped and shelved: a planet poster and a Falcon 9 model,
+    # the same sky the site floats in. (The top shelf is kept to a few
+    # objects: no LED ball or cartons.)
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
     P['planet']=textured('Poster · banded planet',(.36,.20,.09),(.62,.42,.22),'plaster',rough=.8)
     px,pz=-2.50,3.22
@@ -2435,9 +2474,13 @@ def workshop():
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
     falcon9(2.38,1.60,shelf,.95)
-    led_ball(.90,1.60,shelf,.12)
+    # Carter asked for BLACKPINK's official light stick, lit, on the top
+    # shelf (on the lower one the stool hid it), lying with a heart turned to
+    # the room, and his navy JBL Charge 4 beside the Cybertruck.
+    blackpink_lightstick(.60,1.60,shelf,0,k=1.2)
+    jbl_charge4(1.93,1.60,shelf,0)
     # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
-    cx,cy,cz=1.62,1.60,shelf
+    cx,cy,cz=1.42,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
     tv=[(cx+u,cy+side*.085,cz+v) for side in [-1,1] for u,v in profile]
     m=len(profile)
@@ -2620,7 +2663,7 @@ def camera_and_lights(scene):
 
 # What stays on when a room's lights are switched off: the moonlit night rig,
 # the night through the windows, and screens. Everything else goes dark,
-# night lights ("Glow ·": the LED strips, lava lamp and LED ball) included.
+# night lights ("Glow ·": the LED strips and lava lamp) included.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
 SCREENS=('Screen','Monitor','Window','display','backlight')
 # What dims rather than staying at full brightness with the lights off: the
@@ -2689,7 +2732,7 @@ LIGHT_SOURCES={
                ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),('spot',('Spotlight',))],
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
-                ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('LED ball','Glow · LED ball','Lightstick')),
+                ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('Lightstick',)),
                 ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box')),('spot',('Spotlight',))],
 }
 
