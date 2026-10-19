@@ -37,12 +37,11 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
 
 // Written in Carter's first-person voice; every fact matches content/portfolio.ts.
 // Program descriptions follow 886studios.com's own wording.
-const highlights: { heading: string; story: ReactNode[] }[] = [
+const highlights: { heading?: string; story: ReactNode[] }[] = [
   {
-    heading: "Building ikigai Launchpad",
     story: [
-      <><Out href="https://886studios.com/programs">ikigai Launchpad</Out> is a 10-week, in-person accelerator in Taipei with $100K USD, mentor office hours, investor intros, and support beyond the batch.</>,
-      "I was on the core team that created it. I helped shape how we pick teams, then worked with 15+ of them through workshops and partnerships.",
+      <><Out href="https://886studios.com/programs">ikigai Launchpad</Out> is our accelerator in Taipei and the main way we back startups. Every team gets funding, hands-on mentorship from our partners, and access to our network across Taiwan and Silicon Valley to help them go further, faster.</>,
+      "I was on the core team that built it and helped shape how we pick teams, the design of the program, and then worked with 15+ portfolio teams through workshops and partnerships.",
     ],
   },
   {
@@ -169,11 +168,11 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
             <p className={styles.date}>June 2024 - September 2024</p>
           </div>
         </header>
-        <p className={styles.mission}>886 Studios is where the next generation of global tech companies are built. I work alongside the founders of Twitch, Guitar Hero, Playdom, Kabam, and more.</p>
+        <p className={styles.mission}>886 Studios is a Taiwan-based venture capital firm started by a group of Taiwanese-American founders from Silicon Valley, including the people behind Twitch, Guitar Hero, and Kabam.</p>
         <div className={styles.contributions}>
-          {highlights.map((item) => (
-            <div key={item.heading}>
-              <h4>{item.heading}</h4>
+          {highlights.map((item, i) => (
+            <div key={item.heading ?? i}>
+              {item.heading && <h4>{item.heading}</h4>}
               {item.story.map((line, index) => (
                 <p key={index}>{line}</p>
               ))}
