@@ -3211,7 +3211,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-c248aa41.webp",
+    "src": "/blender/island-writing-32af0f6a.webp",
     "spread": [
       [
         523.946,
@@ -3256,7 +3256,7 @@
       450.521,
       255.332
     ],
-    "darkSrc": "/blender/island-writing-dark-349cd60e.webp",
+    "darkSrc": "/blender/island-writing-dark-660b70a4.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -3266,24 +3266,24 @@
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-a7ea5a61.webp",
-        "/blender/light-writing-1-42c6aed6.webp"
+        "/blender/light-writing-0-5f85ed66.webp",
+        "/blender/light-writing-1-eed44b68.webp"
       ],
       "extents": [
         [
-          0.248,
-          0.665
+          0.25,
+          0.667
         ],
         [
-          0.278,
+          0.28,
           0.487
         ],
         [
-          0.337,
+          0.353,
           0.737
         ],
         [
-          0.448,
+          0.473,
           0.732
         ],
         [
@@ -3292,9 +3292,9 @@
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-cb57b4da.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-85b8621b.webp",
-    "depthSrc": "/blender/depth-writing-28de1bb1.webp",
+    "liftedSrc": "/blender/island-writing-lifted-1c3cb4e4.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-a0d1ca00.webp",
+    "depthSrc": "/blender/depth-writing-256e8b74.webp",
     "life": {
       "lamp": [
         450.52,
@@ -3332,7 +3332,7 @@
           168.93
         ],
         [
-          814,
+          814.0,
           145.48
         ],
         [
@@ -3452,7 +3452,7 @@
       "strips": [
         [
           [
-            340.0,
+            340,
             392.81
           ],
           [

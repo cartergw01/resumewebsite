@@ -1499,6 +1499,68 @@ def deck_glow():
         light('Glow · purple deck wash',(x+out*(half+.02),-length*.5,.05),(.45,.14,1),5,.4,(x+out*.8,-length*.6,0))
 
 
+def eames_lounge_chair(x,y,angle,k=1):
+    """Herman Miller's Eames Lounge Chair and Ottoman (Carter asked for one
+    in the study): three moulded walnut shells, seat, back and headrest, each
+    cradling a black leather cushion, the back and headrest reclined on two
+    polished aluminium spines, walnut armrests with leather pads, all on a
+    five-star swivel base; the ottoman's shell and cushion on a four-star
+    base in front. Built facing -y at 2 units a metre, then turned by
+    `angle` and scaled by k (the study is small)."""
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    P.setdefault('eames_leather',material('Lounge chair · black leather',(.04,.035,.032),rough=.3))
+    P.setdefault('eames_alu',material('Lounge chair · polished aluminium',(.80,.80,.82),metal=1,rough=.22))
+    def tilted(name,c,size,mat,bevel,tilt):
+        obj=box(name,c,size,mat,bevel);obj.rotation_euler.x=tilt;return obj
+    def shell(part,c,size,tilt,lip):
+        # A moulded walnut tray: the panel, its curled-up sides, and the
+        # cushion it holds, proud of it.
+        w,d,h=size
+        tilted('Lounge chair · walnut '+part+' shell',c,size,'wood',.02,tilt)
+        for side in [-1,1]:tilted('Lounge chair · walnut shell lip',(c[0]+side*(w/2-.02),*c[1:]),(.05,*lip),'wood',.015,tilt)
+    # Seat: tipped back a little.
+    seat=-.17
+    shell('seat',(0,-.02,.60),(1.12,1.02,.06),seat,(1.0,.16))
+    tilted('Lounge chair · leather seat cushion',(0,-.05,.71),(1.02,.96,.17),'eames_leather',.07,seat)
+    # Back and headrest, reclined, the headrest a touch more.
+    back,head=-.35,-.42
+    shell('back',(0,.52,1.08),(1.12,.06,.66),back,(.16,.64))
+    tilted('Lounge chair · leather back cushion',(0,.44,1.10),(1.02,.17,.62),'eames_leather',.07,back)
+    shell('headrest',(0,.70,1.62),(1.0,.06,.42),head,(.16,.40))
+    tilted('Lounge chair · leather headrest cushion',(0,.62,1.63),(.92,.16,.38),'eames_leather',.07,head)
+    # Armrests: walnut with a leather pad, from the back shell forward.
+    for side in [-1,1]:
+        tilted('Lounge chair · walnut armrest',(side*.62,-.02,.97),(.10,.82,.05),'wood',.02,-.05)
+        tilted('Lounge chair · leather arm pad',(side*.62,-.04,1.01),(.12,.72,.05),'eames_leather',.02,-.05)
+    # The aluminium spines that join the back to the headrest and the seat.
+    for sx in [-.26,.26]:
+        rod('Lounge chair · aluminium back spine',(sx,.59,.80),(sx,.80,1.80),.028,'eames_alu',12)
+        rod('Lounge chair · aluminium seat bracket',(sx,.28,.55),(sx,.59,.80),.026,'eames_alu',12)
+    # Five-star swivel base, black with polished tops.
+    cylinder('Lounge chair · swivel column',(0,.05,.33),.06,.40,'ink',24)
+    for i in range(5):
+        a=math.radians(90+i*72);end=(math.cos(a)*.58,.05+math.sin(a)*.58,.05)
+        rod('Lounge chair · base spoke',(0,.05,.14),end,.034,'ink',10)
+        rod('Lounge chair · polished spoke top',(0,.05,.17),(end[0],end[1],.08),.016,'eames_alu',8)
+        cylinder('Lounge chair · glide',(end[0],end[1],.025),.035,.05,'ink',12)
+    # The ottoman in front, on its own four-star base.
+    oy=-1.35
+    cylinder('Ottoman · column',(0,oy,.20),.05,.26,'ink',24)
+    for i in range(4):
+        a=math.radians(45+i*90);end=(math.cos(a)*.45,oy+math.sin(a)*.45,.05)
+        rod('Ottoman · base spoke',(0,oy,.12),end,.03,'ink',10)
+        rod('Ottoman · polished spoke top',(0,oy,.15),(end[0],end[1],.08),.014,'eames_alu',8)
+        cylinder('Ottoman · glide',(end[0],end[1],.025),.03,.05,'ink',12)
+    tilted('Ottoman · walnut shell',(0,oy,.38),(1.0,.86,.06),'wood',.02,.06)
+    for side in [-1,1]:tilted('Ottoman · walnut shell lip',(side*.48,oy,.43),(.05,.84,.14),'wood',.015,.06)
+    tilted('Ottoman · leather cushion',(0,oy,.49),(.92,.80,.16),'eames_leather',.07,.06)
+    parts=set(bpy.context.scene.objects)-before
+    bpy.context.view_layer.update()
+    place=Matrix.Translation(Vector((x,y,.148)))@Matrix.Rotation(math.radians(angle),4,'Z')@Matrix.Diagonal((k,k,k,1))
+    for obj in parts:obj.matrix_world=place@obj.matrix_world
+
+
 def shelf_book(x,y,z,width,height,mat):
     depth=.34
     box('Library · page block',(x,y,z+height/2),(width-.021,depth-.025,height-.028),'paper',.003)
@@ -2036,7 +2098,11 @@ def writing():
     # The chair is pulled up to the open notebook, where you'd sit to write.
     chair(.16,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
-    plant(-2.65,.57,.15,1.06)
+    # An Eames lounge chair and ottoman in the corner by the window, turned
+    # to the room (Carter asked for one), and the plant at its feet by the
+    # side wall.
+    eames_lounge_chair(-2.45,1.08,-15,.85)
+    plant(-2.72,-.92,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
     woven_rug()
 
