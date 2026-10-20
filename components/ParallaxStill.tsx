@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { CITY_TIME_DURATION, CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, type RoomWorld } from "@/lib/room-lights";
-import { flipDuration, flipState, timing } from "@/lib/light-switch";
+import { flipDuration, flipState, ROOM_LIGHTS_ON_DURATION, timing } from "@/lib/light-switch";
 import type { ParallaxState } from "./IslandLife";
 import { hardwareWebGL } from "@/lib/hardware-webgl";
 
@@ -191,9 +191,10 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       const k = 1 - Math.exp(-dt / 140);
       current[0] += (target[0] - current[0]) * k; current[1] += (target[1] - current[1]) * k;
       if (daylight !== dayTarget) {
-        // A staged switch plays itself out; the plain blend steps over the
-        // same time as Taipei's day and night.
-        const step = staged && masksLoaded ? 1 : dt / CITY_TIME_DURATION;
+        // A staged switch plays itself out. Without masks, turning a room
+        // on still gets the quick response instead of Taipei's slower fade.
+        const duration = room && dayTarget === 0 ? ROOM_LIGHTS_ON_DURATION : CITY_TIME_DURATION;
+        const step = staged && masksLoaded ? 1 : dt / duration;
         daylight = dayTarget > daylight ? Math.min(dayTarget, daylight + step) : Math.max(dayTarget, daylight - step);
       }
       const flip = playing();

@@ -15,22 +15,26 @@ import type { RoomWorld } from "./room-lights";
 export type Phase = { delay: number; duration: number; sweep?: number };
 type Timing = { on: Phase; off: Phase };
 
+// Keep every fixture's warm-up within a quick tap's response. The still-only
+// fallback in app/globals.css uses the same duration.
+export const ROOM_LIGHTS_ON_DURATION = 120;
+
 // Levels are 1 when the source looks as in the lights-on still. The spot is
 // the lights-off spotlight, so its level falls as it comes up.
-const LAMP: Timing = { on: { delay: 30, duration: 200 }, off: { delay: 0, duration: 70 } };
-const SNAP: Timing = { on: { delay: 15, duration: 50 }, off: { delay: 0, duration: 40 } };
-const STRIP: Timing = { on: { delay: 60, duration: 70, sweep: 90 }, off: { delay: 0, duration: 40, sweep: 30 } };
-const GLOW: Timing = { on: { delay: 80, duration: 180 }, off: { delay: 0, duration: 80 } };
+const LAMP: Timing = { on: { delay: 0, duration: 100 }, off: { delay: 0, duration: 70 } };
+const SNAP: Timing = { on: { delay: 0, duration: 35 }, off: { delay: 0, duration: 40 } };
+const STRIP: Timing = { on: { delay: 5, duration: 45, sweep: 50 }, off: { delay: 0, duration: 40, sweep: 30 } };
+const GLOW: Timing = { on: { delay: 10, duration: 110 }, off: { delay: 0, duration: 80 } };
 // The lava lamp glows in last, but quickly enough to read as part of the flip.
-const LAVA: Timing = { on: { delay: 90, duration: 170 }, off: { delay: 0, duration: 80 } };
+const LAVA: Timing = { on: { delay: 20, duration: 100 }, off: { delay: 0, duration: 80 } };
 export const TIMINGS: Record<string, Timing> = {
   lamp: LAMP,
   sconce: SNAP, luca: SNAP, task: SNAP,
-  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 80 }, off: STRIP.off },
-  festoon: { on: { delay: 40, duration: 50, sweep: 140 }, off: { delay: 0, duration: 40, sweep: 30 } },
+  shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 15 }, off: STRIP.off },
+  festoon: { on: { delay: 5, duration: 40, sweep: 65 }, off: { delay: 0, duration: 40, sweep: 30 } },
   lava: LAVA, ball: GLOW,
-  devices: { on: { delay: 0, duration: 110 }, off: { delay: 0, duration: 70 } },
-  spot: { on: { delay: 0, duration: 90 }, off: { delay: 80, duration: 180 } },
+  devices: { on: { delay: 0, duration: 70 }, off: { delay: 0, duration: 70 } },
+  spot: { on: { delay: 0, duration: 60 }, off: { delay: 80, duration: 180 } },
 };
 
 export const timing = (source: string) => TIMINGS[source] ?? LAMP;
