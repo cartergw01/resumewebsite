@@ -2533,6 +2533,152 @@ def kobe_jersey(cx,y,cz):
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
+def wilson_evolution(x,y,z,r=.24):
+    """Orange/black Evolution game ball with curved, modelled print.
+    The official Wilson wordmark is converted from its source SVG contours;
+    every marking follows the sphere, including in the baked flight mesh."""
+    import bmesh
+    import re
+    import xml.etree.ElementTree as ET
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    leather=material('Wilson Evolution · microfiber composite',(.65,.17,.024),rough=.76)
+    nodes,links=leather.node_tree.nodes,leather.node_tree.links
+    bs=nodes.get('Principled BSDF')
+    coord=nodes.new('ShaderNodeTexCoord')
+    pebbles=nodes.new('ShaderNodeTexVoronoi');pebbles.inputs['Scale'].default_value=110/(2*r)
+    pebbles.inputs['Randomness'].default_value=.72
+    links.new(coord.outputs['Object'],pebbles.inputs['Vector'])
+    relief=nodes.new('ShaderNodeValToRGB')
+    relief.color_ramp.elements[0].position=.16;relief.color_ramp.elements[0].color=(1,1,1,1)
+    relief.color_ramp.elements[1].position=.58;relief.color_ramp.elements[1].color=(0,0,0,1)
+    links.new(pebbles.outputs['Distance'],relief.inputs[0])
+    color=nodes.new('ShaderNodeMixRGB');color.blend_type='MIX'
+    color.inputs[1].default_value=(.43,.105,.012,1)
+    color.inputs[2].default_value=(.60,.16,.021,1)
+    links.new(relief.outputs[0],color.inputs[0]);links.new(color.outputs[0],bs.inputs['Base Color'])
+    bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.48
+    bump.inputs['Distance'].default_value=.0005
+    links.new(relief.outputs[0],bump.inputs['Height']);links.new(bump.outputs[0],bs.inputs['Normal'])
+    P['evolution_cover']=leather
+    ink=leather.copy();ink.name='Wilson Evolution · pebbled black print and channels'
+    ink_bs=ink.node_tree.nodes.get('Principled BSDF')
+    for link in list(ink_bs.inputs['Base Color'].links):ink.node_tree.links.remove(link)
+    ink_bs.inputs['Base Color'].default_value=(.008,.009,.009,1)
+    P['evolution_black']=ink
+    P['evolution_outline']=material('Wilson Evolution · warm ivory logo edge',(.82,.76,.58),rough=.8)
+    ball=sphere('Basketball · Wilson Evolution',(0,0,0),(r,r,r),'evolution_cover',5)
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    for face in ball.data.polygons:face.use_smooth=True
+    # Flush spherical ribbons form the eight panels; the two bowed channels
+    # frame the front branding instead of crossing through the wordmark.
+    for angle in (0,math.pi/2,.78,-.78):
+        verts=[];faces=[];steps=192;half_width=.014
+        tangent=Vector((0,math.cos(angle),math.sin(angle)))
+        normal=Vector((0,-math.sin(angle),math.cos(angle)))
+        for i in range(steps):
+            a=i*math.tau/steps
+            radial=Vector((math.cos(a),0,0))+tangent*math.sin(a)
+            for side in (-1,1):
+                verts.append(tuple((radial*math.cos(half_width)+normal*side*math.sin(half_width))*(r+.0003)))
+        for i in range(steps):
+            a=i*2;b=((i+1)%steps)*2;faces.append((a,b,b+1,a+1))
+        channel=mesh('Basketball · Evolution pebbled channel',verts,faces,'evolution_black')
+        for face in channel.data.polygons:face.use_smooth=True
+    def wrap(obj,radius):
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True);bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.convert(target='MESH')
+        obj=bpy.context.object
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        topology=bmesh.new();topology.from_mesh(obj.data)
+        bmesh.ops.triangulate(topology,faces=list(topology.faces))
+        for _ in range(8):
+            edges=[edge for edge in topology.edges if edge.calc_length()>r*.025]
+            if not edges:break
+            bmesh.ops.subdivide_edges(topology,edges=edges,cuts=1,use_grid_fill=True)
+            bmesh.ops.triangulate(topology,faces=list(topology.faces))
+        topology.to_mesh(obj.data);topology.free()
+        for vertex in obj.data.vertices:
+            u,v=vertex.co.x,vertex.co.y
+            vertex.co=(u,-math.sqrt(max(0,radius*radius-u*u-v*v)),v)
+        for face in obj.data.polygons:face.use_smooth=True
+    # This SVG uses absolute M/C/H/V/Z commands. Sample its cubic contours
+    # into filled 2D curves so letter counters and the script stay intact.
+    path=ET.parse(ROOT/'artwork/blender/wilson-logo.svg').getroot().find('{http://www.w3.org/2000/svg}path').attrib['d']
+    tokens=re.findall(r'[A-Za-z]|-?\d+(?:\.\d+)?',path)
+    contours=[];points=[];i=0;command=None;at=Vector((0.,0.))
+    while i<len(tokens):
+        if tokens[i].isalpha():
+            command=tokens[i];i+=1
+            if command=='Z':
+                contours.append(points);points=[];continue
+        count={'M':2,'C':6,'H':1,'V':1}[command]
+        values=list(map(float,tokens[i:i+count]));i+=count
+        if command=='M':
+            at=Vector(values);points.append(at.copy())
+        elif command=='C':
+            p1,p2,end=Vector(values[:2]),Vector(values[2:4]),Vector(values[4:])
+            for j in range(1,9):
+                t=j/8
+                points.append((1-t)**3*at+3*(1-t)**2*t*p1+3*(1-t)*t*t*p2+t**3*end)
+            at=end
+        else:
+            at=Vector((values[0],at.y) if command=='H' else (at.x,values[0]))
+            points.append(at.copy())
+    width=r*1.37
+    data=bpy.data.curves.new('Wilson · official script contours','CURVE')
+    data.dimensions='2D';data.fill_mode='BOTH';data.resolution_u=1
+    for contour in contours:
+        spline=data.splines.new('POLY');spline.points.add(len(contour)-1)
+        flat=[]
+        for point,source in zip(spline.points,contour):
+            u,v=(source.x/807-.5)*width,(100-source.y)*width/807+r*.34
+            point.co=(u,v,0,1)
+            flat.append(Vector((u,v)))
+        spline.use_cyclic_u=True
+        # A thin contour stroke leaves the spaces between letters orange.
+        edge=[]
+        for j,start in enumerate(flat):
+            end=flat[(j+1)%len(flat)];steps=max(1,math.ceil((end-start).length/(r*.02)))
+            for step in range(steps):
+                u,v=start.lerp(end,step/steps)
+                edge.append((u,-math.sqrt((r+.0006)**2-u*u-v*v),v,1))
+        stroke=bpy.data.curves.new('Wilson · ivory contour','CURVE')
+        stroke.dimensions='3D';stroke.bevel_depth=r*.0024;stroke.bevel_resolution=2
+        boundary=stroke.splines.new('POLY');boundary.points.add(len(edge)-1)
+        for point,co in zip(boundary.points,edge):point.co=co
+        boundary.use_cyclic_u=True
+        outline=bpy.data.objects.new('Basketball · Wilson ivory outline',stroke)
+        bpy.context.collection.objects.link(outline);stroke.materials.append(P['evolution_outline'])
+    obj=bpy.data.objects.new('Basketball · Wilson script logo',data)
+    bpy.context.collection.objects.link(obj);data.materials.append(P['evolution_black'])
+    wrap(obj,r+.0011)
+    font_path=Path('/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf')
+    font=bpy.data.fonts.load(str(font_path),check_existing=True) if font_path.exists() else None
+    for text,width,height,cy in [('EVOLUTION',r*1.30,r*.185,-r*.36),
+                                  ('INDOOR GAME BALL',r*.79,r*.044,r*.108),
+                                  ('ADVANCED MICROFIBER COMPOSITE',r*1.27,r*.038,-r*.50)]:
+        obj=lettering('Basketball · '+text,text,(0,0,0),1,'evolution_black',(0,0,0))
+        obj.data.extrude=0
+        if text=='EVOLUTION' and font:obj.data.font=font
+        bpy.context.view_layer.update()
+        obj.scale.x=width/obj.dimensions.x;obj.scale.y=height/obj.dimensions.y
+        # Apply the baseline offset in curve space before wrapping to the ball.
+        bpy.ops.object.select_all(action='DESELECT');obj.select_set(True);bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.convert(target='MESH');obj=bpy.context.object
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        for vertex in obj.data.vertices:vertex.co.y+=cy
+        wrap(obj,r+.0010)
+    # Turn the printed face toward the main camera with a slight resting tilt.
+    front=Vector((.20,-.90,.39)).normalized()
+    right=Vector((0,0,1)).cross(front).normalized();up=front.cross(right)
+    rotation=Matrix((right,-front,up)).transposed().to_4x4()@Matrix.Rotation(.12,4,'Y')
+    bpy.context.view_layer.update()
+    for obj in set(bpy.context.scene.objects)-before:
+        obj.matrix_world=Matrix.Translation(Vector((x,y,z)))@rotation@obj.matrix_world
+
+
 def lugia_figurine(x,y,z,angle=0,k=.43):
     """A painted-resin Lugia, wings raised, on a navy display plinth.
     The local frame faces -Y; broad fingered wings and the blue belly stay
@@ -3011,19 +3157,8 @@ def workshop():
     for u in [-.14,.14]:
         for side in [-1,1]:
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
-    # A basketball left on the deck.
-    # Orange pebbled leather; its black channels are two great circles at
-    # right angles and two curved seams either side, the ball tipped at rest.
-    from mathutils import Euler, Matrix
-    P['basketball']=textured('Basketball · pebbled leather',(.62,.17,.025),(.80,.27,.05),'fabric',rough=.72)
-    br=.24;bx,by,bz=COURT[0]+.32,.62,.262+.24
-    ball=sphere('Basketball',(bx,by,bz),(br,br,br),'basketball',4)
-    for f in ball.data.polygons:f.use_smooth=True
-    tip=Matrix.Translation(Vector((bx,by,bz)))@Euler((.5,.35,.9)).to_matrix().to_4x4()
-    seams=[(br,0,(0,0,0)),(br,0,(0,math.pi/2,0))]+[(br*math.cos(.75),side*br*math.sin(.75),(0,math.pi/2,0)) for side in [-1,1]]
-    for radius,offset,rot in seams:
-        seam=torus('Basketball · seam',(0,0,0),radius+.002,.0065,'ink',rot)
-        seam.matrix_world=tip@Matrix.Translation(Vector((offset,0,0)))@seam.matrix_world
+    # A Wilson Evolution game ball rests on the court with its print visible.
+    wilson_evolution(COURT[0]+.32,.62,.262+.24)
     # Cardboard boxes, one with its flaps open.
     P['cardboard']=textured('Cardboard',(.30,.19,.09),(.42,.29,.15),'paper',rough=.92)
     box('Floor · cardboard box',(2.20,1.08,.151+.19),(.58,.46,.38),'cardboard',.006,rot=.08)

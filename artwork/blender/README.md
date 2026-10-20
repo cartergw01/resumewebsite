@@ -218,8 +218,10 @@ the stand), Lakers merch (he's a fan): Kobe Bryant's gold
 #24 home jersey framed in a shadow box above the bench (`kobe_jersey`: the
 2009–10 back, with BRYANT in purple edged in white, white angular varsity
 numbers outlined in purple, and purple side panels) and a small
-purple-and-gold felt pennant, an orange basketball with a real ball's seams on
-the court, a stainless Cybertruck model, and space things: a taped planet poster
+purple-and-gold felt pennant, a Wilson Evolution game basketball on the court
+with an orange pebbled composite cover, black panel channels, the official
+Wilson script outlined in ivory and EVOLUTION lettering wrapped to the sphere,
+a stainless Cybertruck model, and space things: a taped planet poster
 and a stainless SpaceX Starship / Super Heavy display stack with a black heat
 shield, ship flaps, vented hot-stage ring and booster grid fins. The navy JBL
 Charge 4 sits on the top shelf beside the BLACKPINK light stick, clear of the
@@ -261,6 +263,11 @@ Prop references:
 6. [The Pokémon Company — Lugia](https://in.portal-pokemon.com/pokedex/0249/):
    white body, blue belly and back plates, pointed eye markings, broad
    fingered wings and long tail, interpreted as a small resin shelf figure.
+7. [Wilson — Evolution Game Basketball](https://www.wilson.com/en-us/products/evolution-game-basketball-wz10012):
+   orange/black cover, pebbled channels and front lettering. The official
+   [Wilson logo SVG](https://www.wilson.com/cdn/shop/files/wilson-logo.svg?v=1780069513)
+   is stored as `wilson-logo.svg` and converted into curved model geometry;
+   the product photograph is used only as a reference.
 
 ### Night
 
