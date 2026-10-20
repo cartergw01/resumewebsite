@@ -29,7 +29,7 @@ const GLOW: Timing = { on: { delay: 10, duration: 110 }, off: { delay: 0, durati
 const LAVA: Timing = { on: { delay: 20, duration: 100 }, off: { delay: 0, duration: 80 } };
 export const TIMINGS: Record<string, Timing> = {
   lamp: LAMP,
-  sconce: SNAP, luca: SNAP, task: SNAP,
+  sconce: SNAP, luca: SNAP, task: SNAP, tree: LAMP,
   shelves: STRIP, purple: STRIP, gold: { on: { ...STRIP.on, delay: 15 }, off: STRIP.off },
   festoon: { on: { delay: 5, duration: 40, sweep: 65 }, off: { delay: 0, duration: 40, sweep: 30 } },
   lava: LAVA, ball: GLOW,

@@ -4,9 +4,10 @@ import { useEffect, useRef } from "react";
 import { CITY_TIME_EVENT, currentCityTime } from "@/lib/city-time";
 import { lightsOn } from "@/lib/room-lights";
 import { level } from "@/lib/light-switch";
+import type { StudyClockFace } from "@/lib/study-clock";
 
 type Point = number[];
-export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; lava?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point } };
+export type Life = { lanes?: Point[][]; tower?: Point[]; lamp?: Point; cone?: Point; lava?: Point[]; ball?: Point[]; strips?: number[][][]; fireworks?: { tiers: Point[][]; top: Point }; clock?: StudyClockFace };
 export type ParallaxState = { x: number; y: number; focus: number; depth?: (x: number, y: number) => number };
 
 // Small things that move, placed with points projected from the Blender scene

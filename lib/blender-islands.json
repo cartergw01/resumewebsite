@@ -3211,133 +3211,158 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-32af0f6a.webp",
+    "src": "/blender/island-writing-dbe64079.webp",
     "spread": [
       [
-        523.946,
-        329.207
+        511.231,
+        386.627
       ],
       [
-        628.108,
-        335.36
+        612.775,
+        392.851
       ],
       [
-        513.513,
-        361.734
+        501.068,
+        419.476
       ],
       [
-        619.82,
-        368.147
+        604.514,
+        425.94
       ]
     ],
     "page": [
       [
-        583.723,
-        333.742
+        569.503,
+        391.287
       ],
       [
-        621.332,
-        336.994
+        606.157,
+        394.528
       ],
       [
-        575.967,
-        361.293
+        561.857,
+        419.103
       ],
       [
-        614.233,
-        364.639
+        599.092,
+        422.428
       ]
     ],
     "landmark": [
-      571.289,
-      348.643
+      557.346,
+      406.261
     ],
     "lamp": [
-      450.521,
-      255.332
+      439.641,
+      314.745
     ],
-    "darkSrc": "/blender/island-writing-dark-660b70a4.webp",
+    "darkSrc": "/blender/island-writing-dark-037b6e6e.webp",
     "lightMasks": {
       "sources": [
         "lamp",
         "sconce",
         "shelves",
         "lava",
+        "tree",
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-5f85ed66.webp",
-        "/blender/light-writing-1-eed44b68.webp"
+        "/blender/light-writing-0-c51c24b8.webp",
+        "/blender/light-writing-1-b33d7414.webp"
       ],
       "extents": [
         [
-          0.25,
-          0.667
+          0.24,
+          0.617
         ],
         [
-          0.28,
-          0.487
+          0.27,
+          0.478
         ],
         [
-          0.353,
-          0.737
+          0.323,
+          0.703
         ],
         [
-          0.473,
-          0.732
+          0.322,
+          0.708
         ],
         [
-          0.382,
-          0.567
+          0.607,
+          0.837
+        ],
+        [
+          0.343,
+          0.555
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-1c3cb4e4.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-a0d1ca00.webp",
-    "depthSrc": "/blender/depth-writing-256e8b74.webp",
+    "liftedSrc": "/blender/island-writing-lifted-0c71aa8f.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-2d3345b8.webp",
+    "depthSrc": "/blender/depth-writing-4cf33a9a.webp",
     "life": {
+      "clock": {
+        "corners": [
+          [
+            681.38,
+            188.04
+          ],
+          [
+            712.55,
+            192.0
+          ],
+          [
+            680.69,
+            217.57
+          ],
+          [
+            711.71,
+            221.59
+          ]
+        ]
+      },
       "lamp": [
-        450.52,
-        255.33
+        439.64,
+        314.75
       ],
       "cone": [
-        451.87,
-        331.1
+        440.88,
+        387.85
       ],
       "desk": [
         [
-          558.38,
-          383.58
+          544.72,
+          441.02
         ],
         [
-          562.34,
-          369.83
+          548.61,
+          427.18
         ],
         [
-          566.24,
-          356.31
+          552.44,
+          413.54
         ],
         [
-          570.08,
-          343.02
+          556.22,
+          400.12
         ],
         [
-          573.85,
-          329.95
+          559.93,
+          386.9
         ]
       ],
       "lava": [
         [
-          812.92,
-          168.93
+          793.31,
+          229.59
         ],
         [
-          814.0,
-          145.48
+          794.26,
+          207.0
         ],
         [
-          820.69,
-          164.28
+          800.85,
+          225.17
         ]
       ]
     }

@@ -6,6 +6,8 @@ import { ownEssays, projects } from "@/content/portfolio";
 import { projectPosters } from "@/lib/project-posters";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
+import StudyClock from "./StudyClock";
+import type { Life } from "./IslandLife";
 import styles from "./IslandHome.module.css";
 
 // Distant islands use the same entry controller and landmark geometry as the
@@ -41,6 +43,8 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
                   </PerspectiveArtwork>
                 </g> : null}
               </svg>
+              {id === "writing" && (islands.writing.life as Life)?.clock ?
+                <StudyClock face={(islands.writing.life as Life).clock!} className={styles.overviewDetails} /> : null}
             </span>
           </IslandLink>
         );

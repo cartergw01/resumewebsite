@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
 import styles from "./IslandHome.module.css";
 
-// A light switch beside the study or the workshop, in the same spot and style
-// as Taipei's sun and moon: its rocker is up while the lights are on. The room
+// A light switch beside the study or the workshop, styled like Taipei's sun
+// and moon: its rocker is up while the lights are on. The room
 // goes dark fixture by fixture and back (lib/light-switch.ts), and each room
 // remembers its own switch.
 export default function RoomLightSwitch({ world }: { world: RoomWorld }) {

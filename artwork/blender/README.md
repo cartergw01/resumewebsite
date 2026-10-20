@@ -41,9 +41,13 @@ backplates are used.
   side wall. Slim walnut furniture, a usable upholstered chair, a madder wool
   rug, an open notebook, an iced latte from Verve (the Santa Cruz roaster)
   in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
-  spectacles, a capped fountain pen beside the notebook and a task lamp; a
-  reading garden and trellis sit
-  outside the side wall. Two scene units represent one metre.
+  a capped fountain pen beside the notebook and a task lamp. A broad green
+  Japanese maple shades the Eames lounge chair and ottoman on the right-hand
+  stone landing, with two warm uplights at its trunk. The reading garden
+  and trellis sit outside the side wall, with clusters of glossy red Taiwanese
+  wax apples (蓮霧), bell-shaped fruit and broad oval leaves. Shelf books keep their covers,
+  spines and page blocks aligned as single rigid bindings.
+  Two scene units represent one metre.
 - **Projects:** the opposite of the study, an open, hand-built lean-to shed: a
   bare stud frame with mismatched plywood and OSB on its lower half, two
   patched sheets above and open bays to the night, no side wall, a sloping
@@ -61,7 +65,10 @@ corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
 study's window, between linen drapes, looks out on the site's own night sky,
-with an office clock above the shelves and a lava lamp on the top shelf; the
+with an Omega Speedmaster-inspired wall clock above the shelves (steel case,
+black tachymeter bezel, white markers, three counters and Ω / OMEGA branding,
+with live pale-green luminous hands showing Taipei time)
+and a lava lamp on the top shelf; the
 study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
 along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
 up both posts, gold along the bench's front edge), and a telescope on a tripod
@@ -113,6 +120,15 @@ the LED ball cycling through its colours and the LED strips breathing. Every
 detail sits on the thing that makes it (no glows hung in the air over bulbs,
 no fireflies). It follows the depth parallax so each detail stays on its
 surface.
+The Omega clock uses its own SVG hands (`components/StudyClock.tsx`), projected
+onto the dial plane exported as `life.clock`. `lib/study-clock.ts` reads the
+current wall clock in `Asia/Taipei`, with minutes and seconds included in the
+hour and minute angles. The hands retain their lume when the room is dark,
+update once a second even with reduced motion, and resync when the island or
+tab becomes visible. They follow the still's depth parallax. The 3D flight
+uses the same proportions and time through `lib/study-clock-3d.ts`, positioned
+from `lib/island-cameras.json`. No fixed main hands are baked into the stills
+or flight model, so the live hands cannot overlap an old time.
 Fireworks (`components/CityFireworks.tsx`) fire out of Taipei 101 at night, as
 in its New Year show: sprays from the front corners of each tier in turn,
 climbing the tower, then a shell off the spire; the launch points are the
@@ -161,8 +177,9 @@ in the workshop. `export_variant.mjs` publishes it with the
 night still's crop as `darkSrc`.
 
 One flip plays out fixture by fixture (`lib/light-switch.ts`): the lamp warms
-up, the sconce snaps on, the shelf strips run along their length, the lava
-lamp glows in last; off reverses, and then the spotlight comes up. For that,
+up, the sconce snaps on, the shelf strips run along their length, the maple's
+trunk uplights warm up with the desk lamp, and the lava lamp glows in last;
+off reverses, and then the spotlight comes up. For that,
 `--time masks` renders each of the room's light sources alone (its lamps and
 glowing parts on, everything else dark; the groups are `LIGHT_SOURCES`) and
 stores each one's share of every pixel's light, three sources to an RGB image;
@@ -225,16 +242,23 @@ journals and project prints below are his real covers and screenshots.
 
 Prop references:
 
-1. [NBA Store — Kobe Bryant 2009–10 gold authentic jersey](https://store.nba.com/los-angeles-lakers/mens-los-angeles-lakers-kobe-bryant-mitchell-and-ness-gold-2009-10-hardwood-classics-authentic-jersey/t-81690757%2Bp-042078540173%2Bz-8-3711585841):
+1. [OMEGA — Speedmaster Professional Moonwatch](https://www.omegawatches.com.hk/en-hk/watch-omega-speedmaster-moonwatch-professional-chronograph-42-mm-31133423001001):
+   the study's wall clock adapts the black dial, three counters, tachymeter
+   scale and Omega branding into modelled geometry, with live luminous hands.
+2. [NBA Store — Kobe Bryant 2009–10 gold authentic jersey](https://store.nba.com/los-angeles-lakers/mens-los-angeles-lakers-kobe-bryant-mitchell-and-ness-gold-2009-10-hardwood-classics-authentic-jersey/t-81690757%2Bp-042078540173%2Bz-8-3711585841):
    back lettering, number colours, shoulder shape and side panels. Modelled
    geometry and procedural fabric; product photography is not included.
-2. [SpaceX — Starship](https://www.spacex.com/vehicles/starship/design):
+3. [SpaceX — Starship](https://www.spacex.com/vehicles/starship/design):
    two-stage silhouette, stainless exterior, tiled ship and control surfaces.
    The shelf model simplifies small flight hardware to remain readable.
-3. [Apple — iPad Pro with Magic Keyboard](https://www.apple.com/newsroom/2020/04/new-magic-keyboard-for-ipad-pro-now-available-to-order-begins-arriving-next-week/):
+4. [Apple — iPad Pro with Magic Keyboard](https://www.apple.com/newsroom/2020/04/new-magic-keyboard-for-ipad-pro-now-available-to-order-begins-arriving-next-week/):
    floating cantilever support, black keyboard deck and integrated trackpad.
    The scene keeps the 12.9-inch tablet's landscape proportions.
-4. [The Pokémon Company — Lugia](https://in.portal-pokemon.com/pokedex/0249/):
+5. [Kaohsiung Agriculture Bureau — Wax Apple](https://agri-en.kcg.gov.tw/cp.aspx?Create=1&n=FFD95939D02E0643):
+   glossy crimson skin, a broad bell shape and four sepals at the recessed
+   blossom end, modelled on the study garden's fruiting branches.
+
+6. [The Pokémon Company — Lugia](https://in.portal-pokemon.com/pokedex/0249/):
    white body, blue belly and back plates, pointed eye markings, broad
    fingered wings and long tail, interpreted as a small resin shelf figure.
 

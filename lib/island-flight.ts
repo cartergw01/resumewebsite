@@ -2,6 +2,7 @@ import { AgXToneMapping, Box3, Color, Group, Matrix4, Mesh, MeshBasicMaterial, P
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { islandMeshopt } from "./meshopt";
 import { createTraffic, type Traffic } from "./island-traffic";
+import { createStudyClock, type StudyClockPosition } from "./study-clock-3d";
 
 // Real camera flights between islands. Each island's flight model has its
 // full Cycles lighting baked into vertex colours (scripts/blender/export_flight.py),
@@ -15,6 +16,7 @@ export type FlightIsland = {
   camera: { position: number[]; direction: number[]; fov: number };
   crop: number[];
   traffic?: Traffic;
+  clock?: StudyClockPosition;
 };
 type Placed = { group: Group; dayGroup?: Group; daySrc?: string; dayLoading?: boolean; traffic?: Traffic; position: Vector3; target: Vector3; direction: Vector3; fov: number; crop: number[] };
 
@@ -39,6 +41,7 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
   const placed = new Map<string, Placed>();
   // Each loaded model's traffic, and whether it is the daytime version.
   const drives: { traffic: ReturnType<typeof createTraffic>; daylight: number }[] = [];
+  const clocks: ReturnType<typeof createStudyClock>[] = [];
   // A pre-lit model, drawn unlit, scaled by the still's exposure.
   const load = async (src: string, offset: Vector3, exposure: number, traffic?: Traffic, daylight = 0) => {
     const response = await fetch(src, { signal });
@@ -66,6 +69,10 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       // Decimation merges Taipei's lit windows, so its night model is lifted
       // a little to read like its still.
       const { group, gltf } = await load(island.src, offset, EXPOSURE.night * (island.id === "work" ? 1.4 : 1), island.traffic);
+      if (island.clock) {
+        const clock = createStudyClock(island.clock);
+        group.add(clock.group); clocks.push(clock);
+      }
       // The still's camera, aimed at the middle of the island.
       const camera = new Vector3().fromArray(island.camera.position);
       const direction = new Vector3().fromArray(island.camera.direction).normalize();
@@ -136,6 +143,7 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       }
       const seconds = performance.now() / 1000;
       for (const { traffic, daylight } of drives) traffic.update(seconds, daylight);
+      for (const clock of clocks) clock.update();
       renderer.render(scene, camera);
       return true;
     },

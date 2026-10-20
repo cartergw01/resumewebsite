@@ -1,3 +1,5 @@
+export const ARTWORK_PARALLAX_EVENT = "artworkparallax";
+
 // Project a unit square onto the four corners exported by Blender's perspective
 // camera. Order: top left, top right, bottom left, bottom right.
 export function artworkProjection(corners: number[][]) {

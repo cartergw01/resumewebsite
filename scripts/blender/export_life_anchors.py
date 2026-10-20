@@ -82,6 +82,19 @@ if opts.world == 'work':
     # Taipei 101's front face, from the podium to the crown, for its lift.
     life['tower'] = [project((.52, -.39 - .27, 1.25)), project((.52, -.39 - .2, 3.85))]
 elif opts.world == 'writing':
+    clock = scene.objects.get('Omega clock · live hands')
+    if clock:
+        center = clock.matrix_world.translation
+        radius = clock['radius']
+        life['clock'] = {'corners': [project(center + Vector((x * radius, 0, z * radius)))
+                                    for x, z in [(-1, 1), (1, 1), (-1, -1), (1, -1)]]}
+        cameras_path = ROOT / 'lib' / 'island-cameras.json'
+        cameras = json.loads(cameras_path.read_text())
+        cameras.setdefault('writing', {})['clock'] = {
+            'center': [round(center.x, 6), round(center.z, 6), round(-center.y, 6)],
+            'radius': radius,
+        }
+        cameras_path.write_text(json.dumps(cameras, indent=2) + '\n')
     lamp = next((o for o in scene.objects if o.name.startswith('Lamp · frosted diffuser')), None)
     desk = [o for o in scene.objects if o.name.startswith('Desk · solid walnut top')]
     if lamp:

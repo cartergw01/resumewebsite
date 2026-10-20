@@ -538,6 +538,80 @@ def on_court(world,x,y,margin=.12):
     return world=='projects' and x0-margin<x<x1+margin and y0-margin<y<y1+margin
 
 
+def wax_apple_garden():
+    """Taiwanese red wax apples on low fruiting branches along the left trellis."""
+    rng=random.Random(73121)
+    for key,color in [('wax_red',(.55,.018,.035)),('wax_rose',(.72,.038,.055)),('wax_crimson',(.36,.009,.023))]:
+        P[key]=material('Wax apple · '+key,color,rough=.24)
+        bs=P[key].node_tree.nodes['Principled BSDF']
+        bs.inputs['Coat Weight'].default_value=.32
+        bs.inputs['Coat Roughness'].default_value=.18
+    P['wax_leaf']=material('Wax apple · glossy evergreen leaves',(.042,.13,.033),rough=.38)
+    P['wax_leaf_young']=material('Wax apple · young leaves',(.12,.23,.048),rough=.45)
+    P['wax_calyx']=material('Wax apple · recessed blossom end',(.13,.008,.014),rough=.6)
+    # A narrow neck opens into broad, softly lobed shoulders at the blossom
+    # end. The underside folds inward around the four persistent sepals.
+    profile=[(0,.12),(-.04,.38),(-.12,.47),(-.25,.49),(-.43,.56),
+             (-.62,.72),(-.79,.91),(-.91,.97),(-.98,.88),(-.96,.62),(-.88,.16)]
+    def fruit(position,height,tilt,tone):
+        vertices=[];faces=[];segments=32
+        for z,radius in profile:
+            for i in range(segments):
+                a=math.tau*i/segments
+                lobes=1+.055*math.cos(4*a)*min(1,abs(z)*1.5)
+                rr=radius*height*.5*lobes
+                vertices.append((rr*math.cos(a),rr*math.sin(a),height*z))
+        for row in range(len(profile)-1):
+            for i in range(segments):
+                j=row*segments+i;k=row*segments+(i+1)%segments
+                faces.append((j,j+segments,k+segments,k))
+        faces.extend([tuple(range(segments)),tuple(reversed(range((len(profile)-1)*segments,len(profile)*segments)))])
+        apple=mesh('Wax apple · bell-shaped fruit',vertices,faces,tone)
+        apple.location=position;apple.rotation_euler=tilt
+        for face in apple.data.polygons:face.use_smooth=True
+        smooth=apple.modifiers.new('Rounded waxy skin','SUBSURF')
+        smooth.levels=1;smooth.render_levels=1
+        rotation=apple.rotation_euler.to_matrix()
+        def at(p):return Vector(position)+rotation@Vector(p)
+        rod('Wax apple · fruit stalk',at((0,0,-.004)),at((0,0,.045)),.0045,'leaf2',8)
+        for i in range(4):
+            a=i*math.tau/4
+            sepal=[at((0,0,-height*.89)),
+                   at((math.cos(a-.4)*height*.18,math.sin(a-.4)*height*.18,-height*.95)),
+                   at((math.cos(a)*height*.31,math.sin(a)*height*.31,-height*.98)),
+                   at((math.cos(a+.4)*height*.18,math.sin(a+.4)*height*.18,-height*.95))]
+            mesh('Wax apple · four-lobed calyx',sepal,[(0,1,2,3)],'wax_calyx')
+        return at((0,0,.045))
+    for y in [.12,1.15]:
+        curve('Wax apple · trained woody stem',[(-4.14,y,.20),(-4.10,y-.05,.72),(-4.09,y+.06,1.30),(-4.12,y,1.74)],.022,'wood')
+    # Keep the bunches on the exposed side of the foliage, in staggered
+    # groups rather than an evenly spaced row of identical red spheres.
+    clusters=[(-.24,1.49),(.18,1.14),(.35,1.73),(.73,1.42),(1.12,1.69),(1.40,1.30),(.89,.95)]
+    for index,(y,z) in enumerate(clusters):
+        source=Vector((-4.10,.12 if y<.65 else 1.15,z-.15))
+        tip=Vector((-3.91,y,z+.07))
+        curve('Wax apple · fruiting branch',[source,(-4.02,(source.y+y)/2,z+.10),tip],.009,'wood')
+        for j,(dx,dy,dz) in enumerate([(0,-.09,0),(.07,.07,-.045),(-.09,.035,.08)]):
+            position=Vector((-3.87+dx,y+dy,z+dz))
+            stalk=fruit(position,rng.uniform(.195,.23),(rng.uniform(-.16,.16),rng.uniform(-.22,.22),rng.uniform(-.4,.4)),['wax_red','wax_rose','wax_crimson'][(index+j)%3])
+            rod('Wax apple · branching fruit stalk',tip,stalk,.004,'leaf2',8)
+    # Broad, pointed oval leaves complement the existing smaller climbing
+    # leaves without hiding the hanging fruit.
+    vertices=[];faces=[]
+    for i in range(100):
+        center=Vector((-4.10+rng.uniform(-.15,.02),rng.uniform(-.35,1.60),rng.uniform(.70,1.84)))
+        a=rng.uniform(0,math.tau);length=rng.uniform(.09,.16)
+        u=Vector((math.cos(a),math.sin(a),rng.uniform(-.5,.5)))*length
+        v=Vector((-math.sin(a),math.cos(a),0))*length*.40
+        n=len(vertices)
+        vertices.extend([center-u,center-u*.45+v,center+u*.35+v*.9,center+u,
+                         center+u*.35-v*.9,center-u*.45-v,center+Vector((0,0,.014))])
+        for j in range(6):faces.append((n+6,n+j,n+(j+1)%6))
+    leaves=mesh('Wax apple · oval leaves',vertices,faces,'wax_leaf')
+    leaves.data.materials.append(P['wax_leaf_young'])
+    for face in leaves.data.polygons:face.material_index=1 if face.index//6%7==0 else 0
+
+
 def landscape(world,seed):
     rng=random.Random(seed+18)
     # Raycast the actual soil cap, including its notches. An ideal ellipse
@@ -554,7 +628,7 @@ def landscape(world,seed):
         return pos.z if pos.z>-.03 else None
     # A few embedded mineral outcrops and dense planted pockets create scale.
     for x,y in [(-4.35,.85),(3.95,1.87),(-2.85,-2.75),(2.65,-2.84),(4.55,-.55)]:
-        if on_court(world,x,y,.5):continue
+        if on_court(world,x,y,.5) or (world=='writing' and x>3 and -.9<y<2.4):continue
         z=surface(x,y)
         if z is None:continue
         size=.16 if world=='work' else 1
@@ -573,7 +647,7 @@ def landscape(world,seed):
         if abs(x)<2 and y<-2.5:continue
         for j in range(45):
             xx=x+rng.gauss(0,.13);yy=y+rng.gauss(0,.10)
-            if on_court(world,xx,yy):continue
+            if on_court(world,xx,yy) or (world=='writing' and 2.95<xx<4.55 and -1.9<yy<2.4):continue
             z=surface(xx,yy)
             if z is None:continue
             z+=.012;h=rng.uniform(.05,.16)*(.16 if world=='work' else 1)
@@ -616,6 +690,7 @@ def landscape(world,seed):
         for i in range(16):
             y=rng.uniform(-.3,1.5);z=rng.uniform(.3,1.72)
             foliage('Garden · climbing leaves',(-4.09,y,z),(.20,.23,.18),rng,120)
+        wax_apple_garden()
     else:
         terrain_path('Workshop · worn yard paving',[(1.50,-3.24),(1.05,-2.62),(.30,-1.96)],.92,seed,'paving',.35)
         for i in range(2):box('Workshop · stone threshold step',(.30,-2.15+i*.22,.045+i*.045),(1.35,.30,.09),'stone',.015)
@@ -637,6 +712,71 @@ def tree(x,y,scale=1,base=0):
         p=(x+math.cos(a)*.12*scale,y+math.sin(a)*.12*scale,base+(.42+i*.046)*scale)
         rod('Tree · branch',(x,y,base+.32*scale),p,.006*scale,'wood')
         foliage('Tree · fine canopy',p,(.16*scale,.15*scale,.16*scale),rng,100)
+
+
+def reading_maple(x,y):
+    """A spreading green Japanese maple shelters the reading chair.
+
+    Tapered branching, airy tiers of lobed leaves, and two shielded uplights
+    rooted in the same terrain as the tree. All practicals use the Tree
+    uplight prefix so both their emission and their wash follow the switch.
+    """
+    rng=random.Random(7319)
+    base=terrain_height(x,y,73)
+    P['maple_bark']=textured('Reading maple · grey brown bark',(.075,.060,.045),(.19,.16,.12),'wood',rough=.9,grain=(14,14,1.5))
+    for key,color in [('maple_leaf',(.075,.16,.035)),('maple_leaf2',(.15,.25,.055)),('maple_leaf3',(.24,.31,.07))]:
+        P[key]=material('Reading maple · '+key,color,rough=.72)
+        P[key].node_tree.nodes['Principled BSDF'].inputs['Subsurface Weight'].default_value=.08
+    def at(dx,dy,z):return (x+dx,y+dy,base+z)
+    def branch(name,points,radius):
+        obj=curve('Reading maple · '+name,[at(*p) for p in points],radius,'maple_bark')
+        for i,p in enumerate(obj.data.splines[0].bezier_points):
+            p.radius=1-.84*i/(len(points)-1)
+        return obj
+    branch('trunk',[(0,0,-.06),(-.06,.02,.8),(.04,.02,1.65),(-.14,.04,2.55),(-.08,.08,3.55)],.15)
+    for i in range(6):
+        a=i*math.tau/6
+        branch('root flare',[(math.cos(a)*.40,math.sin(a)*.40,.015),(math.cos(a)*.16,math.sin(a)*.16,.10),(0,0,.40)],.055)
+    # The high open crown leaves the chair visible beneath it and clears
+    # the study wall; its lobes overlap as an irregular, broad umbrella.
+    crowns=[(-1.04,-.36,3.85),(-.82,.65,4.08),(.16,.85,4.42),
+            (1.02,.44,4.04),(1.06,-.40,3.87),(.28,-.80,4.12),
+            (-.40,-.18,4.65),(.45,.15,4.76)]
+    for i,(dx,dy,z) in enumerate(crowns):
+        start=(-.04,.03,1.65+i*.14)
+        middle=(dx*.48,dy*.48,z-.70)
+        branch('spreading bough',[start,middle,(dx,dy,z-.12)],.068 if i<6 else .052)
+        for j in range(3):
+            a=rng.uniform(0,math.tau)
+            end=(dx+math.cos(a)*.48,dy+math.sin(a)*.42,z+rng.uniform(-.12,.26))
+            branch('fine twig',[middle,(dx,dy,z-.12),end],.018)
+        verts=[];faces=[]
+        for j in range(650):
+            a=rng.uniform(0,math.tau);r=math.sqrt(rng.random())
+            center=Vector(at(dx+math.cos(a)*r*.79,dy+math.sin(a)*r*.64,z+rng.uniform(-.22,.24)))
+            length=rng.uniform(.055,.10);tilt=rng.uniform(-.65,.65)
+            u=Vector((math.cos(a),math.sin(a),tilt))*length
+            v=Vector((-math.sin(a),math.cos(a),rng.uniform(-.3,.3)))*length
+            n=len(verts);verts.append(center)
+            # Seven pointed lobes with deep sinuses, curled around the vein.
+            for k in range(14):
+                t=math.tau*k/14;reach=1 if k%2==0 else .40
+                verts.append(center+(u*math.cos(t)+v*math.sin(t))*reach+Vector((0,0,.012*reach)))
+            for k in range(14):faces.append((n,n+1+k,n+1+(k+1)%14))
+        leaves=mesh('Reading maple · lobed canopy',verts,faces,'maple_leaf')
+        leaves.data.materials.append(P['maple_leaf2']);leaves.data.materials.append(P['maple_leaf3'])
+        tones=rng.choices([0,1,2],[5,4,1],k=650)
+        for p in leaves.data.polygons:p.material_index=tones[p.index//14]
+    P['tree_uplight']=material('Tree uplight · warm lens',(1,.76,.45),emission=6)
+    for dx,dy in [(-.43,-.36),(.45,.14)]:
+        px,py=x+dx,y+dy;pz=terrain_height(px,py,73)+.09
+        target=Vector(at(-.04,.04,2.65));position=Vector((px,py,pz))
+        axis=(target-position).normalized()
+        fixture=cylinder('Tree uplight · shielded bronze housing',tuple(position),.075,.16,'brass',24,bevel=.008)
+        fixture.rotation_euler=axis.to_track_quat('Z','Y').to_euler()
+        lens=cylinder('Tree uplight · warm lens',tuple(position+axis*.081),.057,.006,'tree_uplight',24,bevel=0)
+        lens.rotation_euler=fixture.rotation_euler
+        spot('Tree uplight · trunk and canopy wash',tuple(position+axis*.09),tuple(target),WARM,480,88,.65,.055)
 
 def plant(x,y,z,scale=1):
     rng=random.Random(int((x+12)*190+(y+7)*141))
@@ -2021,6 +2161,71 @@ def iced_latte(x,y,z):
     lettering('Iced latte · VERVE mark','VERVE',(x,y-r*1.05-.002,base+.24),.030,'paper')
 
 
+def omega_wall_clock(x,y,z,r=.235):
+    """A Speedmaster-inspired OMEGA wall clock, scaled for the study wall.
+
+    Steel case, black tachymeter bezel, white baton markers, three recessed
+    counters and modelled Omega branding. The browser supplies live luminous
+    hands at the exported dial plane, including during the 3D camera flight.
+    """
+    k=r/.235
+    P['omega_steel']=material('Omega clock · brushed steel',(.62,.65,.68),metal=1,rough=.28)
+    P['omega_black']=material('Omega clock · black bezel',(.009,.011,.014),rough=.30)
+    P['omega_dial']=material('Omega clock · matte black dial',(.016,.019,.023),rough=.72)
+    P['omega_counter']=material('Omega clock · recessed counters',(.026,.030,.036),rough=.78)
+    P['omega_print']=material('Omega clock · white dial printing',(.91,.92,.88),rough=.6)
+    def at(u,v,depth=0):return (x+u*k,y+depth*k,z+v*k)
+    def disc(name,u,v,radius,depth,thickness,mat):
+        obj=cylinder('Omega clock · '+name,at(u,v,depth),radius*k,thickness*k,mat,96,bevel=.001*k)
+        obj.rotation_euler.x=math.pi/2
+        return obj
+    def ring(name,u,v,radius,depth,thickness,mat):
+        return torus('Omega clock · '+name,at(u,v,depth),radius*k,thickness*k,mat,(math.pi/2,0,0))
+    def mark(name,u,v,angle,inner,outer,width,depth=-.043):
+        a=math.radians(angle)
+        return rod('Omega clock · '+name,at(u+math.sin(a)*inner,v+math.cos(a)*inner,depth),
+                   at(u+math.sin(a)*outer,v+math.cos(a)*outer,depth),width*k,'omega_print',8)
+    disc('steel case',0,0,.235,0,.064,'omega_steel')
+    disc('tachymeter bezel',0,0,.219,-.034,.007,'omega_black')
+    ring('polished outer lip',0,0,.225,-.037,.006,'omega_steel')
+    disc('step dial',0,0,.181,-.040,.005,'omega_dial')
+    ring('dial step',0,0,.179,-.043,.0015,'omega_counter')
+    for i in range(60):
+        mark('minute track',0,0,i*6,.163 if i%5==0 else .170,.176,.0009)
+    for hour in range(12):
+        if hour==0:
+            for dx in [-.004,.004]:mark('double twelve marker',dx,0,0,.136,.160,.0022)
+        else:mark('applied hour baton',0,0,hour*30,.139,.161,.003)
+    # Three counters at 3, 6 and 9, with fine concentric tracks and hands.
+    for u,v,hand in [(-.091,0,15),(0,-.091,70),(.091,0,-35)]:
+        disc('subdial',u,v,.042,-.044,.002,'omega_counter')
+        ring('subdial edge',u,v,.041,-.046,.0008,'omega_print')
+        for i in range(12):mark('counter tick',u,v,i*30,.034,.038,.0006,-.047)
+        mark('counter hand',u,v,hand,-.005,.029,.0012,-.049)
+    # Draw the Omega symbol explicitly so it does not depend on font coverage.
+    logo=[(-.022,.090),(-.010,.090)]
+    logo += [(.017*math.cos(a),.103+.017*math.sin(a))
+             for a in [math.radians(225-i*270/32) for i in range(33)]]
+    logo += [(.010,.090),(.022,.090)]
+    curve('Omega clock · Omega symbol',[at(u,v,-.048) for u,v in logo],.0019*k,'omega_print')
+    lettering('Omega clock · OMEGA wordmark','OMEGA',at(0,.073,-.048),.026*k,'omega_print')
+    model=lettering('Omega clock · Speedmaster signature','Speedmaster',at(0,.048,-.048),.015*k,'omega_print')
+    model.data.shear=.18
+    lettering('Omega clock · PROFESSIONAL','PROFESSIONAL',at(0,.030,-.048),.0085*k,'omega_print')
+    lettering('Omega clock · tachymeter label','TACHYMETRE',at(-.046,.196,-.040),.009*k,'omega_print')
+    for value in [500,400,300,250,200,180,160,140,120,110,100,90,80,70,60]:
+        a=math.tau*60/value
+        lettering('Omega clock · tachymeter '+str(value),str(value),
+                  at(math.sin(a)*.201,math.cos(a)*.201,-.040),.010*k,'omega_print',(math.pi/2,a,0))
+    # No fixed hands are baked into the dial: they would show through the
+    # live ones whenever the time changes. This anchor uses the same plane
+    # for the browser's projected hands and its full 3D flight hands.
+    clock=bpy.data.objects.new('Omega clock · live hands',None)
+    bpy.context.collection.objects.link(clock)
+    clock.location=at(0,0,-.060)
+    clock['radius']=.181*k
+
+
 def writing():
     foundation(73,'garden');landscape('writing',73);floorboards()
     # A cutaway corner of a proper study-office: painted plaster above, green
@@ -2079,14 +2284,8 @@ def writing():
         drape=mesh('Window · linen drape',verts,faces,'linen')
         for f in drape.data.polygons:f.use_smooth=True
         drape.modifiers.new('Cloth thickness','SOLIDIFY').thickness=.008
-    # An office clock above the bookshelf.
-    clock=cylinder('Office clock · face',(1.0,1.90,3.13),.14,.03,'paper',48,bevel=.004);clock.rotation_euler.x=math.pi/2
-    torus('Office clock · walnut rim',(1.0,1.885,3.13),.14,.012,'wood',(math.pi/2,0,0))
-    rod('Clock · hour hand',(1.0,1.882,3.13),(1.05,1.882,3.18),.005,'ink',6)
-    rod('Clock · minute hand',(1.0,1.881,3.13),(.94,1.881,3.235),.0035,'ink',6)
-    for k in range(12):
-        a=k*math.tau/12
-        box('Clock · hour mark',(1.0+math.cos(a)*.115,1.883,3.13+math.sin(a)*.115),(.012,.002,.012),'ink',0)
+    # Carter's Omega wall clock sits between the shelves and crown moulding.
+    omega_wall_clock(1.0,1.87,3.09)
     box('Window · central mullion',(-1.96,1.95,2.11),(.026,.05,1.58),'teal',.002)
     for zz in [1.33,2.11,2.89]:box('Window · horizontal rail',(-1.96,1.95,zz),(1.66,.05,.027),'teal',.002)
     for xx in [-2.79,-1.13]:box('Window · reveal',(xx,1.95,2.11),(.03,.06,1.58),'teal',.002)
@@ -2111,7 +2310,10 @@ def writing():
                 if rng.random()<.16:x+=.30;continue
                 w=rng.uniform(.048,.11);h=rng.uniform(.36,.55)
                 created=capture(shelf_book,x+w/2,1.59,z+.022,w,h,rng.choice(['linen','leather','redcloth','teal','oak']))
-                for obj in created:obj.location.y+=rng.uniform(-.008,.008)
+                # One offset for the entire binding: covers, spine, tooling
+                # and page block must stay aligned as a single rigid book.
+                offset=rng.uniform(-.008,.008)
+                for obj in created:obj.location.y+=offset
                 x+=w+.011
     # These are Carter's published essays, presented as bound journals—not
     # invented reading-list entries. Their existing covers are used verbatim.
@@ -2150,7 +2352,7 @@ def writing():
     for f,e in [(1,420),(25,445),(49,420)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
     capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
-    # Ceramic cup, glasses and a pen: each has a normal relationship to the book.
+    # An iced latte and capped fountain pen beside the notebook.
     iced_latte(-.70,-.30,1.61)
     # A capped fountain pen beside the notebook: black lacquer, gold band and clip.
     a,b=Vector((.84,-1.20,1.628)),Vector((.79,-.82,1.628))
@@ -2159,9 +2361,6 @@ def writing():
     rod('Fountain pen · gold cap band',tuple(cap),tuple(cap+(b-a).normalized()*.018),.0172,'brass',24)
     rod('Fountain pen · gold clip',tuple(cap+(b-a).normalized()*.03+Vector((0,0,.016))),tuple(b-(b-a).normalized()*.03+Vector((0,0,.016))),.004,'brass',8)
     for end in [a,b]:sphere('Fountain pen · rounded end',tuple(end),(.016,.016,.016),'ink',2)
-    for x in [1.13,1.31]:torus('Study · spectacles',(x,-1.05,1.632),.075,.0024,'brass')
-    rod('Spectacles · bridge',(1.205,-1.05,1.632),(1.235,-1.05,1.632),.0024,'brass')
-    for x in [1.055,1.385]:curve('Spectacles · temple',[(x,-1.05,1.632),(x-.02,-.84,1.637),(x-.04,-.81,1.63)],.0024,'brass')
     # Thin correspondence, with a restrained looping lifted corner.
     for j in range(3):
         vs=[]
@@ -2176,10 +2375,13 @@ def writing():
     # The chair is pulled up to the open notebook, where you'd sit to write.
     chair(.16,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
-    # An Eames lounge chair and ottoman in the corner by the window, turned
-    # to the room (Carter asked for one), and the plant at its feet by the
-    # side wall.
-    eames_lounge_chair(-2.45,1.08,-15,.85)
+    # A reading spot on the right, under the maple. A level stone landing
+    # supports both bases, with a short approach from the study's floor.
+    for row in range(5):
+        for col in range(3):
+            box('Reading garden · limestone paver',(3.20+col*.49,-1.44+row*.48,.10),(.475,.465,.096),'stone',.012)
+    eames_lounge_chair(3.68,.02,-15,.85)
+    reading_maple(3.78,1.55)
     plant(-2.72,-.92,.15,1.06)
     # A woven rug grounds the chair and desk without adding another plinth.
     woven_rug()
@@ -3042,7 +3244,8 @@ def lights_out(scene,world):
 # with. 'spot' is the lights-off spotlight on the room's subject.
 LIGHT_SOURCES={
     'writing':[('lamp',('Arundel lamp','Lamp · frosted diffuser')),('sconce',('Up Down Sconce',)),
-               ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),('spot',('Spotlight',))],
+               ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),
+               ('tree',('Tree uplight',)),('spot',('Spotlight',))],
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
                 ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('Lightstick',)),

@@ -10,6 +10,7 @@ import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
 import EssayLeaf, { type EssayPreview } from "./EssayLeaf";
 import RoomLightSwitch from "./RoomLightSwitch";
+import StudyClock from "./StudyClock";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import type { NotebookEssay } from "@/lib/workshop-entry";
 import styles from "./IslandHome.module.css";
@@ -76,6 +77,7 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
           {warm && island.depthSrc ? <ParallaxStill depthSrc={island.depthSrc} focus={island.landmark} room="writing"
             masks={"lightMasks" in island ? island.lightMasks as LightMasks : undefined} className={styles.parallax} /> : null}
           {warm && island.life ? <IslandLife world="writing" life={island.life as Life} className={styles.life} /> : null}
+          {warm && (island.life as Life)?.clock ? <StudyClock face={(island.life as Life).clock!} className={styles.bookDetails} /> : null}
           <svg className={styles.bookResponse} viewBox="0 0 1200 800" aria-hidden="true" data-book-response data-book-surface>
             <defs>
               <linearGradient id="book-page-light" x1="0" y1="0" x2="0.85" y2="1">
@@ -84,9 +86,6 @@ export default function WritingIsland({ artwork: island, landmark, essay, pages 
               <radialGradient id="reading-lamp-light"><stop stopColor="#ffdc8b" stopOpacity="0.7" /><stop offset="1" stopColor="#ffdc8b" stopOpacity="0" /></radialGradient>
             </defs>
             <path className={styles.pageLight} data-reads="reading-paper:opacity:.15" data-room-light="writing" d={artworkOutline(island.spread)} fill="url(#book-page-light)" />
-            <g className={styles.pageEdges} fill="none" stroke="#ffe5a6" strokeWidth="1.25" strokeLinecap="round">
-              <path d={artworkOutline(island.spread)} />
-            </g>
           </svg>
           <svg className={styles.bookDetails} viewBox="0 0 1200 800" aria-hidden="true">
             <ellipse className={styles.readingLamp} data-reads="reading-lamp:opacity:.4" data-room-light="writing" cx={island.lamp[0]} cy={island.lamp[1]} rx="33" ry="18" fill="url(#reading-lamp-light)" />

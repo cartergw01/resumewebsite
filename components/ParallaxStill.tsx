@@ -6,6 +6,7 @@ import { lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, type RoomWorld } from 
 import { flipDuration, flipState, ROOM_LIGHTS_ON_DURATION, timing } from "@/lib/light-switch";
 import type { ParallaxState } from "./IslandLife";
 import { hardwareWebGL } from "@/lib/hardware-webgl";
+import { ARTWORK_PARALLAX_EVENT } from "@/lib/artwork-perspective";
 
 // Depth parallax for an island's Cycles still. Blender renders a camera-depth
 // map with every island (scripts/blender/render_depth.py); this redraws the
@@ -165,7 +166,11 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       if (!ready || disposed || !gl) return;
       gl.uniform2f(uniform("shift"), current[0], current[1]);
       // Shared with the live details so they move with the surfaces they sit on.
-      if (visual.parallax) { visual.parallax.x = current[0]; visual.parallax.y = current[1]; }
+      if (visual.parallax) {
+        const changed = visual.parallax.x !== current[0] || visual.parallax.y !== current[1];
+        visual.parallax.x = current[0]; visual.parallax.y = current[1];
+        if (changed) visual.dispatchEvent(new Event(ARTWORK_PARALLAX_EVENT));
+      }
       gl.uniform1f(uniform("daylight"), daylight);
       const flip = playing();
       gl.uniform1i(uniform("staged"), flip ? 1 : 0);
@@ -353,6 +358,7 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       delete visual.dataset.parallax;
       delete visual.dataset.lightsGl;
       delete visual.parallax;
+      visual.dispatchEvent(new Event(ARTWORK_PARALLAX_EVENT));
       if (gl) {
         textures.forEach(texture => gl!.deleteTexture(texture));
         gl.deleteBuffer(buffer); gl.deleteProgram(program);

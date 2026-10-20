@@ -564,7 +564,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const start = () => void import("@/lib/island-flight").then(async ({ createFlightWorld }) => {
         const islands = Object.entries(flightAssets).map(([id, asset]) => {
           const view = cameras[id as keyof typeof cameras];
-          return { id, src: asset.src, daySrc: "daySrc" in asset ? asset.daySrc as string : undefined, camera: view.camera, crop: view.crop, traffic: "traffic" in view ? view.traffic as FlightIsland["traffic"] : undefined };
+          return { id, src: asset.src, daySrc: "daySrc" in asset ? asset.daySrc as string : undefined, camera: view.camera, crop: view.crop, traffic: "traffic" in view ? view.traffic as FlightIsland["traffic"] : undefined,
+            clock: "clock" in view ? view.clock as FlightIsland["clock"] : undefined };
         });
         const world = await createFlightWorld(flightCanvas, islands, flightAbort.signal);
         if (flightAbort.signal.aborted) { world.dispose(); return; }
