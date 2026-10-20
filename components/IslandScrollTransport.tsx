@@ -210,8 +210,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const flightOn = Boolean(flightWorld && !motion.matches && crossing > 0 && crossing < 1 && flightIds.has(worlds[from]?.id) && flightIds.has(worlds[from + 1]?.id));
       let flightMix = flightOn ? Math.min(phase(crossing, 0, .1), 1 - phase(crossing, .9, 1)) : 0;
       if (flightOn) {
-        const rect = stillRect(from);
-        if (rect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, rect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
+        const fromRect = stillRect(from), toRect = stillRect(from + 1);
+        if (fromRect && toRect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, fromRect, toRect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
         else flightMix = 0;
       }
       if (!flightMix && flightShown) { flightCanvas.style.opacity = "0"; flightWorld?.clear(); flightShown = false; }

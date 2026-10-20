@@ -31,6 +31,9 @@ function festoonTiming(xs: number[], x: number) {
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
+  const imageSizes = world === "projects"
+    ? "(max-width: 760px) 125vw, (max-width: 1100px) 100vw, 80vw"
+    : "(max-width: 760px) 115vw, 68vw";
   const city = artwork.work;
   const workshop = artwork.projects;
   const traffic = city.traffic;
@@ -115,14 +118,14 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
-        {/* On phones the island overhangs the screen by 3rem each side, so it
-            shows at ~115vw; asking for 90vw made phones upscale a smaller file. */}
+        {/* Request enough pixels for the overhanging art and the workshop's
+            closer frame, including its matching lights-off image. */}
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 115vw, 68vw" loading="eager"
+          sizes={imageSizes} loading="eager"
           quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`}
           data-lights-on={world === "projects" ? "projects" : undefined} /> : null}
         {world === "projects" && warm && darkWanted && "darkSrc" in island && island.darkSrc ? <Image src={island.darkSrc as string} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 115vw, 68vw" loading="eager" data-lights-off="projects"
+          sizes={imageSizes} loading="eager" data-lights-off="projects"
           quality={75} draggable={false} className={motionStyles.image} /> : null}
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="lazy" data-city-time="day"

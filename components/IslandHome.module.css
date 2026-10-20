@@ -179,8 +179,9 @@
 .cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
 .bookCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
 .bookCue > span { right: 17%; top: -1%; transform: rotate(6deg); }
-.workshopCue { width: min(91cqw, 150cqh); height: min(60.6667cqw, 100cqh); }
-.workshopCue > span { right: 19%; bottom: 0; transform: rotate(4deg); }
+/* Match the workshop's closer 3:2 frame, including its live screen target. */
+.workshopCue { width: min(109.2cqw, 180cqh); height: min(72.8cqw, 120cqh); }
+.workshopCue > span { right: 19%; bottom: 10%; transform: rotate(4deg); }
 .islandLink:focus-visible .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
 .islandLink:focus-visible .landmarkCue path { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
@@ -203,7 +204,9 @@
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
 .island > img, .island > video, .overviewImage { filter: var(--island-grade); }
-.projects .island { width: 91%; max-height: 100%; }
+/* Enlarge the former 91%-wide frame by 20% on both axes. Layout dimensions
+   keep the still, lights, pointer targets and flight projection together. */
+.projects .island { width: 109.2%; height: 120%; max-height: none; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
 .scene[data-active="true"] .island { animation: island-float 7s ease-in-out infinite; }
@@ -429,6 +432,11 @@
   .stage[data-dots="true"] .dots { opacity: 1; transition-duration: 150ms; }
   .stage[data-entering] .dots { opacity: 0; }
 }
+/* Bring the workshop nearer its heading on phones without shifting the
+   other islands or the wide opening/closing overview. */
+@media (max-width: 760px) and (min-height: 501px) {
+  .projects .art { top: calc(-1 * clamp(1.25rem, 4dvh, 2.5rem)); }
+}
 @media (max-height: 740px) and (max-width: 760px) {
   .facts { gap: 0.3rem; margin-top: 0.9rem; font-size: 0.875rem; }
   .factMeta { display: none; }
@@ -443,6 +451,10 @@
      here: the lowest island's label must clear the scroll button's tap area. */
   .scene:has(.overview) .art { height: calc(100% - 0.75rem); }
   .controls { gap: 0.35rem; }
+}
+/* The enlarged frame needs a shorter annotation gap above laptop navigation. */
+@media (max-height: 800px) and (min-width: 761px) {
+  .workshopCue > span { bottom: 13%; }
 }
 @media (max-height: 600px) and (min-width: 761px) {
   .stage { --controls-bottom: max(1rem, env(safe-area-inset-bottom)); }
@@ -460,6 +472,7 @@
   .scene:has(.overview) .art { width: 59%; height: auto; margin-inline: 0; }
   .island { max-height: 68dvh; }
   .landmarkCue { font-size: 0.75rem; }
+  .workshopCue > span { bottom: 16%; }
   /* Landscape keeps the bar to the right half, beside the free left column
      (where a turned island's "reset view" sits). */
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }

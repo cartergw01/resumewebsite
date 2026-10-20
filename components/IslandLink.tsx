@@ -19,7 +19,7 @@ export function landmarkArrow(title: string, focus: IslandLandmark, phone = fals
     ? phone ? [[690, 800], [730, 700], [x + 120, y + 170]] : [[250, 665], [560, 755], [x + 140, y + 150]]
     : title === "Writing"
       ? [[945, 25], [855, -35], [x + 160, y - 160]]
-      : [[880, 735], [1140, 660], [x + 240, y + 100]];
+      : [[880, 675], [1140, 620], [x + 240, y + 100]];
   const angle = Math.atan2(y - last[1], x - last[0]);
   const wing = (side: number) => `${x - 13 * Math.cos(angle) + side * 6 * Math.sin(angle)} ${y - 13 * Math.sin(angle) - side * 6 * Math.cos(angle)}`;
   return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
