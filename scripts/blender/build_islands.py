@@ -1468,6 +1468,37 @@ def floorboards():
             for xx in [x-.095,x+.095]: cylinder('Floor · iron nail',(xx,y,.152),.007,.003,'ink',8,bevel=0)
 
 
+def deck_glow():
+    """Carter asked for LED strips under the workshop's deck, so the floor
+    seems to glow: the same Lakers purple as the shed's strips, run along the
+    foot of every plank's end and the steps between them (where the deck's
+    rounded edge is stepped), its light spilling out from under the boards
+    onto the grass. Not "strip" by name: it follows the deck's whole outline,
+    not one straight run, so the live details leave it be."""
+    planks=[((i-10.5)*.30,2.1*math.sqrt(max(0,1-(((i-10.5)*.30)/3.8)**2))) for i in range(22)]
+    half=.1445;z=.058;proud=.004
+    for side in [-1,1]:
+        for i,(x,length) in enumerate(planks):
+            if side>0 and abs(x)<3:continue
+            # The board's end, then the step to its neighbour's end.
+            box('Glow · purple deck LED',(x,side*(length+proud),z),(.27,.008,.012),'purple_strip',0)
+        for (x0,l0),(x1,l1) in zip(planks,planks[1:]):
+            if side>0 or abs(l1-l0)<.01:continue
+            longer_x,edge=(x1,-half) if l1>l0 else (x0,half)
+            box('Glow · purple deck LED',(longer_x+edge+math.copysign(proud,edge),-(l0+l1)/2,z),(.008,abs(l1-l0),.012),'purple_strip',0)
+    # The outer boards' long sides.
+    for x,length in [planks[0],planks[-1]]:
+        out=math.copysign(half+proud,x)
+        box('Glow · purple deck LED',(x+out,0,z),(.008,length*2,.012),'purple_strip',0)
+    # Its light, low in the gap under the boards, spilling out onto the ground.
+    for i in [1,3,5,7,9,12,14,16,18,20]:
+        x,length=planks[i]
+        light('Glow · purple deck wash',(x,-length-.02,.05),(.45,.14,1),14,.45,(x*1.06,-length-.75,0))
+    for x,length in [planks[0],planks[-1]]:
+        out=math.copysign(1,x)
+        light('Glow · purple deck wash',(x+out*(half+.02),-length*.5,.05),(.45,.14,1),5,.4,(x+out*.8,-length*.6,0))
+
+
 def shelf_book(x,y,z,width,height,mat):
     depth=.34
     box('Library · page block',(x,y,z+height/2),(width-.021,depth-.025,height-.028),'paper',.003)
@@ -2465,6 +2496,7 @@ def workshop():
     for px2 in [-3.05,2.86]:
         box('Glow · post strip',(px2,front[0]+.012,(front[1]-.12+.22)/2),(.016,.008,front[1]-.34),'purple_strip',0)
         light('Glow · post wash',(px2,front[0]-.15,2.0),(.45,.14,1),5,.3,(px2,front[0]-.8,1.2))
+    deck_glow()
     # In Common With's Luca Wall Sconce on the patched sheet above the tool
     # wall, fanning its light down over the tools.
     luca_wall_sconce(.33,2.017,3.05,90)
