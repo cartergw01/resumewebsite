@@ -26,8 +26,14 @@ test("the book opens the complete Writing archive without featuring an essay", a
       w.bookArrival = {
         matched: node.isConnected && location.pathname === "/writing",
         // One essay to a page: the spread holds two and every leaf two more,
-        // with only as many leaves as fill both faces (no blank pages).
-        turned: leaves.length === expectedLeaves && leaves.every(leaf => new DOMMatrixReadOnly(getComputedStyle(leaf).transform).m11 < -.99),
+        // with only as many leaves as fill both faces (no blank pages). A
+        // leaf at rest is also shrunk to cancel the notebook's perspective
+        // (flat), more so on a phone's closer camera, so its turn is read
+        // from the direction of its x axis alone, not that scale.
+        turned: leaves.length === expectedLeaves && leaves.every(leaf => {
+          const m = new DOMMatrixReadOnly(getComputedStyle(leaf).transform);
+          return m.m11 / Math.hypot(m.m11, m.m12, m.m13) < -.99;
+        }),
         centred: Math.abs(book.left + book.width / 2 - innerWidth / 2) < 2 && book.width > innerWidth * .6,
       };
       observer.disconnect();
