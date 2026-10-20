@@ -228,6 +228,11 @@ Charge 4 sits on the top shelf beside the BLACKPINK light stick, clear of the
 monitor. A pearl-white Lugia figurine stands on a navy plinth on the open
 middle shelf, to the monitor's right. Its raised hand-shaped wings, blue belly,
 pointed eye markings, back plates and curved tail are modelled geometry.
+A Captain America shield rests on the floor against the right front of the
+bench, tilted back 15 degrees with its rim on the boards. Its domed metal face
+has red and silver rings, a navy centre and a curved silver five-point star;
+the rings, star, rim and rear leather grips are geometry in the flight model.
+The two cardboard boxes behind the right side of the desk have been removed.
 The stool's seat is empty. The half-court is 2.1 by 4 scene units
 (previously 1 by 3.5), with a wider key, complete connected three-point markings
 and the same-sized hoop. The eastern terrain lobe supports the wider pad;

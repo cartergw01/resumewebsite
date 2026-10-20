@@ -3370,7 +3370,7 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-100088b1.webp",
+    "src": "/blender/island-projects-5668bc41.webp",
     "screen": [
       [
         530.301,
@@ -3415,7 +3415,7 @@
       869.091,
       194.78
     ],
-    "darkSrc": "/blender/island-projects-dark-47e532e2.webp",
+    "darkSrc": "/blender/island-projects-dark-fabf034d.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -3429,9 +3429,9 @@
         "spot"
       ],
       "src": [
-        "/blender/light-projects-0-667dd6a8.webp",
-        "/blender/light-projects-1-8907d323.webp",
-        "/blender/light-projects-2-4f23cb3e.webp"
+        "/blender/light-projects-0-d9f18dfe.webp",
+        "/blender/light-projects-1-1936c19e.webp",
+        "/blender/light-projects-2-dc46c08f.webp"
       ],
       "extents": [
         [
@@ -3447,32 +3447,32 @@
           0.615
         ],
         [
-          0.278,
-          0.56
+          0.28,
+          0.553
         ],
         [
           0.268,
           0.597
         ],
         [
-          0.43,
-          0.818
+          0.427,
+          0.82
         ],
         [
           0.472,
           0.555
         ],
         [
-          0.325,
-          0.527
+          0.323,
+          0.523
         ],
         [
           0.432,
-          0.51
+          0.508
         ]
       ]
     },
-    "depthSrc": "/blender/depth-projects-5d255ea3.webp",
+    "depthSrc": "/blender/depth-projects-3d645e79.webp",
     "life": {
       "strips": [
         [

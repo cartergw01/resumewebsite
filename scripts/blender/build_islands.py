@@ -2679,6 +2679,75 @@ def wilson_evolution(x,y,z,r=.24):
         obj.matrix_world=Matrix.Translation(Vector((x,y,z)))@rotation@obj.matrix_world
 
 
+def captain_america_shield(x,y,floor=.148,r=.72,lean=15):
+    """A domed metal shield resting on its rim, tilted back against the bench.
+    The coloured rings and inset five-point star follow the same curved face,
+    so the design remains geometry in the island's baked flight model."""
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    P['shield_red']=material('Captain America shield · crimson enamel',(.48,.018,.027),metal=.55,rough=.30)
+    P['shield_silver']=material('Captain America shield · brushed silver',(.70,.74,.79),metal=.78,rough=.31)
+    P['shield_blue']=material('Captain America shield · navy enamel',(.018,.055,.20),metal=.42,rough=.32)
+    P['shield_leather']=material('Captain America shield · leather grips',(.065,.028,.014),rough=.76)
+    segments=128
+    radii=[0]+[r*(start+(end-start)*i/4) for start,end in [(0,.4),(.4,.6),(.6,.8),(.8,1)] for i in range(1,5)]
+    def face_depth(radius):
+        return -.14*r*(1-(radius/r)**2)
+    verts=[(0,face_depth(0),0)]
+    for radius in radii[1:]:
+        verts.extend((radius*math.cos(i*math.tau/segments),face_depth(radius),radius*math.sin(i*math.tau/segments)) for i in range(segments))
+    faces=[];colours=[]
+    for row,radius in enumerate(radii[1:]):
+        colour=2 if radius<=r*.4+.0001 else 0 if radius<=r*.6+.0001 or radius>r*.8+.0001 else 1
+        for i in range(segments):
+            a=1+row*segments+i;b=1+row*segments+(i+1)%segments
+            faces.append((0,a,b) if row==0 else (a-segments,a,b,b-segments))
+            colours.append(colour)
+    # A continuous shallow bowl, with a silver back and a rolled metal rim.
+    back=len(verts)
+    verts.extend((u,v+.035,w) for u,v,w in list(verts))
+    front_faces=list(faces)
+    faces.extend(tuple(index+back for index in reversed(face)) for face in front_faces)
+    colours.extend([1]*len(front_faces))
+    outer=1+(len(radii)-2)*segments
+    for i in range(segments):
+        a=outer+i;b=outer+(i+1)%segments
+        faces.append((a,b,b+back,a+back));colours.append(1)
+    shell=mesh('Captain America shield · domed concentric rings',verts,faces,'shield_red')
+    shell.data.materials.append(P['shield_silver']);shell.data.materials.append(P['shield_blue'])
+    for face,colour in zip(shell.data.polygons,colours):
+        face.material_index=colour;face.use_smooth=True
+    torus('Captain America shield · rolled silver rim',(0,.0175,0),r,.008,'shield_silver',(math.pi/2,0,0))
+    # Subdivide the star radially so its silver face follows the dome.
+    outline=[]
+    for i in range(10):
+        angle=math.pi/2+i*math.pi/5
+        radius=r*.36*(1 if i%2==0 else .382)
+        outline.append(Vector((radius*math.cos(angle),radius*math.sin(angle))))
+    boundary=[]
+    for i,point in enumerate(outline):
+        boundary.extend(point.lerp(outline[(i+1)%10],j/4) for j in range(4))
+    count=len(boundary);star_verts=[(0,face_depth(0)-.0015,0)];star_faces=[]
+    for row in range(1,9):
+        for point in boundary:
+            u,v=point*row/8
+            star_verts.append((u,face_depth(math.hypot(u,v))-.0015,v))
+        for i in range(count):
+            a=1+(row-1)*count+i;b=1+(row-1)*count+(i+1)%count
+            star_faces.append((0,a,b) if row==1 else (a-count,a,b,b-count))
+    star=mesh('Captain America shield · silver five-point star',star_verts,star_faces,'shield_silver')
+    for face in star.data.polygons:face.use_smooth=True
+    for side in (-1,1):
+        u=side*r*.30
+        curve('Captain America shield · rear leather strap',[(u,face_depth(abs(u))+.04,-r*.23),(u,.12,0),(u,face_depth(abs(u))+.04,r*.23)],.028,'shield_leather')
+    bpy.context.view_layer.update()
+    objects=set(bpy.context.scene.objects)-before
+    tilt=Matrix.Rotation(math.radians(-lean),4,'X')
+    bottom=min((tilt@obj.matrix_world@vertex.co).z for obj in objects if obj.type=='MESH' for vertex in obj.data.vertices)
+    placement=Matrix.Translation(Vector((x,y,floor-bottom)))@tilt
+    for obj in objects:obj.matrix_world=placement@obj.matrix_world
+
+
 def lugia_figurine(x,y,z,angle=0,k=.43):
     """A painted-resin Lugia, wings raised, on a navy display plinth.
     The local frame faces -Y; broad fingered wings and the blue belly stay
@@ -3023,6 +3092,9 @@ def workshop():
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
     box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
     for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),12,.8,(bx,-1.45,.2))
+    # The shield's lower rim rests on the boards and its upper rim leans
+    # against the bench's right apron, clear of the stool and basketball court.
+    captain_america_shield(2.17,-.85)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -3159,12 +3231,6 @@ def workshop():
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
     # A Wilson Evolution game ball rests on the court with its print visible.
     wilson_evolution(COURT[0]+.32,.62,.262+.24)
-    # Cardboard boxes, one with its flaps open.
-    P['cardboard']=textured('Cardboard',(.30,.19,.09),(.42,.29,.15),'paper',rough=.92)
-    box('Floor · cardboard box',(2.20,1.08,.151+.19),(.58,.46,.38),'cardboard',.006,rot=.08)
-    box('Floor · cardboard box',(2.24,1.10,.151+.38+.13),(.42,.36,.26),'cardboard',.006,rot=-.12)
-    box('Box · packing tape',(2.20,1.08,.151+.382),(.58,.06,.004),'linen',0,rot=.08)
-    flap=box('Box · open flap',(2.24,.90,.151+.66),(.40,.012,.16),'cardboard',.002,rot=-.12);flap.rotation_euler.x=.7
     # A small telescope on its tripod in the yard, aimed up past the roof.
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
