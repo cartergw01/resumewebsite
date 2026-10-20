@@ -206,7 +206,10 @@ the court, a stainless Cybertruck model, and space things: a taped planet poster
 and a stainless SpaceX Starship / Super Heavy display stack with a black heat
 shield, ship flaps, vented hot-stage ring and booster grid fins. The navy JBL
 Charge 4 sits on the top shelf beside the BLACKPINK light stick, clear of the
-monitor. The stool's seat is empty. The half-court is 2.1 by 4 scene units
+monitor. A pearl-white Lugia figurine stands on a navy plinth on the open
+middle shelf, to the monitor's right. Its raised hand-shaped wings, blue belly,
+pointed eye markings, back plates and curved tail are modelled geometry.
+The stool's seat is empty. The half-court is 2.1 by 4 scene units
 (previously 1 by 3.5), with a wider key, complete connected three-point markings
 and the same-sized hoop. The eastern terrain lobe supports the wider pad;
 planting and ground heights keep the playing surface clear. The bench holds
@@ -231,6 +234,9 @@ Prop references:
 3. [Apple — iPad Pro with Magic Keyboard](https://www.apple.com/newsroom/2020/04/new-magic-keyboard-for-ipad-pro-now-available-to-order-begins-arriving-next-week/):
    floating cantilever support, black keyboard deck and integrated trackpad.
    The scene keeps the 12.9-inch tablet's landscape proportions.
+4. [The Pokémon Company — Lugia](https://in.portal-pokemon.com/pokedex/0249/):
+   white body, blue belly and back plates, pointed eye markings, broad
+   fingered wings and long tail, interpreted as a small resin shelf figure.
 
 ### Night
 

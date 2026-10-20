@@ -2331,6 +2331,110 @@ def kobe_jersey(cx,y,cz):
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
+def lugia_figurine(x,y,z,angle=0,k=.43):
+    """A painted-resin Lugia, wings raised, on a navy display plinth.
+    The local frame faces -Y; broad fingered wings and the blue belly stay
+    legible at the workshop shelf's miniature scale."""
+    import bmesh
+    before=set(bpy.context.scene.objects)
+    P['lugia_white']=material('Lugia · pearl white resin',(.79,.83,.86),rough=.32)
+    P['lugia_blue']=material('Lugia · blue belly',(.18,.35,.62),rough=.38)
+    P['lugia_navy']=material('Lugia · deep blue markings',(.025,.065,.22),rough=.35)
+    P['lugia_eye']=material('Lugia · red iris',(.44,.025,.035),rough=.27)
+    cylinder('Lugia · display plinth',(0,0,.014),.25,.028,'lugia_navy',64,bevel=.005)
+    white=[]
+    def sculpt(name,centre,size):
+        obj=sphere('Lugia · '+name,centre,size,'lugia_white',3)
+        white.append(obj)
+    def tube(name,points,radii):
+        verts=[];faces=[];segments=16
+        for i,point in enumerate(points):
+            centre=Vector(point)
+            tangent=Vector(points[min(i+1,len(points)-1)])-Vector(points[max(0,i-1)])
+            side=tangent.cross(Vector((1,0,0))).normalized()
+            across=tangent.normalized().cross(side)
+            for j in range(segments):
+                a=j*math.tau/segments
+                verts.append(tuple(centre+radii[i]*(math.cos(a)*side+math.sin(a)*across)))
+        faces=[tuple(reversed(range(segments)))]
+        for i in range(len(points)-1):
+            for j in range(segments):
+                a=i*segments+j;b=i*segments+(j+1)%segments
+                faces.append((a,b,b+segments,a+segments))
+        faces.append(tuple(range((len(points)-1)*segments,len(points)*segments)))
+        obj=mesh('Lugia · '+name,verts,faces,'lugia_white');white.append(obj)
+    sculpt('body',(0,.01,.47),(.17,.14,.26))
+    tube('curved neck',[(0,-.015,.61),(0,-.035,.76),(0,-.09,.91),(0,-.15,1.005)],[.12,.095,.075,.075])
+    sculpt('head',(0,-.15,1.005),(.11,.11,.082))
+    tube('pointed muzzle',[(0,-.18,1.01),(0,-.24,1.006),(0,-.30,.996),(0,-.35,.98)],[.072,.052,.027,.002])
+    tube('swept head crest',[(0,-.12,1.035),(0,-.025,1.075),(0,.025,1.09)],[.075,.04,.004])
+    tube('curved tail',[(0,.10,.32),(0,.23,.19),(.12,.36,.12),(.25,.40,.15),(.32,.40,.23),(.35,.39,.27)],[.09,.07,.052,.034,.015,.002])
+    for s in (-1,1):
+        sculpt('haunch',(s*.13,.025,.285),(.115,.11,.15))
+        sculpt('ankle',(s*.14,-.015,.155),(.075,.075,.13))
+        sculpt('foot',(s*.14,-.075,.085),(.10,.145,.06))
+        for toe in (-1,0,1):
+            sculpt('toe',(s*.14+toe*.049,-.18,.069),(.029,.063,.036))
+        # Five broad digits with real gaps give Lugia its hand-shaped wings.
+        outline=[(.10,.68),(.32,.73),(.43,.89),(.46,1.04),(.52,1.06),
+                 (.55,.92),(.65,1.13),(.71,1.12),(.66,.89),(.81,1.09),
+                 (.87,1.06),(.76,.85),(.93,.98),(.96,.93),(.80,.77),
+                 (.97,.82),(.96,.75),(.73,.65),(.53,.65),(.30,.61),(.11,.58)]
+        n=len(outline)
+        verts=[(s*u,-.015-u*.055+depth,v) for depth in (-.026,.026) for u,v in outline]
+        faces=[tuple(reversed(range(n))),tuple(range(n,2*n))]
+        faces += [(i,(i+1)%n,(i+1)%n+n,i+n) for i in range(n)]
+        wing=mesh('Lugia · hand-shaped wing',verts,faces,'lugia_white')
+        white.append(wing)
+    # Fuse the white pieces into one smooth toy without primitive seams.
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj in white:obj.select_set(True)
+    bpy.context.view_layer.objects.active=white[0]
+    bpy.ops.object.join()
+    body=bpy.context.object;body.name='Lugia · sculpted white figure'
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    topology=bmesh.new();topology.from_mesh(body.data)
+    bmesh.ops.recalc_face_normals(topology,faces=list(topology.faces))
+    topology.to_mesh(body.data);topology.free()
+    remesh=body.modifiers.new('Continuous resin sculpture','REMESH')
+    remesh.mode='VOXEL';remesh.voxel_size=.010;remesh.use_smooth_shade=True
+    bpy.ops.object.modifier_apply(modifier=remesh.name)
+    smooth=body.modifiers.new('Polished resin contours','SMOOTH')
+    smooth.factor=.7;smooth.iterations=4
+    bpy.ops.object.modifier_apply(modifier=smooth.name)
+    for face in body.data.polygons:face.use_smooth=True
+    # The blue painted patch conforms to the front of the torso.
+    verts=[];faces=[];rows=20;cols=20
+    for i in range(rows+1):
+        phi=-1.12+i/rows*2.12
+        spread=.88*(1-.25*max(0,phi))
+        for j in range(cols+1):
+            theta=-spread+2*spread*j/cols
+            verts.append((.172*math.cos(phi)*math.sin(theta),
+                          .01-.142*math.cos(phi)*math.cos(theta),.47+.262*math.sin(phi)))
+    for i in range(rows):
+        for j in range(cols):
+            a=i*(cols+1)+j;faces.append((a,a+1,a+cols+2,a+cols+1))
+    belly=mesh('Lugia · painted blue belly',verts,faces,'lugia_blue')
+    for face in belly.data.polygons:face.use_smooth=True
+    for s in (-1,1):
+        verts=[(s*.025,-.251,1.028),(s*.085,-.219,1.067),
+               (s*.14,-.075,1.125),(s*.11,-.17,1.005)]
+        mesh('Lugia · pointed eye marking',verts,[(0,1,2,3)],'lugia_navy')
+        sphere('Lugia · eye',(s*.069,-.235,1.04),(.022,.006,.010),'paper',2)
+        sphere('Lugia · iris',(s*.070,-.241,1.042),(.006,.003,.007),'lugia_eye',2)
+        for zz in (.70,.59,.48,.37):
+            plate=box('Lugia · dorsal plate',(s*.135,.128,zz),(.105,.10,.075),'lugia_navy',.012)
+            plate.rotation_euler.y=s*.35;plate.rotation_euler.x=.20
+        spike=cylinder('Lugia · tail spike',(.275+s*.025,.402,.22),.025,.12,'lugia_navy',16,top=.002,bevel=0)
+        spike.rotation_euler.y=s*.55
+    curve('Lugia · mouth line',[(-.052,-.293,.978),(0,-.329,.976),(.052,-.293,.978)],.002,'lugia_navy')
+    objects=set(bpy.context.scene.objects)-before
+    bpy.context.view_layer.update()
+    transform_objects(objects,scale=(k,k,k),origin=(0,0,0))
+    place(objects,x,y,z,angle)
+
+
 def jbl_charge4(x,y,z,angle):
     """A JBL Charge 4 in navy, lying on its foot: a 220 x 95mm cylinder of
     fabric grille between rubber end caps, a passive radiator in each end, a
@@ -2691,6 +2795,9 @@ def workshop():
     # the room. The navy JBL Charge 4 sits beside it, clear of the monitor.
     blackpink_lightstick(.70,1.60,shelf,0,k=1.2)
     jbl_charge4(1.25,1.48,shelf,0)
+    # Lugia sits on the open middle shelf, clear of the monitor's screen.
+    middle_shelf=.16+(2.98-.16)*.72+.015
+    lugia_figurine(2.20,1.48,middle_shelf,math.radians(-18),k=.41)
     # Tesla merch: a stainless Cybertruck model on the shelf.
     cx,cy,cz=1.85,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
