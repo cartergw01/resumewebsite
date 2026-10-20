@@ -1783,40 +1783,103 @@ def chair(x,y):
 
 
 def notebook(x,y,z):
+    """A soft-bound essay notebook: the ink and paper share one lit surface."""
+    import subprocess
+    import textwrap
     width=.92;depth=.64
     rng=random.Random(733)
+    P['notebook_paper']=textured('Notebook · warm uncoated paper',(.64,.60,.51),(.74,.70,.61),'paper',rough=.96)
+    P['notebook_ink']=material('Notebook · absorbed charcoal ink',(.025,.023,.020),rough=.98)
+    P['notebook_pencil']=material('Notebook · soft graphite notes',(.24,.22,.18),rough=1)
+    P['notebook_cloth']=textured('Notebook · worn olive cloth',(.075,.085,.060),(.15,.16,.115),'fabric',rough=.94)
+    columns=32;rows=12
+    leaves={-1:26,1:17}
+    def paper_point(side,u,v,layer,edge=0):
+        # More pages lie on the left. Both halves settle toward the desk,
+        # with a shallow rise at the sewn gutter rather than a padded arch.
+        yy=(v-.5)*depth
+        round_corner=max(0,abs(yy)-(depth/2-.012))
+        inset=.012-math.sqrt(max(0,.012**2-round_corner**2))
+        xx=side*(.003+u*(width/2-.003+edge)-inset*u**12)
+        arch=(.021 if side<0 else .029)*math.sin(math.pi*u)**1.1
+        curl=(.003 if side<0 else .014)*u**7*(1-v)**7
+        ripple=.0015*math.sin(v*5+u*3)*(u**2)
+        zz=z+.016+layer*.00075+arch+.004*math.exp(-u*9)+curl+ripple
+        return (x+xx,y+yy+edge*u,zz)
+
     curve('Notebook · recessed cloth spine',[(x,y-depth/2,z+.009),(x,y,z+.007),(x,y+depth/2,z+.009)],.008,'leather')
     for side in [-1,1]:
-        box('Notebook · soft cloth binding',(x+side*width/4,y,z+.006),(width/2+.009,depth+.025,.012),'linen',.003)
-        for layer in range(22):
+        box('Notebook · soft cloth binding',(x+side*width/4,y,z+.006),(width/2+.012,depth+.018,.011),'notebook_cloth',.005)
+        for layer in range(leaves[side]):
             verts=[]
-            edge=rng.uniform(-.004,.004)
-            for yy in [-depth/2,depth/2]:
-                for i in range(33):
-                    u=i/32;xx=side*(.010+u*(width/2-.010+edge))
-                    zz=z+.018+layer*.0013+.046*math.sin(u*math.pi)**.70
-                    verts.append((x+xx,y+yy+edge*u,zz))
-            obj=mesh('Notebook · individual paper sheet',verts,[(i,i+1,i+34,i+33) for i in range(32)],'paper')
+            edge=0 if layer==leaves[side]-1 else rng.uniform(-.0015,.0015)
+            for row in range(rows+1):
+                for col in range(columns+1):
+                    verts.append(paper_point(side,col/columns,row/rows,layer,edge))
+            faces=[]
+            for row in range(rows):
+                for col in range(columns):
+                    i=row*(columns+1)+col
+                    face=(i,i+1,i+columns+2,i+columns+1)
+                    faces.append(face if side>0 else tuple(reversed(face)))
+            obj=mesh('Notebook · individual paper sheet',verts,faces,'notebook_paper')
             for f in obj.data.polygons:f.use_smooth=True
-            if layer==21 and side==1:
-                obj.shape_key_add(name='Rest');corner=obj.shape_key_add(name='Lifted paper corner')
-                for index,point in enumerate(corner.data):
-                    weight=max(0,(index%33-25)/7)**2*(1 if index<33 else 0)
-                    point.co.z+=.022*weight
-                for frame,value in [(1,0),(25,1),(49,0)]:corner.value=value;corner.keyframe_insert(data_path='value',frame=frame)
-    ANCHORS['spread']=[(x-width/2,y+depth/2,z+.072),(x+width/2,y+depth/2,z+.072),(x-width/2,y-depth/2,z+.072),(x+width/2,y-depth/2,z+.072)]
-    ANCHORS['page']=[(x+.075,y+.27,z+.087),(x+.406,y+.27,z+.077),(x+.075,y-.27,z+.087),(x+.406,y-.27,z+.077)]
-    ANCHORS['landmark']=(x,y,z+.07)
+            thickness=obj.modifiers.new('Paper thickness and cut edges','SOLIDIFY')
+            thickness.thickness=.00065;thickness.offset=-1
+    ANCHORS['spread']=[paper_point(side,1,v,leaves[side]-1) for v in [1,0] for side in [-1,1]]
+    ANCHORS['page']=[paper_point(1,u,v,leaves[1]-1) for v in [.92,.08] for u in [.15,.90]]
+    ANCHORS['landmark']=(x,y,z+.04)
+
+    def ink_point(xx,yy,side=1):
+        u=(abs(xx)-.003)/(width/2-.003)
+        px,py,pz=paper_point(side,u,yy/depth+.5,leaves[side]-1)
+        return (px,py,pz+.0006)
+
+    # Model only the ink, then bend it onto the paper. It receives exactly
+    # the page's lighting and parallax, including when the lamp is switched off.
+    font_path=Path('/System/Library/Fonts/Supplemental/Georgia.ttf')
+    font=bpy.data.fonts.load(str(font_path),check_existing=True) if font_path.exists() else None
+    def print_line(body,xx,yy,size,side=1):
+        obj=lettering('Notebook · printed '+body,body,(0,0,0),size,'notebook_ink',(0,0,0))
+        obj.data.align_x='LEFT';obj.data.align_y='BOTTOM_BASELINE'
+        obj.data.extrude=0;obj.data.resolution_u=3
+        if font:obj.data.font=font
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True);bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.convert(target='MESH')
+        for vertex in obj.data.vertices:
+            vertex.co=ink_point(xx+vertex.co.x,yy+vertex.co.y,side)
+        return obj
+
+    essay=json.loads(subprocess.check_output(['node',str(ROOT/'scripts/blender/notebook_page.mjs')],text=True))
+    print_line('flying Arrows',.070,.245,.013)
+    print_line(essay['date'].upper(),.070,.207,.0075)
+    title=textwrap.wrap(essay['title'],14,break_long_words=False)
+    for i,line in enumerate(title):print_line(line,.070,.140-i*.042,.031)
+    baseline=.140-len(title)*.042-.030
+    rule=[ink_point(.070+i*.004,baseline) for i in range(10)]
+    curve('Notebook · printed title rule',rule,.00035,'notebook_ink')
+    for i,line in enumerate(textwrap.wrap(essay['subtitle'],35,break_long_words=False)):
+        print_line(line,.070,baseline-.035-i*.020,.0095)
+    print_line('Carter Wang',.070,-.251,.010)
+    # A few pencil notes on the facing page, broken into words so the marks
+    # read as handwriting instead of a ruled rectangle.
     rng=random.Random(233)
-    for j in range(16):
-        yy=y-.275+j*.035
-        length=rng.uniform(.19,.32)
-        pts=[]
-        for i in range(12):
-            xx=-.225-length/2+length*i/11;u=abs(xx)/(.46)
-            pts.append((x+xx,yy,z+.047+.046*math.sin(u*math.pi)**.70))
-        curve('Notebook · handwritten line',pts,.00045,'page')
-    curve('Notebook · silk bookmark',[(x,y+.31,z+.045),(x+.002,y-.30,z+.045),(x+.014,y-.40,z-.005)],.0025,'redcloth')
+    print_line('Notes',-.39,.245,.016,-1)
+    for row in range(12):
+        yy=.185-row*.029
+        cursor=-.39
+        for word in range(rng.randint(3,5)):
+            length=rng.uniform(.025,.060)
+            if cursor+length>-.065:break
+            points=[ink_point(cursor+length*i/12,yy+.0015*math.sin(i*2.1+row),-1) for i in range(13)]
+            curve('Notebook · pencil note',points,.00038,'notebook_pencil')
+            cursor+=length+.012
+    # A flat woven ribbon lies in the gutter and relaxes over the near edge.
+    ribbon=[(x-.003,y+.28,z+.025),(x-.003,y-.27,z+.025),
+            (x+.003,y-.33,z+.015),(x+.018,y-.39,z+.007)]
+    verts=[(px+side*.003,py,pz) for px,py,pz in ribbon for side in [-1,1]]
+    mesh('Notebook · silk bookmark',verts,[(i,i+1,i+3,i+2) for i in range(0,6,2)],'redcloth')
 
 
 def woven_rug():
@@ -2162,18 +2225,24 @@ def iced_latte(x,y,z):
 
 
 def omega_wall_clock(x,y,z,r=.235):
-    """A Speedmaster-inspired OMEGA wall clock, scaled for the study wall.
+    """A navy Seamaster Aqua Terra dial, adapted as the study's wall clock.
 
-    Steel case, black tachymeter bezel, white baton markers, three recessed
-    counters and modelled Omega branding. The browser supplies live luminous
-    hands at the exported dial plane, including during the 3D camera flight.
+    Smooth steel bezel, horizontal teak grooves and faceted wedge indexes.
+    The wall-clock adaptation keeps all twelve hour markers in place of the
+    watch's date aperture. The browser supplies live luminous arrow hands,
+    using the same dial plane during the 3D camera flight.
     """
     k=r/.235
     P['omega_steel']=material('Omega clock · brushed steel',(.62,.65,.68),metal=1,rough=.28)
-    P['omega_black']=material('Omega clock · black bezel',(.009,.011,.014),rough=.30)
-    P['omega_dial']=material('Omega clock · matte black dial',(.016,.019,.023),rough=.72)
-    P['omega_counter']=material('Omega clock · recessed counters',(.026,.030,.036),rough=.78)
-    P['omega_print']=material('Omega clock · white dial printing',(.91,.92,.88),rough=.6)
+    P['omega_polished']=material('Omega clock · polished rhodium',(.80,.84,.88),metal=.85,rough=.18)
+    # The face occupies only a few dozen screen pixels. Softer metal and a
+    # low, constant dial glow keep its navy colour and lettering legible in
+    # both room-light states instead of reflecting the dark sky as black.
+    P['omega_dial']=material('Omega clock · navy Aqua Terra dial',(.035,.110,.260),metal=.12,rough=.42,emission=.35)
+    P['omega_groove']=material('Omega clock · dark teak channels',(.012,.035,.075),metal=.12,rough=.45,emission=.20)
+    P['omega_ridge']=material('Omega clock · blue teak edges',(.060,.150,.310),metal=.18,rough=.38,emission=.30)
+    P['omega_print']=material('Omega clock · white dial printing',(.91,.92,.88),rough=.6,emission=.35)
+    P['omega_lume']=material('Omega clock · ivory index lume',(.68,.91,.79),rough=.6,emission=.25)
     def at(u,v,depth=0):return (x+u*k,y+depth*k,z+v*k)
     def disc(name,u,v,radius,depth,thickness,mat):
         obj=cylinder('Omega clock · '+name,at(u,v,depth),radius*k,thickness*k,mat,96,bevel=.001*k)
@@ -2181,49 +2250,56 @@ def omega_wall_clock(x,y,z,r=.235):
         return obj
     def ring(name,u,v,radius,depth,thickness,mat):
         return torus('Omega clock · '+name,at(u,v,depth),radius*k,thickness*k,mat,(math.pi/2,0,0))
-    def mark(name,u,v,angle,inner,outer,width,depth=-.043):
+    def mark(name,u,v,angle,inner,outer,width,depth=-.047):
         a=math.radians(angle)
         return rod('Omega clock · '+name,at(u+math.sin(a)*inner,v+math.cos(a)*inner,depth),
                    at(u+math.sin(a)*outer,v+math.cos(a)*outer,depth),width*k,'omega_print',8)
     disc('steel case',0,0,.235,0,.064,'omega_steel')
-    disc('tachymeter bezel',0,0,.219,-.034,.007,'omega_black')
-    ring('polished outer lip',0,0,.225,-.037,.006,'omega_steel')
-    disc('step dial',0,0,.181,-.040,.005,'omega_dial')
-    ring('dial step',0,0,.179,-.043,.0015,'omega_counter')
+    disc('smooth steel bezel',0,0,.226,-.034,.010,'omega_polished')
+    ring('polished outer lip',0,0,.226,-.037,.004,'omega_polished')
+    disc('navy teak dial',0,0,.204,-.041,.008,'omega_dial')
+    ring('inner bezel edge',0,0,.205,-.045,.002,'omega_steel')
+    # Fine horizontal grooves, clipped to the circular dial. Real geometry
+    # carries the same texture into the stills and the baked flight model.
+    for row in range(-11,12):
+        v=row*.017
+        half=math.sqrt(.201**2-v*v)
+        box('Omega clock · teak channel',at(0,v,-.0454),(half*2*k,.0008*k,.0017*k),'omega_groove',0)
+        box('Omega clock · teak glint',at(0,v+.0015,-.0455),(half*2*k,.0006*k,.0006*k),'omega_ridge',0)
     for i in range(60):
-        mark('minute track',0,0,i*6,.163 if i%5==0 else .170,.176,.0009)
+        mark('minute track',0,0,i*6,.186 if i%5==0 else .191,.197,.00065)
+    # Each applied index has two polished facets and a narrow luminous inset.
+    # The point faces the centre, as on the Aqua Terra's sail-shaped indexes.
     for hour in range(12):
-        if hour==0:
-            for dx in [-.004,.004]:mark('double twelve marker',dx,0,0,.136,.160,.0022)
-        else:mark('applied hour baton',0,0,hour*30,.139,.161,.003)
-    # Three counters at 3, 6 and 9, with fine concentric tracks and hands.
-    for u,v,hand in [(-.091,0,15),(0,-.091,70),(.091,0,-35)]:
-        disc('subdial',u,v,.042,-.044,.002,'omega_counter')
-        ring('subdial edge',u,v,.041,-.046,.0008,'omega_print')
-        for i in range(12):mark('counter tick',u,v,i*30,.034,.038,.0006,-.047)
-        mark('counter hand',u,v,hand,-.005,.029,.0012,-.049)
+        a=math.radians(hour*30)
+        def index_at(u,v,depth):
+            return at(u*math.cos(a)+v*math.sin(a),v*math.cos(a)-u*math.sin(a),depth)
+        w=.0095 if hour==0 else .0075
+        verts=[index_at(-w,.183,-.048),index_at(w,.183,-.048),
+               index_at(0,.139,-.048),index_at(0,.183,-.052)]
+        mesh('Omega clock · faceted hour index',verts,[(0,2,3),(3,2,1),(0,3,1)],'omega_polished')
+        mesh('Omega clock · index lume',
+             [index_at(-w*.36,.179,-.0522),index_at(w*.36,.179,-.0522),index_at(0,.151,-.0522)],
+             [(0,2,1)],'omega_lume')
     # Draw the Omega symbol explicitly so it does not depend on font coverage.
     logo=[(-.022,.090),(-.010,.090)]
     logo += [(.017*math.cos(a),.103+.017*math.sin(a))
              for a in [math.radians(225-i*270/32) for i in range(33)]]
     logo += [(.010,.090),(.022,.090)]
-    curve('Omega clock · Omega symbol',[at(u,v,-.048) for u,v in logo],.0019*k,'omega_print')
-    lettering('Omega clock · OMEGA wordmark','OMEGA',at(0,.073,-.048),.026*k,'omega_print')
-    model=lettering('Omega clock · Speedmaster signature','Speedmaster',at(0,.048,-.048),.015*k,'omega_print')
-    model.data.shear=.18
-    lettering('Omega clock · PROFESSIONAL','PROFESSIONAL',at(0,.030,-.048),.0085*k,'omega_print')
-    lettering('Omega clock · tachymeter label','TACHYMETRE',at(-.046,.196,-.040),.009*k,'omega_print')
-    for value in [500,400,300,250,200,180,160,140,120,110,100,90,80,70,60]:
-        a=math.tau*60/value
-        lettering('Omega clock · tachymeter '+str(value),str(value),
-                  at(math.sin(a)*.201,math.cos(a)*.201,-.040),.010*k,'omega_print',(math.pi/2,a,0))
+    curve('Omega clock · Omega symbol',[at(u,v,-.049) for u,v in logo],.0019*k,'omega_print')
+    lettering('Omega clock · OMEGA wordmark','OMEGA',at(0,.073,-.049),.026*k,'omega_print')
+    model=lettering('Omega clock · Seamaster signature','Seamaster',at(0,.049,-.049),.018*k,'omega_print')
+    model.data.shear=.22
+    lettering('Omega clock · AQUA TERRA','AQUA TERRA',at(0,.030,-.049),.009*k,'omega_print')
+    for body,v in [('CO-AXIAL',-.066),('MASTER CHRONOMETER',-.080),('150m / 500ft',-.094)]:
+        lettering('Omega clock · '+body,body,at(0,v,-.049),.008*k,'omega_print')
     # No fixed hands are baked into the dial: they would show through the
     # live ones whenever the time changes. This anchor uses the same plane
     # for the browser's projected hands and its full 3D flight hands.
     clock=bpy.data.objects.new('Omega clock · live hands',None)
     bpy.context.collection.objects.link(clock)
     clock.location=at(0,0,-.060)
-    clock['radius']=.181*k
+    clock['radius']=.204*k
 
 
 def writing():
@@ -3177,10 +3253,10 @@ def camera_and_lights(scene):
 
 
 # What stays on when a room's lights are switched off: the moonlit night rig,
-# the night through the windows, and screens. Everything else goes dark,
-# night lights ("Glow ·": the LED strips and lava lamp) included.
+# the night through the windows, screens, and the clock's softly illuminated
+# face and phosphorescent indexes. Night lights ("Glow ·") go dark.
 STAYS_LIT=('Moon','Rim','Cliff','Sky','Monitor','Night ·','City')
-SCREENS=('Screen','Monitor','Window','display','backlight')
+UNSWITCHED_MATERIALS=('Screen','Monitor','Window','display','backlight','Omega clock ·')
 # What dims rather than staying at full brightness with the lights off: the
 # iPad's screen (to a faint glow, its glass dark so the spotlight cannot
 # light its picture) and its Magic Keyboard's backlight.
@@ -3209,7 +3285,7 @@ def switched(mat):
     """Whether switching the room's lights off changes this material's glow."""
     if not mat or not mat.use_nodes:return False
     if mat.name in DIMMED:return True
-    if any(word in mat.name for word in SCREENS):return False
+    if any(word in mat.name for word in UNSWITCHED_MATERIALS):return False
     bs=mat.node_tree.nodes.get('Principled BSDF')
     return bool(bs and bs.inputs['Emission Strength'].default_value>0)
 
@@ -3231,7 +3307,7 @@ def lights_out(scene,world):
             for link in list(bs.inputs['Base Color'].links):mat.node_tree.links.remove(link)
             bs.inputs['Base Color'].default_value=(.02,.02,.022,1)
             continue
-        if not mat.use_nodes or any(word in mat.name for word in SCREENS):continue
+        if not mat.use_nodes or any(word in mat.name for word in UNSWITCHED_MATERIALS):continue
         bs=mat.node_tree.nodes.get('Principled BSDF')
         if bs and bs.inputs['Emission Strength'].default_value>0:
             bs.inputs['Emission Strength'].default_value=0

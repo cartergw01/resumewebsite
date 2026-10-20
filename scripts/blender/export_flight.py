@@ -40,12 +40,26 @@ scene.cycles.use_denoising = False
 SKIP = ('Night · ', 'Study · window glass', 'Iced latte · glass', 'Iced latte · ice', 'Terrain · clustered meadow blades', 'Rim · fine wild grass', 'Cliff · ', 'Rug · ',
         'Sheet · screw head', 'Street · lane marking', 'Street · zebra crossing', 'Tool panel · fine perforations',
         'Lamp · tension spring', 'Poster · star')
+
+
+def volume_only(mat):
+    if not mat or not mat.use_nodes: return False
+    outputs = [node for node in mat.node_tree.nodes if node.type == 'OUTPUT_MATERIAL' and node.is_active_output]
+    return bool(outputs) and all(node.inputs['Volume'].is_linked and not node.inputs['Surface'].is_linked for node in outputs)
+
+
 depsgraph = bpy.context.evaluated_depsgraph_get()
 parts = []
 for obj in list(scene.objects):
     if obj.type not in {'MESH', 'CURVE', 'FONT'} or obj.hide_render: continue
     if obj.name.startswith(SKIP):
         obj.hide_render = True; continue
+    # Light-beam volumes have no solid surface. Joining their boundary meshes
+    # would turn the haze into opaque cones when the browser draws baked colours.
+    # Leave them in the bake scene for lighting, but out of the exported model.
+    if obj.material_slots and all(volume_only(slot.material) for slot in obj.material_slots):
+        print(f'FLIGHT {opts.world}: excluding volume boundary {obj.name}', flush=True)
+        continue
     evaluated = obj.evaluated_get(depsgraph)
     data = bpy.data.meshes.new_from_object(evaluated, preserve_all_data_layers=True, depsgraph=depsgraph)
     if not data or not len(data.vertices): continue

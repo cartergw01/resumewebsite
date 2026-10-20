@@ -1,13 +1,26 @@
 import { expect, test } from "@playwright/test";
 import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
-test("the book opens the complete Writing archive without featuring an essay", async ({ page }) => {
+test("the book opens the complete Writing archive", async ({ page, isMobile }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/#writing");
-  await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
+  const spread = page.locator("#writing [data-book-spread]");
+  await expect(spread).toHaveAttribute("data-essays", /The Cost of Keeping Up/);
+  // The paper and ink are rendered together. Neither dimming the room nor
+  // hovering the book should bring back the old flat rectangular overlay.
+  const lightsOff = page.getByRole("button", { name: "Turn the study lights off" });
+  if (isMobile) await lightsOff.tap(); else await lightsOff.click();
+  await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
+  if (!isMobile) await page.locator("#writing [data-island-link]").hover();
+  await expect(page.locator("#writing [data-book-page], #writing [data-book-response], #writing [data-touch-surface='spread']")).toHaveCount(0);
+  expect(await spread.evaluate(node => getComputedStyle(node).fill)).toBe("none");
+  const lightsOn = page.getByRole("button", { name: "Turn the study lights on" });
+  if (isMobile) await lightsOn.tap(); else await lightsOn.click();
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await watchRocketLaunch(page);
-  await page.locator("#writing [data-island-link]").click();
+  const island = page.locator("#writing [data-island-link]");
+  if (isMobile) await island.tap(); else await island.click();
   await expectRocketLaunched(page);
   // The island's open notebook lifts off to face you and is thumbed through,
   // past Carter's printed essays.

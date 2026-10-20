@@ -8,7 +8,7 @@ const formatter = new Intl.DateTimeFormat("en-GB", {
 });
 
 export const CLOCK_HANDS = {
-  hour: { length: .62, width: .035, tail: .12 },
+  hour: { length: .64, width: .045, tail: .12 },
   minute: { length: .86, width: .026, tail: .12 },
   second: { length: .94, width: .009, tail: .22 },
 } as const;
@@ -30,6 +30,12 @@ export function studyTime(date = new Date()) {
 export function clockHandPoints(name: ClockHand, angle: number): [number, number][] {
   const { length, width, tail } = CLOCK_HANDS[name];
   const radians = angle * Math.PI / 180, c = Math.cos(radians), s = Math.sin(radians);
-  return [[-width, -tail], [-width, length * .8], [0, length], [width, length * .8], [width, -tail]]
+  // Aqua Terra: a tapered hour hand and the distinctive broad-arrow minute.
+  // The SVG and 3D mesh share this silhouette as well as their time angles.
+  const points = name === "minute"
+    ? [[-width, -tail], [-width, length * .71], [-.095, length * .71], [0, length],
+      [.095, length * .71], [width, length * .71], [width, -tail]]
+    : [[-width, -tail], [-width, length * .8], [0, length], [width, length * .8], [width, -tail]];
+  return points
     .map(([x, y]) => [x * c + y * s, y * c - x * s]);
 }

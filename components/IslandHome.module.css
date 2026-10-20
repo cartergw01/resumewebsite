@@ -260,12 +260,7 @@
 @keyframes overview-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -2.5%; } }
 .writingMedia { position: relative; display: block; }
 .writingPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-.bookDetails, .bookResponse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.pageLight { opacity: 0; transition: opacity 160ms ease; }
-.islandLink:focus-visible .pageLight, .stage[data-entering="writing"] .pageLight { opacity: 0.65; }
-@media (hover: hover) and (pointer: fine) {
-  .islandLink:hover .pageLight { opacity: 0.65; }
-}
+.bookDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 /* Keyboard focus shows as the island lifting and glowing, with its "click
    to ..." prompt brightened (below and above), not a ring: an outline round
    the link's wide box crossed the sky above and below the island as lines. */
@@ -475,7 +470,6 @@
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
   .island, .landmarkCue { transition: none; }
-  .pageLight { transition: none; }
   .islandLink:hover .island, .islandLink:focus-visible .island,
   .islandLink:hover .landmarkCue, .islandLink:focus-visible .landmarkCue { transform: none; }
   .chapters .cometHead, .chapters button[data-arriving] .chapterLabel { animation: none; }
@@ -486,10 +480,8 @@
 .pageGalaxy { position: fixed; z-index: 0; opacity: 0.65; }
 .pageGalaxy .galaxy { transform: none; }
 
-/* The lamp welcomes the reader before the page warms. Idle remains quiet. */
+/* The lamp gently brightens as the reader approaches. */
 .readingLamp { opacity: calc(var(--reading-lamp, 1) * 0.4); transition: opacity 280ms ease; }
-.printedPage { opacity: calc(0.78 + var(--reading-paper, 1) * 0.22); }
-.pageLight { opacity: calc(var(--reading-paper, 1) * 0.15); }
 .islandLink:focus-visible .readingLamp, .stage[data-entering="writing"] .readingLamp { opacity: 0.9; }
 @media (hover: hover) and (pointer: fine) { .islandLink:hover .readingLamp { opacity: 0.9; } }
 .stage[data-engaged="false"][data-travelling="false"] .art::before { visibility: hidden; }
@@ -497,7 +489,6 @@
 .islandLink[data-touch-pressed] .touchSurface { opacity: .8 !important; }
 .islandLink[data-world="projects"] .touchSurface { fill: #d2e9ff; filter: drop-shadow(0 0 9px #b8dcff); }
 .overviewIsland[data-touch-pressed] .overviewDetails { filter: drop-shadow(0 0 6px #ffe4ad); }
-.overviewIsland[data-touch-pressed] [data-book-spread] { fill: #ffe6ae; fill-opacity: .65; }
 .overviewIsland[data-touch-pressed] [data-city-entry-window] { fill: #fff4cf; }
 @media (prefers-reduced-motion: reduce) { .touchSurface { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }

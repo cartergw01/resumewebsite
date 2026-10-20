@@ -16,11 +16,6 @@
 /* Carry the notebook's left-page lamplight into the heading as it opens. */
 :global(html[data-book-transition="entering"]) .lamplight,
 :global(html[data-book-transition="arriving"]) .lamplight { opacity: .85; }
-/* Each row is set like a page of the notebook it came out of (EssayLeaf):
-   the title closed by the same short rule, in the page's warm brown. */
-.page :global(.archive-main strong)::after { content: ""; display: block; width: 30px; height: 1px; margin-top: .9rem; background: #c4a27a99; transition: width 260ms var(--cw-ease); }
-.page :global(.archive-row:is(:hover, :focus-visible) .archive-main strong)::after { width: 56px; }
-@media (prefers-reduced-motion: reduce) { .page :global(.archive-main strong)::after { transition: none; } }
 /* The shared subpage column, with the archive flush under the header. */
 .page.page :global(.subpage-main) { width: var(--subpage-column); padding-top: var(--subpage-top); }
 .page.page :global(.writing-archive) { margin-top: 0; padding-left: 0; }

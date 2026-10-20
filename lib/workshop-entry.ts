@@ -74,7 +74,7 @@ export function beginBookEntry(source: SVGGraphicsElement) {
     return part;
   };
   // One essay's page, typeset like the page lying open on the island
-  // (EssayLeaf): the masthead and the date, the title closed by a short rule,
+  // in Blender: the masthead and the date, the title closed by a short rule,
   // the standfirst under it, and the byline at the foot.
   const typeset = (essay: NotebookEssay) => {
     const sheet = document.createElement("div");

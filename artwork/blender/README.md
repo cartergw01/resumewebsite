@@ -65,9 +65,10 @@ corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
 study's window, between linen drapes, looks out on the site's own night sky,
-with an Omega Speedmaster-inspired wall clock above the shelves (steel case,
-black tachymeter bezel, white markers, three counters and Ω / OMEGA branding,
-with live pale-green luminous hands showing Taipei time)
+with an Omega Seamaster Aqua Terra-inspired wall clock above the shelves
+(smooth steel bezel, navy horizontal teak dial, faceted silver hour indexes
+and Ω / OMEGA branding, with live pale-green luminous arrow hands showing
+Taipei time; twelve markers replace the watch's date aperture)
 and a lava lamp on the top shelf; the
 study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
 along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
@@ -94,7 +95,9 @@ lightweight flight model (`scripts/blender/export_flight.py`): the saved scene
 joined, its full Cycles lighting (moon or sun, lamps, emission, bounce) baked
 into vertex colours, then decimated to ~45k faces and meshopt-compressed
 (about 0.5–0.7 MB each as served; Taipei's daytime bake is a separate file
-loaded only when day is chosen). Taipei's traffic drives through the flights
+loaded only when day is chosen). Volume-only lamp haze remains in the lighting
+bake, but its boundary geometry is excluded from the flight mesh so it cannot
+become an opaque cone. Taipei's traffic drives through the flights
 too (`lib/island-traffic.ts`). The browser draws them unlit (`lib/island-flight.ts`): the islands
 sit apart in one space and the camera flies a curve from one island's render
 camera to the next, widening the lens mid-flight so both islands share the
@@ -123,8 +126,12 @@ surface.
 The Omega clock uses its own SVG hands (`components/StudyClock.tsx`), projected
 onto the dial plane exported as `life.clock`. `lib/study-clock.ts` reads the
 current wall clock in `Asia/Taipei`, with minutes and seconds included in the
-hour and minute angles. The hands retain their lume when the room is dark,
-update once a second even with reduced motion, and resync when the island or
+hour and minute angles. The hands and phosphorescent dial indexes retain their
+lume when the room is dark. The navy face, teak edges and printed lettering
+have a soft constant glow so they remain readable at the clock's small screen
+size; these materials are independent of the room's light switch.
+The hands update once a second even with reduced
+motion, and resync when the island or
 tab becomes visible. They follow the still's depth parallax. The 3D flight
 uses the same proportions and time through `lib/study-clock-3d.ts`, positioned
 from `lib/island-cameras.json`. No fixed main hands are baked into the stills
@@ -189,7 +196,8 @@ between the lit and dark stills at the pace of the sources lighting it, so
 both ends are exactly the renders. On phones it starts when someone settles on
 the room; without WebGL, or with reduced motion, the stills crossfade. The
 lamp's dust, the lava lamp's wax, the LED ball and strips follow their
-fixtures, the reading lamp's pool goes out and the desk's printed page dims.
+fixtures, and the reading lamp's pool goes out. The notebook's paper and ink
+receive their light directly from the scene, with no separately dimmed page overlay.
 Each room remembers its own switch per visitor. The camera flights keep their
 baked, lit models.
 
@@ -242,9 +250,10 @@ journals and project prints below are his real covers and screenshots.
 
 Prop references:
 
-1. [OMEGA — Speedmaster Professional Moonwatch](https://www.omegawatches.com.hk/en-hk/watch-omega-speedmaster-moonwatch-professional-chronograph-42-mm-31133423001001):
-   the study's wall clock adapts the black dial, three counters, tachymeter
-   scale and Omega branding into modelled geometry, with live luminous hands.
+1. [OMEGA — Seamaster Aqua Terra 150M, blue dial](https://www.omegawatches.com.hk/en-hk/watch-omega-seamaster-aqua-terra-150m-co-axial-master-chronometer-41-mm-22010412103001):
+   the study's wall clock adapts the navy teak dial, smooth steel bezel,
+   tapered silver indexes and Omega branding into modelled geometry, with
+   live luminous hands and the Aqua Terra's broad-arrow minute hand.
 2. [NBA Store — Kobe Bryant 2009–10 gold authentic jersey](https://store.nba.com/los-angeles-lakers/mens-los-angeles-lakers-kobe-bryant-mitchell-and-ness-gold-2009-10-hardwood-classics-authentic-jersey/t-81690757%2Bp-042078540173%2Bz-8-3711585841):
    back lettering, number colours, shoulder shape and side panels. Modelled
    geometry and procedural fabric; product photography is not included.
@@ -297,9 +306,16 @@ uses actual clustered grass blades with bare earth between drifts. City paving,
 rocks, benches and planting have their own architectural scale; the Work scene
 also includes recessed upper storeys, balcony rails and grouped office lighting.
 
-The notebook has 22 curved sheets per side, uneven cut edges, a recessed cloth
-spine and a gently lifting corner. Its projected live content stays anchored to
-the fixed readable part of the page. The rug has a soft, irregular selvedge,
+The notebook has 26 thin sheets on the left and 17 on the right, gently rounded
+corners, a shallow gutter, an olive cloth binding and a flat ribbon bookmark.
+The paper settles into slightly different curves on each side, with a small
+curl at the front right corner. Its printed ink follows the actual curved
+paper mesh, so the stills, light masks, parallax and flight model share its
+lighting. `scripts/blender/notebook_page.mjs` reads the opening essay's title,
+date and subtitle from `content/portfolio.ts` when Blender builds the scene.
+There is no flat SVG page, page-sized hover fill or touch rectangle on the book;
+the invisible spread anchor still starts the Writing entry.
+The rug has a soft, irregular selvedge,
 visible warp, loose fringe and a crossing weave shader. Sawn board ends use ring
 grain. The bench's lower shelf holds a walnut six-watch box with its glass lid
 open, a cable coil and an open aluminium poker chip case (five rows of chips,
@@ -342,7 +358,7 @@ are not included or used as image textures.
 2. Use camera view for the website composition. Objects have descriptive names.
 3. Render with **Render → Render Image**. Transparent film is enabled.
 4. Writing has a four-second loop on frames 1–48 at 12 fps. Its lamp, loose
-   correspondence, page corner and plant leaves move subtly; the ground, camera
+   correspondence and plant leaves move subtly; the ground, camera
    and reading surface remain fixed. Frame 49 matches frame 1 for seamless
    repetition. Work adds an occasional pair of headlights along a projected
    foreground street. The workshop screen varies its light slightly while

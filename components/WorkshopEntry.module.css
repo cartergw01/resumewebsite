@@ -30,7 +30,7 @@
 .face.back { transform: rotateY(180deg); }
 .face > .leaf { left: 0; right: auto; width: 100%; }
 /* Paper: printed pages of fine grain over the cream, set like the island's
-   open page (EssayLeaf), and the edges of the pages stacked under each half of
+   printed paper, and the edges of the pages stacked under each half of
    the spread. */
 .leaf {
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .17 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");

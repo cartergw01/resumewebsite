@@ -3211,52 +3211,52 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-dbe64079.webp",
+    "src": "/blender/island-writing-e5bd48af.webp",
     "spread": [
       [
-        511.231,
-        386.627
+        512.567,
+        390.243
       ],
       [
-        612.775,
-        392.851
+        611.394,
+        396.981
       ],
       [
-        501.068,
-        419.476
+        502.435,
+        422.97
       ],
       [
-        604.514,
-        425.94
+        603.127,
+        428.846
       ]
     ],
     "page": [
       [
-        569.503,
-        391.287
+        569.082,
+        395.867
       ],
       [
-        606.157,
-        394.528
+        607.016,
+        398.612
       ],
       [
-        561.857,
-        419.103
+        561.471,
+        423.603
       ],
       [
-        599.092,
-        422.428
+        600.004,
+        426.159
       ]
     ],
     "landmark": [
-      557.346,
-      406.261
+      557.338,
+      409.251
     ],
     "lamp": [
       439.641,
       314.745
     ],
-    "darkSrc": "/blender/island-writing-dark-037b6e6e.webp",
+    "darkSrc": "/blender/island-writing-dark-bbea3b0a.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -3267,24 +3267,24 @@
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-c51c24b8.webp",
-        "/blender/light-writing-1-b33d7414.webp"
+        "/blender/light-writing-0-9d5901b3.webp",
+        "/blender/light-writing-1-994237ce.webp"
       ],
       "extents": [
         [
           0.24,
-          0.617
+          0.618
         ],
         [
           0.27,
           0.478
         ],
         [
-          0.323,
-          0.703
+          0.322,
+          0.705
         ],
         [
-          0.322,
+          0.315,
           0.708
         ],
         [
@@ -3292,32 +3292,32 @@
           0.837
         ],
         [
-          0.343,
-          0.555
+          0.345,
+          0.572
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-0c71aa8f.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-2d3345b8.webp",
-    "depthSrc": "/blender/depth-writing-4cf33a9a.webp",
+    "liftedSrc": "/blender/island-writing-lifted-3a4c6967.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-1348c030.webp",
+    "depthSrc": "/blender/depth-writing-b6b1b8ac.webp",
     "life": {
       "clock": {
         "corners": [
           [
-            681.38,
-            188.04
+            679.45,
+            185.9
           ],
           [
-            712.55,
-            192.0
+            714.59,
+            190.36
           ],
           [
-            680.69,
-            217.57
+            678.69,
+            219.18
           ],
           [
-            711.71,
-            221.59
+            713.63,
+            223.71
           ]
         ]
       },

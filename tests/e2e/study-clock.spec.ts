@@ -47,6 +47,9 @@ test("the luminous clock keeps Taipei time through lights-off, midnight, and ret
   await page.getByRole("button", { name: "Show Writing island" }).click();
   await expect(clock).toHaveAttribute("data-clock-time", "03:30:00");
   await expect(clock.locator('[data-clock-hand="hour"]')).toHaveAttribute("data-angle", "105");
+  // The clock resumes during arrival; wait for the island's URL to settle
+  // before reloading, so this checks persistence rather than interrupting travel.
+  await expect(page).toHaveURL(/#writing$/);
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
   await expect(clock).toHaveAttribute("data-clock-time", "03:30:00");

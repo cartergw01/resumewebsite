@@ -30,7 +30,7 @@ function scenePainter(node: HTMLElement) {
 const FINAL_HOLD = 0.5;
 const arrivalLights: Record<string, readonly (readonly [string, number, number])[]> = {
   work: [["city-windows", 0.76, 0.86], ["city-tower", 0.86, 0.96]],
-  writing: [["reading-lamp", 0.77, 0.87], ["reading-paper", 0.87, 0.98]],
+  writing: [["reading-lamp", 0.77, 0.87]],
 };
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
