@@ -197,10 +197,7 @@ Only facts already on the site, or details Carter asked for, are used: his
 Segway-Ninebot MAX scooter on its kickstand at the edge of the workshop deck,
 rear tyre on the boards and front on the grass (he gets around Taipei on it;
 `ninebot_scooter()` sets both tyres on whatever they stand on and leans it onto
-the stand), four sorted stacks of
-poker chips with edge spots and a pair of face-down cards by the keyboard (he
-plays poker and built a poker odds calculator; the chips are drawn a little
-larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
+the stand), Lakers merch (he's a fan): Kobe Bryant's gold
 #24 home jersey framed in a shadow box above the bench (`kobe_jersey`: the
 2009–10 back, with BRYANT in purple edged in white, white angular varsity
 numbers outlined in purple, and purple side panels) and a small
@@ -214,8 +211,13 @@ monitor. The stool's seat is empty. The half-court is 2.1 by 4 scene units
 and the same-sized hoop. The eastern terrain lobe supports the wider pad;
 planting and ground heights keep the playing surface clear. The bench holds
 only what's his: the monitor, keyboard and trackpad, his iPad Pro on its Magic
-Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the
-poker chips and cards, and the desk lamp. The monitor shows TaipeiFlix, lit like a real screen. The essay
+Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the blue
+AirPods Max, and the desk lamp. The iPad has rounded glass and aluminium edges,
+a forward-leaning lower support and a magnetic upper panel, leaving its bottom
+edge floating above the keys. The black keyboard has staggered rows, subtle
+backlit legends and a properly proportioned glass trackpad. The loose poker
+chips and cards have been removed from the desktop; the chip case remains on
+the lower shelf. The monitor shows TaipeiFlix, lit like a real screen. The essay
 journals and project prints below are his real covers and screenshots.
 
 Prop references:
@@ -226,6 +228,9 @@ Prop references:
 2. [SpaceX — Starship](https://www.spacex.com/vehicles/starship/design):
    two-stage silhouette, stainless exterior, tiled ship and control surfaces.
    The shelf model simplifies small flight hardware to remain readable.
+3. [Apple — iPad Pro with Magic Keyboard](https://www.apple.com/newsroom/2020/04/new-magic-keyboard-for-ipad-pro-now-available-to-order-begins-arriving-next-week/):
+   floating cantilever support, black keyboard deck and integrated trackpad.
+   The scene keeps the 12.9-inch tablet's landscape proportions.
 
 ### Night
 

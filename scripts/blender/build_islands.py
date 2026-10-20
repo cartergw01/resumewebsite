@@ -1774,29 +1774,58 @@ def ipad_pro(x,y,z,angle,wallpaper):
     """A 12.9-inch iPad Pro on a black Magic Keyboard: the keyboard and
     trackpad on the desk, the iPad floating on its cantilevered back plate,
     its screen facing the room and showing `wallpaper` (a path from ROOT)."""
+    from mathutils import Matrix
     before=set(bpy.context.scene.objects)
     P['magic_keyboard']=material('Magic Keyboard · black polyurethane',(.018,.018,.02),rough=.6)
-    P['ipad_body']=material('iPad Pro · space black aluminium',(.03,.03,.033),metal=.6,rough=.35)
-    # Keyboard base, 28.5 x 24cm, with keys and a glass trackpad. The keys are
-    # backlit: light shows between them and through each key's legend, and
-    # dims with the room's lights off.
-    P['key_backlight']=material('Magic Keyboard · key backlight',(.82,.88,1),emission=2.2)
-    box('Magic Keyboard · base',(0,.24,.009),(.57,.48,.018),'magic_keyboard',.006)
-    box('Magic Keyboard · backlight under the keys',(0,.17,.0182),(.55,.24,.0006),'key_backlight',0)
-    for row in range(5):
-        for col in range(13):
-            box('Magic Keyboard · key',(-.252+col*.042,.115+row*.040,.0195),(.034,.032,.004),'ink',.002)
-            box('Magic Keyboard · key legend',(-.252+col*.042,.117+row*.040,.0218),(.010,.008,.0004),'key_backlight',0)
-    box('Magic Keyboard · space bar',(0,.075,.0195),(.21,.032,.004),'ink',.002)
-    box('Magic Keyboard · trackpad',(0,.035,.0185),(.20,.05,.002),'ipad_body',.002)
-    rod('Magic Keyboard · hinge',(-.27,.47,.016),(.27,.47,.016),.011,'magic_keyboard',16)
-    # The back plate leans back from the hinge and holds the iPad mid-height.
-    tilt=math.radians(-17)
-    plate=box('Magic Keyboard · cantilever plate',(0,.505,.12),(.56,.010,.22),'magic_keyboard',.006);plate.rotation_euler.x=math.radians(-12)
-    # The iPad: its bottom edge floats over the top row of keys.
-    centre=Vector((0,.475,.26))
-    ipad=box('iPad Pro · body',tuple(centre),(.56,.012,.43),'ipad_body',.008);ipad.rotation_euler.x=tilt
-    bezel=box('iPad Pro · black bezel',tuple(centre+Vector((0,-.0065,0))),(.548,.001,.418),'ink',0);bezel.rotation_euler.x=tilt
+    P['ipad_body']=material('iPad Pro · space grey aluminium',(.085,.09,.10),metal=.7,rough=.3)
+    P['magic_trackpad']=material('Magic Keyboard · matte glass trackpad',(.033,.035,.04),rough=.48)
+    # Rounded outlines are independent of the thin bodies: a bevel on a box
+    # clamps the corner radius to half its thickness and looks square.
+    def outline(w,h,r):
+        return [(cx+r*math.cos(a+math.pi/2*k/6),cz+r*math.sin(a+math.pi/2*k/6))
+                for cx,cz,a in [(w/2-r,h/2-r,0),(-w/2+r,h/2-r,math.pi/2),
+                                (-w/2+r,-h/2+r,math.pi),(w/2-r,-h/2+r,3*math.pi/2)]
+                for k in range(7)]
+    def panel(name,centre,w,h,thickness,radius,mat,tilt):
+        edge=outline(w,h,radius);n=len(edge)
+        vertices=[(px,py,pz) for py in (-thickness/2,thickness/2) for px,pz in edge]
+        faces=[tuple(range(n)),tuple(reversed(range(n,2*n)))]
+        faces += [(i+n,(i+1)%n+n,(i+1)%n,i) for i in range(n)]
+        obj=mesh(name,vertices,faces,mat);obj.location=centre;obj.rotation_euler.x=tilt
+        return obj
+    # A compact black deck, five staggered key rows, and a 10 x 5cm
+    # trackpad. Only the small legends glow, not the entire keyboard bed.
+    P['key_backlight']=material('Magic Keyboard · key backlight',(.46,.49,.54),emission=.35)
+    panel('Magic Keyboard · base',(0,.225,.009),.575,.45,.018,.018,'magic_keyboard',math.pi/2)
+    box('Magic Keyboard · recessed key bed',(0,.273,.0185),(.545,.252,.001),'ink',.006)
+    def key(kx,ky,kw=.034,kh=.037,legend=True):
+        box('Magic Keyboard · key',(kx,ky,.022),(kw,kh,.005),'magic_keyboard',.002)
+        if legend:
+            box('Magic Keyboard · key legend',(kx-.004,ky+.004,.0247),(.004,.005,.0004),'key_backlight',0)
+    for row in range(4):
+        for col in range(12):
+            key(-.232+col*.041+(row%2)*.007,.365-row*.047)
+    for kx,kw in [(-.243,.03),(-.205,.03),(-.163,.04),(0,.23),(.163,.04),(.208,.035),(.249,.03)]:
+        key(kx,.177,kw,legend=abs(kx)>.12)
+    panel('Magic Keyboard · trackpad',(0,.077,.0188),.205,.10,.0016,.009,'magic_trackpad',math.pi/2)
+    rod('Magic Keyboard · base hinge',(-.27,.441,.022),(.27,.441,.022),.012,'magic_keyboard',24)
+    # The lower support leans FORWARD from the rear hinge, then folds back
+    # behind the tablet's upper half. This leaves its bottom floating above
+    # the keys instead of reading as a laptop hinged at the rear edge.
+    tilt=math.radians(-20);rotation=Matrix.Rotation(tilt,3,'X')
+    centre=Vector((0,.315,.292))
+    lower=Vector((0,.441,.025));fold=centre+rotation@Vector((0,.016,0))
+    span=fold-lower
+    panel('Magic Keyboard · forward cantilever support',tuple((lower+fold)/2),
+          .55,span.length,.010,.008,'magic_keyboard',math.atan2(-span.y,span.z))
+    panel('Magic Keyboard · magnetic upper panel',tuple(centre+rotation@Vector((0,.016,.102))),
+          .553,.211,.010,.018,'magic_keyboard',tilt)
+    rod('Magic Keyboard · upper hinge',tuple(fold+Vector((-.267,0,0))),tuple(fold+Vector((.267,0,0))),.008,'magic_keyboard',24)
+    # Screen, bezel and body share one tilted local frame, so the display
+    # stays seated in the glass all the way around its rounded border.
+    panel('iPad Pro · body',tuple(centre),.561,.430,.012,.027,'ipad_body',tilt)
+    panel('iPad Pro · black bezel',tuple(centre+rotation@Vector((0,-.0065,0))),
+          .556,.425,.001,.025,'ink',tilt)
     image=bpy.data.images.load(str(ROOT/wallpaper),check_existing=True)
     if not image.packed_file:image.pack()
     display=material('iPad Pro · Screen display',(.02,.02,.02),rough=.2)
@@ -1805,11 +1834,14 @@ def ipad_pro(x,y,z,angle,wallpaper):
     display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Base Color'])
     display.node_tree.links.new(tex.outputs['Color'],bs.inputs['Emission Color'])
     bs.inputs['Emission Strength'].default_value=1.1
-    w,h=.52,.39
-    screen=mesh('iPad Pro · screen',[(-w/2,0,-h/2),(w/2,0,-h/2),(w/2,0,h/2),(-w/2,0,h/2)],[(0,1,2,3)],display)
+    w,h=.524,.393
+    edge=outline(w,h,.018)
+    screen=mesh('iPad Pro · screen',[(px,0,pz) for px,pz in edge],[tuple(range(len(edge)))],display)
     uv=screen.data.uv_layers.new(name='Screen coordinates')
-    for loop,point in zip(uv.data,[(0,0),(1,0),(1,1),(0,1)]):loop.uv=point
-    screen.location=centre+Vector((0,-.0075,0));screen.rotation_euler.x=tilt
+    for loop in screen.data.loops:
+        px,_,pz=screen.data.vertices[loop.vertex_index].co
+        uv.data[loop.index].uv=(px/w+.5,pz/h+.5)
+    screen.location=centre+rotation@Vector((0,-.0075,0));screen.rotation_euler.x=tilt
     place(set(bpy.context.scene.objects)-before,x,y,z,angle)
 
 
@@ -1844,11 +1876,12 @@ def spotted_chip(color):
 def poker_chip_case(x,y,z,angle):
     """An aluminium poker chip case, open on its back hinge: five rows of
     chips on edge in black felt, one colour to a row, with two decks of
-    cards, a dealer button and five dice beside them. Uses the desk chips'
-    clay colours, so it is built after them."""
+    cards, a dealer button and five dice beside them."""
     from mathutils import Matrix
     before=set(bpy.context.scene.objects)
-    P['chip-white']=material('Poker chip · white clay',(.70,.68,.62),rough=.45)
+    for name,color in [('white',(.70,.68,.62)),('red',(.50,.025,.03)),('blue',(.02,.07,.32)),
+                       ('black',(.012,.012,.014)),('green',(.02,.20,.07))]:
+        P['chip-'+name]=material('Poker chip · '+name+' clay',color,rough=.45)
     P['poker_felt']=material('Chip case · black felt',(.010,.010,.012),rough=.98)
     W,D,H,t=.78,.50,.10,.012
     box('Chip case · aluminium floor',(0,0,t/2),(W,D,t),'steel',.003)
@@ -2529,23 +2562,6 @@ def workshop():
     # Different working objects replace the three identical empty cases.
     # Carter asked for a six-watch box on the lower shelf.
     watch_box(-.43,-.14,.5175,math.radians(4))
-    # Carter plays poker and built a poker odds calculator: a short stack of
-    # chips and a pair of cards wait beside the keyboard.
-    # Each stack is one colour, like a sorted stack at the table; the chips
-    # are drawn a little larger than life so they read at the island's scale.
-    for name,color in [('red',(.50,.025,.03)),('blue',(.02,.07,.32)),('black',(.012,.012,.014)),('green',(.02,.20,.07))]:
-        P['chip-'+name]=material('Poker chip · '+name+' clay',color,rough=.45)
-    for sx2,sy2,count,color in [(1.84,-.50,14,'red'),(1.99,-.42,10,'black'),(1.76,-.33,7,'blue'),(1.95,-.26,4,'green')]:
-        for k in range(count):
-            cz2=1.797+k*.0135;jx=sx2+.003*math.sin(k*2.3);jy=sy2+.002*math.cos(k*1.7)
-            chip=cylinder('Poker · clay chip',(jx,jy,cz2),.060,.0125,'chip-'+color,32,bevel=.0018)
-            chip.rotation_euler.z=k*.7
-            for e in range(6):
-                a=k*.7+e*math.tau/6
-                box('Poker · chip edge spot',(jx+math.cos(a)*.0598,jy+math.sin(a)*.0598,cz2),(.006,.022,.0128),'paper',0,rot=a)
-    for k,(cx,cy,rot) in enumerate([(1.50,-.56,.30),(1.57,-.53,.52)]):
-        box('Poker · face-down card',(cx,cy,1.792+k*.002),(.125,.175,.002),'paper',.001,rot=rot)
-        box('Poker · card back',(cx,cy,1.7935+k*.002),(.105,.155,.0006),'redcloth',0,rot=rot)
     # Carter asked for a poker chip set on the lower shelf and blue AirPods
     # Max on the bench.
     poker_chip_case(1.55,.02,.5175,math.radians(-5))
