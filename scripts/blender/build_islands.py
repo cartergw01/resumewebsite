@@ -369,7 +369,15 @@ def terrain_height(x,y,seed):
     broad=noise.noise(Vector((x*.65,y*.65,seed)),noise_basis='PERLIN_ORIGINAL')
     # The city's district is built out to its edge, so its shoulders stay low.
     rise=.22 if seed==31 else 1
-    return rise*edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
+    height=rise*edge*edge*(.10+.22*(.5+.5*math.sin(x*1.4+y*.8))+.14*broad)
+    if seed==107:
+        # Grade the expanded court's yard below its concrete pad, blending
+        # back into the irregular shoulders beyond the playing surface.
+        x0,x1,y0,y1=COURT
+        distance=max(x0-x,x-x1,y0-y,y-y1,0)
+        blend=max(0,min(1,distance/.55))
+        height*=blend*blend*(3-2*blend)
+    return height
 
 
 # Each island has its own plan instead of one shared oval. (squareness,
@@ -380,7 +388,7 @@ PLANS={
     # A soft, rounded garden plot with a bulge where the reading garden sits.
     'garden':(2.0,(.94,1.02),[(math.radians(170),.55,.10),(math.radians(-60),.6,.05)]),
     # A rough, broken lot: a jagged edge and a yard lobe where the scooter stands.
-    'lot':(2.3,(.80,1.07),[(math.radians(28),.42,.16),(math.radians(-150),.35,.08)]),
+    'lot':(2.3,(.80,1.07),[(math.radians(12),.75,.42),(math.radians(-150),.35,.08)]),
 }
 
 
@@ -464,6 +472,7 @@ def foundation(seed,plan='garden'):
     for i in range(110):
         a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.87,.98)
         v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18+.03
+        if seed==107 and on_court('projects',v.x*1.35,v.y*1.35,.25):continue
         if i%3==0:
             foliage('Rim · low wild groundcover',v,(.19*city_scale,.14*city_scale,.085*city_scale),rng,110)
         grass_verts=[];grass_faces=[]
@@ -521,7 +530,7 @@ def terrain_path(name,points,width,seed,mat='stone',step=.28):
 
 # The workshop's half-court: a poured pad in the yard lobe right of the shed,
 # (x0, x1, y0, y1) in island units. Nothing else is planted or stacked on it.
-COURT=(3.35,4.35,-1.35,2.15)
+COURT=(3.35,5.45,-1.65,2.35)
 
 
 def on_court(world,x,y,margin=.12):
@@ -1307,23 +1316,59 @@ def lava_lamp(x,y,z,k=1):
     light('Glow · lava lamp',(x,y-.12*k,z+.30*k),(1,.25,.40),5*k,.06)
 
 
-def falcon9(x,y,z,height=.9):
-    """A display model of SpaceX's Falcon 9: a white first stage on its four
-    folded black landing legs, grid fins at its top, the black interstage, the
-    second stage and the payload fairing, on a round black base. Proportions
-    are a little stouter than the real rocket's so it reads at island scale."""
-    k=height/.9;r=.03*k
-    cylinder('Falcon 9 model · display base',(x,y,z+.012*k),.09*k,.024*k,'ink',40,bevel=.003)
-    cylinder('Falcon 9 · engine section',(x,y,z+.04*k),r*.92,.032*k,'ink',32,bevel=.002)
-    cylinder('Falcon 9 · first stage',(x,y,z+.30*k),r,.49*k,'paper',32,bevel=.002)
+def starship(x,y,z,height=1.05):
+    """A stainless Starship / Super Heavy display stack, with a black
+    windward heat shield, two pairs of ship flaps and booster grid fins."""
+    k=height/1.05;r=.041*k
+    P.setdefault('starship_steel',textured('Starship · brushed stainless steel',(.40,.44,.48),(.69,.73,.76),'metal',metal=.85,rough=.28))
+    P.setdefault('starship_tiles',textured('Starship · black heat shield',(.008,.010,.014),(.025,.029,.035),'stone',rough=.9))
+    cylinder('Starship model · display base',(x,y,z+.012*k),.10*k,.024*k,'ink',48,bevel=.003)
+    cylinder('Super Heavy · engine skirt',(x,y,z+.055*k),r,.060*k,'starship_steel',48,bevel=.001)
+    cylinder('Super Heavy · stainless booster',(x,y,z+.345*k),r,.53*k,'starship_steel',48,bevel=.001)
+    for i in range(12):
+        a=i*math.tau/12
+        cylinder('Super Heavy · engine bell',(x+math.cos(a)*r*.73,y+math.sin(a)*r*.73,z+.030*k),.007*k,.018*k,'steel',12,top=.004*k,bevel=0)
+    for i in range(12):
+        torus('Super Heavy · welded ring',(x,y,z+(.09+i*.043)*k),r+.0003*k,.0006*k,'steel')
+    # The vented hot-stage ring separates the two silver cylinders.
+    cylinder('Super Heavy · hot-stage shadow',(x,y,z+.626*k),r*.90,.033*k,'ink',40,bevel=0)
+    for zz in [.610,.643]:
+        torus('Super Heavy · hot-stage rim',(x,y,z+zz*k),r,.0018*k,'starship_steel')
+    for i in range(16):
+        a=i*math.tau/16
+        rod('Super Heavy · hot-stage strut',(x+math.cos(a)*r,y+math.sin(a)*r,z+.611*k),(x+math.cos(a)*r,y+math.sin(a)*r,z+.642*k),.0011*k,'starship_steel',6)
     for i in range(4):
         a=math.pi/4+i*math.pi/2
-        leg=box('Falcon 9 · folded landing leg',(x+math.cos(a)*(r+.004*k),y+math.sin(a)*(r+.004*k),z+.12*k),(.010*k,.007*k,.16*k),'ink',.001,rot=a+math.pi/2)
-        fin=box('Falcon 9 · grid fin',(x+math.cos(a+math.pi/4)*(r+.012*k),y+math.sin(a+math.pi/4)*(r+.012*k),z+.535*k),(.022*k,.004*k,.018*k),'ink',.001,rot=a+math.pi/4)
-    cylinder('Falcon 9 · interstage',(x,y,z+.575*k),r,.06*k,'ink',32,bevel=.001)
-    cylinder('Falcon 9 · second stage',(x,y,z+.65*k),r,.09*k,'paper',32,bevel=.001)
-    cylinder('Falcon 9 · fairing',(x,y,z+.745*k),r*1.25,.10*k,'paper',32,bevel=.002)
-    cylinder('Falcon 9 · fairing nose',(x,y,z+.845*k),r*1.25,.10*k,'paper',32,top=.003*k,bevel=0)
+        box('Super Heavy · grid fin',(x+math.cos(a)*(r+.012*k),y+math.sin(a)*(r+.012*k),z+.574*k),(.035*k,.025*k,.005*k),'ink',.001,rot=a)
+        for j in range(4):
+            bar=box('Super Heavy · grid fin rib',(x+math.cos(a)*(r+.012*k),y+math.sin(a)*(r+.012*k),z+.578*k),(.031*k,.0014*k,.002*k),'steel',0,rot=a)
+            bar.location.x+=-math.sin(a)*(j-1.5)*.006*k
+            bar.location.y+=math.cos(a)*(j-1.5)*.006*k
+    # Ship: cylindrical tank barrel and a gently rounded ogive nose.
+    profile=[(r,0),(r,.265*k),(.038*k,.305*k),(.028*k,.350*k),(.015*k,.383*k),(.002*k,.407*k)]
+    lathe('Starship · stainless ship',(x,y,z+.643*k),profile,'starship_steel',segments=64)
+    for zz in [.69,.74,.79,.84,.89]:
+        torus('Starship · welded ring',(x,y,z+zz*k),r+.0003*k,.0006*k,'steel')
+    # A partial shell shows both the tiled belly and the polished steel side.
+    verts=[];faces=[];segments=24
+    for radius,h in profile:
+        for i in range(segments+1):
+            a=math.radians(195)+i*math.radians(135)/segments
+            verts.append((x+(radius+.0006*k)*math.cos(a),y+(radius+.0006*k)*math.sin(a),z+.643*k+h))
+    for row in range(len(profile)-1):
+        for i in range(segments):
+            n=row*(segments+1)+i
+            faces.append((n,n+1,n+segments+2,n+segments+1))
+    shield=mesh('Starship · windward heat shield',verts,faces,'starship_tiles')
+    for face in shield.data.polygons:face.use_smooth=True
+    for side in [-1,1]:
+        for label,outline in [
+            ('aft',[(.036,.66),(.082,.66),(.080,.72),(.041,.81)]),
+            ('forward',[(.031,.927),(.062,.925),(.058,.973),(.022,1.011)]),
+        ]:
+            v=[(x+side*u*k,y+dy*k,z+h*k) for dy in [-.005,.005] for u,h in outline]
+            flap=mesh('Starship · '+label+' flap',v,[(0,1,2,3),(7,6,5,4),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],'starship_steel')
+            flap.data.materials.append(P['starship_tiles']);flap.data.polygons[0].material_index=1
 
 
 def spot(name,loc,target,color,energy,cone,blend=.5,soft=.04):
@@ -2178,58 +2223,78 @@ def ninebot_scooter(x,y,angle):
 
 
 def kobe_jersey(cx,y,cz):
-    """Kobe Bryant's Lakers home jersey, gold #24, in a black shadow-box
-    frame: purple trim at the neck and arms with white piping, purple and
-    white side stripes, LAKERS arched across the chest and 24 below, both
-    purple outlined in white."""
-    P['jersey_gold']=material('Jersey · Lakers gold mesh',(.98,.49,.02),rough=.62)
+    """Back of Kobe's 2009–10 gold home jersey, as shown by the NBA Store:
+    purple BRYANT with white edging, white varsity 24 outlined in purple,
+    broad shoulders, a shallow back collar, and purple side panels."""
+    P['jersey_gold']=textured('Jersey · Lakers gold mesh',(.85,.40,.008),(1,.61,.025),'fabric',rough=.8)
     P['jersey_purple']=material('Jersey · Lakers purple',(.09,.018,.23),rough=.6)
     P['jersey_white']=material('Jersey · white piping',(.86,.86,.84),rough=.6)
     P['frame_black']=material('Shadow box · black frame',(.015,.015,.017),rough=.35)
     P['frame_back']=material('Shadow box · charcoal backing',(.035,.035,.04),rough=.95)
-    fw,fh=.64,.84
+    fw,fh=.76,1.00
     box('Shadow box · backing',(cx,y+.012,cz),(fw,.008,fh),'frame_back',.002)
     for dx,dz,w,h in [(0,fh/2,fw+.06,.05),(0,-fh/2,fw+.06,.05),(-fw/2,0,.05,fh+.06),(fw/2,0,.05,fh+.06)]:
         box('Shadow box · frame rail',(cx+dx,y-.005,cz+dz),(w,.045,h),'frame_black',.004)
     # The jersey's outline, from the hem up the side, round the armhole, over
     # the strap, down into the neck and back out (u across, v up).
-    W,H=.25,.66;bottom=cz-.34
-    half=[(.88,0),(.90,.55),(.84,.64),(.70,.71),(.60,.80),(.56,.92),(.55,1.0),(.30,1.0),(.22,.92),(.13,.84),(0,.80)]
+    W,H=.29,.78;bottom=cz-.39
+    half=[(1,0),(.96,.58),(.84,.67),(.73,.82),(.68,1.0),(.35,1.0),(.25,.96),(0,.94)]
     outline=half+[(-u,v) for u,v in reversed(half[:-1])]
     at=lambda u,v,dy=0:(cx+u*W,y-.004+dy,bottom+v*H)
     body=mesh('Jersey · gold body',[at(u,v) for u,v in outline],[tuple(range(len(outline)))],'jersey_gold')
     # Purple trim with white piping round the neck and both armholes.
-    neck=[(.30,1.0),(.22,.92),(.13,.84),(0,.80),(-.13,.84),(-.22,.92),(-.30,1.0)]
-    curve('Jersey · purple neck trim',[at(u,v,-.003) for u,v in neck],.013,'jersey_purple')
-    curve('Jersey · white neck piping',[at(u*.88,v-.035,-.004) for u,v in neck],.0035,'jersey_white')
+    neck=[(.35,1.0),(.25,.96),(0,.94),(-.25,.96),(-.35,1.0)]
+    curve('Jersey · purple back collar',[at(u,v,-.003) for u,v in neck],.009,'jersey_purple')
     for side in [-1,1]:
-        arm=[(.90,.55),(.84,.64),(.70,.71),(.60,.80),(.56,.92),(.55,1.0)]
-        curve('Jersey · purple armhole trim',[at(side*u,v,-.003) for u,v in arm],.013,'jersey_purple')
-        curve('Jersey · white armhole piping',[at(side*(u-.05),v-.01,-.004) for u,v in arm],.0035,'jersey_white')
-        # Side panel stripes from the hem to under the arm.
-        for k,(mat,du) in enumerate([('jersey_purple',.0),('jersey_white',-.07),('jersey_purple',-.12)]):
-            rod('Jersey · side stripe',at(side*(.86+du),.02,-.002),at(side*(.86+du),.52,-.002),.006 if k==1 else .009,mat,6)
+        arm=[(.96,.58),(.84,.67),(.73,.82),(.68,1.0)]
+        curve('Jersey · purple armhole trim',[at(side*u,v,-.003) for u,v in arm],.010,'jersey_purple')
+        mesh('Jersey · purple side panel',[at(side*u,v,-.003) for u,v in [(1,0),(.96,.58),(.81,.59),(.85,0)]],[(0,1,2,3)],'jersey_purple')
+        curve('Jersey · white side piping',[at(side*.85,.01,-.005),at(side*.81,.59,-.005)],.004,'jersey_white')
+    curve('Jersey · stitched hem',[at(-.98,.025,-.002),at(0,.02,-.002),at(.98,.025,-.002)],.0015,'jersey_gold')
     font=None
     for path in ['/System/Library/Fonts/Supplemental/DIN Condensed Bold.ttf','/System/Library/Fonts/Supplemental/Impact.ttf']:
         try:font=bpy.data.fonts.load(path,check_existing=True);break
         except Exception:pass
     def glyph(name,text,loc,size,mat,tilt=0,outline=0):
         data=bpy.data.curves.new(name,'FONT');data.body=text;data.size=size;data.extrude=.0012
-        data.align_x='CENTER';data.align_y='CENTER';data.shear=.18
+        data.align_x='CENTER';data.align_y='CENTER'
         if font:data.font=font
         if outline:data.offset=outline
         obj=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(obj)
         obj.location=loc;obj.rotation_euler=(math.pi/2,tilt,0);data.materials.append(P[mat])
         return obj
-    # LAKERS arched across the chest, each letter turned to the arch.
-    word='LAKERS';radius=.62;step=.105
+    # The name is upright varsity lettering, arched across the shoulders.
+    word='BRYANT';radius=.58;step=.103
     for k,ch in enumerate(word):
         th=(k-(len(word)-1)/2)*step
-        u=math.sin(th)*radius/W;v=.70+(math.cos(th)-1)*radius/H
-        glyph('Jersey · LAKERS letter',ch,at(u,v,-.009),.115,'jersey_purple',th)
-        glyph('Jersey · LAKERS outline',ch,at(u,v,-.007),.115,'jersey_white',th,.006)
-    glyph('Jersey · number 24','24',at(0,.33,-.009),.30,'jersey_purple')
-    glyph('Jersey · number outline','24',at(0,.33,-.007),.30,'jersey_white',0,.008)
+        u=math.sin(th)*radius/W;v=.79+(math.cos(th)-1)*radius/H
+        glyph('Jersey · BRYANT letter',ch,at(u,v,-.010),.127,'jersey_purple',th)
+        glyph('Jersey · BRYANT outline',ch,at(u,v,-.007),.127,'jersey_white',th,.003)
+    # Model the angular varsity digits directly instead of substituting a
+    # rounded system font; the 2009–10 number is white inside a purple border.
+    digits=[
+        [[(0,.75),(.18,.75),(.18,.82),(.40,.82),(.46,.76),(.46,.65),(0,.18),(0,0),(.66,0),(.66,.18),(.25,.18),(.66,.60),(.66,.87),(.53,1),(.12,1),(0,.88)]],
+        [[(0,.36),(.40,1),(.61,1),(.61,.33),(.70,.33),(.70,.16),(.61,.16),(.61,0),(.42,0),(.42,.16),(0,.16)],
+         [(.19,.33),(.42,.33),(.42,.70)]],
+    ]
+    scale=.27
+    for digit,contours in enumerate(digits):
+        for mat,dy,offset in [('jersey_purple',-.007,.008),('jersey_white',-.011,0)]:
+            data=bpy.data.curves.new('Jersey · varsity '+str(2 if digit==0 else 4),'CURVE')
+            data.dimensions='2D';data.fill_mode='BOTH';data.extrude=.0005;data.offset=offset
+            for i,points in enumerate(contours):
+                area=sum(a[0]*b[1]-b[0]*a[1] for a,b in zip(points,points[1:]+points[:1]))
+                if (area>0)!=(i==0):points=list(reversed(points))
+                spline=data.splines.new('POLY');spline.points.add(len(points)-1)
+                for p,(u,v) in zip(spline.points,points):p.co=(u*scale,v*scale,0,1)
+                spline.use_cyclic_u=True
+            obj=bpy.data.objects.new('Jersey · '+mat+' number '+str(2 if digit==0 else 4),data)
+            bpy.context.collection.objects.link(obj);data.materials.append(P[mat])
+            obj.location=(cx-.197+digit*.205,y-.004+dy,bottom+.29*H)
+            obj.rotation_euler.x=math.pi/2
+    # A small museum label identifies the framed shirt even at closer views.
+    box('Shadow box · Kobe nameplate',(cx,y-.014,cz-fh/2+.045),(.37,.008,.040),'brass',.002)
+    lettering('Shadow box · Kobe Bryant label','KOBE BRYANT',(cx,y-.020,cz-fh/2+.045),.026,'ink',(math.pi/2,0,0))
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
 
 
@@ -2328,7 +2393,7 @@ def half_court():
     # A purple border all round, then the playing floor: maple strips (about
     # 6cm wide, like a real court's) running the length of the court.
     box('Court · painted border',(cx,(y0+y1)/2,top+.001),(x1-x0-.02,y1-y0-.02,.002),'court',0)
-    strips=9;inner=x1-x0-.14;w=inner/strips;rng=random.Random(2424)
+    inner=x1-x0-.14;strips=round(inner/.10);w=inner/strips;rng=random.Random(2424)
     for i in range(strips):
         sx=x0+.07+w*(i+.5);y=y0+.07
         while y<y1-.07-.01:
@@ -2336,23 +2401,25 @@ def half_court():
             box('Court · maple strip',(sx,y+length/2,top+.0022),(w-.004,length-.004,.002),'maple' if rng.random()<.6 else 'maple2',0)
             y+=length
     # Baseline under the hoop, sidelines, the key and the free-throw circle.
-    base=y1-.10;ft=base-1.00;lz=top+.004
+    base=y1-.10;ft=base-1.35;lz=top+.004;key_width=.86
     def line(a,b,w=.024):
         (ax,ay),(bx,by)=a,b
         box('Court · painted line',((ax+bx)/2,(ay+by)/2,lz),(abs(bx-ax)+w,abs(by-ay)+w,.002),'line',0)
-    box('Court · painted key',(cx,(base+ft)/2,top+.003),(.46,base-ft,.002),'key',0)
+    box('Court · painted key',(cx,(base+ft)/2,top+.003),(key_width,base-ft,.002),'key',0)
     line((x0+.05,base),(x1-.05,base))
     for x in [x0+.05,x1-.05]:line((x,y0+.05),(x,base))
     line((x0+.05,y0+.05),(x1-.05,y0+.05))
-    for x in [cx-.23,cx+.23]:line((x,ft),(x,base))
-    line((cx-.23,ft),(cx+.23,ft))
-    curve('Court · free-throw circle',[(cx+.23*math.cos(a*math.tau/24),ft+.23*math.sin(a*math.tau/24),lz) for a in range(24)],.009,'line',cyclic=True)
+    for x in [cx-key_width/2,cx+key_width/2]:line((x,ft),(x,base))
+    line((cx-key_width/2,ft),(cx+key_width/2,ft))
+    curve('Court · free-throw circle',[(cx+key_width/2*math.cos(a*math.tau/48),ft+key_width/2*math.sin(a*math.tau/48),lz) for a in range(48)],.009,'line',cyclic=True)
     # The three-point arc around the hoop, where it fits on the pad.
-    hx,hy=cx,base-.30;arc=[]
-    for i in range(61):
-        a=math.pi+i*math.pi/60;x=hx+1.30*math.cos(a);y=hy+1.30*math.sin(a)
-        if x0+.05<x<x1-.05:arc.append((x,y,lz))
-    if len(arc)>2:curve('Court · three-point arc',arc,.009,'line')
+    hx,hy=cx,base-.30;radius=1.70;half_width=(x1-x0)/2-.16
+    angle=math.acos(half_width/radius)
+    arc=[(hx+radius*math.cos(a),hy+radius*math.sin(a),lz)
+         for a in [math.pi+angle+i*(math.pi-2*angle)/60 for i in range(61)]]
+    curve('Court · three-point arc',arc,.009,'line')
+    for x in [cx-half_width,cx+half_width]:
+        line((x,hy-radius*math.sin(angle)),(x,base))
     # The hoop: pole behind the baseline, an arm, the board, rim and net.
     px,py=cx,y1+.32;rim_z=3.40
     cylinder('Hoop · concrete footing',(px,py,.12),.16,.30,'stone',24,bevel=.01)
@@ -2381,9 +2448,6 @@ def half_court():
     box('Court floodlight · LED panel',(px,fy-.05,fz-.05),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-50)
     spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.78,.86,1),2000,70,.6,.10)
     ANCHORS['hoop']=(px,ry,rim_z)
-    # Carter's navy JBL Charge 4, on the court's back corner by the pole:
-    # music while he shoots.
-    jbl_charge4(x1-.30,y1-.24,top+.004,math.radians(90))
 
 
 def workshop():
@@ -2587,7 +2651,7 @@ def workshop():
     # Carter's Ninebot scooter, on its kickstand in the front yard left of
     # the step, clear of the court; he gets around the city on it.
     ninebot_scooter(-1.20,-2.65,math.radians(8))
-    # Space things, taped and shelved: a planet poster and a Falcon 9 model,
+    # Space things, taped and shelved: a planet poster and a Starship model,
     # the same sky the site floats in. (The top shelf is kept to a few
     # objects: no LED ball or cartons.)
     P['spaceposter']=material('Poster · deep space print',(.012,.018,.045),rough=.7)
@@ -2605,13 +2669,14 @@ def workshop():
         box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
-    falcon9(2.38,1.60,shelf,.95)
+    starship(2.38,1.60,shelf,1.05)
     # Carter asked for BLACKPINK's official light stick, lit, on the top
     # shelf (on the lower one the stool hid it), lying with a heart turned to
-    # the room. His navy JBL Charge 4 is out on the court (half_court()).
+    # the room. The navy JBL Charge 4 sits beside it, clear of the monitor.
     blackpink_lightstick(.70,1.60,shelf,0,k=1.2)
-    # Tesla merch: a stainless Cybertruck model on the shelf, a cap on the stool.
-    cx,cy,cz=1.62,1.60,shelf
+    jbl_charge4(1.25,1.48,shelf,0)
+    # Tesla merch: a stainless Cybertruck model on the shelf.
+    cx,cy,cz=1.85,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
     tv=[(cx+u,cy+side*.085,cz+v) for side in [-1,1] for u,v in profile]
     m=len(profile)
@@ -2621,12 +2686,6 @@ def workshop():
     for u in [-.14,.14]:
         for side in [-1,1]:
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
-    P['teslared']=material('Cap · red embroidered mark',(.55,.03,.03),rough=.8)
-    stx,sty=STOOL
-    cap=sphere('Cap · black crown',(stx,sty,1.142),(.15,.15,.10),'ink',3)
-    box('Cap · brim',(stx,sty-.16,1.15),(.20,.14,.012),'ink',.02)
-    box('Cap · mark',(stx,sty-.125,1.21),(.06,.004,.012),'teslared',0).rotation_euler.x=-.6
-    box('Cap · mark',(stx,sty-.124,1.19),(.012,.004,.045),'teslared',0).rotation_euler.x=-.6
     # A basketball left on the deck.
     # Orange pebbled leather; its black channels are two great circles at
     # right angles and two curved seams either side, the ball tipped at rest.

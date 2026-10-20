@@ -201,16 +201,31 @@ the stand), four sorted stacks of
 poker chips with edge spots and a pair of face-down cards by the keyboard (he
 plays poker and built a poker odds calculator; the chips are drawn a little
 larger than life so they read), Lakers merch (he's a fan): Kobe Bryant's gold
-#24 home jersey framed in a shadow box above the bench (`kobe_jersey`: purple
-trim and white piping, side stripes, LAKERS arched over 24) and a small
+#24 home jersey framed in a shadow box above the bench (`kobe_jersey`: the
+2009–10 back, with BRYANT in purple edged in white, white angular varsity
+numbers outlined in purple, and purple side panels) and a small
 purple-and-gold felt pennant, an orange basketball with a real ball's seams on
-the deck, a stainless Cybertruck model and a black cap with a small red mark
-(Tesla merch), and space things: a taped planet poster, and on the shelf a
-SpaceX Falcon 9 display model and a colour-changing LED ball. The bench holds
+the court, a stainless Cybertruck model, and space things: a taped planet poster
+and a stainless SpaceX Starship / Super Heavy display stack with a black heat
+shield, ship flaps, vented hot-stage ring and booster grid fins. The navy JBL
+Charge 4 sits on the top shelf beside the BLACKPINK light stick, clear of the
+monitor. The stool's seat is empty. The half-court is 2.1 by 4 scene units
+(previously 1 by 3.5), with a wider key, complete connected three-point markings
+and the same-sized hoop. The eastern terrain lobe supports the wider pad;
+planting and ground heights keep the playing surface clear. The bench holds
 only what's his: the monitor, keyboard and trackpad, his iPad Pro on its Magic
 Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the
 poker chips and cards, and the desk lamp. The monitor shows TaipeiFlix, lit like a real screen. The essay
 journals and project prints below are his real covers and screenshots.
+
+Prop references:
+
+1. [NBA Store — Kobe Bryant 2009–10 gold authentic jersey](https://store.nba.com/los-angeles-lakers/mens-los-angeles-lakers-kobe-bryant-mitchell-and-ness-gold-2009-10-hardwood-classics-authentic-jersey/t-81690757%2Bp-042078540173%2Bz-8-3711585841):
+   back lettering, number colours, shoulder shape and side panels. Modelled
+   geometry and procedural fabric; product photography is not included.
+2. [SpaceX — Starship](https://www.spacex.com/vehicles/starship/design):
+   two-stage silhouette, stainless exterior, tiled ship and control surfaces.
+   The shelf model simplifies small flight hardware to remain readable.
 
 ### Night
 
