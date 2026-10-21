@@ -1,9 +1,8 @@
-// node snapshot.cjs <outDir> [selectors.json]
+// node snapshot.mjs <outDir> [selectors.json]
 // For every route × width × scroll state: a PNG screenshot, the computed style
 // of every element, and (optionally) which candidate selectors match anything.
-const path = require("path"), fs = require("fs");
-const ROOT = "/Users/carterwang/Documents/vibe coded projects/resumewebsite";
-const { chromium } = require(path.join(ROOT, "node_modules/@playwright/test"));
+import fs from "node:fs";
+import { chromium } from "@playwright/test";
 const out = process.argv[2], selFile = process.argv[3];
 fs.mkdirSync(out, { recursive: true });
 const candidates = selFile ? JSON.parse(fs.readFileSync(selFile, "utf8")).filter(x => x.missing.length).map(x => x.sel) : [];

@@ -1,4 +1,5 @@
-const fs=require("fs");const [A,B]=process.argv.slice(2);
+import fs from "node:fs";
+const [A,B]=process.argv.slice(2);
 const norm=s=>s.replace(/__[A-Za-z_]+?_[0-9a-f]{6}/g,"__FONT").replace(/__variable_[0-9a-f]{6}/g,"__VAR");
 const load=f=>JSON.parse(fs.readFileSync(f)).map(([id,s])=>[norm(id),norm(s)]).filter(([id])=>!/^(HTML|HEAD|META|LINK|SCRIPT|STYLE|TITLE|NOSCRIPT|BODY)\b/.test(id)||id.startsWith("BODY"));
 let total=0,diffs=0;const notes=[];

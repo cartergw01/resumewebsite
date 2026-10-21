@@ -1,7 +1,10 @@
 // List every selector in app/globals.css with its source line and whether its
 // class names exist anywhere in the site's code (outside globals.css).
-const fs=require("fs"),path=require("path");const ROOT="/Users/carterwang/Documents/vibe coded projects/resumewebsite";
-const postcss=require(path.join(ROOT,"node_modules/postcss"));
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import postcss from "postcss";
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const css=fs.readFileSync(path.join(ROOT,"app/globals.css"),"utf8");
 const corpus=[];const walk=d=>{for(const f of fs.readdirSync(d,{withFileTypes:true})){const p=path.join(d,f.name);if(f.isDirectory()){if(!/node_modules|\.next/.test(p))walk(p)}else if(/\.(tsx?|jsx?|mdx?|json|html)$/.test(f.name))corpus.push(fs.readFileSync(p,"utf8"))}};
 for(const d of ["app","components","lib","content","public"]) if(fs.existsSync(path.join(ROOT,d))) walk(path.join(ROOT,d));

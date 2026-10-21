@@ -37,7 +37,7 @@ scene.cycles.use_denoising = False
 
 # Blades of grass, hair-thin roots and sub-pixel hardware vanish in a moving
 # camera; dropping them keeps the budget for the shapes that read.
-SKIP = ('Night · ', 'Study · window glass', 'Iced latte · glass', 'Iced latte · ice', 'Terrain · clustered meadow blades', 'Rim · fine wild grass', 'Cliff · ', 'Rug · ',
+SKIP = ('Night · ', 'Study · window glass', 'Shadow box · protective glazing', 'Iced latte · glass', 'Iced latte · ice', 'Terrain · clustered meadow blades', 'Rim · fine wild grass', 'Cliff · ', 'Rug · ',
         'Sheet · screw head', 'Street · lane marking', 'Street · zebra crossing', 'Tool panel · fine perforations',
         'Lamp · tension spring', 'Poster · star')
 

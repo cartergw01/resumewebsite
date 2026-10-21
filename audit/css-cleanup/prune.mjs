@@ -1,5 +1,8 @@
-const fs=require("fs"),path=require("path");const ROOT="/Users/carterwang/Documents/vibe coded projects/resumewebsite";
-const postcss=require(path.join(ROOT,"node_modules/postcss"));
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import postcss from "postcss";
+const ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const file=path.join(ROOT,"app/globals.css");const before=fs.readFileSync(file,"utf8");
 const dead=new Set(JSON.parse(fs.readFileSync(process.argv[2],"utf8")).filter(x=>x.missing.length).map(x=>x.sel));
 const matched=new Set(JSON.parse(fs.readFileSync(process.argv[3],"utf8")));

@@ -174,8 +174,8 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
       timer = setTimeout(() => {
         if (!allowed()) return;
         show();
-        // A short rest between shows.
-        timer = setTimeout(schedule, random(15_000, 18_000));
+        // Leave the skyline quiet between shows; the entry burst still answers immediately.
+        timer = setTimeout(schedule, random(24_000, 32_000));
       }, random(1200, 2400));
     };
     const observer = new MutationObserver(schedule);

@@ -24,6 +24,12 @@ P = {}
 ANCHORS = {}
 WINDOWS = []
 ANIMATED = []
+REFINEMENTS = json.loads((Path(__file__).with_name('island-refinements.json')).read_text())
+
+
+def refined(world, detail):
+    """Build-time switches: selective reverts never add browser work."""
+    return REFINEMENTS.get(world, {}).get(detail, False)
 
 
 def material(name, color, metal=0, rough=0.65, emission=0):
@@ -418,6 +424,8 @@ def foundation(seed,plan='garden'):
         coarse=noise.noise(Vector((math.cos(a)*2.7,math.sin(a)*2.7,t*4.6+seed)),noise_basis='PERLIN_ORIGINAL')
         grit=noise.noise(Vector((math.cos(a)*16,math.sin(a)*16,t*24)),noise_basis='PERLIN_ORIGINAL')
         warped=max(0,min(1,t+(.075*math.sin(a*3+seed)+.032*math.sin(a*7))*math.sin(math.pi*t)))
+        if refined('shared','geology'):
+            warped=max(0,min(1,warped+.055*coarse*math.sin(math.pi*t)))
         for (ta,ra),(tb,rb) in zip(strata,strata[1:]):
             if ta<=warped<=tb:
                 profile=ra+(rb-ra)*(warped-ta)/(tb-ta);break
@@ -444,6 +452,10 @@ def foundation(seed,plan='garden'):
             warp=noise.noise(Vector((v.x*.35,v.y*.35,seed)),noise_basis='PERLIN_ORIGINAL')*.06+.025*math.sin(v.x*1.7+v.y)
             bed=int(max(0,t+warp-.06)*11)
             mat=2 if k<2 else (1 if k<4 else [0,3,0,0,4,3,0,4,0,4,4][min(10,bed)])
+            if refined('shared','geology') and k>=4:
+                pocket=noise.noise(Vector((v.x*.82,v.y*.82,t*7+seed)),noise_basis='PERLIN_ORIGINAL')
+                if mat==3 and pocket<.18:mat=0
+                if pocket<-.42 and t>.22:mat=4
             materials.extend([mat,mat])
     # A tessellated soil cap with an exposed organic rim and a level inner plot.
     inner=[]
@@ -471,6 +483,7 @@ def foundation(seed,plan='garden'):
     city_scale=.18 if seed==31 else 1
     for i in range(110):
         a=rng.uniform(0,math.tau);v=point(a,0)*rng.uniform(.87,.98)
+        if refined('shared','planting') and math.sin(a*5+seed)+.55*math.cos(a*9)<-.25:continue
         v.z=terrain_height(v.x*1.35,v.y*1.35,seed)/1.18+.03
         if seed==107 and on_court('projects',v.x*1.35,v.y*1.35,.25):continue
         if i%3==0:
@@ -506,10 +519,17 @@ def foundation(seed,plan='garden'):
         length=rng.uniform(.14,.30) if i%4 else rng.uniform(.45,.70)
         sway=Vector((rng.uniform(-.05,.05),rng.uniform(-.05,.05),0))
         pts=[top,lip,lip+out*.05+sway*.3+Vector((0,0,-length*.35)),lip+out*.07+sway*.7+Vector((0,0,-length*.7)),lip+out*.08+sway+Vector((0,0,-length))]
-        curve('Cliff · hanging root',pts,rng.uniform(.005,.011),'wood')
+        root=curve('Cliff · hanging root',pts,rng.uniform(.005,.011),'wood')
+        if refined('shared','roots'):
+            for j,p in enumerate(root.data.splines[0].bezier_points):
+                t=j/(len(pts)-1);p.radius=1-.94*t
+                p.co.x+=.035*math.sin(t*5+i)*t
+                p.co.y+=.025*math.sin(t*7+i)*t
         if length>.5:
             fork=pts[2]
-            curve('Cliff · hanging root tendril',[fork,fork+out*.04+Vector((rng.uniform(-.06,.06),0,-.12)),fork+out*.05+Vector((rng.uniform(-.08,.08),0,-length*.45))],.0035,'wood')
+            tendril=curve('Cliff · hanging root tendril',[fork,fork+out*.04+Vector((rng.uniform(-.06,.06),0,-.12)),fork+out*.05+Vector((rng.uniform(-.08,.08),0,-length*.45))],.0035,'wood')
+            if refined('shared','roots'):
+                for j,p in enumerate(tendril.data.splines[0].bezier_points):p.radius=1-.9*j/2
     # Give every world a broad, substantial landmass without enlarging its
     # buildings or furniture. The inner plot keeps its previous physical size.
     bpy.context.view_layer.update()
@@ -530,7 +550,7 @@ def terrain_path(name,points,width,seed,mat='stone',step=.28):
 
 # The workshop's half-court: a poured pad in the yard lobe right of the shed,
 # (x0, x1, y0, y1) in island units. Nothing else is planted or stacked on it.
-COURT=(3.35,5.45,-1.65,2.35)
+COURT=(3.35,5.85,-1.65,2.35) if refined('projects','court') else (3.35,5.45,-1.65,2.35)
 
 
 def on_court(world,x,y,margin=.12):
@@ -593,7 +613,9 @@ def wax_apple_garden():
         curve('Wax apple · fruiting branch',[source,(-4.02,(source.y+y)/2,z+.10),tip],.009,'wood')
         for j,(dx,dy,dz) in enumerate([(0,-.09,0),(.07,.07,-.045),(-.09,.035,.08)]):
             position=Vector((-3.87+dx,y+dy,z+dz))
-            stalk=fruit(position,rng.uniform(.195,.23),(rng.uniform(-.16,.16),rng.uniform(-.22,.22),rng.uniform(-.4,.4)),['wax_red','wax_rose','wax_crimson'][(index+j)%3])
+            varied=refined('writing','garden')
+            if varied:position+=Vector((-.12 if (index+j)%3==0 else .015,0,-.035*(j%2)))
+            stalk=fruit(position,rng.uniform(.145,.24) if varied else rng.uniform(.195,.23),(rng.uniform(-.30,.30) if varied else rng.uniform(-.16,.16),rng.uniform(-.28,.28) if varied else rng.uniform(-.22,.22),rng.uniform(-.4,.4)),['wax_red','wax_rose','wax_crimson'][(index+j)%3])
             rod('Wax apple · branching fruit stalk',tip,stalk,.004,'leaf2',8)
     # Broad, pointed oval leaves complement the existing smaller climbing
     # leaves without hiding the hanging fruit.
@@ -643,6 +665,7 @@ def landscape(world,seed):
     verts=[];faces=[]
     for i in range(150 if world=='work' else 65):
         a=rng.uniform(0,math.tau);r=rng.uniform(.80,.93)
+        if refined('shared','planting') and math.sin(a*5+seed)+.55*math.cos(a*9)<-.15:continue
         x=5.25*r*math.cos(a);y=3.65*r*math.sin(a)
         if abs(x)<2 and y<-2.5:continue
         for j in range(45):
@@ -751,10 +774,11 @@ def reading_maple(x,y):
             end=(dx+math.cos(a)*.48,dy+math.sin(a)*.42,z+rng.uniform(-.12,.26))
             branch('fine twig',[middle,(dx,dy,z-.12),end],.018)
         verts=[];faces=[]
-        for j in range(650):
+        leaf_count=470 if refined('writing','garden') else 650
+        for j in range(leaf_count):
             a=rng.uniform(0,math.tau);r=math.sqrt(rng.random())
             center=Vector(at(dx+math.cos(a)*r*.79,dy+math.sin(a)*r*.64,z+rng.uniform(-.22,.24)))
-            length=rng.uniform(.055,.10);tilt=rng.uniform(-.65,.65)
+            length=rng.uniform(.05,.085) if refined('writing','garden') else rng.uniform(.055,.10);tilt=rng.uniform(-.65,.65)
             u=Vector((math.cos(a),math.sin(a),tilt))*length
             v=Vector((-math.sin(a),math.cos(a),rng.uniform(-.3,.3)))*length
             n=len(verts);verts.append(center)
@@ -765,7 +789,7 @@ def reading_maple(x,y):
             for k in range(14):faces.append((n,n+1+k,n+1+(k+1)%14))
         leaves=mesh('Reading maple · lobed canopy',verts,faces,'maple_leaf')
         leaves.data.materials.append(P['maple_leaf2']);leaves.data.materials.append(P['maple_leaf3'])
-        tones=rng.choices([0,1,2],[5,4,1],k=650)
+        tones=rng.choices([0,1,2],[6,4,.5] if refined('writing','garden') else [5,4,1],k=leaf_count)
         for p in leaves.data.polygons:p.material_index=tones[p.index//14]
     P['tree_uplight']=material('Tree uplight · warm lens',(1,.76,.45),emission=6)
     for dx,dy in [(-.43,-.36),(.45,.14)]:
@@ -1049,7 +1073,17 @@ def street(a,b,width,base=0):
 def city_frontage(name,x,y,w,d,h,seed,base=.055):
     """Human-scale apartment and shop fabric around the landmark district."""
     rng=random.Random(seed)
+    family=seed%4
+    if refined('work','building_families'):
+        # Narrow/tall residential, broad/low shops, terraced mixed-use and
+        # medium apartment blocks. All remain inside their original plots.
+        w*=[.80,1,.92,.96][family];d*=[.90,.96,1,.86][family]
+        h*=[1.20,.72,1.06,.90][family]
+    if refined('work','tower_plaza') and -.1<x<1.30 and -2.15<y<-1.20:
+        h=min(h,.19 if y>-1.6 else .25)
     wall=rng.choice(['city-tile','city-plaster','city-grey','brick'])
+    if refined('work','building_families'):
+        wall=['city-plaster','brick','city-tile','city-grey'][family]
     box(name+' · tiled apartment body',(x,y+.018,base+.036+(h-.072)/2),(w,d-.036,h-.072),wall,.002)
     # Taipei's covered arcades glow at night; most shopfronts are still open.
     box(name+' · recessed shopfront',(x,y+.026,base+.028),(w*.92,d-.07,.056),'shoplight' if rng.random()<.78 else 'glass2',.001)
@@ -1097,6 +1131,10 @@ def city_frontage(name,x,y,w,d,h,seed,base=.055):
             box(name+' · roof ventilation',(x+offset*w,y,base+h+.020),(.040,.055,.030),'steel',.002)
     cylinder(name+' · rooftop water tank',(x+w*.28,y-d*.20,base+h+.032),.012,.048,'steel',16,bevel=.001)
     box(name+' · tank support',(x+w*.28,y-d*.20,base+h+.009),(.033,.033,.012),'concrete',.001)
+    if refined('work','street_connections'):
+        box(name+' · entrance pavement',(x,y-d/2-.058,base-.012),(w+.018,.105,.018),'paving',.001)
+        if family%2==0:
+            box(name+' · pavement planter',(x+w*.38,y-d/2-.083,base+.001),(.035,.020,.009),'moss',.001)
 
 
 def urban_extension():
@@ -1177,13 +1215,15 @@ def urban_extension():
 def elephant_mountain(cx,cy,rx,ry,height):
     """Xiangshan, the forested ridge south-east of Taipei 101, with a trail."""
     rng=random.Random(4410);verts=[];faces=[];rings=14;seg=48
-    def h(u):return height*(1-u**2)**1.4
+    def h(u,a=0):
+        silhouette=1+.20*math.cos(a-.6)*(1-u)+.09*math.sin(a*3)*u if refined('work','hill') else 1
+        return height*(1-u**2)**1.4*silhouette
     for k in range(rings+1):
         u=k/rings
         for i in range(seg):
             a=i*math.tau/seg;wob=1+.10*math.sin(a*3+1.3)+.05*math.sin(a*7)
             ridge=.18*math.cos(a-.6)*(1-u)
-            verts.append((cx+math.cos(a)*rx*u*wob,cy+math.sin(a)*ry*u*wob,max(.02,h(u)*(1+ridge)+.03*noise.noise(Vector((a*2,u*3,7))))))
+            verts.append((cx+math.cos(a)*rx*u*wob,cy+math.sin(a)*ry*u*wob,max(.02,h(u,a)*(1+ridge)+.03*noise.noise(Vector((a*2,u*3,7))))))
     verts.append((cx,cy,h(0)*1.12))
     for k in range(rings):
         for i in range(seg):
@@ -1194,16 +1234,19 @@ def elephant_mountain(cx,cy,rx,ry,height):
     for i in range(70):
         u=math.sqrt(rng.random())*.95;a=rng.uniform(0,math.tau)
         x=cx+math.cos(a)*rx*u;y=cy+math.sin(a)*ry*u
-        tree(x,y,rng.uniform(.16,.26),h(u)-.01)
+        if not refined('work','hill') or (u>.20 and math.sin(a*3)+u>-.2):
+            tree(x,y,rng.uniform(.16,.26),h(u,a)-.01)
     for i in range(5):
         a=rng.uniform(0,math.tau);u=rng.uniform(.05,.25)
-        sphere('Xiangshan · summit boulder',(cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u)+.01),(.05,.04,.03),'rock2',1)
+        sphere('Xiangshan · summit boulder',(cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u,a)+.01),(.05,.04,.03),'rock2',1)
     # The lit stair trail hikers climb for the view of 101.
     pts=[];P.setdefault('trail',material('Xiangshan · lamplit stair trail',(1,.72,.40),emission=2.2))
     for k in range(22):
         u=1-k/22*.92;a=-2.2+k*.11
-        pts.append((cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u)+.012))
+        pts.append((cx+math.cos(a)*rx*u,cy+math.sin(a)*ry*u,h(u,a)+.012))
     for a,b in zip(pts,pts[1:]):rod('Xiangshan · trail lamps',a,b,.0035,'trail',6)
+    if refined('work','hill'):
+        terrain_path('Xiangshan · connected approach',[(2.68,-2.48),(3.0,-2.82),(pts[0][0],pts[0][1])],.075,31,'paving',.065)
 
 
 def night_extras(tx,ty):
@@ -1342,6 +1385,14 @@ def city():
         x=-.39+j*.152
         mesh('101 mall · glazed roof lantern',[(x,.02,.456),(x+.11,.02,.456),(x+.055,.02,.52),(x,1,.456),(x+.11,1,.456),(x+.055,1,.52)],[(0,1,2),(3,5,4),(0,3,4,1),(0,2,5,3),(1,4,5,2)],'glass')
     taipei101(tx,ty)
+    if refined('work','tower_plaza'):
+        box('101 plaza · stone forecourt',(tx,-.798,.061),(.89,.13,.018),'paving',.002)
+        for x in [tx-.31,tx+.31]:
+            box('101 plaza · low planter',(x,-.79,.080),(.12,.042,.022),'concrete',.002)
+            box('101 plaza · planted bed',(x,-.79,.092),(.108,.034,.004),'moss',.001)
+        for x in [tx-.18,tx,tx+.18]:
+            box('101 plaza · entrance glazing',(x,ty-.334,.12),(.12,.008,.10),'glass',.001)
+        box('101 plaza · entrance canopy',(tx,ty-.37,.184),(.62,.12,.014),'steel',.002)
     # Taipei World Trade Center: broad courtyard block immediately west.
     for x,y,w,d in [(-2.10,-.41,1.50,.25),(-2.10,.49,1.50,.25),(-2.78,.04,.20,.82),(-1.43,.04,.20,.82)]:
         city_block('World Trade Center',x,y,w,d,.33,202,0)
@@ -1661,12 +1712,15 @@ def deck_glow():
     onto the grass. Not "strip" by name: it follows the deck's whole outline,
     not one straight run, so the live details leave it be."""
     planks=[((i-10.5)*.30,2.1*math.sqrt(max(0,1-(((i-10.5)*.30)/3.8)**2))) for i in range(22)]
-    half=.1445;z=.058;proud=.004
+    recessed=refined('projects','deck_lighting')
+    half=.1445;z=.042 if recessed else .058;proud=-.026 if recessed else .004
     for side in [-1,1]:
         for i,(x,length) in enumerate(planks):
             if side>0 and abs(x)<3:continue
             # The board's end, then the step to its neighbour's end.
             box('Glow · purple deck LED',(x,side*(length+proud),z),(.27,.008,.012),'purple_strip',0)
+            if recessed:
+                box('Deck · recessed lighting fascia',(x,side*(length-.008),.078),(.299,.026,.065),'floorwood',.003)
         for (x0,l0),(x1,l1) in zip(planks,planks[1:]):
             if side>0 or abs(l1-l0)<.01:continue
             longer_x,edge=(x1,-half) if l1>l0 else (x0,half)
@@ -1678,7 +1732,7 @@ def deck_glow():
     # Its light, low in the gap under the boards, spilling out onto the ground.
     for i in [1,3,5,7,9,12,14,16,18,20]:
         x,length=planks[i]
-        light('Glow · purple deck wash',(x,-length-.02,.05),(.45,.14,1),14,.45,(x*1.06,-length-.75,0))
+        light('Glow · purple deck wash',(x,-length-.02,.05),(.45,.14,1),8 if recessed else 14,.78 if recessed else .45,(x*1.06,-length-.75,0))
     for x,length in [planks[0],planks[-1]]:
         out=math.copysign(1,x)
         light('Glow · purple deck wash',(x+out*(half+.02),-length*.5,.05),(.45,.14,1),5,.4,(x+out*.8,-length*.6,0))
@@ -1694,8 +1748,8 @@ def eames_lounge_chair(x,y,angle,k=1):
     `angle` and scaled by k (the study is small)."""
     from mathutils import Matrix
     before=set(bpy.context.scene.objects)
-    P.setdefault('eames_leather',material('Lounge chair · black leather',(.04,.035,.032),rough=.3))
-    P.setdefault('eames_alu',material('Lounge chair · polished aluminium',(.80,.80,.82),metal=1,rough=.22))
+    P.setdefault('eames_leather',textured('Lounge chair · supple black leather',(.025,.022,.020),(.052,.044,.038),'fabric',rough=.49) if refined('writing','lounge') else material('Lounge chair · black leather',(.04,.035,.032),rough=.3))
+    P.setdefault('eames_alu',material('Lounge chair · polished aluminium',(.65,.67,.69) if refined('writing','lounge') else (.80,.80,.82),metal=1,rough=.34 if refined('writing','lounge') else .22))
     def tilted(name,c,size,mat,bevel,tilt):
         obj=box(name,c,size,mat,bevel);obj.rotation_euler.x=tilt;return obj
     def shell(part,c,size,tilt,lip):
@@ -1839,11 +1893,14 @@ def notebook(x,y,z):
     # the page's lighting and parallax, including when the lamp is switched off.
     font_path=Path('/System/Library/Fonts/Supplemental/Georgia.ttf')
     font=bpy.data.fonts.load(str(font_path),check_existing=True) if font_path.exists() else None
+    bold_path=Path('/System/Library/Fonts/Supplemental/Georgia Bold.ttf')
+    bold=bpy.data.fonts.load(str(bold_path),check_existing=True) if bold_path.exists() else font
     def print_line(body,xx,yy,size,side=1):
         obj=lettering('Notebook · printed '+body,body,(0,0,0),size,'notebook_ink',(0,0,0))
         obj.data.align_x='LEFT';obj.data.align_y='BOTTOM_BASELINE'
         obj.data.extrude=0;obj.data.resolution_u=3
         if font:obj.data.font=font
+        if refined('writing','notebook_focus') and size>=.04 and bold:obj.data.font=bold
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(True);bpy.context.view_layer.objects.active=obj
         bpy.ops.object.convert(target='MESH')
@@ -1855,12 +1912,14 @@ def notebook(x,y,z):
     print_line('flying Arrows',.070,.245,.013)
     print_line(essay['date'].upper(),.070,.207,.0075)
     title=textwrap.wrap(essay['title'],14,break_long_words=False)
-    for i,line in enumerate(title):print_line(line,.070,.140-i*.042,.031)
-    baseline=.140-len(title)*.042-.030
+    title_size=.052 if refined('writing','notebook_focus') else .031
+    title_step=.065 if refined('writing','notebook_focus') else .042
+    for i,line in enumerate(title):print_line(line,.062 if refined('writing','notebook_focus') else .070,.140-i*title_step,title_size)
+    baseline=.140-len(title)*title_step-.030
     rule=[ink_point(.070+i*.004,baseline) for i in range(10)]
     curve('Notebook · printed title rule',rule,.00035,'notebook_ink')
     for i,line in enumerate(textwrap.wrap(essay['subtitle'],35,break_long_words=False)):
-        print_line(line,.070,baseline-.035-i*.020,.0095)
+        print_line(line,.070,baseline-.035-i*.020,.011 if refined('writing','notebook_focus') else .0095)
     print_line('Carter Wang',.070,-.251,.010)
     # A few pencil notes on the facing page, broken into words so the marks
     # read as handwriting instead of a ruled rectangle.
@@ -1892,11 +1951,19 @@ def woven_rug():
             x=.1+(u-.5)*4.31+.009*math.sin(v*38)*edge**12
             y=-.61+(v-.5)*3.21+.008*math.sin(u*47)*(abs(v-.5)*2)**12
             z=.157+.006*math.sin(u*21+v*3)*math.sin(v*16)+.012*edge**16*math.sin(v*9)**2
+            if refined('writing','rug'):
+                # Most wool lies flat; only the far corners lift. Compression
+                # stays above the floorboard tops, including under the chair.
+                corner=.009*(u**18*v**18+(1-u)**18*(1-v)**18)
+                dent=.002*math.exp(-((x-.16)**2+(y+2.0)**2)/.22)
+                z=.159+.0012*math.sin(u*13)*math.sin(v*11)+corner-dent
             verts.append((x,y,z))
     for j in range(rows):
         for i in range(cols):
             a=j*(cols+1)+i;faces.append((a,a+1,a+cols+2,a+cols+1))
     rug=mesh('Study · softly rumpled woven rug',verts,faces,'rug')
+    if refined('writing','rug'):
+        thickness=rug.modifiers.new('Dense wool edge','SOLIDIFY');thickness.thickness=.007;thickness.offset=1
     for face in rug.data.polygons:face.use_smooth=True
     for i in range(215):
         x=-2.05+i*.02
@@ -2388,8 +2455,15 @@ def writing():
                 created=capture(shelf_book,x+w/2,1.59,z+.022,w,h,rng.choice(['linen','leather','redcloth','teal','oak']))
                 # One offset for the entire binding: covers, spine, tooling
                 # and page block must stay aligned as a single rigid book.
-                offset=rng.uniform(-.008,.008)
+                offset=rng.uniform(-.035,.035) if refined('writing','bookshelves') else rng.uniform(-.008,.008)
                 for obj in created:obj.location.y+=offset
+                if refined('writing','bookshelves'):
+                    from mathutils import Matrix
+                    lean=rng.choice([0,0,-.065,.045])
+                    pivot=Vector((x+w/2,1.59,z+.022))
+                    turn=Matrix.Translation(pivot)@Matrix.Rotation(lean,4,'Y')@Matrix.Translation(-pivot)
+                    bpy.context.view_layer.update()
+                    for obj in created:obj.matrix_world=turn@obj.matrix_world
                 x+=w+.011
     # These are Carter's published essays, presented as bound journals—not
     # invented reading-list entries. Their existing covers are used verbatim.
@@ -2424,10 +2498,10 @@ def writing():
     # In Common With's Arundel Table Lamp at the back left of the desk: its
     # pool of light, leaning toward the notebook, lights the desk and the
     # open pages.
-    practical=arundel_table_lamp(-1.22,-.20,1.614,420,toward=(-.55,-.62))
+    practical=arundel_table_lamp(-1.22,-.20,1.614,420,toward=(-.22,-.70) if refined('writing','notebook_focus') else (-.55,-.62))
     for f,e in [(1,420),(25,445),(49,420)]:practical.data.energy=e;practical.data.keyframe_insert(data_path='energy',frame=f)
     ANIMATED.append(practical)
-    capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.21,-.13,1.614))
+    capture(book_stack,0,0,0,scale=(.52,.52,.52),offset=(1.40,.0,1.614) if refined('writing','desk_spacing') else (1.21,-.13,1.614))
     # An iced latte and capped fountain pen beside the notebook.
     iced_latte(-.70,-.30,1.61)
     # A capped fountain pen beside the notebook: black lacquer, gold band and clip.
@@ -2442,7 +2516,7 @@ def writing():
         vs=[]
         for row in range(2):
             for k in range(17):
-                xx=.91+k*.032;yy=-.80+row*.44;zz=1.617+j*.002+.025*(k/16)**6
+                xx=(1.13 if refined('writing','desk_spacing') else .91)+k*.032;yy=(-.62 if refined('writing','desk_spacing') else -.80)+row*.44;zz=1.617+j*.002+.025*(k/16)**6
                 vs.append((xx,yy,zz))
         leaf=mesh('Study · loose draft',vs,[(k,k+1,k+18,k+17) for k in range(16)],'paper')
         for face in leaf.data.polygons:face.use_smooth=True
@@ -2607,6 +2681,221 @@ def kobe_jersey(cx,y,cz):
     box('Shadow box · Kobe nameplate',(cx,y-.014,cz-fh/2+.045),(.37,.008,.040),'brass',.002)
     lettering('Shadow box · Kobe Bryant label','KOBE BRYANT',(cx,y-.020,cz-fh/2+.045),.026,'ink',(math.pi/2,0,0))
     light('Shadow box · display light',(cx,y-.45,cz+.55),(1,.86,.66),4,.2,(cx,y,cz))
+
+
+def wilson_evolution(x,y,z,r=.24):
+    """Orange/black Evolution game ball with curved, modelled print.
+    The official Wilson wordmark is converted from its source SVG contours;
+    every marking follows the sphere, including in the baked flight mesh."""
+    import bmesh
+    import re
+    import xml.etree.ElementTree as ET
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    leather=material('Wilson Evolution · microfiber composite',(.65,.17,.024),rough=.76)
+    nodes,links=leather.node_tree.nodes,leather.node_tree.links
+    bs=nodes.get('Principled BSDF')
+    coord=nodes.new('ShaderNodeTexCoord')
+    pebbles=nodes.new('ShaderNodeTexVoronoi');pebbles.inputs['Scale'].default_value=110/(2*r)
+    pebbles.inputs['Randomness'].default_value=.72
+    links.new(coord.outputs['Object'],pebbles.inputs['Vector'])
+    relief=nodes.new('ShaderNodeValToRGB')
+    relief.color_ramp.elements[0].position=.16;relief.color_ramp.elements[0].color=(1,1,1,1)
+    relief.color_ramp.elements[1].position=.58;relief.color_ramp.elements[1].color=(0,0,0,1)
+    links.new(pebbles.outputs['Distance'],relief.inputs[0])
+    color=nodes.new('ShaderNodeMixRGB');color.blend_type='MIX'
+    color.inputs[1].default_value=(.43,.105,.012,1)
+    color.inputs[2].default_value=(.60,.16,.021,1)
+    links.new(relief.outputs[0],color.inputs[0]);links.new(color.outputs[0],bs.inputs['Base Color'])
+    bump=nodes.new('ShaderNodeBump');bump.inputs['Strength'].default_value=.48
+    bump.inputs['Distance'].default_value=.0005
+    links.new(relief.outputs[0],bump.inputs['Height']);links.new(bump.outputs[0],bs.inputs['Normal'])
+    P['evolution_cover']=leather
+    ink=leather.copy();ink.name='Wilson Evolution · pebbled black print and channels'
+    ink_bs=ink.node_tree.nodes.get('Principled BSDF')
+    for link in list(ink_bs.inputs['Base Color'].links):ink.node_tree.links.remove(link)
+    ink_bs.inputs['Base Color'].default_value=(.008,.009,.009,1)
+    P['evolution_black']=ink
+    P['evolution_outline']=material('Wilson Evolution · warm ivory logo edge',(.82,.76,.58),rough=.8)
+    ball=sphere('Basketball · Wilson Evolution',(0,0,0),(r,r,r),'evolution_cover',5)
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    for face in ball.data.polygons:face.use_smooth=True
+    # Flush spherical ribbons form the eight panels; the two bowed channels
+    # frame the front branding instead of crossing through the wordmark.
+    for angle in (0,math.pi/2,.78,-.78):
+        verts=[];faces=[];steps=192;half_width=.014
+        tangent=Vector((0,math.cos(angle),math.sin(angle)))
+        normal=Vector((0,-math.sin(angle),math.cos(angle)))
+        for i in range(steps):
+            a=i*math.tau/steps
+            radial=Vector((math.cos(a),0,0))+tangent*math.sin(a)
+            for side in (-1,1):
+                verts.append(tuple((radial*math.cos(half_width)+normal*side*math.sin(half_width))*(r+.0003)))
+        for i in range(steps):
+            a=i*2;b=((i+1)%steps)*2;faces.append((a,b,b+1,a+1))
+        channel=mesh('Basketball · Evolution pebbled channel',verts,faces,'evolution_black')
+        for face in channel.data.polygons:face.use_smooth=True
+    def wrap(obj,radius):
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True);bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.convert(target='MESH')
+        obj=bpy.context.object
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        topology=bmesh.new();topology.from_mesh(obj.data)
+        bmesh.ops.triangulate(topology,faces=list(topology.faces))
+        for _ in range(8):
+            edges=[edge for edge in topology.edges if edge.calc_length()>r*.025]
+            if not edges:break
+            bmesh.ops.subdivide_edges(topology,edges=edges,cuts=1,use_grid_fill=True)
+            bmesh.ops.triangulate(topology,faces=list(topology.faces))
+        topology.to_mesh(obj.data);topology.free()
+        for vertex in obj.data.vertices:
+            u,v=vertex.co.x,vertex.co.y
+            vertex.co=(u,-math.sqrt(max(0,radius*radius-u*u-v*v)),v)
+        for face in obj.data.polygons:face.use_smooth=True
+    # This SVG uses absolute M/C/H/V/Z commands. Sample its cubic contours
+    # into filled 2D curves so letter counters and the script stay intact.
+    path=ET.parse(ROOT/'artwork/blender/wilson-logo.svg').getroot().find('{http://www.w3.org/2000/svg}path').attrib['d']
+    tokens=re.findall(r'[A-Za-z]|-?\d+(?:\.\d+)?',path)
+    contours=[];points=[];i=0;command=None;at=Vector((0.,0.))
+    while i<len(tokens):
+        if tokens[i].isalpha():
+            command=tokens[i];i+=1
+            if command=='Z':
+                contours.append(points);points=[];continue
+        count={'M':2,'C':6,'H':1,'V':1}[command]
+        values=list(map(float,tokens[i:i+count]));i+=count
+        if command=='M':
+            at=Vector(values);points.append(at.copy())
+        elif command=='C':
+            p1,p2,end=Vector(values[:2]),Vector(values[2:4]),Vector(values[4:])
+            for j in range(1,9):
+                t=j/8
+                points.append((1-t)**3*at+3*(1-t)**2*t*p1+3*(1-t)*t*t*p2+t**3*end)
+            at=end
+        else:
+            at=Vector((values[0],at.y) if command=='H' else (at.x,values[0]))
+            points.append(at.copy())
+    width=r*1.37
+    data=bpy.data.curves.new('Wilson · official script contours','CURVE')
+    data.dimensions='2D';data.fill_mode='BOTH';data.resolution_u=1
+    for contour in contours:
+        spline=data.splines.new('POLY');spline.points.add(len(contour)-1)
+        flat=[]
+        for point,source in zip(spline.points,contour):
+            u,v=(source.x/807-.5)*width,(100-source.y)*width/807+r*.34
+            point.co=(u,v,0,1)
+            flat.append(Vector((u,v)))
+        spline.use_cyclic_u=True
+        # A thin contour stroke leaves the spaces between letters orange.
+        edge=[]
+        for j,start in enumerate(flat):
+            end=flat[(j+1)%len(flat)];steps=max(1,math.ceil((end-start).length/(r*.02)))
+            for step in range(steps):
+                u,v=start.lerp(end,step/steps)
+                edge.append((u,-math.sqrt((r+.0006)**2-u*u-v*v),v,1))
+        stroke=bpy.data.curves.new('Wilson · ivory contour','CURVE')
+        stroke.dimensions='3D';stroke.bevel_depth=r*.0024;stroke.bevel_resolution=2
+        boundary=stroke.splines.new('POLY');boundary.points.add(len(edge)-1)
+        for point,co in zip(boundary.points,edge):point.co=co
+        boundary.use_cyclic_u=True
+        outline=bpy.data.objects.new('Basketball · Wilson ivory outline',stroke)
+        bpy.context.collection.objects.link(outline);stroke.materials.append(P['evolution_outline'])
+    obj=bpy.data.objects.new('Basketball · Wilson script logo',data)
+    bpy.context.collection.objects.link(obj);data.materials.append(P['evolution_black'])
+    wrap(obj,r+.0011)
+    font_path=Path('/System/Library/Fonts/Supplemental/Arial Bold Italic.ttf')
+    font=bpy.data.fonts.load(str(font_path),check_existing=True) if font_path.exists() else None
+    for text,width,height,cy in [('EVOLUTION',r*1.30,r*.185,-r*.36),
+                                  ('INDOOR GAME BALL',r*.79,r*.044,r*.108),
+                                  ('ADVANCED MICROFIBER COMPOSITE',r*1.27,r*.038,-r*.50)]:
+        obj=lettering('Basketball · '+text,text,(0,0,0),1,'evolution_black',(0,0,0))
+        obj.data.extrude=0
+        if text=='EVOLUTION' and font:obj.data.font=font
+        bpy.context.view_layer.update()
+        obj.scale.x=width/obj.dimensions.x;obj.scale.y=height/obj.dimensions.y
+        # Apply the baseline offset in curve space before wrapping to the ball.
+        bpy.ops.object.select_all(action='DESELECT');obj.select_set(True);bpy.context.view_layer.objects.active=obj
+        bpy.ops.object.convert(target='MESH');obj=bpy.context.object
+        bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+        for vertex in obj.data.vertices:vertex.co.y+=cy
+        wrap(obj,r+.0010)
+    # Turn the printed face toward the main camera with a slight resting tilt.
+    front=Vector((.20,-.90,.39)).normalized()
+    right=Vector((0,0,1)).cross(front).normalized();up=front.cross(right)
+    rotation=Matrix((right,-front,up)).transposed().to_4x4()@Matrix.Rotation(.12,4,'Y')
+    bpy.context.view_layer.update()
+    for obj in set(bpy.context.scene.objects)-before:
+        obj.matrix_world=Matrix.Translation(Vector((x,y,z)))@rotation@obj.matrix_world
+
+
+def captain_america_shield(x,y,floor=.148,r=.72,lean=15,yaw=0):
+    """A domed metal shield resting on its rim, tilted back against the bench.
+    The coloured rings and inset five-point star follow the same curved face,
+    so the design remains geometry in the island's baked flight model."""
+    from mathutils import Matrix
+    before=set(bpy.context.scene.objects)
+    P['shield_red']=material('Captain America shield · crimson enamel',(.48,.018,.027),metal=.55,rough=.30)
+    P['shield_silver']=material('Captain America shield · brushed silver',(.70,.74,.79),metal=.78,rough=.31)
+    P['shield_blue']=material('Captain America shield · navy enamel',(.018,.055,.20),metal=.42,rough=.32)
+    P['shield_leather']=material('Captain America shield · leather grips',(.065,.028,.014),rough=.76)
+    segments=128
+    radii=[0]+[r*(start+(end-start)*i/4) for start,end in [(0,.4),(.4,.6),(.6,.8),(.8,1)] for i in range(1,5)]
+    def face_depth(radius):
+        return -.14*r*(1-(radius/r)**2)
+    verts=[(0,face_depth(0),0)]
+    for radius in radii[1:]:
+        verts.extend((radius*math.cos(i*math.tau/segments),face_depth(radius),radius*math.sin(i*math.tau/segments)) for i in range(segments))
+    faces=[];colours=[]
+    for row,radius in enumerate(radii[1:]):
+        colour=2 if radius<=r*.4+.0001 else 0 if radius<=r*.6+.0001 or radius>r*.8+.0001 else 1
+        for i in range(segments):
+            a=1+row*segments+i;b=1+row*segments+(i+1)%segments
+            faces.append((0,a,b) if row==0 else (a-segments,a,b,b-segments))
+            colours.append(colour)
+    # A continuous shallow bowl, with a silver back and a rolled metal rim.
+    back=len(verts)
+    verts.extend((u,v+.035,w) for u,v,w in list(verts))
+    front_faces=list(faces)
+    faces.extend(tuple(index+back for index in reversed(face)) for face in front_faces)
+    colours.extend([1]*len(front_faces))
+    outer=1+(len(radii)-2)*segments
+    for i in range(segments):
+        a=outer+i;b=outer+(i+1)%segments
+        faces.append((a,b,b+back,a+back));colours.append(1)
+    shell=mesh('Captain America shield · domed concentric rings',verts,faces,'shield_red')
+    shell.data.materials.append(P['shield_silver']);shell.data.materials.append(P['shield_blue'])
+    for face,colour in zip(shell.data.polygons,colours):
+        face.material_index=colour;face.use_smooth=True
+    torus('Captain America shield · rolled silver rim',(0,.0175,0),r,.008,'shield_silver',(math.pi/2,0,0))
+    # Subdivide the star radially so its silver face follows the dome.
+    outline=[]
+    for i in range(10):
+        angle=math.pi/2+i*math.pi/5
+        radius=r*.36*(1 if i%2==0 else .382)
+        outline.append(Vector((radius*math.cos(angle),radius*math.sin(angle))))
+    boundary=[]
+    for i,point in enumerate(outline):
+        boundary.extend(point.lerp(outline[(i+1)%10],j/4) for j in range(4))
+    count=len(boundary);star_verts=[(0,face_depth(0)-.0015,0)];star_faces=[]
+    for row in range(1,9):
+        for point in boundary:
+            u,v=point*row/8
+            star_verts.append((u,face_depth(math.hypot(u,v))-.0015,v))
+        for i in range(count):
+            a=1+(row-1)*count+i;b=1+(row-1)*count+(i+1)%count
+            star_faces.append((0,a,b) if row==1 else (a-count,a,b,b-count))
+    star=mesh('Captain America shield · silver five-point star',star_verts,star_faces,'shield_silver')
+    for face in star.data.polygons:face.use_smooth=True
+    for side in (-1,1):
+        u=side*r*.30
+        curve('Captain America shield · rear leather strap',[(u,face_depth(abs(u))+.04,-r*.23),(u,.12,0),(u,face_depth(abs(u))+.04,r*.23)],.028,'shield_leather')
+    bpy.context.view_layer.update()
+    objects=set(bpy.context.scene.objects)-before
+    tilt=Matrix.Rotation(math.radians(yaw),4,'Z')@Matrix.Rotation(math.radians(-lean),4,'X')
+    bottom=min((tilt@obj.matrix_world@vertex.co).z for obj in objects if obj.type=='MESH' for vertex in obj.data.vertices)
+    placement=Matrix.Translation(Vector((x,y,floor-bottom)))@tilt
+    for obj in objects:obj.matrix_world=placement@obj.matrix_world
 
 
 def lugia_figurine(x,y,z,angle=0,k=.43):
@@ -2796,7 +3085,7 @@ def half_court():
     floodlight on the pole. The hoop stands about as tall as the shed's roof,
     so the island reads as the workshop with the court from far away. The
     floodlight is on the room's switch (with the task strip, both LEDs)."""
-    x0,x1,y0,y1=COURT;cx=(x0+x1)/2;top=.26
+    x0,x1,y0,y1=COURT;cx=(x0+x1)/2;top=.20 if refined('projects','court') else .26
     P['maple']=textured('Court · varnished maple strip',(.20,.10,.035),(.38,.21,.08),'wood',rough=.72,grain=(40,1.2,6))
     P['maple2']=textured('Court · varnished maple strip, darker',(.16,.08,.03),(.31,.17,.065),'wood',rough=.72,grain=(40,1.2,6))
     P['court']=material('Court · Lakers purple border',(.09,.025,.22),rough=.7)
@@ -2836,7 +3125,7 @@ def half_court():
     for x in [cx-half_width,cx+half_width]:
         line((x,hy-radius*math.sin(angle)),(x,base))
     # The hoop: pole behind the baseline, an arm, the board, rim and net.
-    px,py=cx,y1+.32;rim_z=3.40
+    px,py=cx,y1+.32;rim_z=3.10 if refined('projects','court') else 3.40
     cylinder('Hoop · concrete footing',(px,py,.12),.16,.30,'stone',24,bevel=.01)
     rod('Hoop · black steel pole',(px,py,.10),(px,py,rim_z+.90),.055,'ink',20)
     rod('Hoop · arm',(px,py,rim_z+.20),(px,base+.08,rim_z+.20),.032,'ink',12)
@@ -2861,7 +3150,9 @@ def half_court():
     rod('Court floodlight · arm',(px,py,rim_z+.86),(px,fy+.06,fz+.02),.022,'ink',10)
     box('Court floodlight · housing',(px,fy,fz),(.30,.12,.18),'ink',.01).rotation_euler.x=math.radians(-50)
     box('Court floodlight · LED panel',(px,fy-.05,fz-.05),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-50)
-    spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.78,.86,1),2000,70,.6,.10)
+    spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.84,.86,1) if refined('projects','court') else (.78,.86,1),650 if refined('projects','court') else 2000,78 if refined('projects','court') else 70,.78 if refined('projects','court') else .6,.15 if refined('projects','court') else .10)
+    if refined('projects','court'):
+        terrain_path('Court · low stone approach',[(3.05,-1.05),(3.55,-1.05)],.48,107,'paving',.25)
     ANCHORS['hoop']=(px,ry,rim_z)
 
 
@@ -2953,6 +3244,9 @@ def workshop():
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
     box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
     for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),12,.8,(bx,-1.45,.2))
+    # The shield's lower rim rests on the boards and its upper rim leans
+    # against the bench's right apron, clear of the stool and basketball court.
+    captain_america_shield(2.28 if refined('projects','shield') else 2.17,-.98 if refined('projects','shield') else -.85,lean=15,yaw=-24 if refined('projects','shield') else 0)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -3048,7 +3342,7 @@ def workshop():
     cylinder('Pennant · pin',(px-.015,2.000,pz+.005),.014,.008,'brass',16).rotation_euler.x=math.pi/2
     # Carter's Ninebot scooter, on its kickstand in the front yard left of
     # the step, clear of the court; he gets around the city on it.
-    ninebot_scooter(-1.20,-2.65,math.radians(8))
+    ninebot_scooter(-1.20,-2.44 if refined('projects','scooter') else -2.65,math.radians(8))
     # Space things, taped and shelved: a planet poster and a Starship model,
     # the same sky the site floats in. (The top shelf is kept to a few
     # objects: no LED ball or cartons.)
@@ -3087,25 +3381,8 @@ def workshop():
     for u in [-.14,.14]:
         for side in [-1,1]:
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
-    # A basketball left on the deck.
-    # Orange pebbled leather; its black channels are two great circles at
-    # right angles and two curved seams either side, the ball tipped at rest.
-    from mathutils import Euler, Matrix
-    P['basketball']=textured('Basketball · pebbled leather',(.62,.17,.025),(.80,.27,.05),'fabric',rough=.72)
-    br=.24;bx,by,bz=COURT[0]+.32,.62,.262+.24
-    ball=sphere('Basketball',(bx,by,bz),(br,br,br),'basketball',4)
-    for f in ball.data.polygons:f.use_smooth=True
-    tip=Matrix.Translation(Vector((bx,by,bz)))@Euler((.5,.35,.9)).to_matrix().to_4x4()
-    seams=[(br,0,(0,0,0)),(br,0,(0,math.pi/2,0))]+[(br*math.cos(.75),side*br*math.sin(.75),(0,math.pi/2,0)) for side in [-1,1]]
-    for radius,offset,rot in seams:
-        seam=torus('Basketball · seam',(0,0,0),radius+.002,.0065,'ink',rot)
-        seam.matrix_world=tip@Matrix.Translation(Vector((offset,0,0)))@seam.matrix_world
-    # Cardboard boxes, one with its flaps open.
-    P['cardboard']=textured('Cardboard',(.30,.19,.09),(.42,.29,.15),'paper',rough=.92)
-    box('Floor · cardboard box',(2.20,1.08,.151+.19),(.58,.46,.38),'cardboard',.006,rot=.08)
-    box('Floor · cardboard box',(2.24,1.10,.151+.38+.13),(.42,.36,.26),'cardboard',.006,rot=-.12)
-    box('Box · packing tape',(2.20,1.08,.151+.382),(.58,.06,.004),'linen',0,rot=.08)
-    flap=box('Box · open flap',(2.24,.90,.151+.66),(.40,.012,.16),'cardboard',.002,rot=-.12);flap.rotation_euler.x=.7
+    # A Wilson Evolution game ball rests on the court with its print visible.
+    wilson_evolution(COURT[0]+.42 if refined('projects','court') else COURT[0]+.32,.62,(.202 if refined('projects','court') else .262)+.24)
     # A small telescope on its tripod in the yard, aimed up past the roof.
     from mathutils.bvhtree import BVHTree
     bpy.context.view_layer.update()
@@ -3170,6 +3447,13 @@ def setup(world, width, samples, engine, device):
     scene.render.image_settings.file_format='PNG'
     scene.render.image_settings.color_mode='RGBA'
     scene.render.film_transparent=True
+    if refined('shared','silhouette'):
+        # Filter subpixel foliage and narrow roof ribs at the existing render
+        # resolution; no larger texture or browser filter is required.
+        scene.render.filter_size=1.8
+        # Cycles owns a separate reconstruction filter; render.filter_size
+        # alone leaves its default unchanged.
+        scene.cycles.filter_width=1.8
     scene.render.fps=12
     scene.frame_start=1; scene.frame_end=48
     # The islands hang in the site's night sky (#030611), so the only ambient
@@ -3267,6 +3551,8 @@ DIMMED={'iPad Pro · Screen display':.06,'Magic Keyboard · key backlight':.06}
 # workshop()), with where the lamp hangs relative to them.
 SPOTLIGHT={'writing':('Study · gently turned desk',(.16,-.80,1.614),(0,-.9,3.4),30,180),
            'projects':('Workshop · turned workbench',(.90,.05,1.85),(0,-1.5,3.1),26,200)}
+if refined('writing','notebook_focus'):
+    SPOTLIGHT['writing']=('Study · gently turned desk',(.16,-.80,1.614),(-1.6,1.8,3.4),38,150)
 
 
 def subject_spotlight(world):
@@ -3276,6 +3562,8 @@ def subject_spotlight(world):
     target=bpy.data.objects[group].matrix_world@Vector(point)
     data=bpy.data.lights.new('Spotlight · '+world,'SPOT')
     data.color=(1,.90,.76);data.energy=energy;data.spot_size=math.radians(cone);data.spot_blend=.45;data.shadow_soft_size=.08
+    if world=='writing' and refined('writing','notebook_focus'):
+        data.color=(.70,.80,1);data.spot_blend=.78;data.shadow_soft_size=.18
     spot=bpy.data.objects.new('Spotlight · '+world,data);bpy.context.collection.objects.link(spot)
     spot.location=target+Vector(offset)
     spot.rotation_euler=(target-spot.location).to_track_quat('-Z','Y').to_euler()
@@ -3438,6 +3726,20 @@ def daylight(scene):
             bs.inputs['Metallic'].default_value=.45;bs.inputs['Roughness'].default_value=.18
         elif mat.name.startswith(('City · sodium','Taipei 101 · gold','Xiangshan · lamplit','Warm practical')):
             bs.inputs['Base Color'].default_value=(.32,.33,.32,1)
+    if refined('work','day_materials'):
+        road=textured('City · charcoal asphalt',(.018,.022,.025),(.04,.044,.046),'stone',rough=.95)
+        for obj in scene.objects:
+            if obj.type=='MESH' and obj.name.startswith('Street · asphalt'):
+                obj.data.materials.clear();obj.data.materials.append(road)
+        for mat in bpy.data.materials:
+            if mat.name.startswith('City · grey mineral'):
+                # Keep the weathering graph: its unlinked source colour feeds
+                # the facade, rather than the now-connected BSDF default.
+                for node in mat.node_tree.nodes:
+                    if node.type=='HUE_SAT' and not node.inputs['Color'].is_linked:
+                        node.inputs['Color'].default_value=(.25,.235,.20,1)
+            if mat.name.startswith(('Blue green architectural','Taipei · green architectural')):
+                mat.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.20
 
 
 def projected(scene, point):
@@ -3505,6 +3807,10 @@ def main():
         ANCHORS.clear(); WINDOWS.clear(); ANIMATED.clear()
         scene=setup(world,args.width,args.samples,args.engine,args.device)
         {'work':city,'writing':writing,'projects':workshop}[world]()
+        scene.frame_set(1)
+        sys.path.insert(0,str(Path(__file__).parent))
+        from island_refinements import apply
+        apply(world,globals())
         camera_and_lights(scene)
         if args.time=='day':daylight(scene)
         scene.frame_set(1)

@@ -1,6 +1,6 @@
 // Compare two snapshot dirs: computed styles element by element, and screenshots pixel by pixel.
-const path=require("path"),fs=require("fs");const ROOT="/Users/carterwang/Documents/vibe coded projects/resumewebsite";
-const {chromium}=require(path.join(ROOT,"node_modules/@playwright/test"));
+import fs from "node:fs";
+import { chromium } from "@playwright/test";
 const [A,B]=process.argv.slice(2);
 (async()=>{const keys=fs.readdirSync(A).filter(f=>f.endsWith(".styles.json")).map(f=>f.replace(".styles.json",""));
 let styleDiffs=0;const notes=[];
