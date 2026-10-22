@@ -89,7 +89,7 @@
 }
 
 @media (max-width: 760px) {
-  .main { padding-bottom: 4.5rem; }
+  .main { padding-bottom: 0; }
   .workHistory { gap: 4rem; }
   .photo { margin-top: 2.75rem; }
   .facts { gap: 1rem 2rem; }

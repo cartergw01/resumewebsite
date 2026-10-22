@@ -5,9 +5,14 @@
   .destinationNav:global(.site-nav) :global(.site-nav-social) { display: none; }
   .destinationNav:global(.site-nav) a { min-width: 44px; min-height: 44px; padding-inline: .65rem; font-size: .875rem; justify-content: center; }
   .destinationNav:global(.site-nav) a:global(.site-nav-return) { margin-left: 0; padding: 0; }
-  .contact { position: relative; display: block; width: var(--subpage-column); max-width: 100%; margin: 3.5rem auto 0; padding-bottom: max(2rem, env(safe-area-inset-bottom)); color: var(--cw-paper); }
-  .contact p { margin: 0 0 .75rem; font-family: var(--font-display); font-stretch: 125%; font-size: 1.75rem; }
-  .contact nav { display: grid; grid-template-columns: repeat(4, minmax(44px, 1fr)); gap: .25rem; }
-  .contact a { display: flex; align-items: center; justify-content: center; min-height: 44px; color: #e9d4b6; font-size: .875rem; text-underline-offset: .3em; text-decoration-color: #e9d4b655; }
+  /* One line, and it ends the page: the page's own bottom padding steps aside. */
+  :global(.subpage-main):has(> .contact),
+  :global(.fa-subscribe):has(+ .contact) { padding-bottom: 0; }
+  .contact { position: relative; display: flex; flex-wrap: wrap; align-items: center; column-gap: .5rem; width: var(--subpage-column); max-width: 100%; margin: 2.5rem auto 0; padding-bottom: max(1rem, env(safe-area-inset-bottom)); color: var(--cw-paper); }
+  .contact p { margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: 1.125rem; }
+  .contact nav { display: flex; flex-wrap: wrap; }
+  .contact a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #e9d4b6; transition: color .2s ease; }
+  .contact a:hover { color: var(--cw-paper); }
+  .contact a svg { width: 16px; height: 16px; }
   .contact a:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 2px; border-radius: 4px; }
 }
