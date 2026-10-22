@@ -130,6 +130,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let measuredHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
+    // Browser pinch/pan changes scrollY too. Keep that separate from travel.
+    const viewport = window.visualViewport;
+    let zoomProgress: number | null = null;
+    let pinching = false;
+    let zoomRestoreFrame = 0;
     let previousFrame = 0;
     let entryPending = false;
     let entryRecovery = 0;
@@ -170,14 +175,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
-      const progress = clamp((window.scrollY - start) / travel);
+      const progress = zoomProgress ?? clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
       const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 32);
       // Touch momentum and our navigation glide already supply smooth positions.
       // Follow them in this frame instead of adding a second easing layer.
-      cameraProgress = cameraProgress === null || motion.matches || touchScroll.matches || direct
+      cameraProgress = cameraProgress === null || zoomProgress !== null || motion.matches || touchScroll.matches || direct
         ? progress
         : cameraProgress + (progress - cameraProgress) * smoothing;
       if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
@@ -334,7 +339,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
 
     const schedule = () => {
-      if (!frame && !glideFrame) frame = window.requestAnimationFrame(render);
+      if (zoomProgress === null && !frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
     // Each stop rests just inside its hold, after its arrival has settled.
     const stopProgress = (index: number) =>
@@ -349,7 +354,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       travel = Math.max(1, height - stage.offsetHeight);
       // Keep the same shot when rotating a phone or resizing the window.
       // Browser toolbar changes only resize the stage, leaving the svh track stable.
-      if (resized) {
+      if (resized && zoomProgress === null) {
         window.scrollTo({ top: start + progress * travel, behavior: "instant" });
       }
       measuredHeight = height;
@@ -417,6 +422,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.clearTimeout(entryRecovery);
       if (index > 0) warm();
       stopGlide();
+      if (zoomProgress !== null) {
+        // Explicit navigation still works when magnified; only panning is held.
+        zoomProgress = stopProgress(index);
+        render(performance.now(), true);
+        return;
+      }
       // Safari can retain a pending smooth scroll when a quick second tap
       // targets the current position. Cancel that flight before starting one.
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
@@ -510,7 +521,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       entryPending = false;
       window.clearTimeout(entryRecovery);
       if (activeIndex >= 0) rememberIsland(worlds[activeIndex].id);
-      schedule();
+      if (zoomProgress !== null) render(performance.now(), true);
+      else schedule();
     };
     const engage = (event: Event) => {
       const pointer = event as PointerEvent;
@@ -635,7 +647,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // (CSS scroll-snap, app/globals.css), with the phone's own momentum: one
     // motion, rather than a scripted glide picking up where the finger left off.
     const syncSnap = () => {
-      if (touchScroll.matches && !motion.matches) document.documentElement.dataset.islandSnap = "true";
+      if (zoomProgress === null && touchScroll.matches && !motion.matches) document.documentElement.dataset.islandSnap = "true";
       else delete document.documentElement.dataset.islandSnap;
     };
     syncSnap();
@@ -657,7 +669,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let scrollIdleTimer = 0;
     let direction = 1;
     let lastScrollY = window.scrollY;
-    const place = () => clamp((window.scrollY - start) / travel) * duration;
+    const place = () => (zoomProgress ?? clamp((window.scrollY - start) / travel)) * duration;
     const stopAt = (index: number) => stopProgress(index) * duration;
     const nearestStop = () => {
       const here = place();
@@ -672,7 +684,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       jump(index);
     };
     const settle = () => {
-      if (touching || stage.dataset.entering || snapping()) return;
+      if (zoomProgress !== null || touching || stage.dataset.entering || snapping()) return;
       const here = place();
       const nearest = nearestStop();
       if (Math.abs(stopAt(nearest) - here) < 0.04) {
@@ -685,6 +697,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       glideTo(ahead < 0 ? scenes.length - 1 : ahead);
     };
     const onGestureScroll = () => {
+      if (zoomProgress !== null) return;
       if (!peeking) showDots();
       // Even a hold is still part of a scroll gesture. Keep optional model
       // decoding out of it, then let it resume once momentum is quiet.
@@ -709,14 +722,64 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
     // A new wheel or touch takes over from any glide in progress.
     const markIntent = () => {
+      if (zoomProgress !== null) return;
       intentAt = performance.now(); settling = false; stopGlide();
       if (!stage.dataset.entering && document.documentElement.dataset.rocketTransition === "idle") {
         entryPending = false; window.clearTimeout(entryRecovery);
       }
     };
-    const onTouchStart = () => { touching = true; markIntent(); };
-    const onTouchEnd = () => {
-      touching = false;
+    const syncZoom = () => {
+      cancelAnimationFrame(zoomRestoreFrame);
+      zoomRestoreFrame = 0;
+      if (pinching || (viewport?.scale ?? 1) > 1.01) {
+        if (zoomProgress !== null) return;
+        // If zoom interrupts a crossing, reveal its current island completely
+        // instead of holding the dim, off-centre frame between two islands.
+        zoomProgress = stopProgress(activeIndex >= 0 ? activeIndex : nearestStop());
+        cancelSettle();
+        stopGlide();
+        cancelAnimationFrame(frame);
+        frame = 0;
+        settling = false;
+        clearTimeout(settleRelease);
+        clearTimeout(scrollIdleTimer);
+        delete stage.dataset.scrolling;
+        stage.dataset.zoomed = "true";
+        syncSnap();
+        render(performance.now(), true);
+      } else if (zoomProgress !== null) {
+        // Wait for the browser's final viewport update, then restore the shot
+        // before re-enabling snapping. No scroll writes while fingers pinch.
+        zoomRestoreFrame = requestAnimationFrame(() => {
+          zoomRestoreFrame = 0;
+          if (pinching || (viewport?.scale ?? 1) > 1.01 || zoomProgress === null) return;
+          measure();
+          window.scrollTo({ top: start + zoomProgress * travel, behavior: "instant" });
+          cameraProgress = zoomProgress;
+          lastScrollY = window.scrollY;
+          zoomProgress = null;
+          delete stage.dataset.zoomed;
+          cancelSettle();
+          syncSnap();
+          schedule();
+        });
+      }
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      touching = true;
+      if (event.touches.length > 1) pinching = true;
+      syncZoom();
+      markIntent();
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      touching = event.touches.length > 0;
+      if (zoomProgress !== null || pinching) {
+        // Keep the gesture owned by zoom even if one finger lifts first.
+        if (!touching) pinching = false;
+        syncZoom();
+        return;
+      }
+      if (touching) return;
       markIntent();
       // A tap or a drag released at rest produces no scrollend. Check once it
       // is clear; any momentum that follows cancels this and settles at its end.
@@ -726,6 +789,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Each glide step ends a tiny native scroll; only the glide's own finish
     // (or a gesture's real end) releases the settle lock.
     const onScrollEnd = () => {
+      if (zoomProgress !== null) return;
       if (glideFrame) return;
       window.clearTimeout(settleRelease);
       settling = false;
@@ -737,7 +801,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Keys move exactly one stop at a time.
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { entryPending = false; window.clearTimeout(entryRecovery); schedule(); }
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering) return;
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering || zoomProgress !== null) return;
       const target0 = event.target as Element | null;
       if (target0?.closest("input, textarea, select, [contenteditable]")) return;
       // Space still presses a focused button or link.
@@ -752,6 +816,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       event.preventDefault();
       glideTo(target);
     };
+    viewport?.addEventListener("resize", syncZoom);
+    syncZoom();
     window.addEventListener("wheel", markIntent, { passive: true });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
@@ -768,7 +834,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; gliding(false); } peeking = false; };
     const peekSeen = () => { try { return sessionStorage.getItem("islands-peek") === "1"; } catch { return false; } };
     const peek = () => {
-      if (interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
+      if (zoomProgress !== null || interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
       try { sessionStorage.setItem("islands-peek", "1"); } catch { /* Private mode: the peek may repeat. */ }
       // Far enough that Work starts to come forward, well short of a stop.
       const depth = travel * (0.46 / duration);
@@ -793,6 +859,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
 
     return () => {
       stopPeek();
+      viewport?.removeEventListener("resize", syncZoom);
+      cancelAnimationFrame(zoomRestoreFrame);
+      delete stage.dataset.zoomed;
       peekIntents.forEach(type => window.removeEventListener(type, stopPeek, { capture: true }));
       delete document.documentElement.dataset.islandsQuiet;
       delete document.documentElement.dataset.islandSnap;

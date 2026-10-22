@@ -71,9 +71,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
   useEffect(() => () => cleanupRef.current?.(), []);
 
   const enter = (event: MouseEvent<HTMLAnchorElement>) => {
-    // Keep native new-tab, context-menu, and reduced-motion navigation.
+    // Keep native new-tab, context-menu, reduced-motion and magnified navigation.
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || (window.visualViewport?.scale ?? 1) > 1.01) return;
 
     const link = event.currentTarget;
     const stage = link.closest<HTMLElement>("[data-island-stage]");
@@ -142,6 +142,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       if (!handedOff) cancelAnimationFrame(paceFrame);
       window.removeEventListener("keydown", escape);
       window.removeEventListener("resize", interrupted);
+      window.removeEventListener("touchstart", pinchEntry);
+      window.visualViewport?.removeEventListener("resize", zoomEntry);
       window.removeEventListener("popstate", interrupted);
       motion.removeEventListener("change", skipMotion);
       zoom.cancel();
@@ -168,6 +170,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       router.push(href);
     }
     function interrupted() { if (!handedOff) reset(); else cancelScreen?.(); }
+    // A pinch takes over from the cinematic approach without leaving its cover.
+    function pinchEntry(event: TouchEvent) { if (event.touches.length > 1 && !handedOff) reset(); }
+    function zoomEntry() { if ((window.visualViewport?.scale ?? 1) > 1.01 && !handedOff) reset(); }
     // Impatient? Another tap, click, Enter or Space plays the rest of the
     // journey at four times the speed, including animations it starts later.
     let hurryFrame = 0;
@@ -203,6 +208,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     }
     window.addEventListener("keydown", escape);
     window.addEventListener("resize", interrupted);
+    window.addEventListener("touchstart", pinchEntry, { passive: true });
+    window.visualViewport?.addEventListener("resize", zoomEntry);
     window.addEventListener("popstate", interrupted);
     motion.addEventListener("change", skipMotion);
     // Recover the homepage if a destination fails to mount, allowing a retry.
