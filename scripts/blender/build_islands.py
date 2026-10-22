@@ -3237,7 +3237,7 @@ def workshop():
     watch_box(-.43,-.14,.5175,math.radians(4))
     # Carter asked for a poker chip set on the lower shelf and blue AirPods
     # Max on the bench.
-    poker_chip_case(1.55,.02,.5175,math.radians(-5))
+    poker_chip_case(.45,.02,.5175,math.radians(-5))
     airpods_max(-1.68,-.30,1.792,math.radians(14))
     # Lakers gold: an LED strip along the bench's front edge, washing the
     # drawers and the deck below.
