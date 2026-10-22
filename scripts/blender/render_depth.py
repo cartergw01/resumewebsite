@@ -22,7 +22,28 @@ opts = args.parse_args(sys.argv[sys.argv.index('--') + 1:])
 scene = bpy.context.scene
 camera = scene.camera
 
-# The island's depth range, from its geometry's bounds as seen by the camera.
+
+def volume_only(obj):
+    """Light haze has no surface: it must not become opaque depth geometry."""
+    materials = [slot.material for slot in obj.material_slots]
+    return bool(materials) and all(
+        mat and mat.use_nodes and any(
+            node.type == 'OUTPUT_MATERIAL' and node.is_active_output
+            and node.inputs['Volume'].is_linked
+            and not node.inputs['Surface'].is_linked
+            for node in mat.node_tree.nodes
+        ) for mat in materials
+    )
+
+
+# A material override would turn the transparent beam volumes into solid
+# cones. Hide them before measuring bounds or rendering, so light and shadow
+# follow the depth of the wall, curtain or desk receiving them.
+for obj in scene.objects:
+    if obj.type == 'LIGHT' or obj.name.startswith('Night · ') or volume_only(obj):
+        obj.hide_render = True
+
+# The island's depth range, from its visible surfaces as seen by the camera.
 distances = []
 for obj in scene.objects:
     if obj.type not in {'MESH', 'CURVE'} or obj.hide_render or obj.name.startswith('Night · '):
@@ -53,11 +74,6 @@ links.new(emit.outputs[0], out.inputs['Surface'])
 
 layer = bpy.context.view_layer
 layer.material_override = depth
-for obj in list(scene.objects):
-    if obj.type == 'LIGHT':
-        obj.hide_render = True
-    if obj.name.startswith('Night · '):
-        obj.hide_render = True
 scene.render.engine = 'CYCLES'
 scene.cycles.device = 'CPU'
 scene.cycles.samples = 4
