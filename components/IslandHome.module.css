@@ -362,7 +362,9 @@
   .contact a::after { content: none; }
   /* Lift the island on tall phones and reserve a separate row for touch help. */
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9svh, 5rem)); min-height: 0; margin-inline: -3rem; }
-  .scene:has(.overview) .art { width: calc(100% + 3rem); height: 100%; margin-inline: -1.5rem; }
+  /* The art stops short of its row so the lowest island's label keeps clear
+     of "swipe up", whose nudge and glow reach upward. */
+  .scene:has(.overview) .art { width: calc(100% + 3rem); height: calc(100% - 1rem); margin-inline: -1.5rem; }
   .overview { max-height: 30rem; }
   .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
   .island { max-height: 50svh; }
@@ -399,7 +401,7 @@
   .art { height: calc(100% - 2.5rem); }
   /* The overviews' art fills its row (above), so it ends a little short
      here: the lowest island's label must clear the scroll button's tap area. */
-  .scene:has(.overview) .art { height: calc(100% - 0.75rem); }
+  .scene:has(.overview) .art { height: calc(100% - 1.25rem); }
   .controls { gap: 0.35rem; }
 }
 @media (max-height: 600px) and (min-width: 761px) {
