@@ -142,7 +142,9 @@ test("the opening view zooms into its Work island instead of flying past it", as
     const shown = (box: { width: number; height: number }) => Math.min(box.width, box.height * 1.5);
     expect(Math.abs(shown(overview!) - shown(island!))).toBeLessThan(3);
   }
-  await cross(page, 0, 1);
-  expect((await pose(page, "work")).scale).toBeCloseTo(1, 3);
+  // Finish at the real stop: touch uses native snap anchors rather than
+  // the desktop scroll fractions used to sample the intermediate poses.
+  await page.getByRole("button", { name: "Show Work island" }).click();
+  await expect.poll(async () => (await pose(page, "work")).scale).toBeCloseTo(1, 3);
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "work");
 });

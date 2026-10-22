@@ -223,7 +223,8 @@
 /* Match the visible size of the rebuilt city, study and workshop. Work's box
    keeps the art box's proportions because the first journey zooms from it. */
 .overviewIsland[data-overview-island="work"] { left: 0%; top: 8%; width: 44.2%; height: 44.2%; }
-.overviewIsland[data-overview-island="writing"] { left: 32%; top: 53%; width: 42.3%; height: 42.3%; }
+/* Leave room between the study tree and the Projects label above it. */
+.overviewIsland[data-overview-island="writing"] { left: 23%; top: 53%; width: 42.3%; height: 42.3%; }
 .overviewIsland[data-overview-island="projects"] { left: 50%; top: 18%; width: 42.3%; height: 42.3%; }
 @media (max-width: 760px) {
   /* Keep the whole constellation inside its own space above navigation. */
@@ -373,6 +374,7 @@
   .copy { max-width: 24rem; }
   .description { max-width: 30ch; }
   .art { right: -7%; width: 71%; }
+  .overviewIsland[data-overview-island="writing"] { left: 18%; }
   .overviewIsland[data-overview-island="projects"] { left: 48%; }
 }
 /* Portrait tablets stack like phones: copy above, islands below at full
