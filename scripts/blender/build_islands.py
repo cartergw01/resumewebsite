@@ -3226,9 +3226,9 @@ def workshop():
     for loop,point in zip(uv.data,[(0,1),(1,1),(1,0),(0,0)]):loop.uv=point
     ANCHORS['screen']=screen;ANCHORS['landmark']=(sx,sy+.085,(bottom+top)/2);ANCHORS['screenGlow']=(sx,sy-.22,sz+.02)
     light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.72,.82,1),5,.7,(sx,sy-.50,sz))
-    # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
+    # Carter's iPad Pro on its Magic Keyboard, centred on the bench; its
     # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
-    ipad_pro(-.72,-.58,1.79,math.radians(28),'artwork/blender/ipad-wallpaper-launch.jpg')
+    ipad_pro(.10,-.48,1.79,math.radians(28),'artwork/blender/ipad-wallpaper-launch.jpg')
     # In Common With's Eave Table Lamp, in black steel, at the back of the
     # bench: a workbench lamp's pool of light.
     eave_table_lamp(-1.50,.60,1.792,80,.8)
@@ -3361,17 +3361,18 @@ def workshop():
         box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
-    starship(2.38,1.60,shelf,1.05)
+    # Space the four displays for clear gaps from the site camera.
+    starship(2.47,1.60,shelf,1.05)
     # Carter asked for BLACKPINK's official light stick, lit, on the top
     # shelf (on the lower one the stool hid it), turned across the shelf so
     # both pink hearts read side by side. The navy JBL stays clear beside it.
-    blackpink_lightstick(.78,1.31,shelf,math.radians(90),k=1.2)
-    jbl_charge4(1.25,1.48,shelf,0)
+    blackpink_lightstick(.72,1.31,shelf,math.radians(90),k=1.2)
+    jbl_charge4(1.40,1.48,shelf,0)
     # Lugia sits on the open middle shelf, clear of the monitor's screen.
     middle_shelf=.16+(2.98-.16)*.72+.015
     lugia_figurine(2.20,1.48,middle_shelf,math.radians(-18),k=.41)
     # Tesla merch: a stainless Cybertruck model on the shelf.
-    cx,cy,cz=1.85,1.60,shelf
+    cx,cy,cz=1.92,1.60,shelf
     profile=[(-.22,.025),(.22,.025),(.22,.085),(-.03,.14),(-.22,.10)]
     tv=[(cx+u,cy+side*.085,cz+v) for side in [-1,1] for u,v in profile]
     m=len(profile)
