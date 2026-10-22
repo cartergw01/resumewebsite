@@ -18,6 +18,14 @@
 }
 /* Five stops: 100svh of stage plus about 88svh per crossing. */
 .track { position: relative; height: 496svh; }
+/* A comfortable thumb drag reaches the next stop without a full-screen fling.
+   Keep the stage itself full height; only the scroll distance gets shorter. */
+@media (pointer: coarse) {
+  /* The dynamic stage cancels out of the track's scroll range as Safari's
+     toolbar moves. Artwork uses the stable viewport; controls still fit. */
+  .track { height: calc(260svh + 100dvh); }
+  .scene { height: 100svh; }
+}
 .stage {
   --island-grade: brightness(1.16) saturate(1.10) contrast(1.02);
   --camera-progress: 0;
@@ -190,7 +198,7 @@
 .island {
   width: 100%;
   height: 100%;
-  max-height: 70dvh;
+  max-height: 70svh;
   object-fit: contain;
   user-select: none;
   /* Brightness alone, on its own layer: the arrival light changes every
@@ -379,7 +387,7 @@
   .overviewIsland[data-overview-island="work"] { left: 3%; top: 0; width: 52%; height: 40%; }
   .overviewIsland[data-overview-island="writing"] { left: 45%; top: 27%; width: 52%; height: 40%; }
   .overviewIsland[data-overview-island="projects"] { left: 8%; top: 54%; width: 52%; height: 40%; }
-  .island { max-height: 56dvh; }
+  .island { max-height: 56svh; }
   .chapters { width: min(30rem, 62vw); }
 }
 @media (max-width: 760px) {
@@ -396,11 +404,11 @@
   .contact a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding-inline: .625rem; font-size: .9375rem; }
   .contact a::after { content: none; }
   /* Lift the island on tall phones and reserve a separate row for touch help. */
-  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9dvh, 5rem)); min-height: 0; margin-inline: -3rem; }
+  .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9svh, 5rem)); min-height: 0; margin-inline: -3rem; }
   .scene:has(.overview) .art { width: calc(100% + 3rem); height: 100%; margin-inline: -1.5rem; }
   .overview { max-height: 30rem; }
   .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
-  .island { max-height: 50dvh; }
+  .island { max-height: 50svh; }
   .landmarkCue { font-size: .75rem; letter-spacing: .08em; }
   .bookCue > span { top: -5%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
@@ -432,7 +440,7 @@
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
   .copy h1, .copy h2 { font-size: 2.75rem; }
-  .island { max-height: 42dvh; }
+  .island { max-height: 42svh; }
   .art { height: calc(100% - 2.5rem); }
   /* The overviews' art fills its row (above), so it ends a little short
      here: the lowest island's label must clear the scroll button's tap area. */
@@ -453,7 +461,7 @@
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
   .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .scene:has(.overview) .art { width: 59%; height: auto; margin-inline: 0; }
-  .island { max-height: 68dvh; }
+  .island { max-height: 68svh; }
   .landmarkCue { font-size: 0.75rem; }
   /* Landscape keeps the bar to the right half, beside the free left column
      (where a turned island's "reset view" sits). */

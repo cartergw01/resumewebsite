@@ -123,11 +123,17 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       return new DOMRect(base.left + x, base.top + y, visual.offsetWidth, visual.offsetHeight);
     };
     const duration = scenes.length - 1 + FINAL_HOLD;
+    // These anchors are shared by snapping, navigation and the progress rail.
+    const stopProgress = (index: number) =>
+      (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
+    const stops = worlds.map((_, index) => stopProgress(index));
     let frame = 0;
     let activeIndex = -1;
     let travel = 1;
     let start = 0;
     let measuredHeight = 0;
+    let measuredWidth = 0;
+    let measuredSceneHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
     // Browser pinch/pan changes scrollY too. Keep that separate from travel.
@@ -187,9 +193,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         : cameraProgress + (progress - cameraProgress) * smoothing;
       if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
       previousFrame = now;
-      const position = cameraProgress * duration;
+      const stop = Math.max(0, stops.findIndex((position) => position > progress) - 1);
+      const segment = progress >= 1 ? stops.length - 2 : stop;
+      const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
+      // A thumb should see movement as soon as it drags in either direction.
+      // Map touch travel between the actual snap anchors, with only a small
+      // rest at either end. Desktop retains its longer cinematic holds.
+      const position = touchScroll.matches ? segment + fraction : cameraProgress * duration;
       const from = Math.min(scenes.length - 1, Math.floor(position));
-      const crossing = from < scenes.length - 1 ? clamp((position - from - 0.34) / 0.54) : 0;
+      const hold = touchScroll.matches ? .035 : .34;
+      const crossing = from < scenes.length - 1 ? clamp((position - from - hold) / (touchScroll.matches ? .93 : .54)) : 0;
       const mix = ease(crossing);
       const current = Math.min(scenes.length - 1, from + (mix >= 0.5 ? 1 : 0));
       const arc = from % 2 === 0 ? 1 : -1;
@@ -288,10 +301,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       paintTrails("opacity", speed.toFixed(4));
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
-      const stops = worlds.map((_, index) => stopProgress(index));
-      const stop = Math.max(0, stops.findIndex((position) => position > progress) - 1);
-      const segment = progress >= 1 ? stops.length - 2 : stop;
-      const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
       const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
       comet.place(starX, now);
       comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) : undefined);
@@ -341,23 +350,33 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const schedule = () => {
       if (zoomProgress === null && !frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
-    // Each stop rests just inside its hold, after its arrival has settled.
-    const stopProgress = (index: number) =>
-      (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
     const measure = () => {
       const height = track.offsetHeight;
-      const resized = measuredHeight > 0 && measuredHeight !== height;
+      const width = stage.offsetWidth;
+      const sceneHeight = scenes[0].offsetHeight;
+      const nextTravel = Math.max(1, height - stage.offsetHeight);
+      // Toolbar movement changes the dynamic stage, not the stable artwork or
+      // scroll distance. Avoid restarting momentum and remeasuring every layer.
+      if (measuredHeight && measuredWidth === width && measuredSceneHeight === sceneHeight && Math.abs(nextTravel - travel) <= 1) {
+        schedule();
+        return;
+      }
+      const resized = measuredHeight > 0 && Math.abs(nextTravel - travel) > 1;
       // A shorter viewport can clamp scrollY before resize runs. Preserve the
       // last camera position instead of interpreting that clamp as travel.
       const progress = resized && cameraProgress !== null ? cameraProgress : clamp((window.scrollY - start) / travel);
       start = track.getBoundingClientRect().top + window.scrollY;
-      travel = Math.max(1, height - stage.offsetHeight);
-      // Keep the same shot when rotating a phone or resizing the window.
-      // Browser toolbar changes only resize the stage, leaving the svh track stable.
+      travel = nextTravel;
+      // Update native snap targets before restoring scroll. Otherwise the
+      // browser snaps the new pixel position to an old marker during rotation.
+      snapStops.forEach((marker, index) => { marker.style.top = `${stopProgress(index) * travel}px`; });
+      // A real viewport resize or phone rotation preserves the current shot.
       if (resized && zoomProgress === null) {
         window.scrollTo({ top: start + progress * travel, behavior: "instant" });
       }
       measuredHeight = height;
+      measuredWidth = width;
+      measuredSceneHeight = sceneHeight;
       const focus = art[0].querySelector<HTMLElement>('[data-overview-island="work"]');
       const arrival = art[1]?.querySelector<HTMLElement>("[data-island-visual]");
       if (focus && arrival && focus.offsetWidth && arrival.offsetWidth) {
@@ -395,9 +414,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const tab = buttonScene.indexOf(index);
         return tab >= 0 ? centers[tab] : index < buttonScene[0] ? trackStart : trackEnd;
       });
-      // Phones snap natively to each stop: one marker per stop, at the scroll
-      // offset where that stop's shot sits (relative to the track's top).
-      snapStops.forEach((marker, index) => { marker.style.top = `${stopProgress(index) * travel}px`; });
       schedule();
     };
     // Glides are driven here rather than by the browser's smooth scroll, so
@@ -440,19 +456,20 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // phone rotation mid-flight still lands exactly on the stop.
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
-      // About two-thirds of a second per stop: long enough to read as one
-      // flight between islands, short enough that stepping through stays brisk.
-      const length = Math.min(900, 450 + Math.abs(to - from) * duration * 180);
+      const distance = Math.abs(to - from) * duration;
+      // Touch controls answer immediately and land in about a third of a
+      // second. Desktop keeps the longer flight; neither queues destinations.
+      const length = touchScroll.matches ? Math.min(420, 240 + distance * 90)
+        : Math.min(900, 450 + distance * 180);
       const began = performance.now();
       stage.dataset.navigating = "true";
       gliding(true);
       const step = (now: number) => {
         // A frame's timestamp can precede the call that started the glide.
         const t = clamp((now - began) / length);
-        // Ease in and out around the middle, so the crossing between islands
-        // happens mid-glide rather than in a rush at the start followed by a
-        // long crawl into the stop.
-        const eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        // Touch starts moving on the first frame; desktop eases both ends.
+        const eased = touchScroll.matches ? 1 - Math.pow(1 - t, 3)
+          : t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
         window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
         // Scroll, island camera and comet share this display frame. Waiting for

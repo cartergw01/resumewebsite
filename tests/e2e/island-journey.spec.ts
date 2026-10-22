@@ -8,15 +8,15 @@ async function pauseSnap(page: Page) {
   await page.evaluate(() => { document.documentElement.style.scrollSnapType = "none"; });
 }
 
-async function scrollScreens(page: Page, screens: number) {
+async function scrollProgress(page: Page, progress: number) {
   await pauseSnap(page);
   await page.evaluate((distance) => {
-    window.scrollTo({ top: window.innerHeight * distance, behavior: "instant" });
-  }, screens);
+    window.scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * distance, behavior: "instant" });
+  }, progress);
 }
 
-// Screens of scroll that land inside each stop's hold (496svh track, 4.5 units).
-const stopScreens = (index: number) => index === 0 ? 0 : (index + 0.11) / 4.5 * 3.96;
+// Snap anchors are shared across the desktop and shorter mobile tracks.
+const stopProgress = (index: number) => index === 0 ? 0 : index === 4 ? 1 : (index + 0.11) / 4.5;
 
 async function expectScene(page: Page, id: string) {
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", id);
@@ -52,7 +52,7 @@ test("scroll advances and reverses three islands inside one viewport", async ({ 
   const ids = ["intro", "work", "writing", "projects", "hello"];
   const historyLength = await page.evaluate(() => history.length);
   for (const id of ["intro", "work", "writing", "projects", "hello", "projects", "writing", "work", "intro"]) {
-    await scrollScreens(page, stopScreens(ids.indexOf(id)));
+    await scrollProgress(page, stopProgress(ids.indexOf(id)));
     await expectScene(page, id);
     await expectFrameFits(page);
     const image = page.locator(`#${id} img`).first();
@@ -172,7 +172,7 @@ test("islands travel through the scene as solid objects and scrolling reverses t
   await expect(work).toBeVisible();
   const start = await work.boundingBox();
   // Mid-flight between Work and Writing.
-  await scrollScreens(page, 1.43);
+  await scrollProgress(page, 1.625 / 4.5);
   await expectScene(page, "writing");
   await expect(page.locator("#work")).toHaveCSS("opacity", "1");
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
@@ -182,7 +182,7 @@ test("islands travel through the scene as solid objects and scrolling reverses t
   }).toBeLessThan(start!.x + start!.width / 2 - page.viewportSize()!.width * 0.4);
   await expect.poll(() => page.locator("[data-flight-stars]").evaluate((stars) => Number(getComputedStyle(stars).opacity))).toBeGreaterThan(0.4);
 
-  await scrollScreens(page, stopScreens(1));
+  await scrollProgress(page, stopProgress(1));
   await expectScene(page, "work");
   await expect.poll(async () => (await work.boundingBox())!.x).toBeCloseTo(start!.x, 0);
   await expect(page.locator("[data-flight-stars]")).toHaveCSS("opacity", "0");
@@ -192,7 +192,7 @@ test("reduced motion replaces camera travel with still cuts and updates live", a
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   // Mid-flight between Work and Writing.
-  await scrollScreens(page, 1.43);
+  await scrollProgress(page, 1.625 / 4.5);
   await expectScene(page, "writing");
   await expect(page.locator("#writing")).toHaveCSS("opacity", "1");
   await expect(page.locator("#writing [data-scene-art]")).toHaveCSS("transform", "none");
