@@ -83,7 +83,8 @@ test("native drags advance and reverse without requiring a full-screen fling", a
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   const session = await context.newCDPSession(page);
-  for (const [distance, world] of [[-260, "writing"], [260, "work"], [-260, "writing"], [-260, "projects"], [260, "writing"]] as const) {
+  // About a fifth of the screen is enough to move to the next island.
+  for (const [distance, world] of [[-180, "writing"], [180, "work"], [-180, "writing"], [-180, "projects"], [180, "writing"]] as const) {
     await session.send("Input.synthesizeScrollGesture", { x: 195, y: distance < 0 ? 600 : 250, yDistance: distance, speed: 400, preventFling: true, gestureSourceType: "touch" });
     await expect(page).toHaveURL(new RegExp(`#${world}$`));
     await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");

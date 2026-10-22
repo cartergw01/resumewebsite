@@ -460,9 +460,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
       const distance = Math.abs(to - from) * duration;
-      // Touch controls answer immediately and land in about a third of a
-      // second. Desktop keeps the longer flight; neither queues destinations.
-      const length = touchScroll.matches ? Math.min(420, 240 + distance * 90)
+      // Touch controls answer immediately and land in a fifth to a third of
+      // a second. Desktop keeps the longer flight; neither queues destinations.
+      const length = touchScroll.matches ? Math.min(340, 200 + distance * 70)
         : Math.min(900, 450 + distance * 180);
       const began = performance.now();
       stage.dataset.navigating = "true";

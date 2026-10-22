@@ -22,8 +22,10 @@
    Keep the stage itself full height; only the scroll distance gets shorter. */
 @media (pointer: coarse) {
   /* The dynamic stage cancels out of the track's scroll range as Safari's
-     toolbar moves. Artwork uses the stable viewport; controls still fit. */
-  .track { height: calc(260svh + 100dvh); }
+     toolbar moves. Artwork uses the stable viewport; controls still fit.
+     About 55svh per crossing: a short, relaxed swipe carries you to the next
+     island, and native snapping has little distance left to coast. */
+  .track { height: calc(165svh + 100dvh); }
   .scene { height: 100svh; }
 }
 .stage {
