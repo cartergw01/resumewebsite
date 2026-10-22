@@ -187,12 +187,14 @@
 .overviewIsland[data-overview-island="writing"] { left: 23%; top: 53%; width: 42.3%; height: 42.3%; }
 .overviewIsland[data-overview-island="projects"] { left: 50%; top: 18%; width: 42.3%; height: 42.3%; }
 @media (max-width: 760px) {
-  /* Keep the whole constellation inside its own space above navigation. */
-  .overviewIsland[data-overview-island="work"] { left: 3%; top: 0; width: 52%; height: 40%; }
-  .overviewIsland[data-overview-island="writing"] { left: 45%; top: 27%; width: 52%; height: 40%; }
-  .overviewIsland[data-overview-island="projects"] { left: 8%; top: 54%; width: 52%; height: 40%; }
+  /* Keep the whole constellation inside its own space above navigation. The
+     islands are as large as the column allows: Work and Projects share the
+     left edge without touching, and Writing overlaps both from the right. */
+  .overviewIsland[data-overview-island="work"] { left: 0; top: 0; width: 64%; height: 46%; }
+  .overviewIsland[data-overview-island="writing"] { left: 37%; top: 24.5%; width: 64%; height: 46%; }
+  .overviewIsland[data-overview-island="projects"] { left: 4%; top: 49%; width: 64%; height: 46%; }
 }
-.overviewIsland { position: absolute; display: grid; place-items: center; color: #e9d4b6; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
+.overviewIsland { position: absolute; display: grid; place-items: center; color: #f3e2c7; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
 .overviewVisual { position: relative; display: block; width: 100%; height: 100%; min-height: 0; transition: transform 180ms var(--cw-ease); }
 .overviewImage { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 .overviewDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -202,7 +204,7 @@
 .overviewIsland[data-overview-island="projects"] .overviewVisual { animation-delay: -4.5s; }
 .overviewLabel { position: absolute; bottom: 4%; left: 50%; font-family: var(--font-display); font-stretch: 125%; font-size: calc(var(--type-annotation) * 0.62); font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em; white-space: nowrap; opacity: 0.8; text-shadow: 0 1px 3px #030611, 0 2px 12px #030611; transform: translateX(-50%); transition: color 220ms ease; }
 /* Labels leave with the other annotations as soon as the camera moves. */
-.overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.8); }
+.overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.94); }
 /* Labels sit just under each island's contained 3:2 art, at every width. */
 .overviewIsland { container-type: size; }
 .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - 1.1em); }
@@ -366,9 +368,11 @@
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9svh, 5rem)); min-height: 0; margin-inline: -3rem; }
   /* The art stops short of its row so the lowest island's label keeps clear
      of "swipe up", whose nudge and glow reach upward. */
-  .scene:has(.overview) .art { width: calc(100% + 3rem); height: calc(100% - 1rem); margin-inline: -1.5rem; }
-  .overview { max-height: 30rem; }
-  .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
+  /* It also starts 1.5rem higher, tucked under the copy, so the bottom edge
+     (and the gap above the cue) stays where it was while the islands grow. */
+  .scene:has(.overview) .art { width: calc(100% + 3rem); height: calc(100% + .5rem); margin-top: -1.5rem; margin-inline: -1.5rem; }
+  .overview { max-height: 34rem; }
+  .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .75rem; }
   .island { max-height: 50svh; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   /* The three islands' names float over the stars on the comet's arc. */
@@ -403,7 +407,7 @@
   .art { height: calc(100% - 2.5rem); }
   /* The overviews' art fills its row (above), so it ends a little short
      here: the lowest island's label must clear the scroll button's tap area. */
-  .scene:has(.overview) .art { height: calc(100% - 1.25rem); }
+  .scene:has(.overview) .art { height: calc(100% + .25rem); }
   .controls { gap: 0.35rem; }
 }
 @media (max-height: 600px) and (min-width: 761px) {
@@ -456,6 +460,23 @@
 .overviewIsland[data-touch-pressed] .overviewDetails { filter: drop-shadow(0 0 6px #ffe4ad); }
 .overviewIsland[data-touch-pressed] [data-city-entry-window] { fill: #fff4cf; }
 @media (prefers-reduced-motion: reduce) { .touchSurface { transition: none; } }
+/* Touch screens: the first time an island comes to rest, a soft light
+   breathes over it twice, the way it lights when pressed, so a visitor can
+   tell it opens. It waits for the camera to settle and stops if they swipe
+   on; the transport marks it played (data-hinted) once it finishes. */
+.tapHint { display: none; }
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  .tapHint { position: absolute; z-index: 4; inset: 10% 2% 6%; display: block; border-radius: 50%; background: radial-gradient(closest-side, #fff0d06b, #ffd9a033 40%, #ffd9a010 72%, transparent); mix-blend-mode: screen; opacity: 0; pointer-events: none; }
+  .projects .tapHint { background: radial-gradient(closest-side, #e2f0ff66, #b8dcff2e 40%, #b8dcff0e 72%, transparent); }
+  .stage[data-travelling="false"]:not([data-entering]) .scene[data-active="true"]:not([data-hinted]) .tapHint { animation: tap-hint 2.6s ease-in-out .45s both; }
+}
+@keyframes tap-hint {
+  0% { opacity: 0; scale: .92; }
+  22% { opacity: 1; scale: 1; }
+  46% { opacity: .2; scale: 1.03; }
+  68% { opacity: .85; scale: 1; }
+  100% { opacity: 0; scale: 1.05; }
+}
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }
 
 /* Mouse users get the island prompt as a tooltip by the cursor; the island

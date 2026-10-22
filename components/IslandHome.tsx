@@ -107,9 +107,12 @@ export default function IslandHome() {
               <span className={styles.artGlow} data-reads={`island-lights:opacity:${stop.id === "work" ? .8 : 1}`} aria-hidden="true" />
               <Art id={stop.id} />
               {stop.id === "work" || stop.id === "writing" || stop.id === "projects" ? (
+                <>
+                <span className={styles.tapHint} data-tap-hint aria-hidden="true" />
                 <div className={styles.sceneControl} data-island-control>
                   {stop.id === "work" ? <CityTimeToggle /> : <RoomLightSwitch world={stop.id} />}
                 </div>
+                </>
               ) : null}
             </div>
           </section>

@@ -54,6 +54,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
   }, [destination]);
 
   return (
+    <>
     <header className={`site-nav${destination && active !== "resume" ? ` ${styles.destinationNav}` : ""}`} data-destination-nav={destination || undefined} data-resume-nav={active === "resume" || undefined} data-scrolled={scrolled} data-tucked={tucked || undefined}>
       {/* Every subpage returns to its island from the same upper-left spot. */}
       {destination && (
@@ -93,5 +94,20 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
         ))}
       </nav>
     </header>
+    {/* Phones: the same Work / Writing / Projects bar as the islands, in the
+        same place, so the three names mean one thing everywhere. */}
+    {destination && active !== "resume" && !hidePrimary && (
+      <nav aria-label="Primary navigation" className={styles.dock}>
+        <svg className={styles.dockArc} viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 46Q240 28 480 46" />
+        </svg>
+        {primaryLinks.map((link) => (
+          <Link key={link.id} href={link.href} aria-current={active === link.id ? "page" : undefined}>
+            <span className={styles.dockLabel}>{link.label}</span>
+          </Link>
+        ))}
+      </nav>
+    )}
+    </>
   );
 }

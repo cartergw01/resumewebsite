@@ -240,7 +240,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       onClick={enter}
     >
       {children}
-      {overview && <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.8">{title}</span>}
+      {overview && <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.94">{title}</span>}
     </Link>
   );
 }

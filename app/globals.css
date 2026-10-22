@@ -29,6 +29,21 @@
   --leading-tight: 1.02;
   --leading-body: 1.68;
   --tracking-caps: 0.115em;
+  /* Work, Writing and Projects share one type scale below their headers:
+     a section label, an entry title, body copy and a date. */
+  --topic-label-size: 0.8125rem;
+  --topic-label-tracking: 0.12em;
+  --topic-label-color: #e6c794;
+  --topic-title-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  --topic-title-leading: 1.2;
+  --topic-body-size: 1.0625rem;
+  --topic-body-leading: 1.7;
+  --topic-body-color: #e9e3d8;
+  --topic-meta-size: 0.8125rem;
+  --topic-meta-color: #c7bdac;
+  --topic-section-gap: clamp(4rem, 9vw, 6rem);
+  /* What the phone bottom bar (MobileContact.module.css .dock) covers. */
+  --dock-space: calc(60px + max(1.25rem, env(safe-area-inset-bottom)));
 }
 
 * {
@@ -3121,3 +3136,37 @@ html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !impo
 html[data-book-transition] [data-book-lifted="lit"] { opacity: 1; }
 html[data-book-transition][data-writing-lights="off"] [data-book-lifted="lit"] { opacity: 0; }
 html[data-book-transition][data-writing-lights="off"] [data-book-lifted="dark"] { opacity: 1; }
+
+/* Writing and Projects on the shared topic scale (tokens in :root; Work's
+   own module uses the same ones). Doubled classes outrank the older
+   per-breakpoint rules above without touching them. */
+.topic-page.topic-page .archive-group-heading {
+  color: var(--topic-label-color);
+  font-size: var(--topic-label-size);
+  font-weight: 600;
+  letter-spacing: var(--topic-label-tracking);
+  line-height: 1.5;
+}
+.topic-page.topic-page .archive-group + .archive-group {
+  margin-top: var(--topic-section-gap);
+  padding-top: 0;
+}
+.topic-page.topic-page :is(.archive-main strong, .project-row-copy strong) {
+  font-size: var(--topic-title-size);
+  font-weight: 600;
+  line-height: var(--topic-title-leading);
+  letter-spacing: -0.01em;
+}
+.topic-page.topic-page :is(.archive-main span, .project-row-copy > span) {
+  color: var(--topic-body-color);
+  font-size: var(--topic-body-size);
+  line-height: var(--topic-body-leading);
+}
+.topic-page.topic-page .archive-meta {
+  color: var(--topic-meta-color);
+  font-size: var(--topic-meta-size);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.6;
+  text-transform: none;
+}
