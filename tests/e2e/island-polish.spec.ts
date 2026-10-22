@@ -6,7 +6,7 @@ test("city and workshop details animate only while active and respect reduced mo
   await expect(page.getByRole("button", { name: /island animation/ })).toHaveCount(0);
   for (const world of ["work", "projects"] as const) {
     const title = world === "work" ? "Work" : "Projects";
-    await page.getByRole("button", { name: `Show ${title} island` }).click();
+    await (world === "work" ? page.locator("[data-next-scene]") : page.getByRole("button", { name: `Show ${title} island` })).click();
     const visual = page.locator(`[data-living-island=${world}]`);
     await expect(visual).toHaveAttribute("data-motion-running", "true");
     const ambient = visual.locator(world === "work" ? "[data-island-traffic]" : "[data-screen-light]").first();
@@ -63,14 +63,14 @@ test("each island scene restores directly and Projects opens on the working scre
   expect(errors).toEqual([]);
 });
 
-test("mobile copy, larger annotations, and island controls fit without overlap", async ({ page }, testInfo) => {
+test("mobile copy, heading links, and island controls fit without overlap", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "One browser covers the additional compact size matrix.");
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const viewport of [{ width: 390, height: 844 }, { width: 320, height: 568 }, { width: 768, height: 1024 }]) {
     await page.setViewportSize(viewport);
     await page.goto("/");
     for (const title of ["Work", "Writing", "Projects"]) {
-      await page.getByRole("button", { name: `Show ${title} island` }).click();
+      await (title === "Work" ? page.locator("[data-next-scene]") : page.getByRole("button", { name: `Show ${title} island` })).click();
       const scene = page.locator(`#${title.toLowerCase()}`);
       const copy = await scene.locator("[data-scene-copy]").boundingBox();
       const art = await scene.locator("[data-scene-art]").boundingBox();
@@ -78,9 +78,8 @@ test("mobile copy, larger annotations, and island controls fit without overlap",
         expect(art!.y - (copy!.y + copy!.height)).toBeGreaterThanOrEqual(0);
         expect(art!.y - (copy!.y + copy!.height)).toBeLessThan(24);
       }
-      const cue = scene.locator("[data-island-link] > span:last-child > span");
-      // Rotated annotations produce fractional IntersectionObserver rounding.
-      await expect(cue).toBeInViewport({ ratio: 0.999 });
+      const cue = scene.locator("h2 [data-enter-island]");
+      await expect(cue).toBeInViewport({ ratio: 1 });
       const cueBounds = await cue.boundingBox();
       expect(cueBounds!.x).toBeGreaterThanOrEqual(-0.5);
       expect(cueBounds!.x + cueBounds!.width).toBeLessThanOrEqual(viewport.width + 0.5);
@@ -120,28 +119,43 @@ test("destination navigation stays readable on scroll and the matching island re
 });
 
 
-test("arrival invites entering before hover and recedes after discovery", async ({ page }, testInfo) => {
-  // From the opening view, so each tab travels (on phones, tapping the tab
-  // you're already on opens its island instead).
+test("heading links enter their island pages and chapter navigation reveals after the intro", async ({ page }, testInfo) => {
   await page.goto("/");
+  await expect(page.locator("[data-scene-nav]")).toBeHidden();
+  await expect(page.locator("[data-next-scene]")).toBeVisible();
+  const initialCue = (await page.locator("[data-next-scene]").boundingBox())!;
+  expect(initialCue.x + initialCue.width / 2).toBeCloseTo(await page.evaluate(() => document.documentElement.clientWidth / 2), 0);
   for (const world of ["Work", "Writing", "Projects"]) {
     const id = world.toLowerCase();
-    await page.getByRole("button", { name: `Show ${world} island` }).click();
+    await (world === "Work" ? page.locator("[data-next-scene]") : page.getByRole("button", { name: `Show ${world} island` })).click();
     await expect(page).toHaveURL(new RegExp(`#${id}$`));
+    await expect(page.locator("[data-scene-nav]")).toBeVisible();
     const island = page.locator(`#${id} [data-island-link]`);
-    const cue = island.locator(":scope > span:last-child");
-    await expect(cue).toHaveCSS("opacity", "1");
-    await expect(cue.locator(":scope > span")).toBeInViewport();
+    const cue = page.locator(`#${id} h2 [data-enter-island]`);
+    await expect(cue).toBeInViewport({ ratio: 1 });
+    const description = await page.locator(`#${id} [data-scene-copy] > p`).boundingBox();
+    const heading = (await cue.boundingBox())!;
+    expect(heading.y + heading.height).toBeLessThan(description!.y);
     if (testInfo.project.name === "desktop") {
       await island.hover();
-      await expect(cue).toHaveCSS("opacity", "0");
+      await expect(cue).toBeVisible();
       await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-engaged", "true");
       await page.mouse.move(4, 4);
-      await expect(cue).toHaveCSS("opacity", "0");
-      await page.keyboard.press("Tab");
-      await island.focus();
-      await expect(cue).toHaveCSS("opacity", "1");
-      await page.getByRole("button", { name: `Show ${world} island` }).focus();
+      await cue.focus();
+      await expect(cue).toBeFocused();
+      await page.keyboard.press("Enter");
+    } else {
+      await cue.click();
     }
+    // Allow the existing island entrance and a cold development route compile.
+    await expect(page).toHaveURL(new RegExp(`/${id}$`), { timeout: 15_000 });
+    await page.getByRole("link", { name: "Back to islands" }).click();
+    await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", id);
   }
+  await page.getByRole("button", { name: "Show Work island" }).focus();
+  await page.keyboard.press("Home");
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
+  await expect(page.locator("[data-scene-nav]")).toBeHidden();
+  await expect(page.locator("[data-next-scene]")).toBeVisible();
+  await expect(page.locator("[data-next-scene]")).toBeFocused();
 });

@@ -28,6 +28,7 @@ test("background video advances without scrolling, keeps playing across islands,
 
   // There is no manual pause control; the video keeps playing across islands.
   await expect(page.getByRole("button", { name: /background video/ })).toHaveCount(0);
+  await page.locator("[data-next-scene]").click();
   await page.getByRole("button", { name: "Show Writing island" }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => node.paused)).toBe(false);

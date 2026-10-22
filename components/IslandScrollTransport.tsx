@@ -308,14 +308,17 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (sceneNav.dataset.boundary !== boundary) sceneNav.dataset.boundary = boundary;
 
       if (current !== activeIndex) {
+        const leavingChapters = current === 0 && sceneNav.contains(document.activeElement);
+        track.dataset.scene = worlds[current].id;
         // Move focus out of a departing scene before marking it inert.
         if (activeIndex >= 0 && scenes[activeIndex].contains(document.activeElement)) {
           (tabFor(current) ?? next).focus({ preventScroll: true });
         }
+        // Hidden opening chapters must never retain keyboard focus.
+        if (leavingChapters) next.focus({ preventScroll: true });
         activeIndex = current;
         stage.dataset.engaged = "false";
         syncQuiet();
-        track.dataset.scene = worlds[current].id;
         scenes.forEach((scene, index) => {
           scene.inert = index !== current;
           scene.setAttribute("aria-hidden", String(index !== current));

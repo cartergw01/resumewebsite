@@ -8,8 +8,6 @@ import { artworkOutline } from "@/lib/artwork-perspective";
 import { towerFloors, type IslandArtworks, type IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
-import CityTimeToggle from "./CityTimeToggle";
-import RoomLightSwitch from "./RoomLightSwitch";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
@@ -184,6 +182,5 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         </svg>
       </span>
     </IslandLink>
-    {world === "work" ? <CityTimeToggle /> : <RoomLightSwitch world="projects" />}
   </>;
 }

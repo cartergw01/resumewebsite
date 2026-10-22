@@ -36,7 +36,9 @@ async function expectFrameFits(page: Page) {
   expect(bounds!.height).toBeCloseTo(viewport.height, 0);
   expect(bounds!.width).toBeCloseTo(viewport.width, 0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await expect(page.getByRole("navigation", { name: "Island scenes" })).toBeInViewport();
+  const chapters = page.locator("[data-scene-nav]");
+  if (await page.locator("main[data-scene]").getAttribute("data-scene") === "intro") await expect(chapters).toBeHidden();
+  else await expect(chapters).toBeInViewport();
   await expect(page.locator('[data-island-scene][data-active="true"] [data-scene-copy]')).toBeInViewport({ ratio: 1 });
 }
 
@@ -95,6 +97,7 @@ test("shooting star follows the full page proportionally in both directions", as
       }, progress)).toBeLessThan(1);
     }
 
+    await page.locator("[data-next-scene]").click();
     for (const [world, progress] of [["Writing", 2.11 / 4.5], ["Projects", 3.11 / 4.5], ["Work", 1.11 / 4.5]] as const) {
       await page.getByRole("button", { name: `Show ${world} island` }).click();
       await expect.poll(() => page.evaluate(() => scrollY / (document.documentElement.scrollHeight - innerHeight))).toBeCloseTo(progress, 3);
@@ -105,6 +108,9 @@ test("shooting star follows the full page proportionally in both directions", as
 
 test("scene controls, keyboard focus, and destination links work", async ({ page, isMobile }) => {
   await page.goto("/");
+  await expect(page.locator("[data-scene-nav]")).toBeHidden();
+  await page.locator("[data-next-scene]").click();
+  await expectScene(page, "work");
   // The scene buttons stay disabled until the island track is ready; focusing
   // one before then lands nowhere, and Enter does nothing.
   const showWriting = page.getByRole("button", { name: "Show Writing island" });
@@ -121,7 +127,8 @@ test("scene controls, keyboard focus, and destination links work", async ({ page
   await expect(page.locator("#hello").getByRole("link", { name: "Email" })).toHaveAttribute("href", "mailto:cartergw01@gmail.com");
   await page.getByRole("button", { name: "Back to the start" }).click();
   await expectScene(page, "intro");
-  await page.getByRole("button", { name: isMobile ? "Show Work island" : "Scroll down to the Work island" }).click();
+  await expect(page.locator("[data-scene-nav]")).toBeHidden();
+  await page.locator("[data-next-scene]").click();
   await expectScene(page, "work");
   await page.getByRole("button", { name: isMobile ? "Show Writing island" : "Scroll down to the Writing island" }).click();
   await expectScene(page, "writing");
@@ -367,12 +374,11 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
 });
 
 test("navigation labels sit above the curved light path with comfortable targets", async ({ page }) => {
-  // From the opening view, so each tab travels (on phones, tapping the tab
-  // you're already on opens its island instead).
+  // The scroll cue reveals Work; later stops use the chapter row.
   await page.goto("/");
   for (const world of ["Work", "Writing", "Projects"]) {
     const button = page.getByRole("button", { name: `Show ${world} island` });
-    await button.click();
+    await (world === "Work" ? page.locator("[data-next-scene]") : button).click();
     await expect(page).toHaveURL(new RegExp(`#${world.toLowerCase()}$`));
     const target = await button.boundingBox();
     expect(target!.width).toBeGreaterThanOrEqual(44);

@@ -7,7 +7,6 @@ import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
 import { artworkOutline } from "@/lib/artwork-perspective";
 import type { IslandArtworks, IslandLandmark } from "@/lib/island-artwork";
-import RoomLightSwitch from "./RoomLightSwitch";
 import StudyClock from "./StudyClock";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import type { NotebookEssay } from "@/lib/workshop-entry";
@@ -86,7 +85,6 @@ export default function WritingIsland({ artwork: island, landmark, pages }: { ar
           </svg>
         </span>
       </IslandLink>
-      <RoomLightSwitch world="writing" />
     </>
   );
 }

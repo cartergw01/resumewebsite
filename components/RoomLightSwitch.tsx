@@ -4,10 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
 import styles from "./IslandHome.module.css";
 
-// A light switch beside the study or the workshop, styled like Taipei's sun
-// and moon: its rocker is up while the lights are on. The room
-// goes dark fixture by fixture and back (lib/light-switch.ts), and each room
-// remembers its own switch.
+// A labeled toggle below each room. Its solid track follows the room's
+// remembered lights, which change fixture by fixture (lib/light-switch.ts).
 export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [on, setOn] = useState(true);
@@ -46,6 +44,7 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
     return () => { clearTimeout(timer); observer.disconnect(); };
   }, [world]);
   const toggle = async () => {
+    if (pending) return;
     if (!on) { setLights(world, true); return; }
     intent();
     setPending(true);
@@ -58,25 +57,23 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
     <button
       ref={buttonRef}
       type="button"
-      className={`${styles.cityTime} ${styles.lightSwitch}`}
-      data-reads="cue-opacity:opacity"
+      role="switch"
+      className={styles.islandToggle}
       data-room-lights-switch={world}
       data-lights={on ? "on" : "off"}
-      aria-pressed={on}
-      aria-label={on ? `Turn the ${room} lights off` : `Turn the ${room} lights on`}
-      title={on ? "Lights off" : "Lights on"}
+      aria-checked={on}
+      aria-label={`${room} lights`}
+      title={`Turn the ${room} lights ${on ? "off" : "on"}`}
       aria-busy={pending || undefined}
+      aria-disabled={pending || undefined}
       data-pending={pending || undefined}
       onPointerEnter={intent}
       onPointerDown={intent}
       onFocus={intent}
       onClick={() => void toggle()}
     >
-      <svg viewBox="0 0 20 20" aria-hidden="true">
-        <rect className={styles.lightSwitchPlate} x="5" y="2.5" width="10" height="15" rx="2.2" />
-        <rect className={styles.lightSwitchRocker} x="8" y="5.5" width="4" height="9" rx="1.3" />
-        <rect className={styles.lightSwitchTab} x="8" y="5.5" width="4" height="4.5" rx="1.3" />
-      </svg>
+      <span>Lights</span>
+      <span className={styles.lightSwitchTrack} aria-hidden="true" />
     </button>
   );
 }

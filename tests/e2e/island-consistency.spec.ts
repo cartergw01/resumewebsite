@@ -20,9 +20,9 @@ test("island artwork stays consistent from overview through forward and reverse 
 
   // Revisiting a world must preserve its geometry and media, and the depth
   // parallax that draws the still carries the same grade.
-  for (const world of [...worlds, "writing", "work"] as const) {
+  for (const [index, world] of ([...worlds, "writing", "work"] as const).entries()) {
     const name = world[0].toUpperCase() + world.slice(1);
-    await page.getByRole("button", { name: `Show ${name} island` }).click();
+    await (index === 0 ? page.locator("[data-next-scene]") : page.getByRole("button", { name: `Show ${name} island` })).click();
     await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
     const visual = page.locator(`#${world} [data-island-visual]`);
     // Work also carries a daytime still, and the rooms their lights-off and

@@ -11,20 +11,6 @@ import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
 
-// Phones draw Work's arrow from below the island, where its words move to
-// stay clear of the city (see .cityCue in IslandHome.module.css).
-export function landmarkArrow(title: string, focus: IslandLandmark, phone = false) {
-  const x = focus.x * 1200, y = focus.y * 800;
-  const [start, first, last] = title === "Work"
-    ? phone ? [[690, 800], [730, 700], [x + 120, y + 170]] : [[250, 665], [560, 755], [x + 140, y + 150]]
-    : title === "Writing"
-      ? [[945, 25], [855, -35], [x + 160, y - 160]]
-      : [[880, 735], [1140, 660], [x + 240, y + 100]];
-  const angle = Math.atan2(y - last[1], x - last[0]);
-  const wing = (side: number) => `${x - 13 * Math.cos(angle) + side * 6 * Math.sin(angle)} ${y - 13 * Math.sin(angle) - side * 6 * Math.cos(angle)}`;
-  return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
-}
-
 function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark, city = false) {
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
   const image = visual.querySelector("img");
@@ -254,15 +240,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       onClick={enter}
     >
       {children}
-      {overview ? <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.8">{title}</span> : <span data-reads="cue-opacity:opacity:1:0:rest" className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
-        <span>
-          <span className={styles.entryPrompt}>{prompt}</span>
-        </span>
-        <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
-          <path d={landmarkArrow(title, landmark)} data-arrow="wide" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-          <path d={landmarkArrow(title, landmark, true)} data-arrow="phone" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>}
+      {overview && <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.8">{title}</span>}
     </Link>
   );
 }

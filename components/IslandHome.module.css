@@ -126,6 +126,7 @@
 .skipLink { position: absolute; z-index: 80; top: 1rem; left: var(--page-x); padding: 0.6rem 1rem; border: 1px solid #ebd0ac66; border-radius: 999px; color: var(--cw-paper); background: #030611; font-size: 0.875rem; transform: translateY(-300%); }
 .skipLink:focus-visible { transform: none; outline: none; }
 .art {
+  container-type: size;
   position: absolute;
   top: 17%;
   right: -3%;
@@ -152,49 +153,6 @@
 .projects .artGlow { background: radial-gradient(ellipse, #f7b96b12, transparent 65%); }
 .islandLink { position: relative; display: grid; place-items: center; width: 100%; height: 100%; min-height: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .islandLink { container-type: size; user-select: none; -webkit-user-select: none; }
-/* Every annotation uses the same coordinates and contained bounds as its art. */
-.landmarkCue {
-  position: absolute;
-  color: #e9d4b6;
-  font-family: var(--font-display); font-stretch: 125%;
-  /* The way into each page: readable at a glance, not fine print. */
-  font-size: calc(var(--type-annotation) * 0.76);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  line-height: 1.5;
-  opacity: calc(var(--cue-opacity, 1) * var(--cue-rest, 1));
-  pointer-events: none;
-  text-shadow: 0 1px 3px #030611, 0 2px 12px #030611;
-  transition: color 220ms ease, transform 180ms var(--cw-ease), opacity 180ms ease;
-}
-.scene[data-cue-seen="true"] { --cue-rest: 0; }
-.islandLink:focus-visible .landmarkCue { opacity: var(--cue-opacity, 1); }
-.landmarkCue > span { position: absolute; white-space: nowrap; }
-.landmarkCue svg { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px #030611); }
-.landmarkCue path { transition: opacity 220ms ease; opacity: 0.7; }
-.landmarkCue path[data-arrow="phone"] { display: none; }
-/* Stacked layouts (phones, portrait tablets) move Work's words below the city,
-   into open sky: over the cliff they were hard to read. */
-@media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
-  .cityCue > span { left: auto; right: 11%; bottom: auto; top: 100%; transform: rotate(-3deg); text-align: right; }
-  .cityCue path[data-arrow="wide"] { display: none; }
-  .cityCue path[data-arrow="phone"] { display: inline; }
-}
-/* Tablet type is smaller against its island, so the words move in to meet the arrow. */
-@media (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) { .cityCue > span { right: 21%; } }
-.cityCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
-.cityCue > span { left: 8%; bottom: 11%; transform: rotate(-5deg); }
-.bookCue { width: min(100cqw, 150cqh); height: min(66.6667cqw, 100cqh); }
-.bookCue > span { right: 17%; top: -1%; transform: rotate(6deg); }
-.workshopCue { width: min(91cqw, 150cqh); height: min(60.6667cqw, 100cqh); }
-.workshopCue > span { right: 19%; bottom: 0; transform: rotate(4deg); }
-.islandLink:focus-visible .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
-.islandLink:focus-visible .landmarkCue path { opacity: 1; }
-@media (hover: hover) and (pointer: fine) {
-  .islandLink:hover .landmarkCue { color: #fff1d7; transform: translateY(-7px) scale(1.025); }
-  .islandLink:hover .landmarkCue path { opacity: 1; }
-}
 .island {
   width: 100%;
   height: 100%;
@@ -211,7 +169,7 @@
 /* Grade the rendered media separately from arrival lighting and live page
    previews, so video, stills and distant islands share the same exposure. */
 .island > img, .island > video, .overviewImage { filter: var(--island-grade); }
-.projects .island { width: 91%; max-height: 100%; }
+.projects .island { width: 100%; height: 100%; max-height: 100%; }
 /* Once you land, the island floats gently in place; it holds still while
    the camera travels or enters it. */
 .scene[data-active="true"] .island { animation: island-float 7s ease-in-out infinite; }
@@ -270,9 +228,7 @@
 .writingMedia { position: relative; display: block; }
 .writingPoster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .bookDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-/* Keyboard focus shows as the island lifting and glowing, with its "click
-   to ..." prompt brightened (below and above), not a ring: an outline round
-   the link's wide box crossed the sky above and below the island as lines. */
+/* Keyboard focus lifts and lights the island. */
 .islandLink:focus-visible { outline: none; }
 .islandLink:focus-visible .island { transform: translateY(-7px) scale(1.025); filter: brightness(var(--island-light, 1)) drop-shadow(0 0 24px #e8b97644) drop-shadow(0 32px 36px #0005); }
 @media (hover: hover) and (pointer: fine) {
@@ -285,8 +241,8 @@
 .stage[data-entering] .scene[data-active="true"] { opacity: 1 !important; }
 .stage[data-entering] .scene[data-active="false"] { visibility: hidden !important; }
 .stage[data-entering] .copy,
-.stage[data-entering] .landmarkCue,
 .stage[data-entering] .controls { animation: entry-copy 420ms cubic-bezier(0.3, 0, 0.2, 1) forwards; pointer-events: none; }
+.stage[data-entering] .controls button { pointer-events: none; }
 .stage[data-entering] .galaxy { animation: entry-space var(--entry-approach-duration, 1350ms) cubic-bezier(0.5, 0, 0.75, 0.4) forwards; }
 /* The island answers: its own light swells as the journey begins. */
 .stage[data-entering] .scene[data-active="true"] .artGlow { opacity: 1 !important; transform: scale(1.25); transition: opacity 300ms ease-out, transform 900ms cubic-bezier(0.2, 0.6, 0.3, 1); }
@@ -303,11 +259,12 @@
   bottom: var(--controls-bottom);
   left: var(--page-x);
   display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 2rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  pointer-events: none;
 }
-.controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; }
+.controls button { padding: 0; border: 0; color: var(--cw-muted); background: none; font: inherit; cursor: pointer; pointer-events: auto; }
 .controls .scrollHint { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 44px; color: #eee7dccc; font-size: 0.875rem; letter-spacing: 0.01em; }
 /* Shooting stars falling through open space either side of the label,
    echoing the comet in the tab bar; they fade in and out rather than being
@@ -335,18 +292,16 @@
   40% { translate: 0 1px; }
 }
 /* One fine trail ties the labels together, with room above for readable text. */
-.chapters { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(30rem, 48vw); height: 60px; padding: 0 18px; box-sizing: border-box; }
+.chapters { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(30rem, 48vw); height: 60px; padding: 0 18px; box-sizing: border-box; transition: opacity 240ms ease; }
+/* Reserve the row so the centered cue stays still when the chapters appear.
+   Visibility also removes the opening view's hidden buttons from keyboard focus. */
+.track[data-scene="intro"] .chapters { visibility: hidden; opacity: 0; pointer-events: none; }
 .chapters button { position: relative; min-width: 0; min-height: 60px; text-align: center; }
 .chapters button:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; border-radius: 6px; }
 .chapterLabel { position: absolute; z-index: 1; left: 0; right: 0; top: calc(var(--stop-y, 40px) - 30px); display: block; color: #b9c2cf; font-size: 0.875rem; font-weight: 500; line-height: 20px; letter-spacing: 0.015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
 .chapters button[aria-current] .chapterLabel { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }
 .chapters button[data-arriving] .chapterLabel { animation: chapter-arrival 900ms ease-out; }
-/* On the opening and closing views the islands carry their own names; the
-   bar's labels show at the islands (or as soon as a keyboard reaches them). */
-.chapterLabel { transition: color 220ms ease, text-shadow 220ms ease, opacity 400ms ease; }
-.track:is([data-scene="intro"], [data-scene="hello"]) .chapterLabel { opacity: 0; }
-.track:is([data-scene="intro"], [data-scene="hello"]) .chapters:focus-within .chapterLabel { opacity: 1; }
 @keyframes chapter-arrival { 0% { color: #fffdf3; text-shadow: 0 0 15px #ffe5b3aa, 0 0 28px #c1dbff44; } 100% { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; } }
 /* Native snap points for touch scrolling, one per stop (positioned by
    IslandScrollTransport; snapping is switched on in app/globals.css). */
@@ -411,8 +366,6 @@
   .overview { max-height: 30rem; }
   .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .6875rem; }
   .island { max-height: 50svh; }
-  .landmarkCue { font-size: .75rem; letter-spacing: .08em; }
-  .bookCue > span { top: -5%; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   /* The three islands' names float over the stars on the comet's arc. */
   .chapters { width: 100%; }
@@ -422,7 +375,7 @@
      against the starfield; it steps aside once you've swiped. The last stop
      offers "back to the start". */
   .controls .scrollHint { align-self: center; justify-content: center; min-width: 44px; gap: 0.55rem; color: #fff7ea; font-size: 1rem; font-weight: 500; letter-spacing: 0.02em; text-shadow: 0 0 14px #ffe3ad66, 0 1px 6px #030611; }
-  .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
+  .track:not([data-scene="intro"]) .stage[data-explored] .scrollHint:not([data-last="true"]):not(:focus-visible) { visibility: hidden; pointer-events: none; }
   .controls .scrollHint:not([data-last="true"]) [data-next-label] { display: inline-block; animation: swipe-nudge 2.4s cubic-bezier(0.45, 0, 0.25, 1) infinite; }
   .stage[data-travelling="true"] .scrollHint [data-next-label] { animation-play-state: paused; }
   .scrollArrow { width: 14px; height: 34px; }
@@ -464,7 +417,6 @@
   .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
   .scene:has(.overview) .art { width: 59%; height: auto; margin-inline: 0; }
   .island { max-height: 68svh; }
-  .landmarkCue { font-size: 0.75rem; }
   /* Landscape keeps the bar to the right half, beside the free left column
      (where a turned island's "reset view" sits). */
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
@@ -479,12 +431,11 @@
   .overviewVisual { animation: none !important; transition: none; }
   .galaxy { transform: none; will-change: auto; }
   .scene, .copy, .art { will-change: auto; }
-  .island, .landmarkCue { transition: none; }
-  .islandLink:hover .island, .islandLink:focus-visible .island,
-  .islandLink:hover .landmarkCue, .islandLink:focus-visible .landmarkCue { transform: none; }
+  .island { transition: none; }
+  .islandLink:hover .island, .islandLink:focus-visible .island { transform: none; }
   .chapters .cometHead, .chapters button[data-arriving] .chapterLabel { animation: none; }
   .cometWake { display: none; }
-  .chapterLabel { transition: none; }
+  .chapters, .chapterLabel { transition: none; }
 }
 
 .pageGalaxy { position: fixed; z-index: 0; opacity: 0.65; }
@@ -593,62 +544,57 @@
 /* Entry owns attention until the camera reaches the interior. */
 :global(html[data-work-transition="entering"]) .islandTip { opacity: 0 !important; visibility: hidden; }
 :global(html[data-work-transition="entering"]) .home :global(.site-nav) { opacity: 0; pointer-events: none; }
-/* Day/night button for Taipei, at the island's upper right. It shows the
-   time it would switch to; the icons turn and trade places. It arrives with
-   the island's cue and steps aside during flights and entries. */
-/* The islands' switches (Taipei's sun and moon, the rooms' light switches):
-   just the icon, no backing disc, positioned in the open sky beside each
-   island. The icon stays small, but the area
-   around it answers the tap, so you hit the region, not the glyph. */
-.cityTime { position: absolute; z-index: 6; top: 19%; right: 15%; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; color: #f3e2c4; background: none; cursor: pointer; pointer-events: auto; opacity: var(--cue-opacity, 1); transition: opacity 250ms ease, transform 250ms var(--cw-ease); }
-/* Writing's switch sits underneath the island at the bottom right.
-   Phones use the shared control row below the artwork. */
-@media (min-width: 761px) {
-  .cityTime[data-room-lights-switch="writing"] { top: auto; bottom: 0; right: 15%; left: auto; }
+/* Keep room for the controls above navigation. Their actual position follows
+   the contained 3:2 image frame, avoiding the empty space below it on phones. */
+.scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
+.sceneControl { position: absolute; z-index: 6; top: calc(50% + min(33.333333cqw, 50cqh) + 4px); right: 15%; transition: opacity 180ms ease; }
+:is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); }
+.islandToggle {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 64px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: #b9c2cf;
+  background: none;
+  font: 400 0.75rem/14px var(--font-sans);
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  pointer-events: auto;
 }
-.cityTime::after { content: ""; position: absolute; inset: -18px; border-radius: 50%; }
-.cityTime svg { grid-area: 1 / 1; width: 22px; height: 22px; filter: drop-shadow(0 1px 3px #000c); transition: opacity 600ms ease, transform 900ms var(--cw-ease), filter 300ms ease; }
-.cityTimeSun circle { fill: currentColor; }
-.cityTimeSun path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
-.cityTimeMoon path { fill: currentColor; }
-/* At night the button offers the sun; by day, the moon. */
-.cityTime[data-time="night"] .cityTimeMoon, .cityTime[data-time="day"] .cityTimeSun { opacity: 0; transform: rotate(-90deg) scale(.6); }
-.cityTime[data-time="night"] { color: #ffd99a; }
-.cityTime[data-time="night"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #ffd99a99); }
-.cityTime[data-time="day"] { color: #d9e4ff; }
-.cityTime[data-time="day"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #c9d6ff99); }
-.cityTime:hover { transform: translateY(-1px); }
-.cityTime:focus-visible { outline: 1px solid #ebd0ac; outline-offset: 3px; }
-/* While the day still arrives, the sun breathes so the tap reads as received. */
-.cityTime[data-pending] svg { animation: city-time-pending 700ms ease-in-out infinite alternate; }
-@keyframes city-time-pending { to { opacity: .45; } }
-@media (prefers-reduced-motion: reduce) { .cityTime[data-pending] svg { animation: none; opacity: .6; } }
-.stage[data-travelling="true"] .cityTime, .stage[data-entering] .cityTime { opacity: 0; pointer-events: none; }
-/* The study's and workshop's light switch: a wall plate whose rocker is up,
-   lit warm, while the lights are on, and down, moonlit, when they're off. */
-.lightSwitch svg { width: 23px; height: 23px; }
-.lightSwitchPlate { fill: none; stroke: currentColor; stroke-width: 1.3; }
-.lightSwitchRocker { fill: currentColor; opacity: .28; }
-.lightSwitchTab { fill: currentColor; transition: transform 100ms var(--cw-ease); }
-.lightSwitch[data-lights="on"] { color: #ffd99a; }
-.lightSwitch[data-lights="on"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #ffd99a99); }
-.lightSwitch[data-lights="off"] { color: #b9c6e8; }
-.lightSwitch[data-lights="off"] .lightSwitchTab { transform: translateY(4.5px); }
-.lightSwitch[data-lights="off"]:hover svg { filter: drop-shadow(0 1px 3px #000c) drop-shadow(0 0 7px #c9d6ff99); }
-@media (prefers-reduced-motion: reduce) { .lightSwitchTab { transition: none; } }
-/* On phones, under the island at the right: open sky between the island and
-   the section nav, clear of every island's label, where a thumb rests. The
-   art box overhangs each screen edge, so this sits 40px in from the screen. */
-@media (max-width: 760px) { .cityTime { top: calc(100% + 0.5rem); right: 4rem; width: 40px; height: 40px; } }
-/* Portrait tablets stack the same way, and "click to read my writing" reaches the desktop spot. */
-@media (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) { .cityTime { top: 4%; right: auto; left: 6%; } }
+.islandToggle:hover { color: #fff7ea; }
+.islandToggle:focus-visible { outline: 2px solid #ebd0ac; outline-offset: 3px; }
+.islandToggle[aria-disabled="true"] { cursor: progress; }
+/* Flat, opaque fills: no glass, transparency, inset shading, or glow. */
+.lightSwitchTrack { position: relative; flex: none; width: 30px; height: 18px; border-radius: 999px; background: #dfbc82; transition: background 180ms ease; }
+.lightSwitchTrack::before { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #30291f; transform: translateX(12px); transition: transform 180ms var(--cw-ease), background 180ms ease; }
+.islandToggle[data-lights="off"] .lightSwitchTrack { background: #48566d; }
+.islandToggle[data-lights="off"] .lightSwitchTrack::before { transform: translateX(0); background: #e4e9f1; }
+.islandToggle:hover .lightSwitchTrack { background: #edcb93; }
+.islandToggle[data-lights="off"]:hover .lightSwitchTrack { background: #5a6b85; }
+.stage[data-travelling="true"] .sceneControl, .stage[data-entering] .sceneControl { opacity: 0; visibility: hidden; }
+.stage[data-travelling="true"] .islandToggle, .stage[data-entering] .islandToggle { pointer-events: none; }
+@media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
+  .scene { --island-control-bottom: calc(var(--controls-bottom) + 124px); }
+  :is(.work, .writing, .projects) { padding-bottom: calc(var(--island-control-bottom) + 60px); }
+  :is(.work, .writing, .projects) .art { bottom: auto; height: 100%; }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
+  :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); height: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .sceneControl, .lightSwitchTrack, .lightSwitchTrack::before { transition: none; } }
 /* Stacked layouts (phones, portrait tablets) put each island under its
    copy: every island's description holds two lines, so the islands, and the
    switches on them, sit in the same place on every stop as you scroll. */
 @media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
   :is(.work, .writing, .projects) .description { min-height: 2lh; }
 }
-@media (prefers-reduced-motion: reduce) { .cityTime, .cityTime svg { transition: none; } }
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */

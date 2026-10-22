@@ -61,25 +61,25 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
   }
 });
 
-test("island settles before its lights, heading, and annotation arrive", async ({ page }) => {
+test("island settles before its lights, heading, and switch arrive", async ({ page }) => {
   await page.goto("/");
   for (const [journey, world] of [[1, "writing"], [2, "projects"]] as const) {
     const copy = page.locator(`#${world} [data-scene-copy]`);
-    const cue = page.locator(`#${world} [data-island-link] > span:last-child`);
+    const control = page.locator(`#${world} [data-island-control]`);
     const brightness = () => page.locator(`#${world} [data-island-visual]`).evaluate(el => Number(getComputedStyle(el).filter.match(/brightness\(([^)]+)\)/)?.[1]));
     await cross(page, journey, 0.84);
     expect((await pose(page, world)).scale).toBeCloseTo(1, 3);
     expect(await brightness()).toBeLessThan(0.65);
     await expect(copy).toHaveCSS("opacity", "0");
-    await expect(cue).toHaveCSS("opacity", "0");
+    await expect(control).toBeHidden();
     await cross(page, journey, 0.93);
     expect(await brightness()).toBeCloseTo(1, 2);
     expect(Number(await copy.evaluate(el => getComputedStyle(el).opacity))).toBeGreaterThan(0);
-    await expect(cue).toHaveCSS("opacity", "0");
+    await expect(control).toBeHidden();
     // Sample inside the settled hold; native scroll positions round to pixels.
     await cross(page, journey, 1.02);
     await expect(copy).toHaveCSS("opacity", "1");
-    await expect(cue).toHaveCSS("opacity", "1");
+    await expect(control).toBeVisible();
   }
 });
 

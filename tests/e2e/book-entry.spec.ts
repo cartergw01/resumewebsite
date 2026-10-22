@@ -9,13 +9,13 @@ test("the book opens the complete Writing archive", async ({ page, isMobile }) =
   await expect(spread).toHaveAttribute("data-essays", /The Cost of Keeping Up/);
   // The paper and ink are rendered together. Neither dimming the room nor
   // hovering the book should bring back the old flat rectangular overlay.
-  const lightsOff = page.getByRole("button", { name: "Turn the study lights off" });
+  const lightsOff = page.getByRole("switch", { name: "study lights" });
   if (isMobile) await lightsOff.tap(); else await lightsOff.click();
   await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
   if (!isMobile) await page.locator("#writing [data-island-link]").hover();
   await expect(page.locator("#writing [data-book-page], #writing [data-book-response], #writing [data-touch-surface='spread']")).toHaveCount(0);
   expect(await spread.evaluate(node => getComputedStyle(node).fill)).toBe("none");
-  const lightsOn = page.getByRole("button", { name: "Turn the study lights on" });
+  const lightsOn = page.getByRole("switch", { name: "study lights" });
   if (isMobile) await lightsOn.tap(); else await lightsOn.click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await watchRocketLaunch(page);
@@ -86,6 +86,10 @@ test("the book opens the complete Writing archive", async ({ page, isMobile }) =
 test("direct and reduced-motion Writing entry show every essay as a regular archive row", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/#writing");
+  // Let hash restoration finish before Playwright scrolls the link into view.
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
+  await expect(page.getByRole("button", { name: "Show Writing island" })).toBeEnabled();
   await page.locator("#writing [data-island-link]").click();
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(0);

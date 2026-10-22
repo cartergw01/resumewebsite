@@ -30,7 +30,7 @@ test("the luminous clock keeps Taipei time through lights-off, midnight, and ret
   await expect(clock.locator('[data-clock-hand="hour"]')).toHaveAttribute("data-angle", "307.75");
   await expect(clock.locator('[data-clock-hand="minute"]')).toHaveAttribute("data-angle", "93");
   await expect(clock.locator('[data-clock-hand="second"]')).toHaveAttribute("data-angle", "180");
-  await page.getByRole("button", { name: "Turn the study lights off" }).click();
+  await page.getByRole("switch", { name: "study lights" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
   for (const hand of ["hour", "minute", "second"]) await expect(clock.locator(`[data-clock-hand="${hand}"]`)).toBeVisible();
 
@@ -66,7 +66,7 @@ test("the clock still updates with reduced motion and the book remains usable", 
   await page.clock.setFixedTime(new Date("2026-10-20T04:00:01Z"));
   await expect(clock).toHaveAttribute("data-clock-time", "12:00:01");
   await expect(clock.locator('[data-clock-hand="second"]')).toHaveAttribute("data-angle", "6");
-  await page.getByRole("button", { name: "Turn the study lights off" }).click();
+  await page.getByRole("switch", { name: "study lights" }).click();
   await expect(clock.locator('[data-clock-hand="hour"]')).toBeVisible();
   await page.locator("#writing [data-island-link]").click();
   await expect(page).toHaveURL(/\/writing$/);
