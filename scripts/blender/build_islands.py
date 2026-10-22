@@ -393,8 +393,11 @@ PLANS={
     'district':(3.4,(.95,1.02),[(math.radians(35),.5,.06),(math.radians(215),.5,.05)]),
     # A soft, rounded garden plot with a bulge where the reading garden sits.
     'garden':(2.0,(.94,1.02),[(math.radians(170),.55,.10),(math.radians(-60),.6,.05)]),
-    # A rough, broken lot: a jagged edge and a yard lobe where the scooter stands.
-    'lot':(2.3,(.80,1.07),[(math.radians(12),.75,.42),(math.radians(-150),.35,.08)]),
+    # A rough, broken lot: a jagged edge and a yard lobe past the court. Kept
+    # narrow (a short yard lobe, the left shoulder drawn in where the timber
+    # stack stood) so the wide, low shed fills as much of its frame as the
+    # taller study and city do on a phone.
+    'lot':(2.3,(.80,1.07),[(math.radians(12),.75,.18),(math.radians(-150),.35,.08),(math.radians(180),.6,-.15)]),
 }
 
 
@@ -717,13 +720,9 @@ def landscape(world,seed):
     else:
         terrain_path('Workshop · worn yard paving',[(1.50,-3.24),(1.05,-2.62),(.30,-1.96)],.92,seed,'paving',.35)
         for i in range(2):box('Workshop · stone threshold step',(.30,-2.15+i*.22,.045+i*.045),(1.35,.30,.09),'stone',.015)
-        for i in range(7):
-            sawn_ends(box('Yard · reclaimed timber stack',(-3.82,-.48,.14+i*.061),(.40,1.88,.055),'floorwood',.004,rot=.08*(i%2)),'Y')
-        for i in range(5):
-            sawn_ends(box('Yard · loose sawn offcut',(-3.57+i*.14,-1.61+.06*(i%2),.045+i*.013),(.12,.32+i*.09,.035),'floorwood',.002,rot=-.25+i*.13),'Y')
-        for x in [-3.98,-3.65]:box('Yard · stack bearer',(x,-.48,.07),(.13,1.95,.10),'wood',.003)
         # The crate, offcuts and cable reel that stood here made way for the
-        # half-court (see half_court()).
+        # half-court (see half_court()); the timber stack and loose offcuts by
+        # the deck went so the lot could narrow.
 
 
 def tree(x,y,scale=1,base=0):
@@ -2465,6 +2464,17 @@ def writing():
                     bpy.context.view_layer.update()
                     for obj in created:obj.matrix_world=turn@obj.matrix_world
                 x+=w+.011
+    # Carter asked for LED strips behind the bookshelf: a warm strip runs round
+    # the back of the case, in the gap between its back panel and the wall,
+    # and its light spills out past the edges so the wall glows in a soft halo
+    # around the case. Named for the bookshelf, it follows the shelves' switch.
+    P['backlight']=material('Bookshelf · backlight strip',(1,.70,.42),emission=12)
+    gap=1.906
+    box('Bookshelf · backlight strip',(1,gap,2.78),(3.10,.006,.012),'backlight',0)
+    for x in [-.57,2.57]:box('Bookshelf · backlight strip',(x,gap,1.52),(.012,.006,2.50),'backlight',0)
+    for x in [-.40,.20,.80,1.40,2.00,2.45]:light('Bookshelf · backlight',(x,gap,2.77),(1,.70,.42),12,.012)
+    for x in [-.565,2.565]:
+        for z in [.62,1.42,1.95,2.45]:light('Bookshelf · backlight',(x,gap,z),(1,.70,.42),12,.012)
     # These are Carter's published essays, presented as bound journals—not
     # invented reading-list entries. Their existing covers are used verbatim.
     journals=[('the-cost-of-keeping-up','The Cost of Keeping Up',-.24),('slop-and-spiral','Slop and Spiral',.47),('we-all-have-superpowers','We All Have Superpowers',1.42)]
@@ -2474,8 +2484,9 @@ def writing():
         box('Journal · title label',(x,1.244,1.999),(.42,.008,.11),'paper',.001)
         lettering('Journal title · '+title,title,(x,1.236,2.0),.025,'ink')
     # A lava lamp on the top shelf, and at its other end a faux snake plant
-    # (Carter asked for a fake plant on the shelf).
-    lava_lamp(2.18,1.56,2.8225,1.3)
+    # (Carter asked for a fake plant on the shelf). The lamp stands just right
+    # of the clock: any farther right and the maple's branch hides it.
+    lava_lamp(1.62,1.56,2.8225,1.3)
     faux_snake_plant(.20,1.58,2.8225,1.1)
     # In Common With's Up Down Sconce on the strip of wall between the window
     # and the bookcase: one beam up the wall, one down to the desk.

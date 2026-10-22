@@ -353,7 +353,7 @@
           ],
           [
             535.28,
-            535.0,
+            535,
             0
           ],
           [
@@ -487,7 +487,7 @@
             0
           ],
           [
-            744.0,
+            744,
             506.37,
             0
           ],
@@ -1101,7 +1101,7 @@
             1
           ],
           [
-            749.0,
+            749,
             488.12,
             1
           ],
@@ -1241,7 +1241,7 @@
             1
           ],
           [
-            700.0,
+            700,
             430.58,
             1
           ],
@@ -1458,7 +1458,7 @@
             1
           ],
           [
-            759.0,
+            759,
             489.16,
             1
           ],
@@ -1533,7 +1533,7 @@
             0
           ],
           [
-            732.0,
+            732,
             457.68,
             0
           ],
@@ -1553,7 +1553,7 @@
             0
           ],
           [
-            725.0,
+            725,
             449.53,
             0
           ],
@@ -1644,7 +1644,7 @@
           ],
           [
             694.52,
-            414.0,
+            414,
             0
           ],
           [
@@ -1787,7 +1787,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-2247f337.webp",
+    "src": "/blender/island-writing-24aa8b17.webp",
     "spread": [
       [
         512.737,
@@ -1832,7 +1832,7 @@
       439.784,
       314.495
     ],
-    "darkSrc": "/blender/island-writing-dark-e0472176.webp",
+    "darkSrc": "/blender/island-writing-dark-0bc03d7f.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -1843,39 +1843,39 @@
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-93fef851.webp",
-        "/blender/light-writing-1-a40e5f60.webp"
+        "/blender/light-writing-0-7abc96fc.webp",
+        "/blender/light-writing-1-f7278a3a.webp"
       ],
       "extents": [
         [
-          0.243,
-          0.663
+          0.242,
+          0.665
+        ],
+        [
+          0.282,
+          0.465
         ],
         [
           0.288,
-          0.472
+          0.707
         ],
         [
-          0.322,
-          0.703
+          0.275,
+          0.698
         ],
         [
-          0.313,
-          0.715
-        ],
-        [
-          0.632,
-          0.847
+          0.63,
+          0.852
         ],
         [
           0.372,
-          0.587
+          0.585
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-e0ae3f19.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-26948d67.webp",
-    "depthSrc": "/blender/depth-writing-63f8af5f.webp",
+    "liftedSrc": "/blender/island-writing-lifted-4c7db665.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-5c88f46f.webp",
+    "depthSrc": "/blender/depth-writing-470fec82.webp",
     "life": {
       "clock": {
         "corners": [
@@ -1929,16 +1929,16 @@
       ],
       "lava": [
         [
-          793.58,
-          229.31
+          744.6,
+          222.98
         ],
         [
-          794.53,
-          206.71
+          745.36,
+          200.44
         ],
         [
-          801.12,
-          224.89
+          752.04,
+          218.56
         ]
       ]
     }
@@ -1946,52 +1946,52 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-d36798e7.webp",
+    "src": "/blender/island-projects-602a1d5d.webp",
     "screen": [
       [
-        524.051,
-        237.351
+        549.059,
+        261.709
       ],
       [
-        616.499,
-        243.215
+        657.283,
+        268.586
       ],
       [
-        523.482,
-        289.519
+        548.21,
+        322.669
       ],
       [
-        615.158,
-        295.549
+        655.509,
+        329.746
       ]
     ],
     "landmark": [
-      569.7,
-      266.511
+      602.397,
+      295.8
     ],
     "screenGlow": [
-      566.061,
-      326.249
+      598.086,
+      365.646
     ],
     "lamp": [
-      384.517,
-      258.772
+      385.547,
+      286.666
     ],
     "bulbs": [
       [
-        602.746,
-        304.028
+        640.323,
+        339.477
       ],
       [
-        668.055,
-        313.05
+        716.801,
+        350.061
       ]
     ],
     "hoop": [
-      876.755,
-      218.083
+      961.534,
+      239.167
     ],
-    "darkSrc": "/blender/island-projects-dark-98881096.webp",
+    "darkSrc": "/blender/island-projects-dark-f3c9ed17.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -2005,60 +2005,60 @@
         "spot"
       ],
       "src": [
-        "/blender/light-projects-0-85a1a82a.webp",
-        "/blender/light-projects-1-6437645a.webp",
-        "/blender/light-projects-2-80601830.webp"
+        "/blender/light-projects-0-6bb936b8.webp",
+        "/blender/light-projects-1-7b47963f.webp",
+        "/blender/light-projects-2-34997db2.webp"
       ],
       "extents": [
         [
+          0.247,
+          0.42
+        ],
+        [
+          0.39,
+          0.612
+        ],
+        [
+          0.162,
+          0.662
+        ],
+        [
+          0.27,
+          0.605
+        ],
+        [
           0.238,
-          0.405
+          0.642
         ],
         [
-          0.38,
-          0.57
+          0.418,
+          0.86
         ],
         [
-          0.183,
-          0.613
+          0.503,
+          0.555
         ],
         [
-          0.275,
-          0.565
+          0.298,
+          0.55
         ],
         [
-          0.228,
-          0.597
-        ],
-        [
-          0.41,
-          0.823
-        ],
-        [
-          0.477,
-          0.52
-        ],
-        [
-          0.293,
-          0.513
-        ],
-        [
-          0.428,
-          0.505
+          0.448,
+          0.537
         ]
       ]
     },
-    "depthSrc": "/blender/depth-projects-e2a910e1.webp",
+    "depthSrc": "/blender/depth-projects-56aba8c1.webp",
     "life": {
       "strips": [
         [
           [
-            303.84,
-            348.03
+            291.55,
+            391.18
           ],
           [
-            659.8,
-            372.63
+            708.31,
+            420.08
           ],
           [
             255,
@@ -2068,12 +2068,12 @@
         ],
         [
           [
-            312.42,
-            357.85
+            300.37,
+            402.05
           ],
           [
-            303.01,
-            125.77
+            290.04,
+            131.15
           ],
           [
             117,
@@ -2083,12 +2083,12 @@
         ],
         [
           [
-            725.59,
-            418.67
+            783.79,
+            473.42
           ],
           [
-            734.84,
-            179.72
+            795.84,
+            194.33
           ],
           [
             117,

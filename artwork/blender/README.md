@@ -37,7 +37,8 @@ backplates are used.
   it, so the site's own galaxy shows through; lamps are never seen by the
   camera, so nothing behind the island shows in the glass), a modern bookshelf
   (walnut shelves on a slim black frame over a charcoal back panel, each shelf
-  washed by a warm LED strip) and Carter's UC Santa Cruz degree framed on the
+  washed by a warm LED strip, and a warm strip round the back of the case
+  that lights the wall around it in a soft halo) and Carter's UC Santa Cruz degree framed on the
   side wall. Slim walnut furniture, a usable upholstered chair, a madder wool
   rug, an open notebook, an iced latte from Verve (the Santa Cruz roaster)
   in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
@@ -53,8 +54,10 @@ backplates are used.
   patched sheets above and open bays to the night, no side wall, a sloping
   corrugated roof on two posts and a bare bulb on its flex. Inside, a
   steel-framed bench, tool panel, labelled storage and a 27-inch monitor. The
-  workbench turns toward the visitor. Worn paving leads past reclaimed lumber
-  and offcuts. It uses the same furniture scale.
+  workbench turns toward the visitor. Worn paving leads up to the deck. The
+  lot is kept narrow (no timber stack beside the deck, a short yard past the
+  court) so this wide, low scene fills its frame as fully as the taller study
+  and city. It uses the same furniture scale.
 
 ### Night details
 
@@ -69,7 +72,8 @@ with an Omega Seamaster Aqua Terra-inspired wall clock above the shelves
 (smooth steel bezel, navy horizontal teak dial, faceted silver hour indexes
 and Ω / OMEGA branding, with live pale-green luminous arrow hands showing
 Taipei time; twelve markers replace the watch's date aperture)
-and a lava lamp on the top shelf; the
+and a lava lamp on the top shelf, just right of the clock and clear of the
+maple's branches; the
 study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
 along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
 up both posts, gold along the bench's front edge), and a telescope on a tripod

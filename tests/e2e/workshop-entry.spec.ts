@@ -80,10 +80,21 @@ test("the workshop screen fans out every project and deals each into its row", a
   expect(errors).toEqual([]);
 });
 
-test("reduced motion and direct entry show the complete project without a transition layer", async ({ page }) => {
+test("reduced motion and direct entry show the complete project without a transition layer", async ({ page, isMobile }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/#projects");
-  await page.locator("#projects [data-island-link]").click();
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
+  // A tap during the hash link's glide stops the glide instead of entering.
+  const stage = page.locator("[data-island-stage]");
+  await expect(stage).not.toHaveAttribute("data-navigating");
+  await expect(stage).not.toHaveAttribute("data-scrolling");
+  // Tap where the island is, as a finger would. Playwright's click first
+  // scrolls the link "into view", which in this pinned stage scrolls the page
+  // back toward Writing and, with reduced motion, swaps the island away.
+  const island = (await page.locator("#projects [data-island-link]").boundingBox())!;
+  const [x, y] = [island.x + island.width / 2, island.y + island.height / 2];
+  if (isMobile) await page.touchscreen.tap(x, y);
+  else await page.mouse.click(x, y);
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.locator("body > [data-workshop-transition]")).toHaveCount(0);
   await expect(page.locator("[data-project-screen]")).toBeVisible();
