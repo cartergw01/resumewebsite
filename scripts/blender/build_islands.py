@@ -3228,7 +3228,7 @@ def workshop():
     light('Monitor · reflected screen light',(sx,sy-.18,sz+.72),(.72,.82,1),5,.7,(sx,sy-.50,sz))
     # Carter's iPad Pro on its Magic Keyboard, left of the monitor; its
     # wallpaper is a launch photo (artwork/blender/ipad-wallpaper-launch.jpg).
-    ipad_pro(-.72,-.58,1.79,math.radians(6),'artwork/blender/ipad-wallpaper-launch.jpg')
+    ipad_pro(-.72,-.58,1.79,math.radians(28),'artwork/blender/ipad-wallpaper-launch.jpg')
     # In Common With's Eave Table Lamp, in black steel, at the back of the
     # bench: a workbench lamp's pool of light.
     eave_table_lamp(-1.50,.60,1.792,80,.8)
@@ -3246,7 +3246,7 @@ def workshop():
     for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),12,.8,(bx,-1.45,.2))
     # The shield's lower rim rests on the boards and its upper rim leans
     # against the bench's right apron, clear of the stool and basketball court.
-    captain_america_shield(2.28 if refined('projects','shield') else 2.17,-.98 if refined('projects','shield') else -.85,lean=15,yaw=-24 if refined('projects','shield') else 0)
+    captain_america_shield(2.28 if refined('projects','shield') else 2.17,-.98 if refined('projects','shield') else -.85,lean=15,yaw=-2 if refined('projects','shield') else 22)
     turn_group('Workshop · turned workbench',set(bpy.context.scene.objects)-furniture,9,(0,0,0),['screen','landmark','screenGlow','lamp'])
     rear_storage=set(bpy.context.scene.objects)
     # A metal storage rack and drawer organiser; no decorative string lights.
@@ -3363,9 +3363,9 @@ def workshop():
     shelf=.16+(3.79-.16)*.72+.015
     starship(2.38,1.60,shelf,1.05)
     # Carter asked for BLACKPINK's official light stick, lit, on the top
-    # shelf (on the lower one the stool hid it), lying with a heart turned to
-    # the room. The navy JBL Charge 4 sits beside it, clear of the monitor.
-    blackpink_lightstick(.70,1.60,shelf,0,k=1.2)
+    # shelf (on the lower one the stool hid it), turned across the shelf so
+    # both pink hearts read side by side. The navy JBL stays clear beside it.
+    blackpink_lightstick(.78,1.31,shelf,math.radians(90),k=1.2)
     jbl_charge4(1.25,1.48,shelf,0)
     # Lugia sits on the open middle shelf, clear of the monitor's screen.
     middle_shelf=.16+(2.98-.16)*.72+.015
