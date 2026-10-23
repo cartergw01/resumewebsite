@@ -47,8 +47,8 @@ export default function CityTimeToggle() {
       onFocus={intent}
       onClick={() => void toggle()}
     >
+      <span className={styles.wallPlate} aria-hidden="true"><span className={styles.rocker} /></span>
       <span>Daylight</span>
-      <span className={styles.lightSwitchTrack} aria-hidden="true" />
     </button>
   );
 }

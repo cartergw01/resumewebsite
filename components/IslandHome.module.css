@@ -573,54 +573,84 @@
 /* Keep room for the controls above navigation. Their actual position follows
    the contained 3:2 image frame, avoiding the empty space below it on phones. */
 .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
-.sceneControl { position: absolute; z-index: 6; top: calc(50% + min(33.333333cqw, 50cqh) + 4px); right: 15%; transition: opacity 180ms ease; }
+/* Each room's wall switch sits under its line, in the reader's eye line. */
+.sceneControl { margin-top: 1.25rem; transition: opacity 180ms ease; }
 :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); }
 .islandToggle {
   display: inline-flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 64px;
+  gap: 0.625rem;
   height: 44px;
-  padding: 0;
+  padding: 0 0.75rem 0 0;
   border: 0;
   border-radius: 6px;
-  color: #b9c2cf;
+  color: #fff7eacc;
   background: none;
-  font: 400 0.75rem/14px var(--font-sans);
+  font: 500 0.875rem/1 var(--font-sans);
   letter-spacing: 0.01em;
+  text-shadow: none;
   cursor: pointer;
   pointer-events: auto;
+  transition: color 180ms ease;
 }
-.islandToggle:hover { color: #fff7ea; }
+.islandToggle:hover { color: var(--cw-paper); }
 .islandToggle:focus-visible { outline: 2px solid #ebd0ac; outline-offset: 3px; }
 .islandToggle[aria-disabled="true"] { cursor: progress; }
-/* Flat, opaque fills: no glass, transparency, inset shading, or glow. */
-.lightSwitchTrack { position: relative; flex: none; width: 30px; height: 18px; border-radius: 999px; background: #dfbc82; transition: background 180ms ease; }
-.lightSwitchTrack::before { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #30291f; transform: translateX(12px); transition: transform 180ms var(--cw-ease), background 180ms ease; }
-.islandToggle[data-lights="off"] .lightSwitchTrack { background: #48566d; }
-.islandToggle[data-lights="off"] .lightSwitchTrack::before { transform: translateX(0); background: #e4e9f1; }
-.islandToggle:hover .lightSwitchTrack { background: #edcb93; }
-.islandToggle[data-lights="off"]:hover .lightSwitchTrack { background: #5a6b85; }
+/* A cream wall plate with two screws and a rocker. Flat, opaque fills: no
+   glass, transparency, inset shading, or glow. The rocker's pressed half
+   flips with the room, and its raised half is warm gold when the lights are
+   on, cool slate when they are off. */
+.wallPlate {
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 40px;
+  border-radius: 5px;
+  box-sizing: border-box;
+  border: 1px solid #d9c9ab;
+  background:
+    radial-gradient(circle at 50% 5px, #b29c78 1.25px, transparent 1.75px),
+    radial-gradient(circle at 50% calc(100% - 5px), #b29c78 1.25px, transparent 1.75px),
+    #ece1cd;
+  transition: background-color 180ms ease;
+}
+.islandToggle:hover .wallPlate { background-color: #f6eddd; }
+.rocker {
+  position: relative;
+  overflow: hidden;
+  width: 12px;
+  height: 20px;
+  border-radius: 3px;
+  background: #e6be6e;
+  transition: background-color 180ms ease, transform 120ms ease;
+}
+/* The pressed half: top when on, bottom when off. */
+.rocker::before { content: ""; position: absolute; inset: 0 0 50%; background: #b08a4a; transition: transform 160ms var(--cw-ease); }
+/* The pivot line across the middle. */
+.rocker::after { content: ""; position: absolute; top: calc(50% - 0.5px); right: 0; left: 0; height: 1px; background: #8a6a36; }
+.islandToggle[data-lights="off"] .rocker { background: #ccd3de; }
+.islandToggle[data-lights="off"] .rocker::before { background: #7d8899; transform: translateY(100%); }
+.islandToggle[data-lights="off"] .rocker::after { background: #5d687a; }
+.islandToggle:active .rocker { transform: scale(0.94); }
 .stage[data-travelling="true"] .sceneControl, .stage[data-entering] .sceneControl { opacity: 0; visibility: hidden; }
 .stage[data-travelling="true"] .islandToggle, .stage[data-entering] .islandToggle { pointer-events: none; }
 @media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
   .scene { --island-control-bottom: calc(var(--controls-bottom) + 124px); }
-  :is(.work, .writing, .projects) { padding-bottom: calc(var(--island-control-bottom) + 60px); }
+  /* The switch moved under the copy, so the island keeps the room it held. */
+  :is(.work, .writing, .projects) { padding-bottom: var(--island-control-bottom); }
   :is(.work, .writing, .projects) .art { bottom: auto; height: 100%; }
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
   :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); height: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .sceneControl, .lightSwitchTrack, .lightSwitchTrack::before { transition: none; } }
-/* Stacked layouts (phones, portrait tablets) put each island under its
-   copy: every island's description holds two lines, so the islands, and the
-   switches on them, sit in the same place on every stop as you scroll. */
-@media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
-  :is(.work, .writing, .projects) .description { min-height: 2lh; }
-}
+@media (prefers-reduced-motion: reduce) { .sceneControl, .islandToggle, .wallPlate, .rocker, .rocker::before { transition: none; } }
+/* Every island's description holds two lines, so the headings, the islands
+   in stacked layouts, and the switches under the copy sit in the same place
+   on every stop as you scroll. */
+:is(.work, .writing, .projects) .description { min-height: 2lh; }
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
 import styles from "./IslandHome.module.css";
 
-// A labeled toggle below each room. Its solid track follows the room's
+// A wall switch under each room's line. Its rocker follows the room's
 // remembered lights, which change fixture by fixture (lib/light-switch.ts).
 export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -72,8 +72,8 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
       onFocus={intent}
       onClick={() => void toggle()}
     >
+      <span className={styles.wallPlate} aria-hidden="true"><span className={styles.rocker} /></span>
       <span>Lights</span>
-      <span className={styles.lightSwitchTrack} aria-hidden="true" />
     </button>
   );
 }

@@ -23,11 +23,15 @@ test("all three island controls align and stay clear of art and navigation", asy
       const art = (await scene.locator("[data-scene-art]").boundingBox())!;
       const navigation = (await page.locator("[data-scene-nav]").boundingBox())!;
       expect(button.height).toBeGreaterThanOrEqual(44);
-      // All three assets share a contained 3:2 frame. Check its rendered
-      // edge rather than the larger layout box's empty letterboxing.
-      const frameBottom = art.y + (art.height + Math.min(art.height, art.width * 2 / 3)) / 2;
-      expect(button.y - frameBottom).toBeGreaterThanOrEqual(3.5);
-      expect(button.y - frameBottom).toBeLessThan(24);
+      // The wall switch sits just under the stop's line, on its left edge,
+      // and clear of the artwork's rendered 3:2 frame.
+      const line = (await scene.locator("[data-scene-copy] p").first().boundingBox())!;
+      expect(button.x).toBeCloseTo(line.x, 0);
+      expect(button.y - (line.y + line.height)).toBeGreaterThanOrEqual(8);
+      expect(button.y - (line.y + line.height)).toBeLessThan(32);
+      const frameTop = art.y + (art.height - Math.min(art.height, art.width * 2 / 3)) / 2;
+      const frameLeft = art.x + (art.width - Math.min(art.width, art.height * 3 / 2)) / 2;
+      expect(button.y + button.height <= frameTop || button.x + button.width <= frameLeft).toBe(true);
       expect(button.y + button.height).toBeLessThanOrEqual(navigation.y);
       if (firstPosition) {
         expect(button.x).toBeCloseTo(firstPosition.x, 1);
