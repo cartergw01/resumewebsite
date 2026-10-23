@@ -409,6 +409,17 @@
   .scene:has(.overview) .art { height: calc(100% + .25rem); }
   .controls { gap: 0.35rem; }
 }
+/* Phones, opening view: the chapter bar has not appeared yet, so "swipe up"
+   drops into its empty row (the cue hides once you have swiped, so it never
+   visibly moves), well clear of the lowest island, and the islands take back
+   part of that room. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .track[data-scene="intro"] .controls .scrollHint { translate: 0 calc(60px + 0.5rem); }
+  .scene:first-of-type { padding-bottom: 5.75rem; }
+}
+@media (max-width: 760px) and (orientation: portrait) and (max-height: 740px) {
+  .track[data-scene="intro"] .controls .scrollHint { translate: 0 calc(60px + 0.35rem); }
+}
 @media (max-height: 600px) and (min-width: 761px) {
   .stage { --controls-bottom: max(1rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; padding-bottom: 5rem; }
