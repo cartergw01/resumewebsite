@@ -22,10 +22,11 @@
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
 .title { display: flex; align-items: center; gap: clamp(1.4rem, 3vw, 2.5rem); }
-/* Header, copy and photo share one measure. The generous desktop margins
-   hold section labels without pushing the reading column off-center. */
+/* Copy and photo share one measure. The generous desktop margins hold
+   section labels without pushing the reading column off-center. The header
+   spans the full column, as on /writing and /projects, so its title and
+   hairline sit in the same place on every destination page. */
 .desk { --reading-width: 40rem; container: work-reading / inline-size; }
-.desk .pageHeader { width: min(100%, var(--reading-width)); margin-inline: auto; }
 .workHistory { display: grid; gap: var(--topic-section-gap); min-width: 0; }
 .section { width: min(100%, var(--reading-width)); margin-inline: auto; }
 .body { min-width: 0; }

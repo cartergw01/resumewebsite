@@ -10,5 +10,6 @@
 .header.header p a:hover, .header.header p a:focus-visible { text-decoration-color: #fff7eab3; }
 @media (max-width: 760px) {
   .header.header { gap: 0.75rem; padding-bottom: 2.75rem; }
-  .header.header p { font-size: 1rem; line-height: 1.6; }
+  /* Two lines held for every subtitle, so a one-line one doesn't lift the hairline. */
+  .header.header p { min-height: 2lh; font-size: 1rem; line-height: 1.6; }
 }

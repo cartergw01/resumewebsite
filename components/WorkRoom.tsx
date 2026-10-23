@@ -77,7 +77,7 @@ function Entry({ entry }: { entry: WorkEntry }) {
 
 function WorkHeader({ preview = false }: { preview?: boolean }) {
   return (
-    <header className={`${heading.header} ${styles.pageHeader}`}>
+    <header className={heading.header}>
       <div className={styles.title}>
         <h1 tabIndex={-1}>Work</h1>
         {!preview && <WorkArrival />}
