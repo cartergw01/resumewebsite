@@ -1687,7 +1687,8 @@ def eave_table_lamp(x,y,z,energy,k=1):
 
 
 def book_stack(x,y,z):
-    for i,(w,d,h,mat,a) in enumerate([(1.06,.72,.11,'linen',-.12),(.98,.70,.15,'redcloth',.03),(.90,.66,.10,'leather',-.04)]):
+    # Squared up, each book only slightly off the one below.
+    for i,(w,d,h,mat,a) in enumerate([(1.06,.72,.11,'linen',-.035),(.98,.70,.15,'redcloth',.015),(.90,.66,.10,'leather',-.02)]):
         box('Book · lower cloth cover',(x,y,z+.012),(w,d,.024),mat,.007,a)
         box('Book · paper block',(x,y,z+.025+h/2),(w-.035,d-.029,h),'paper',.004,a)
         for j in range(8):
@@ -2449,11 +2450,17 @@ def writing():
             box('Bookshelf · LED strip',(1,1.37,z-.026),(3.10,.016,.006),'led_strip',0)
             for bx in [.21,1.79]:light('Bookshelf · LED wash',(bx,1.55,z-.05),(1,.74,.48),7,.05,(bx,1.62,z-.6))
         if z>2.7:continue
+        # Carter asked for more books: the shelves run nearly full, with only
+        # the odd small gap and, now and then, a short stack lying flat.
         for start,end in [(-.53,.90),(1.08,2.53)]:
             x=start
-            while x<end-.15:
-                if rng.random()<.16:x+=.30;continue
-                w=rng.uniform(.048,.11);h=rng.uniform(.36,.55)
+            while x<end-.08:
+                roll=rng.random()
+                if roll<.02:x+=.14;continue
+                if roll<.08 and x+.36<end:
+                    capture(book_stack,0,0,0,scale=(.30,.30,.30),offset=(x+.17,1.58,z+.022))
+                    x+=.37;continue
+                w=rng.uniform(.048,.11);h=rng.uniform(.36,.60)
                 created=capture(shelf_book,x+w/2,1.59,z+.022,w,h,rng.choice(['linen','leather','redcloth','teal','oak']))
                 # One offset for the entire binding: covers, spine, tooling
                 # and page block must stay aligned as a single rigid book.
@@ -2525,17 +2532,8 @@ def writing():
     rod('Fountain pen · gold cap band',tuple(cap),tuple(cap+(b-a).normalized()*.018),.0172,'brass',24)
     rod('Fountain pen · gold clip',tuple(cap+(b-a).normalized()*.03+Vector((0,0,.016))),tuple(b-(b-a).normalized()*.03+Vector((0,0,.016))),.004,'brass',8)
     for end in [a,b]:sphere('Fountain pen · rounded end',tuple(end),(.016,.016,.016),'ink',2)
-    # Thin correspondence, with a restrained looping lifted corner.
-    for j in range(3):
-        vs=[]
-        for row in range(2):
-            for k in range(17):
-                xx=(1.13 if refined('writing','desk_spacing') else .91)+k*.032;yy=(-.62 if refined('writing','desk_spacing') else -.80)+row*.44;zz=1.617+j*.002+.025*(k/16)**6
-                vs.append((xx,yy,zz))
-        leaf=mesh('Study · loose draft',vs,[(k,k+1,k+18,k+17) for k in range(16)],'paper')
-        for face in leaf.data.polygons:face.use_smooth=True
-        for f,dz in [(1,0),(25,.006+j*.002),(49,0)]:leaf.location.z=dz;leaf.keyframe_insert(data_path='location',frame=f)
-        ANIMATED.append(leaf)
+    # (Carter asked for the loose sheets under the book stack to go: the
+    # desk's back corner holds just the stack.)
     # The chair is pulled up to the open notebook, where you'd sit to write.
     chair(.16,-2.0)
     turn_group('Study · gently turned desk',set(bpy.context.scene.objects)-furniture,10,(.1,-.7,0),['spread','page','landmark','lamp'])
