@@ -11,7 +11,7 @@ import RoomLightSwitch from "./RoomLightSwitch";
 import { WorkWindowPreview } from "./WorkRoom";
 import { ownEssays } from "@/content/portfolio";
 import { projectPosters, projectScreenPreview } from "@/lib/project-posters";
-import { siteConfig } from "@/lib/seo";
+import { socialLinks } from "./socialLinks";
 import { islandArtwork, islandLandmarks } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 
@@ -58,13 +58,15 @@ function Copy({ id }: { id: (typeof stops)[number]["id"] }) {
     case "hello":
       return <>
         <h2 id="hello-heading">say hi!</h2>
-        {/* Carter's own line from /work: a reason to write, for founders. */}
-        <p className={styles.description}>Building something? I&apos;d love to hear about it.</p>
-        <ul className={`${styles.facts} ${styles.contact}`} aria-label="Contact">
-          <li><Out href={siteConfig.social.x}>X</Out></li>
-          <li><a href={`mailto:${siteConfig.email}`}>Email</a></li>
-          <li><Out href={siteConfig.social.linkedin}>LinkedIn</Out></li>
-          <li><Out href={siteConfig.social.substack}>Substack</Out></li>
+        {/* The same icons as the header and the subpage footers. */}
+        <ul className={styles.contact} aria-label="Contact">
+          {socialLinks.map((link) => (
+            <li key={link.label}>
+              {link.href.startsWith("http")
+                ? <a href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}>{link.icon}</a>
+                : <a href={link.href} aria-label={link.label}>{link.icon}</a>}
+            </li>
+          ))}
         </ul>
       </>;
   }

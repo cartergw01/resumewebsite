@@ -121,10 +121,12 @@
 .facts a { color: var(--cw-paper); text-decoration: underline; text-decoration-color: #fff7ea40; text-underline-offset: 0.22em; transition: text-decoration-color 180ms ease; }
 .facts a:hover, .facts a:focus-visible { text-decoration-color: #fff7eab3; }
 .factMeta { color: #fff7ea8c; font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
-.contact { display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; font-size: clamp(1rem, 1.2vw, 1.125rem); }
-/* A full 44px touch target around each short contact link, without moving it. */
-.contact a { position: relative; }
-.contact a::after { content: ""; position: absolute; inset: -12px -10px; }
+/* Icons only, each a 44px target; the first icon lines up with the heading. */
+.contact { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 1.25rem 0 0 -0.75rem; padding: 0; list-style: none; }
+.contact a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 999px; color: #e9d4b6; transition: color 180ms ease, background-color 180ms ease; }
+.contact a:hover { color: var(--cw-paper); background: #fff7ea14; }
+.contact a:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 2px; }
+.contact a svg { width: 20px; height: 20px; }
 .skipLink { position: absolute; z-index: 80; top: 1rem; left: var(--page-x); padding: 0.6rem 1rem; border: 1px solid #ebd0ac66; border-radius: 999px; color: var(--cw-paper); background: #030611; font-size: 0.875rem; transform: translateY(-300%); }
 .skipLink:focus-visible { transform: none; outline: none; }
 .art {
@@ -357,12 +359,7 @@
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.025em; }
   .copy h1 { letter-spacing: -0.035em; }
   .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
-  /* Even 1.5rem gaps between words, each a 44px target, aligned with the
-     copy's left edge rather than spread across four equal columns. */
-  .contact { display: flex; flex-wrap: wrap; gap: 0 .25rem; margin-left: -.625rem; }
-  .contact li { display: block; }
-  .contact a { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding-inline: .625rem; font-size: .9375rem; }
-  .contact a::after { content: none; }
+  .contact { margin-top: 1rem; }
   /* Lift the island on tall phones and reserve a separate row for touch help. */
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9svh, 5rem)); min-height: 0; margin-inline: -3rem; }
   /* The art stops short of its row so the lowest island's label keeps clear
@@ -397,7 +394,6 @@
 @media (max-height: 740px) and (max-width: 760px) {
   .facts { gap: 0.3rem; margin-top: 0.9rem; font-size: 0.875rem; }
   .factMeta { display: none; }
-  .contact { gap: .25rem; }
   .stage { --controls-bottom: max(0.6rem, env(safe-area-inset-bottom)); }
   .scene { padding-top: 4.5rem; }
   .description { margin-top: 0.75rem; font-size: 0.875rem; line-height: 1.55; }
