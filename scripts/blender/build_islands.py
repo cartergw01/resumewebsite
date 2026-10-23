@@ -1540,10 +1540,13 @@ def starship(x,y,z,height=1.05):
     for zz in [.69,.74,.79,.84,.89]:
         torus('Starship · welded ring',(x,y,z+zz*k),r+.0003*k,.0006*k,'steel')
     # A partial shell shows both the tiled belly and the polished steel side.
+    # The belly faces the wall, so from the site camera the ship's steel side
+    # (and its edge-on black tiles) reads against the night instead of a
+    # black silhouette.
     verts=[];faces=[];segments=24
     for radius,h in profile:
         for i in range(segments+1):
-            a=math.radians(195)+i*math.radians(135)/segments
+            a=math.radians(15)+i*math.radians(135)/segments
             verts.append((x+(radius+.0006*k)*math.cos(a),y+(radius+.0006*k)*math.sin(a),z+.643*k+h))
     for row in range(len(profile)-1):
         for i in range(segments):
@@ -3372,13 +3375,20 @@ def workshop():
         box('Poster · masking tape',(px+dx,2.006,pz+dz),(.10,.002,.035),'linen',0,rot=0).rotation_euler.y=.6 if dx*dz>0 else -.6
     # The storage rack is squashed to .72 height about z=.16 after it's built.
     shelf=.16+(3.79-.16)*.72+.015
-    # Space the four displays for clear gaps from the site camera.
-    starship(2.47,1.60,shelf,1.05)
+    # Space the four displays for clear gaps from the site camera. Starship
+    # stands a little shorter than the shelf's height allows, so its nose
+    # reads clear of the roof edge and the festoon bulbs in front of it, and
+    # a small display light (on the devices switch) catches its steel.
+    starship(2.42,1.60,shelf,.80)
+    spot('Starship display light',(2.15,.90,3.50),(2.42,1.60,shelf+.42),(.86,.92,1),55,22,blend=.6,soft=.03)
     # Carter asked for BLACKPINK's official light stick, lit, on the top
     # shelf (on the lower one the stool hid it), turned across the shelf so
-    # both pink hearts read side by side. The navy JBL stays clear beside it.
-    blackpink_lightstick(.72,1.31,shelf,math.radians(90),k=1.2)
-    jbl_charge4(1.40,1.48,shelf,0)
+    # both pink hearts read side by side. He then asked for it to swap places
+    # with the navy JBL: the speaker now sits at the left end, clear of the
+    # upright (it is longer than the light stick is wide), and the light
+    # stick between it and the Cybertruck.
+    blackpink_lightstick(1.40,1.31,shelf,math.radians(90),k=1.2)
+    jbl_charge4(.83,1.48,shelf,0)
     # Lugia sits on the open middle shelf, clear of the monitor's screen.
     middle_shelf=.16+(2.98-.16)*.72+.015
     lugia_figurine(2.20,1.48,middle_shelf,math.radians(-18),k=.41)
@@ -3625,7 +3635,7 @@ LIGHT_SOURCES={
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
                 ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('Lightstick',)),
-                ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box')),('spot',('Spotlight',))],
+                ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box','Starship display')),('spot',('Spotlight',))],
 }
 
 
