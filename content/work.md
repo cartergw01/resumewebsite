@@ -16,7 +16,7 @@ and push; the site updates in a minute or two.
 
 # Now
 
-886 Studios is a Taiwan-based venture capital firm started by a group of Taiwanese-American founders from Silicon Valley, including the people behind Twitch, Guitar Hero, and Kabam.
+886 Studios is a Taiwan-based venture capital firm started by the founders behind Twitch, Guitar Hero, and Kabam.
 
 ### Building ikigai Launchpad
 
@@ -42,7 +42,7 @@ I profiled and wrote deep dives on startups like [Shield AI](https://research.co
 
 ## Slug Fund Investment Group
 
-UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing.
+UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up and revived the club.
 
 I went from equity analyst to head of the equity analyst team, then started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.
 
@@ -54,7 +54,7 @@ A fund I started in 2020 for family and friends. It's now $180K+, invested long 
 
 ## Coding projects
 
-I build web apps and tools for fun. I've built TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a sleep tracker app, a stock portfolio tracker, a poker odds calculator, and more.
+I build web apps and tools for fun.
 
 [See my coding projects](/projects)
 
