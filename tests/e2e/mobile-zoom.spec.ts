@@ -29,7 +29,7 @@ for (const world of ["work", "writing", "projects"]) {
     await session.send("Input.synthesizePinchGesture", { x: 195, y: 430, scaleFactor: 2, relativeSpeed: 800, gestureSourceType: "touch" });
     await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeGreaterThan(1.9);
     await expect(stage).toHaveAttribute("data-zoomed", "true");
-    await expect(page.locator("html")).toHaveCSS("scroll-snap-type", "none");
+    await expect(page.locator("html")).not.toHaveAttribute("data-island-swipe");
     const held = await stage.getAttribute("data-camera-progress");
     const art = page.locator(`#${world} [data-scene-art]`);
     const transform = await art.evaluate(node => getComputedStyle(node).transform);
@@ -49,7 +49,7 @@ for (const world of ["work", "writing", "projects"]) {
     await session.send("Input.synthesizePinchGesture", { ...center, scaleFactor: 0.5, relativeSpeed: 800, gestureSourceType: "touch" });
     await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeLessThan(1.01);
     await expect(stage).not.toHaveAttribute("data-zoomed");
-    await expect(page.locator("html")).toHaveCSS("scroll-snap-type", "y mandatory");
+    await expect(page.locator("html")).toHaveAttribute("data-island-swipe", "true");
     await expect.poll(() => page.evaluate(() => scrollY)).toBeCloseTo(originalY, 0);
     const next = world === "writing" ? "Projects" : "Writing";
     await page.getByRole("button", { name: `Show ${next} island` }).click();
@@ -141,9 +141,9 @@ test("magnified navigation remains usable and cleans up on leaving the homepage"
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("main h1")).toHaveText("Writing");
   await expect(page.locator("[data-entry-light]")).toHaveCount(0);
-  await expect(page.locator("html")).not.toHaveAttribute("data-island-snap");
+  await expect(page.locator("html")).not.toHaveAttribute("data-island-swipe");
   await page.evaluate(() => { delete (visualViewport as unknown as { scale?: number }).scale; });
   await page.goBack();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
-  await expect(page.locator("html")).toHaveAttribute("data-island-snap", "true");
+  await expect(page.locator("html")).toHaveAttribute("data-island-swipe", "true");
 });

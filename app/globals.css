@@ -422,12 +422,6 @@ select {
   border-radius: 999px;
 }
 
-/* The islands snap natively on touch screens, one stop per fling (snap
-   points: .snapStop in IslandHome.module.css), except while a scripted glide
-   (a tab, a key, the scroll cue) is carrying the camera to a stop. */
-html[data-island-snap="true"] { scroll-snap-type: y mandatory; }
-html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: none; }
-
 /* Shared navigation */
 .site-nav {
   position: fixed;

@@ -309,9 +309,6 @@
 .chapters button:hover .chapterLabel, .chapters button:focus-visible .chapterLabel { color: #fff4df; text-shadow: 0 0 15px #d5e7ff55, 0 1px 5px #030611; }
 .chapters button[data-arriving] .chapterLabel { animation: chapter-arrival 900ms ease-out; }
 @keyframes chapter-arrival { 0% { color: #fffdf3; text-shadow: 0 0 15px #ffe5b3aa, 0 0 28px #c1dbff44; } 100% { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; } }
-/* Native snap points for touch scrolling, one per stop (positioned by
-   IslandScrollTransport; snapping is switched on in app/globals.css). */
-.snapStop { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; scroll-snap-align: start; scroll-snap-stop: always; }
 /* Where you are among the stops: phones only, while the page moves. */
 .dots { display: none; }
 /* These are geometry anchors only; no isolated dots or endpoint rings. */

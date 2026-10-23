@@ -103,14 +103,63 @@ test("native drags advance and reverse without requiring a full-screen fling", a
 });
 
 
-test("mobile rotation keeps the selected island with native snapping enabled", async ({ page, isMobile }) => {
-  test.skip(!isMobile, "Native touch snap targets change with the viewport.");
+test("swipes follow the finger, spring back when short and slow, and advance on a quick flick", async ({ page, context, browserName, isMobile }) => {
+  test.skip(!isMobile || browserName !== "chromium", "Native touch injection requires Chromium CDP.");
+  await ready(page, "writing");
+  const session = await context.newCDPSession(page);
+  const stage = page.locator("[data-island-stage]");
+  // The page itself never scrolls natively under a swipe; the camera follows the finger.
+  await expect(page.locator("html")).toHaveAttribute("data-island-swipe", "true");
+  // A short, slow drag returns to the island it started on.
+  await session.send("Input.synthesizeScrollGesture", { x: 195, y: 600, yDistance: -45, speed: 120, preventFling: true, gestureSourceType: "touch" });
+  await expect(stage).toHaveAttribute("data-travelling", "false");
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+  await expect(page.locator("#writing [data-scene-copy]")).toHaveCSS("opacity", "1");
+  // The same distance as a quick flick moves on, and lands within half a second of release.
+  const landed = await page.evaluate(() => {
+    (window as unknown as { __landed: Promise<number> }).__landed = new Promise(resolve => {
+      const stage = document.querySelector<HTMLElement>("[data-island-stage]")!;
+      const watch = new MutationObserver(() => { if (document.querySelector("main[data-scene]")!.getAttribute("data-scene") === "projects" && stage.dataset.travelling === "false") { watch.disconnect(); resolve(performance.now()); } });
+      watch.observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ["data-scene", "data-travelling"] });
+    });
+    return true;
+  });
+  expect(landed).toBe(true);
+  await session.send("Input.synthesizeScrollGesture", { x: 195, y: 600, yDistance: -45, speed: 1600, preventFling: false, gestureSourceType: "touch" });
+  const released = await page.evaluate(() => performance.now());
+  const arrived = await page.evaluate(() => (window as unknown as { __landed: Promise<number> }).__landed);
+  expect(arrived - released).toBeLessThan(500);
+  await expect(page).toHaveURL(/#projects$/);
+  await session.detach();
+});
+
+test("back-to-back swipes keep going, one island each", async ({ page, context, browserName, isMobile }) => {
+  test.skip(!isMobile || browserName !== "chromium", "Native touch injection requires Chromium CDP.");
+  await ready(page, "work");
+  const session = await context.newCDPSession(page);
+  // The second swipe starts while the first is still gliding.
+  await session.send("Input.synthesizeScrollGesture", { x: 195, y: 600, yDistance: -140, speed: 1400, preventFling: true, gestureSourceType: "touch" });
+  await session.send("Input.synthesizeScrollGesture", { x: 195, y: 600, yDistance: -140, speed: 1400, preventFling: true, gestureSourceType: "touch" });
+  await expect(page).toHaveURL(/#projects$/);
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
+  await expect(page.locator("#projects [data-scene-copy]")).toHaveCSS("opacity", "1");
+  // Dragging down on the opening view is left to the browser (pull to refresh).
+  await page.goto("/");
+  await expect(page.locator("[data-next-scene]")).toBeEnabled();
+  await session.send("Input.synthesizeScrollGesture", { x: 195, y: 300, yDistance: 160, speed: 800, preventFling: true, gestureSourceType: "touch" });
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
+  await session.detach();
+});
+
+
+test("mobile rotation keeps the selected island with swipe paging on", async ({ page, isMobile }) => {
+  test.skip(!isMobile, "Swipe stops are re-measured with the viewport.");
   for (const world of ["work", "writing", "projects"]) {
     await page.setViewportSize({ width: 390, height: 844 });
     await ready(page, world);
     for (const viewport of [{ width: 320, height: 568 }, { width: 667, height: 375 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
-      // Allow the resize, native re-snap and camera frame to run before checking.
+      // Allow the resize and camera frame to run before checking.
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", world);
       await expect(page).toHaveURL(new RegExp(`#${world}$`));
