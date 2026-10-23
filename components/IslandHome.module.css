@@ -573,36 +573,52 @@
 /* Keep room for the controls above navigation. Their actual position follows
    the contained 3:2 image frame, avoiding the empty space below it on phones. */
 .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
-.sceneControl { position: absolute; z-index: 6; top: calc(50% + min(33.333333cqw, 50cqh) + 4px); right: 15%; transition: opacity 180ms ease; }
+/* A pull chain hanging from the middle of each island. The solid rock ends
+   about a tenth of the 3:2 frame's height above its foot, so the cord starts
+   just inside it (79% of the half-frame below center) at every size. */
+.sceneControl { position: absolute; z-index: 6; top: calc(50% + min(26.333333cqw, 39.5cqh)); left: 50%; translate: -50% 0; transition: opacity 180ms ease; }
 :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); }
 .islandToggle {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 64px;
-  height: 44px;
-  padding: 0;
+  min-width: 44px;
+  padding: 0 0.75rem 0.375rem;
   border: 0;
-  border-radius: 6px;
-  color: #b9c2cf;
+  border-radius: 12px;
+  color: #eee7dc99;
   background: none;
-  font: 400 0.75rem/14px var(--font-sans);
-  letter-spacing: 0.01em;
+  font: 400 0.75rem/16px var(--font-sans);
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 5px #030611;
   cursor: pointer;
   pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 220ms ease;
 }
-.islandToggle:hover { color: #fff7ea; }
-.islandToggle:focus-visible { outline: 2px solid #ebd0ac; outline-offset: 3px; }
+.islandToggle:hover { color: #fff4df; }
+.islandToggle:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; }
 .islandToggle[aria-disabled="true"] { cursor: progress; }
-/* Flat, opaque fills: no glass, transparency, inset shading, or glow. */
-.lightSwitchTrack { position: relative; flex: none; width: 30px; height: 18px; border-radius: 999px; background: #dfbc82; transition: background 180ms ease; }
-.lightSwitchTrack::before { content: ""; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: #30291f; transform: translateX(12px); transition: transform 180ms var(--cw-ease), background 180ms ease; }
-.islandToggle[data-lights="off"] .lightSwitchTrack { background: #48566d; }
-.islandToggle[data-lights="off"] .lightSwitchTrack::before { transform: translateX(0); background: #e4e9f1; }
-.islandToggle:hover .lightSwitchTrack { background: #edcb93; }
-.islandToggle[data-lights="off"]:hover .lightSwitchTrack { background: #5a6b85; }
+.chainCord { width: 1px; height: 34px; background: linear-gradient(#fff1d700, #fff1d74d 30%, #fff1d799); transform-origin: top; transition: transform 260ms var(--cw-ease); }
+/* A tug stretches the cord 8px and drops the bead with it; both spring
+   back when the class lifts. Transforms only, so nothing reflows. */
+.islandToggle[data-tug] .chainCord { transform: scaleY(1.235); transition-duration: 120ms; }
+.islandToggle[data-tug] :is(.chainBead, .chainLabel) { translate: 0 8px; transition-duration: 120ms; }
+/* Lit, the bead glows like the tab bar's comet; dark, it's a dim bead. */
+.chainBead {
+  width: 7px;
+  height: 9px;
+  border-radius: 3.5px;
+  background-color: #fff1d7;
+  box-shadow: 0 0 6px #ffe3adaa, 0 0 14px #ffd58a55;
+  transition: background-color 320ms ease, box-shadow 320ms ease, translate 260ms var(--cw-ease);
+}
+.islandToggle[data-lights="off"] .chainBead { background-color: #fff1d766; box-shadow: 0 0 6px #ffe3ad00, 0 0 14px #ffd58a00; }
+.islandToggle:hover[data-lights="off"] .chainBead { background-color: #fff1d7aa; }
+/* While the dark still loads, the bead breathes instead of snapping. */
+.islandToggle[data-pending] .chainBead { animation: chain-wait 900ms ease-in-out infinite alternate; }
+@keyframes chain-wait { from { opacity: 0.35; } to { opacity: 1; } }
+.chainLabel { margin-top: 0.5rem; transition: translate 260ms var(--cw-ease); }
 .stage[data-travelling="true"] .sceneControl, .stage[data-entering] .sceneControl { opacity: 0; visibility: hidden; }
 .stage[data-travelling="true"] .islandToggle, .stage[data-entering] .islandToggle { pointer-events: none; }
 @media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
@@ -614,13 +630,11 @@
   .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
   :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); height: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .sceneControl, .lightSwitchTrack, .lightSwitchTrack::before { transition: none; } }
-/* Stacked layouts (phones, portrait tablets) put each island under its
-   copy: every island's description holds two lines, so the islands, and the
-   switches on them, sit in the same place on every stop as you scroll. */
-@media (max-width: 760px), (min-width: 761px) and (max-width: 1100px) and (orientation: portrait) {
-  :is(.work, .writing, .projects) .description { min-height: 2lh; }
-}
+@media (prefers-reduced-motion: reduce) { .sceneControl, .islandToggle, .chainCord, .chainBead, .chainLabel { transition: none; } .islandToggle[data-tug] :is(.chainCord, .chainBead, .chainLabel) { transform: none; translate: none; } .islandToggle[data-pending] .chainBead { animation: none; } }
+/* Every island's description holds two lines, so the headings, the islands
+   in stacked layouts, and the chains under them sit in the same place
+   on every stop as you scroll. */
+:is(.work, .writing, .projects) .description { min-height: 2lh; }
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */

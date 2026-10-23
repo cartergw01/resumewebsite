@@ -108,6 +108,7 @@ export default function IslandHome() {
             <div className={styles.art} data-scene-art>
               <span className={styles.artGlow} data-reads={`island-lights:opacity:${stop.id === "work" ? .8 : 1}`} aria-hidden="true" />
               <Art id={stop.id} />
+              {/* A quiet caption under the island it lights. */}
               {stop.id === "work" || stop.id === "writing" || stop.id === "projects" ? (
                 <div className={styles.sceneControl} data-island-control>
                   {stop.id === "work" ? <CityTimeToggle /> : <RoomLightSwitch world={stop.id} />}

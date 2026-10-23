@@ -23,16 +23,17 @@ test("all three island controls align and stay clear of art and navigation", asy
       const art = (await scene.locator("[data-scene-art]").boundingBox())!;
       const navigation = (await page.locator("[data-scene-nav]").boundingBox())!;
       expect(button.height).toBeGreaterThanOrEqual(44);
-      // All three assets share a contained 3:2 frame. Check its rendered
-      // edge rather than the larger layout box's empty letterboxing.
-      const frameBottom = art.y + (art.height + Math.min(art.height, art.width * 2 / 3)) / 2;
-      expect(button.y - frameBottom).toBeGreaterThanOrEqual(3.5);
-      expect(button.y - frameBottom).toBeLessThan(24);
+      // A pull chain centered under the island: its cord starts just inside
+      // the rock, 79% of the rendered 3:2 frame's half-height below center.
+      const halfFrame = Math.min(art.height, art.width * 2 / 3) / 2;
+      expect(Math.abs(button.y - (art.y + art.height / 2 + halfFrame * 0.79))).toBeLessThan(2);
+      const center = { x: button.x + button.width / 2, y: button.y };
+      expect(center.x).toBeCloseTo(art.x + art.width / 2, 0);
       expect(button.y + button.height).toBeLessThanOrEqual(navigation.y);
       if (firstPosition) {
-        expect(button.x).toBeCloseTo(firstPosition.x, 1);
-        expect(button.y).toBeCloseTo(firstPosition.y, 1);
-      } else firstPosition = button;
+        expect(center.x).toBeCloseTo(firstPosition.x, 1);
+        expect(center.y).toBeCloseTo(firstPosition.y, 1);
+      } else firstPosition = center;
       // Verify the entire control receives clicks, rather than an invisible
       // navigation layer or the artwork behind it.
       expect(await control.evaluate(node => {
@@ -40,7 +41,8 @@ test("all three island controls align and stay clear of art and navigation", asy
         return [8, box.width / 2, box.width - 8].every(x =>
           node.contains(document.elementFromPoint(box.x + x, box.y + box.height / 2)));
       })).toBe(true);
-      await expect(control.locator("span[aria-hidden]")).toHaveCSS("box-shadow", "none");
+      // Lit by default: the bead carries its glow.
+      await expect(control.locator("[data-bead]")).not.toHaveCSS("box-shadow", "none");
     }
   }
 });
@@ -54,7 +56,7 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     const html = page.locator("html");
     const lightsSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(lightsSwitch).toHaveAttribute("aria-checked", "true");
-    await expect(lightsSwitch).toHaveText("Lights");
+    await expect(lightsSwitch).toHaveText("pull");
     // The island's transform can round an edge by a fraction of a pixel in WebKit.
     await expect(lightsSwitch).toBeInViewport({ ratio: 0.999 });
     expect((await lightsSwitch.boundingBox())!.height).toBeGreaterThanOrEqual(44);
