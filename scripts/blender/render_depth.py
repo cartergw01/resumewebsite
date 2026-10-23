@@ -43,6 +43,18 @@ for obj in scene.objects:
     if obj.type == 'LIGHT' or obj.name.startswith('Night · ') or volume_only(obj):
         obj.hide_render = True
 
+# The browser reads this map through a blurred mip (ParallaxStill), so a prop
+# a few pixels wide never registers: the desk lamp's 1cm stem took the desk's
+# depth at its foot and the far wall's above it, and bent as the view moved.
+# Fatten such props in this pass only, so the blur sees each one as a solid
+# column at its own depth and it slides as one rigid piece.
+THICKEN = {'Arundel lamp · stem': 8}
+for obj in scene.objects:
+    for prefix, factor in THICKEN.items():
+        if obj.name.startswith(prefix):
+            obj.scale.x *= factor
+            obj.scale.y *= factor
+
 # The island's depth range, from its visible surfaces as seen by the camera.
 distances = []
 for obj in scene.objects:
