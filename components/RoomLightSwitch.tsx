@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
+import { PullChain, tug } from "./PullChain";
 import styles from "./IslandHome.module.css";
 
-// A caption under each room: a point of light and its state in words,
-// following the room's remembered lights, which change fixture by
-// fixture (lib/light-switch.ts).
+// A pull chain hanging from each room's island. Its bead glows with the
+// room's remembered lights, which change fixture by fixture
+// (lib/light-switch.ts).
 export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [on, setOn] = useState(true);
@@ -71,13 +72,9 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
       onPointerEnter={intent}
       onPointerDown={intent}
       onFocus={intent}
-      onClick={() => void toggle()}
+      onClick={(event) => { tug(event.currentTarget); void toggle(); }}
     >
-      <span className={styles.toggleLight} aria-hidden="true" />
-      <span className={styles.toggleLabel} aria-hidden="true">
-        <span data-label="on">lights on</span>
-        <span data-label="off">lights off</span>
-      </span>
+      <PullChain />
     </button>
   );
 }

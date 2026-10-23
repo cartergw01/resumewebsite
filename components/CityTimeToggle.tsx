@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { CITY_DAY_INTENT, CITY_TIME_EVENT, currentCityTime, dayStillReady, setCityTime, storedCityTime, type CityTime } from "@/lib/city-time";
+import { PullChain, tug } from "./PullChain";
 import styles from "./IslandHome.module.css";
 
-// The same caption as the rooms, controlling Taipei's daylight: day or night.
+// The same pull chain as the rooms, controlling Taipei's daylight.
 // The city crossfades and the choice is remembered.
 export default function CityTimeToggle() {
   const [time, setTime] = useState<CityTime>("night");
@@ -45,13 +46,9 @@ export default function CityTimeToggle() {
       onPointerEnter={intent}
       onPointerDown={intent}
       onFocus={intent}
-      onClick={() => void toggle()}
+      onClick={(event) => { tug(event.currentTarget); void toggle(); }}
     >
-      <span className={styles.toggleLight} aria-hidden="true" />
-      <span className={styles.toggleLabel} aria-hidden="true">
-        <span data-label="on">day</span>
-        <span data-label="off">night</span>
-      </span>
+      <PullChain />
     </button>
   );
 }

@@ -23,11 +23,10 @@ test("all three island controls align and stay clear of art and navigation", asy
       const art = (await scene.locator("[data-scene-art]").boundingBox())!;
       const navigation = (await page.locator("[data-scene-nav]").boundingBox())!;
       expect(button.height).toBeGreaterThanOrEqual(44);
-      // A caption centered under the island, tucked against the foot of the
-      // artwork's rendered 3:2 frame (the rock itself ends above it).
-      const frameBottom = art.y + (art.height + Math.min(art.height, art.width * 2 / 3)) / 2;
-      expect(button.y - frameBottom).toBeGreaterThanOrEqual(-16);
-      expect(button.y - frameBottom).toBeLessThan(0);
+      // A pull chain centered under the island: its cord starts just inside
+      // the rock, 79% of the rendered 3:2 frame's half-height below center.
+      const halfFrame = Math.min(art.height, art.width * 2 / 3) / 2;
+      expect(Math.abs(button.y - (art.y + art.height / 2 + halfFrame * 0.79))).toBeLessThan(2);
       const center = { x: button.x + button.width / 2, y: button.y };
       expect(center.x).toBeCloseTo(art.x + art.width / 2, 0);
       expect(button.y + button.height).toBeLessThanOrEqual(navigation.y);
@@ -42,8 +41,8 @@ test("all three island controls align and stay clear of art and navigation", asy
         return [8, box.width / 2, box.width - 8].every(x =>
           node.contains(document.elementFromPoint(box.x + x, box.y + box.height / 2)));
       })).toBe(true);
-      // Lit by default: the point carries its glow.
-      await expect(control.locator("span[aria-hidden]").first()).not.toHaveCSS("box-shadow", "none");
+      // Lit by default: the bead carries its glow.
+      await expect(control.locator("[data-bead]")).not.toHaveCSS("box-shadow", "none");
     }
   }
 });
@@ -57,10 +56,7 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     const html = page.locator("html");
     const lightsSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(lightsSwitch).toHaveAttribute("aria-checked", "true");
-    // The caption names the room's state: only the current one is shown.
-    await expect(lightsSwitch.locator('[data-label="on"]')).toHaveText("lights on");
-    await expect(lightsSwitch.locator('[data-label="on"]')).toHaveCSS("opacity", "1");
-    await expect(lightsSwitch.locator('[data-label="off"]')).toHaveCSS("opacity", "0");
+    await expect(lightsSwitch).toHaveText("pull");
     // The island's transform can round an edge by a fraction of a pixel in WebKit.
     await expect(lightsSwitch).toBeInViewport({ ratio: 0.999 });
     expect((await lightsSwitch.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -71,7 +67,6 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     await expect(page.locator(`img[data-lights-off="${world}"]`)).toHaveCount(1);
     const onSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(onSwitch).toHaveAttribute("aria-checked", "false");
-    await expect(onSwitch.locator('[data-label="off"]')).toHaveCSS("opacity", "1");
     // Each room has its own switch: the other room stays lit.
     const other = world === "writing" ? "projects" : "writing";
     await expect(html).not.toHaveAttribute(`data-${other}-lights`, "off");
