@@ -875,16 +875,16 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const peekIntents = ["touchstart", "wheel", "keydown", "pointerdown"] as const;
     peekIntents.forEach(type => window.addEventListener(type, stopPeek, { passive: true, capture: true }));
     if (touchScroll.matches && !motion.matches && !peekSeen()) peekTimer = window.setTimeout(peek, 3500);
-    // Phones: the first time each island comes to rest, a soft light breathes
-    // over it (.tapHint) to show it can be tapped. Once it has played through,
-    // that island stays still for the rest of the visit.
+    // Phones: the first time each island comes to rest, it swells gently
+    // (tap-hint in IslandHome.module.css) to show it can be tapped. Once that
+    // has played through, the island only floats for the rest of the visit.
     const hintKey = (scene: HTMLElement) => `islands-hint-${scene.id}`;
     scenes.forEach(scene => {
       try { if (sessionStorage.getItem(hintKey(scene)) === "1") scene.dataset.hinted = "true"; } catch { /* Storage blocked: the hint may repeat. */ }
     });
     const onHintEnd = (event: AnimationEvent) => {
-      const hint = event.target as HTMLElement;
-      const scene = hint.hasAttribute("data-tap-hint") ? hint.closest<HTMLElement>("[data-island-scene]") : null;
+      // CSS Modules prefix the keyframes' name, so match on its stem.
+      const scene = event.animationName.includes("tap-hint") ? (event.target as HTMLElement).closest<HTMLElement>("[data-island-scene]") : null;
       if (!scene) return;
       scene.dataset.hinted = "true";
       try { sessionStorage.setItem(hintKey(scene), "1"); } catch { /* Private mode: the hint may repeat. */ }

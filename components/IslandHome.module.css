@@ -462,22 +462,17 @@
 .overviewIsland[data-touch-pressed] .overviewDetails { filter: drop-shadow(0 0 6px #ffe4ad); }
 .overviewIsland[data-touch-pressed] [data-city-entry-window] { fill: #fff4cf; }
 @media (prefers-reduced-motion: reduce) { .touchSurface { transition: none; } }
-/* Touch screens: the first time an island comes to rest, a soft light
-   breathes over it twice, the way it lights when pressed, so a visitor can
-   tell it opens. It waits for the camera to settle and stops if they swipe
-   on; the transport marks it played (data-hinted) once it finishes. */
-.tapHint { display: none; }
+/* Touch screens: the first time an island comes to rest, the whole island
+   swells gently twice, so a visitor can tell it opens. It animates scale
+   alongside the float (translate), waits for the camera to settle and stops
+   if they swipe on; the transport marks it played (data-hinted) once done. */
 @media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
-  .tapHint { position: absolute; z-index: 4; inset: 10% 2% 6%; display: block; border-radius: 50%; background: radial-gradient(closest-side, #fff0d06b, #ffd9a033 40%, #ffd9a010 72%, transparent); mix-blend-mode: screen; opacity: 0; pointer-events: none; }
-  .projects .tapHint { background: radial-gradient(closest-side, #e2f0ff66, #b8dcff2e 40%, #b8dcff0e 72%, transparent); }
-  .stage[data-travelling="false"]:not([data-entering]) .scene[data-active="true"]:not([data-hinted]) .tapHint { animation: tap-hint 2.6s ease-in-out .45s both; }
+  .stage[data-travelling="false"]:not([data-entering]) .scene[data-active="true"]:not([data-hinted]) .island { animation: island-float 7s ease-in-out infinite, tap-hint 2.4s ease-in-out .45s both; }
 }
 @keyframes tap-hint {
-  0% { opacity: 0; scale: .92; }
-  22% { opacity: 1; scale: 1; }
-  46% { opacity: .2; scale: 1.03; }
-  68% { opacity: .85; scale: 1; }
-  100% { opacity: 0; scale: 1.05; }
+  0%, 42%, 82%, 100% { scale: 1; }
+  20% { scale: 1.045; }
+  62% { scale: 1.03; }
 }
 @media (prefers-reduced-motion: reduce) { .readingLamp { transition: none; } }
 
