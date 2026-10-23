@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { CITY_DAY_INTENT, CITY_TIME_EVENT, currentCityTime, dayStillReady, setCityTime, storedCityTime, type CityTime } from "@/lib/city-time";
 import styles from "./IslandHome.module.css";
 
-// The same labeled switch as the rooms, controlling Taipei's daylight.
+// The same caption as the rooms, controlling Taipei's daylight: day or night.
 // The city crossfades and the choice is remembered.
 export default function CityTimeToggle() {
   const [time, setTime] = useState<CityTime>("night");
@@ -47,8 +47,11 @@ export default function CityTimeToggle() {
       onFocus={intent}
       onClick={() => void toggle()}
     >
-      <span className={styles.wallPlate} aria-hidden="true"><span className={styles.rocker} /></span>
-      <span>Daylight</span>
+      <span className={styles.toggleLight} aria-hidden="true" />
+      <span className={styles.toggleLabel} aria-hidden="true">
+        <span data-label="on">day</span>
+        <span data-label="off">night</span>
+      </span>
     </button>
   );
 }

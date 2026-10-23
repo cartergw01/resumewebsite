@@ -104,18 +104,16 @@ export default function IslandHome() {
             aria-hidden={index !== 0}
             inert={index !== 0}
           >
-            <div className={styles.copy} data-scene-copy>
-              <Copy id={stop.id} />
-              {/* The room's wall switch sits under its line, in the reader's eye line. */}
+            <div className={styles.copy} data-scene-copy><Copy id={stop.id} /></div>
+            <div className={styles.art} data-scene-art>
+              <span className={styles.artGlow} data-reads={`island-lights:opacity:${stop.id === "work" ? .8 : 1}`} aria-hidden="true" />
+              <Art id={stop.id} />
+              {/* A quiet caption under the island it lights. */}
               {stop.id === "work" || stop.id === "writing" || stop.id === "projects" ? (
                 <div className={styles.sceneControl} data-island-control>
                   {stop.id === "work" ? <CityTimeToggle /> : <RoomLightSwitch world={stop.id} />}
                 </div>
               ) : null}
-            </div>
-            <div className={styles.art} data-scene-art>
-              <span className={styles.artGlow} data-reads={`island-lights:opacity:${stop.id === "work" ? .8 : 1}`} aria-hidden="true" />
-              <Art id={stop.id} />
             </div>
           </section>
         ))}

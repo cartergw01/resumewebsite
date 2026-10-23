@@ -23,20 +23,18 @@ test("all three island controls align and stay clear of art and navigation", asy
       const art = (await scene.locator("[data-scene-art]").boundingBox())!;
       const navigation = (await page.locator("[data-scene-nav]").boundingBox())!;
       expect(button.height).toBeGreaterThanOrEqual(44);
-      // The wall switch sits just under the stop's line, on its left edge,
-      // and clear of the artwork's rendered 3:2 frame.
-      const line = (await scene.locator("[data-scene-copy] p").first().boundingBox())!;
-      expect(button.x).toBeCloseTo(line.x, 0);
-      expect(button.y - (line.y + line.height)).toBeGreaterThanOrEqual(8);
-      expect(button.y - (line.y + line.height)).toBeLessThan(32);
-      const frameTop = art.y + (art.height - Math.min(art.height, art.width * 2 / 3)) / 2;
-      const frameLeft = art.x + (art.width - Math.min(art.width, art.height * 3 / 2)) / 2;
-      expect(button.y + button.height <= frameTop || button.x + button.width <= frameLeft).toBe(true);
+      // A caption centered under the island, tucked against the foot of the
+      // artwork's rendered 3:2 frame (the rock itself ends above it).
+      const frameBottom = art.y + (art.height + Math.min(art.height, art.width * 2 / 3)) / 2;
+      expect(button.y - frameBottom).toBeGreaterThanOrEqual(-16);
+      expect(button.y - frameBottom).toBeLessThan(0);
+      const center = { x: button.x + button.width / 2, y: button.y };
+      expect(center.x).toBeCloseTo(art.x + art.width / 2, 0);
       expect(button.y + button.height).toBeLessThanOrEqual(navigation.y);
       if (firstPosition) {
-        expect(button.x).toBeCloseTo(firstPosition.x, 1);
-        expect(button.y).toBeCloseTo(firstPosition.y, 1);
-      } else firstPosition = button;
+        expect(center.x).toBeCloseTo(firstPosition.x, 1);
+        expect(center.y).toBeCloseTo(firstPosition.y, 1);
+      } else firstPosition = center;
       // Verify the entire control receives clicks, rather than an invisible
       // navigation layer or the artwork behind it.
       expect(await control.evaluate(node => {
@@ -44,7 +42,8 @@ test("all three island controls align and stay clear of art and navigation", asy
         return [8, box.width / 2, box.width - 8].every(x =>
           node.contains(document.elementFromPoint(box.x + x, box.y + box.height / 2)));
       })).toBe(true);
-      await expect(control.locator("span[aria-hidden]")).toHaveCSS("box-shadow", "none");
+      // Lit by default: the point carries its glow.
+      await expect(control.locator("span[aria-hidden]").first()).not.toHaveCSS("box-shadow", "none");
     }
   }
 });
@@ -58,7 +57,10 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     const html = page.locator("html");
     const lightsSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(lightsSwitch).toHaveAttribute("aria-checked", "true");
-    await expect(lightsSwitch).toHaveText("Lights");
+    // The caption names the room's state: only the current one is shown.
+    await expect(lightsSwitch.locator('[data-label="on"]')).toHaveText("lights on");
+    await expect(lightsSwitch.locator('[data-label="on"]')).toHaveCSS("opacity", "1");
+    await expect(lightsSwitch.locator('[data-label="off"]')).toHaveCSS("opacity", "0");
     // The island's transform can round an edge by a fraction of a pixel in WebKit.
     await expect(lightsSwitch).toBeInViewport({ ratio: 0.999 });
     expect((await lightsSwitch.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -69,6 +71,7 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     await expect(page.locator(`img[data-lights-off="${world}"]`)).toHaveCount(1);
     const onSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(onSwitch).toHaveAttribute("aria-checked", "false");
+    await expect(onSwitch.locator('[data-label="off"]')).toHaveCSS("opacity", "1");
     // Each room has its own switch: the other room stays lit.
     const other = world === "writing" ? "projects" : "writing";
     await expect(html).not.toHaveAttribute(`data-${other}-lights`, "off");
