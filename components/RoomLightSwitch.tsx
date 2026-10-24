@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { darkStillReady, lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT, setLights, storedLightsOn, type RoomWorld } from "@/lib/room-lights";
-import { PullChain, tug } from "./PullChain";
+import { PullChain, useChainSway, usePullChain } from "./PullChain";
 import styles from "./IslandHome.module.css";
 
 // A pull chain hanging from each room's island. Its bead glows with the
@@ -54,6 +54,8 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
     setPending(false);
     setLights(world, false);
   };
+  const pull = usePullChain(() => void toggle());
+  useChainSway(buttonRef);
   const room = world === "writing" ? "study" : "workshop";
   return (
     <button
@@ -70,11 +72,14 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
       aria-disabled={pending || undefined}
       data-pending={pending || undefined}
       onPointerEnter={intent}
-      onPointerDown={intent}
+      onPointerDown={(event) => { intent(); pull.onPointerDown(event); }}
+      onPointerMove={pull.onPointerMove}
+      onPointerUp={pull.onPointerUp}
+      onPointerCancel={pull.onPointerCancel}
       onFocus={intent}
-      onClick={(event) => { tug(event.currentTarget); void toggle(); }}
+      onClick={pull.onClick}
     >
-      <PullChain />
+      <PullChain action={on ? "lights off" : "lights on"} />
     </button>
   );
 }

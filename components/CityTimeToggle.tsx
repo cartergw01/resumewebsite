@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CITY_DAY_INTENT, CITY_TIME_EVENT, currentCityTime, dayStillReady, setCityTime, storedCityTime, type CityTime } from "@/lib/city-time";
-import { PullChain, tug } from "./PullChain";
+import { PullChain, useChainSway, usePullChain } from "./PullChain";
 import styles from "./IslandHome.module.css";
 
 // The same pull chain as the rooms, controlling Taipei's daylight.
 // The city crossfades and the choice is remembered.
 export default function CityTimeToggle() {
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [time, setTime] = useState<CityTime>("night");
   useEffect(() => {
     const stored = storedCityTime();
@@ -29,8 +30,11 @@ export default function CityTimeToggle() {
     setPending(false);
     setCityTime("day");
   };
+  const pull = usePullChain(() => void toggle());
+  useChainSway(buttonRef);
   return (
     <button
+      ref={buttonRef}
       type="button"
       role="switch"
       className={styles.islandToggle}
@@ -44,11 +48,14 @@ export default function CityTimeToggle() {
       aria-disabled={pending || undefined}
       data-pending={pending || undefined}
       onPointerEnter={intent}
-      onPointerDown={intent}
+      onPointerDown={(event) => { intent(); pull.onPointerDown(event); }}
+      onPointerMove={pull.onPointerMove}
+      onPointerUp={pull.onPointerUp}
+      onPointerCancel={pull.onPointerCancel}
       onFocus={intent}
-      onClick={(event) => { tug(event.currentTarget); void toggle(); }}
+      onClick={pull.onClick}
     >
-      <PullChain />
+      <PullChain action={day ? "night" : "day"} />
     </button>
   );
 }

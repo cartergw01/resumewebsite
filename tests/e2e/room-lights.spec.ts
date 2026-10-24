@@ -56,7 +56,7 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     const html = page.locator("html");
     const lightsSwitch = page.getByRole("switch", { name: `${room} lights` });
     await expect(lightsSwitch).toHaveAttribute("aria-checked", "true");
-    await expect(lightsSwitch).toHaveText("pull");
+    await expect(lightsSwitch.locator('[data-say="pull"]')).toHaveText("pull");
     // The island's transform can round an edge by a fraction of a pixel in WebKit.
     await expect(lightsSwitch).toBeInViewport({ ratio: 0.999 });
     expect((await lightsSwitch.boundingBox())!.height).toBeGreaterThanOrEqual(44);
@@ -95,3 +95,29 @@ for (const [world, room] of [["writing", "study"], ["projects", "workshop"]] as 
     await expect(page.getByRole("switch", { name: `${room} lights` })).not.toHaveAttribute("aria-busy", "true");
   });
 }
+
+test("pulling the study's chain down toggles its lights and stays on the island", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Touch pulls share these handlers; the swipe exclusion is checked by hand.");
+  await page.goto("/#writing");
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+  const chain = page.getByRole("switch", { name: "study lights" });
+  await expect(chain).toBeVisible();
+  const box = (await chain.boundingBox())!;
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  // A short drag springs back without toggling.
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 8, { steps: 4 });
+  await page.mouse.up();
+  await expect(chain).toHaveAttribute("aria-checked", "true");
+  // A full pull says what it will do, then turns the lights off.
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + 30, { steps: 6 });
+  await expect(chain.locator('[data-say="action"]')).toHaveCSS("opacity", "1");
+  await expect(chain.locator('[data-say="action"]')).toHaveText("lights off");
+  await page.mouse.up();
+  await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
+  await expect(chain).toHaveAttribute("aria-checked", "false");
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+});

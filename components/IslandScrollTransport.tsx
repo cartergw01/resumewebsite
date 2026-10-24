@@ -846,6 +846,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       markIntent();
       const y = event.touches[0]?.clientY;
       if (event.touches.length !== 1 || typeof y !== "number" || !swipeOn() || stage.dataset.entering) { swipe = null; return; }
+      // A finger on an island's pull chain is pulling it, not paging.
+      if (event.target instanceof Element && event.target.closest("[data-island-control]")) { swipe = null; return; }
       const from = stopSpace();
       swipe = { y, from, origin: heading >= 0 ? heading : Math.round(from), claimed: false, moved: false, pull: 0, trail: [[event.timeStamp, y]] };
     };

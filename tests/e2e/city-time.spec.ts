@@ -4,7 +4,7 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await page.goto("/#work");
   const toggle = page.getByRole("switch", { name: "Taipei daylight" });
   await expect(toggle).toBeVisible();
-  await expect(toggle).toHaveText("pull");
+  await expect(toggle.locator('[data-say="pull"]')).toHaveText("pull");
   await expect(toggle).toHaveAttribute("aria-checked", "false");
   // Daylight uses the same explicit on/off control as the room lights.
   await expect(toggle).toHaveAttribute("data-time", "night");
