@@ -17,7 +17,7 @@
   .page :global(.project-row-copy > span) { grid-column: 1 / -1; grid-row: 3; }
 }
 /* Rows fade in where they are, so dealt cards stop exactly where they land. */
-.page [data-workshop-reveal] { animation: none; transition: opacity 180ms ease; }
+.page [data-workshop-reveal] { animation: none; transition: opacity 320ms ease; }
 :global(html[data-workshop-transition="entering"]) .page [data-workshop-reveal],
 :global(html[data-workshop-transition="arriving"]) .page [data-workshop-reveal] { opacity: 0; }
 :global(html[data-workshop-transition]:not([data-workshop-transition="landed"])) .page [data-project-shot] { visibility: hidden; }

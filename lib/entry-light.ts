@@ -63,11 +63,12 @@ export function beginEntryLight(world: EntryWorld, origin: { x: number; y: numbe
 
   // The threshold: a halo of lamp or screen light grows behind the notebook
   // or the deck, and holds until the page is in place.
+  // A glow, not a wash: at .7 it filled a phone's screen near-white.
   if (bloom) animations.push(bloom.animate([
     { opacity: 0, transform: "translate(-50%, -50%) scale(.3)" },
     { opacity: 0, transform: "translate(-50%, -50%) scale(.3)", offset: .3, easing: "cubic-bezier(0.3, 0, 0.3, 1)" },
-    { opacity: .7, transform: "translate(-50%, -50%) scale(2.3)", offset: .8 },
-    { opacity: .62, transform: "translate(-50%, -50%) scale(2.4)" },
+    { opacity: .42, transform: "translate(-50%, -50%) scale(2.3)", offset: .8 },
+    { opacity: .38, transform: "translate(-50%, -50%) scale(2.4)" },
   ], { duration: ENTRY_APPROACH_DURATION, fill: "forwards" }));
 
   document.body.append(overlay);
@@ -101,11 +102,12 @@ export function arriveEntryLight(delay = 0) {
   current.arrived = true;
   if (!current.bloom) { current.dispose(); return; }
   const from = getComputedStyle(current.bloom);
-  // It goes out with what it carried, never lingering on the page.
+  // It goes out with what it carried, never lingering on the page, and
+  // starts gently: an ease-out dropped most of its light in one frame.
   const fade = current.bloom.animate([
     { opacity: from.opacity, transform: from.transform === "none" ? "translate(-50%, -50%) scale(1.6)" : from.transform },
     { opacity: 0, transform: "translate(-50%, -50%) scale(1.8)" },
-  ], { duration: ENTRY_ARRIVAL_DURATION * .45, delay, easing: "ease-out", fill: "forwards" });
+  ], { duration: ENTRY_ARRIVAL_DURATION * .6, delay, easing: "cubic-bezier(0.45, 0, 0.55, 1)", fill: "forwards" });
   current.animations.push(fade);
   void fade.finished.then(() => { if (light === current) current.dispose(); }).catch(() => {});
 }

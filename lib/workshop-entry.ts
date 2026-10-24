@@ -125,10 +125,13 @@ export function beginBookEntry(source: SVGGraphicsElement) {
 
 // Writing opens like a notebook: it lifts off the desk and comes up close,
 // settles at reading distance, then is thumbed through, past the essays.
-// Phones turn fewer leaves: every face is its own layer.
-const bookLeaves = () => innerWidth < 760 ? 5 : 7;
+// Three leaves on every screen: each face is its own 3D layer, and drawing
+// more of them as they first turn stalled the riffle for ~0.4s (seven on
+// desktop, five on phones). Three also lets the notebook open in step with
+// the other worlds, so Writing hands off when Work and Projects do.
+const bookLeaves = () => 3;
 // How long the notebook takes from the desk to reading distance.
-const BOOK_LIFT = 1000;
+const BOOK_LIFT = 700;
 // The notebook's perspective (bookPose): a camera about one and a half
 // spreads away, close enough that the notebook foreshortens as it turns and
 // grows as a real thing does when it's brought towards you. A leaf lying a
@@ -141,9 +144,9 @@ const flat = (depth: number) => (bookPerspective - depth) / bookPerspective;
 // gently. Leaves start about LEAF_GAP apart (at most RIFFLE_SPAN for them
 // all), each turns in LEAF_TURN, the last a little slower.
 const RIFFLE_SPAN = 820;
-const LEAF_GAP = 230;
-const LEAF_TURN = 460;
-const LAST_LEAF_TURN = 540;
+const LEAF_GAP = 160;
+const LEAF_TURN = 380;
+const LAST_LEAF_TURN = 440;
 const leafStart = (index: number, count: number) => {
   if (count < 2) return 0;
   const x = index / (count - 1);
@@ -429,29 +432,27 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
       if (entry !== current || !target.isConnected) return;
       if (kind === "book") {
         // The lamplight behind it fades with the notebook.
-        arriveEntryLight(ENTRY_ARRIVAL_DURATION * .5);
-        // The last spread holds only a breath, then the notebook dissolves as
-        // the page's rows rise into place (WritingWorld.module.css); it is
-        // nearly gone before they appear, so the essays on the pages never
-        // sit on top of the archive's titles.
+        arriveEntryLight(ENTRY_ARRIVAL_DURATION * .15);
+        // The notebook dissolves as soon as the page is in place (mounting it
+        // is already the breath it holds), as the page's rows rise into place
+        // (WritingWorld.module.css); it is nearly gone before they appear, so
+        // the essays on the pages never sit on top of the archive's titles.
         document.documentElement.dataset[attribute] = "revealing";
         const open = { duration: ENTRY_ARRIVAL_DURATION, fill: "forwards" } as const;
         const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
         const dock = current.fader.animate([
-          { opacity: 1, offset: 0 },
-          { opacity: 1, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
+          { opacity: 1, offset: 0, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
           { opacity: 0, offset: .9 },
           { opacity: 0, offset: 1 },
         ], open);
         current.animations.push(
           dock,
           current.screen.animate([
-            { transform: rest, offset: 0 },
-            { transform: rest, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
+            { transform: rest, offset: 0, easing: "cubic-bezier(0.45, 0, 0.55, 1)" },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: .9 },
             { transform: rest.replace(/scale\([^)]*\)$/, "scale(1.025)"), offset: 1 },
           ], open),
-          current.backdrop.animate([{ opacity: 1 }, { opacity: 1, offset: .15, easing: "cubic-bezier(0.45, 0, 0.55, 1)" }, { opacity: 0, offset: .9 }, { opacity: 0 }], open),
+          current.backdrop.animate([{ opacity: 1, easing: "cubic-bezier(0.45, 0, 0.55, 1)" }, { opacity: 0, offset: .9 }, { opacity: 0 }], open),
         );
         void dock.finished.then(() => {
           if (entry !== current) return;
@@ -487,8 +488,8 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
             { transform: style.transform, objectPosition: style.objectPosition },
           ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, easing: "ease-out", fill: "forwards" }));
         }
-        // Sucked into place: the card gives a little back first, away from
-        // its row, then is pulled in faster and faster and snaps home.
+        // Drawn into place: the card gives a little back first, away from
+        // its row, then glides in and settles home without a snap.
         const fan = getComputedStyle(card).transform;
         const from = fan === "none" ? "matrix(1, 0, 0, 1, 0, 0)" : fan;
         const box = card.getBoundingClientRect();
@@ -496,11 +497,13 @@ function arrive(current: Entry, target: HTMLElement, kind: Entry["kind"], attrib
         const give = Math.min(22, Math.hypot(dx, dy) * .06) / (Math.hypot(dx, dy) || 1);
         return card.animate([
           { transform: `translate(0px, 0px) ${from} scale(1)`, easing: "cubic-bezier(0.3, 0, 0.4, 1)" },
-          { transform: `translate(${dx * give}px, ${dy * give}px) ${from} scale(1.035)`, offset: .22, easing: "cubic-bezier(0.7, 0, 0.98, 0.55)" },
+          { transform: `translate(${dx * give}px, ${dy * give}px) ${from} scale(1.035)`, offset: .22, easing: "cubic-bezier(0.55, 0, 0.25, 1)" },
           { transform: `translate(0px, 0px) ${plane(shot.x, shot.y, shot.width, shot.height, current.width, current.height)} scale(1)` },
         ], { duration: dockDuration, delay: cards.length > 1 ? index / (cards.length - 1) * stagger : 0, fill: "forwards" });
       });
-      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "ease-out", fill: "forwards" }));
+      // The dark lifts with a gentle start: an ease-out dropped the most
+      // light in the very first frame, which read as a flash.
+      current.animations.push(...docks, current.backdrop.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ENTRY_ARRIVAL_DURATION, easing: "cubic-bezier(0.45, 0, 0.55, 1)", fill: "forwards" }));
       void Promise.all(docks.map(dock => dock.finished)).then(() => {
         if (entry !== current) return;
         // Show the real thumbnails under the landed cards, then fade the
