@@ -122,7 +122,6 @@ def apply(world, api):
         if on('court'):
             tune('Court · Lakers gold key', **{'Base Color': (.37, .19, .018, 1), 'Roughness': .83})
             tune('Court · white line paint', **{'Base Color': (.58, .58, .54, 1), 'Roughness': .75})
-            tune('Hoop · white backboard', **{'Base Color': (.48, .51, .52, 1), 'Roughness': .48})
     elif world == 'writing':
         if on('notebook_focus'):
             # A broad reflected component from the same lamp group; all light

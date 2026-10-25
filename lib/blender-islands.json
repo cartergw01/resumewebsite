@@ -1787,7 +1787,7 @@
   "writing": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-writing-30208922.webp",
+    "src": "/blender/island-writing-f423a2a6.webp",
     "spread": [
       [
         512.737,
@@ -1832,7 +1832,7 @@
       439.784,
       314.495
     ],
-    "darkSrc": "/blender/island-writing-dark-0dc2a322.webp",
+    "darkSrc": "/blender/island-writing-dark-a3f0129e.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -1843,8 +1843,8 @@
         "spot"
       ],
       "src": [
-        "/blender/light-writing-0-177a5578.webp",
-        "/blender/light-writing-1-880108d6.webp"
+        "/blender/light-writing-0-e309d3e1.webp",
+        "/blender/light-writing-1-1778dca6.webp"
       ],
       "extents": [
         [
@@ -1856,25 +1856,25 @@
           0.465
         ],
         [
-          0.287,
-          0.707
+          0.285,
+          0.702
         ],
         [
-          0.275,
-          0.698
+          0.273,
+          0.693
         ],
         [
-          0.63,
-          0.85
+          0.582,
+          0.833
         ],
         [
-          0.372,
+          0.373,
           0.585
         ]
       ]
     },
-    "liftedSrc": "/blender/island-writing-lifted-978929ab.webp",
-    "liftedDarkSrc": "/blender/island-writing-lifted-dark-b261d3d9.webp",
+    "liftedSrc": "/blender/island-writing-lifted-c42e472e.webp",
+    "liftedDarkSrc": "/blender/island-writing-lifted-dark-b240ffe3.webp",
     "depthSrc": "/blender/depth-writing-8ddb4856.webp",
     "life": {
       "clock": {
@@ -1946,7 +1946,7 @@
   "projects": {
     "width": 1200,
     "height": 800,
-    "src": "/blender/island-projects-cf3e61d5.webp",
+    "src": "/blender/island-projects-70b3a952.webp",
     "screen": [
       [
         549.059,
@@ -1991,7 +1991,7 @@
       961.534,
       239.167
     ],
-    "darkSrc": "/blender/island-projects-dark-5126985e.webp",
+    "darkSrc": "/blender/island-projects-dark-15644ca4.webp",
     "lightMasks": {
       "sources": [
         "lamp",
@@ -2005,41 +2005,41 @@
         "spot"
       ],
       "src": [
-        "/blender/light-projects-0-cf7f89a2.webp",
-        "/blender/light-projects-1-99519df7.webp",
-        "/blender/light-projects-2-93680dd8.webp"
+        "/blender/light-projects-0-5272fa68.webp",
+        "/blender/light-projects-1-9f48be62.webp",
+        "/blender/light-projects-2-7534d5e7.webp"
       ],
       "extents": [
         [
-          0.247,
+          0.245,
           0.42
         ],
         [
-          0.392,
-          0.61
+          0.39,
+          0.608
         ],
         [
-          0.162,
+          0.16,
           0.663
         ],
         [
-          0.27,
+          0.272,
           0.605
         ],
         [
-          0.237,
-          0.642
+          0.23,
+          0.643
         ],
         [
-          0.418,
-          0.86
+          0.415,
+          0.863
         ],
         [
           0.543,
           0.598
         ],
         [
-          0.302,
+          0.3,
           0.617
         ],
         [
@@ -2048,7 +2048,7 @@
         ]
       ]
     },
-    "depthSrc": "/blender/depth-projects-7c663deb.webp",
+    "depthSrc": "/blender/depth-projects-087eef21.webp",
     "life": {
       "strips": [
         [

@@ -44,7 +44,9 @@ backplates are used.
   in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
   a capped fountain pen beside the notebook and a task lamp. A broad green
   Japanese maple shades the Eames lounge chair and ottoman on the right-hand
-  stone landing, with two warm uplights at its trunk. The reading garden
+  stone landing, with two warm uplights at its trunk. Two concealed warm lights
+  under the lounge seat wash the stone and follow the reading garden light
+  group, including the room switch and notebook-entry variants. The reading garden
   and trellis sit outside the side wall, with clusters of glossy red Taiwanese
   wax apples (蓮霧), bell-shaped fruit and broad oval leaves. Shelf books keep their covers,
   spines and page blocks aligned as single rigid bindings.
@@ -67,7 +69,7 @@ tail-light streaks; Xiangshan (Elephant Mountain) rises in the south-east
 corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
-study's window, between linen drapes, looks out on the site's own night sky,
+study's window, between dark red drapes, looks out on the site's own night sky,
 with an Omega Seamaster Aqua Terra-inspired wall clock above the shelves
 (smooth steel bezel, navy horizontal teak dial, faceted silver hour indexes
 and Ω / OMEGA branding, with live pale-green luminous arrow hands showing
@@ -76,8 +78,8 @@ and a lava lamp on the top shelf, just right of the clock and clear of the
 maple's branches; the
 study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
 along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
-up both posts, gold along the bench's front edge), and a telescope on a tripod
-in the yard; Carter's Ninebot scooter stands on its kickstand by the deck.
+up both posts, gold along the bench's front edge). Carter's Ninebot scooter
+stands on its kickstand by the deck.
 
 ### Depth parallax
 
@@ -240,7 +242,16 @@ middle shelf, to the monitor's right. Its raised hand-shaped wings, blue belly,
 pointed eye markings, back plates and curved tail are modelled geometry.
 The stool's seat is empty. The half-court is 2.1 by 4 scene units
 (previously 1 by 3.5), with a wider key, complete connected three-point markings
-and the same-sized hoop. The eastern terrain lobe supports the wider pad;
+and an arena-inspired hoop. Its 72:42 backboard silhouette has a low-iron
+clear pane, inset white perimeter and target markings, a satin aluminium
+strongback, graphite padding wrapped round the lower edge and corners, and
+an orange breakaway-style rim carrier. A compact central mount below the glass carries the rim load;
+a twelve-loop diamond-braided ivory net replaces the straight wire cage.
+The glass pane is omitted from the opaque vertex-colour flight mesh, while
+its frame, paint and hardware remain, preserving the see-through appearance.
+Reference: [Spalding Arena 72-inch system](https://www.spalding.com/p/arena-72-glass-basketball-hoop/401-990).
+This is a stylized miniature rather than a regulation-scale court.
+The eastern terrain lobe supports the wider pad;
 planting and ground heights keep the playing surface clear. The bench holds
 only what's his: the monitor, keyboard and trackpad, his iPad Pro on its Magic
 Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the blue

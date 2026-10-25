@@ -32,8 +32,8 @@
   /* Stops sit on the arc (y = 41, 37, 41 of 60), labels 30px above them. */
   .dock a { --stop-y: 41px; }
   .dock a:nth-of-type(2) { --stop-y: 37px; }
-  .dockLabel { position: absolute; left: 0; right: 0; top: calc(var(--stop-y) - 30px); display: block; font-size: .8125rem; font-weight: 500; line-height: 20px; letter-spacing: .015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
-  .dock a[aria-current] .dockLabel { color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
+  .dockLabel { position: absolute; left: 0; right: 0; top: calc(var(--stop-y) - 30px); display: block; font-size: .8125rem; font-weight: 400; line-height: 20px; letter-spacing: .015em; text-shadow: 0 1px 5px #030611; transition: color 220ms ease, text-shadow 220ms ease; }
+  .dock a[aria-current] .dockLabel { font-weight: 600; color: #fff1d7; text-shadow: 0 0 12px #eacb8833, 0 1px 5px #030611; }
   .dock a[aria-current]::after { content: ""; position: absolute; left: calc(50% - 2px); top: calc(var(--stop-y) - 1px); width: 4px; height: 2px; border-radius: 50%; background: #fffbed; box-shadow: 0 0 3px #fff3d8, 0 0 8px #b4d7ff88, 0 0 10px 2px #b9d9ff44; }
   .dock a:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; border-radius: 6px; }
   .dock a:active .dockLabel { color: #fff4df; }

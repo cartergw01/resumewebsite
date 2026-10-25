@@ -1797,6 +1797,12 @@ def eames_lounge_chair(x,y,angle,k=1):
     tilted('Ottoman · walnut shell',(0,oy,.38),(1.0,.86,.06),'wood',.02,.06)
     for side in [-1,1]:tilted('Ottoman · walnut shell lip',(side*.48,oy,.43),(.05,.84,.14),'wood',.015,.06)
     tilted('Ottoman · leather cushion',(0,oy,.49),(.92,.80,.16),'eames_leather',.07,.06)
+    # Concealed warm lights below the seat soften the stone around the base.
+    # They share the reading garden's switch group and transform with the chair.
+    P.setdefault('lounge_underseat',material('Lounge chair · underseat diffuser',(1,.66,.34),emission=3,rough=.7))
+    for side in [-1,1]:
+        box('Lounge chair · underseat diffuser',(side*.30,-.08,.55),(.24,.12,.012),'lounge_underseat',.004)
+        light('Lounge chair · underseat wash',(side*.30,-.08,.525),(1,.66,.34),8,.24,(side*.40,-.16,.05))
     parts=set(bpy.context.scene.objects)-before
     bpy.context.view_layer.update()
     place=Matrix.Translation(Vector((x,y,.148)))@Matrix.Rotation(math.radians(angle),4,'Z')@Matrix.Diagonal((k,k,k,1))
@@ -2419,7 +2425,8 @@ def writing():
     P['clearwindow']=material('Window · clear glass',(.9,.95,1),rough=.04)
     P['clearwindow'].node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value=.03
     box('Study · window glass',(-1.96,1.985,2.11),(1.66,.011,1.58),'clearwindow',.001)
-    # Linen drapes on a brass rod frame the window.
+    # Dark burgundy cloth on a brass rod frames the window.
+    P['curtain_red']=textured('Window · dark red curtain fabric',(.085,.006,.012),(.18,.016,.026),'fabric',rough=.9)
     rod('Window · curtain rod',(-3.02,1.86,3.02),(-.90,1.86,3.02),.012,'brass',12)
     for x0 in [-3.00,-1.24]:
         verts=[];faces=[];cols=14
@@ -2427,7 +2434,7 @@ def writing():
             xx=x0+.30*c/cols;yy=1.84-.03*math.sin(c/cols*math.pi*4)
             verts+= [(xx,yy,1.28),(xx,yy,3.0)]
         for c in range(cols):faces.append((c*2,c*2+2,c*2+3,c*2+1))
-        drape=mesh('Window · linen drape',verts,faces,'linen')
+        drape=mesh('Window · dark red drape',verts,faces,'curtain_red')
         for f in drape.data.polygons:f.use_smooth=True
         drape.modifiers.new('Cloth thickness','SOLIDIFY').thickness=.008
     # Carter's Omega wall clock sits between the shelves and crown moulding.
@@ -3090,11 +3097,31 @@ def blackpink_lightstick(x,y,z,angle,k=1.3):
 STOOL=(1.17,-1.15)
 
 
+def arena_backboard_glass():
+    """A clear pane with only Fresnel reflections, never a milky diffuse fill.
+    Transparent transmission preserves the website's galaxy behind the board.
+    """
+    mat=material('Hoop · low-iron clear glass',(.70,.84,.88),rough=.045)
+    nodes,links=mat.node_tree.nodes,mat.node_tree.links
+    nodes.remove(nodes.get('Principled BSDF'))
+    clear=nodes.new('ShaderNodeBsdfTransparent')
+    reflection=nodes.new('ShaderNodeBsdfAnisotropic')
+    reflection.inputs['Color'].default_value=(.70,.84,.88,1)
+    reflection.inputs['Roughness'].default_value=.045
+    fresnel=nodes.new('ShaderNodeFresnel');fresnel.inputs['IOR'].default_value=1.45
+    mix=nodes.new('ShaderNodeMixShader')
+    links.new(fresnel.outputs[0],mix.inputs[0])
+    links.new(clear.outputs[0],mix.inputs[1])
+    links.new(reflection.outputs[0],mix.inputs[2])
+    links.new(mix.outputs[0],nodes.get('Material Output').inputs['Surface'])
+    return mat
+
+
 def half_court():
     """Carter's a Lakers fan, and the workshop's yard is a half-court: a
     poured concrete pad painted Lakers purple with a gold key and white
-    lines, a hoop on a black steel pole at its far end, and a cool LED
-    floodlight on the pole. The hoop stands about as tall as the shed's roof,
+    lines, a hoop on a black steel pole at its far end, and cool overhead
+    court lighting. The hoop stands about as tall as the shed's roof,
     so the island reads as the workshop with the court from far away. The
     floodlight is on the room's switch (with the task strip, both LEDs)."""
     x0,x1,y0,y1=COURT;cx=(x0+x1)/2;top=.20 if refined('projects','court') else .26
@@ -3104,7 +3131,14 @@ def half_court():
     P['key']=material('Court · Lakers gold key',(.62,.36,.02),rough=.7)
     P['line']=material('Court · white line paint',(.80,.80,.78),rough=.4)
     P['rim']=material('Hoop · orange rim',(.85,.22,.02),metal=.4,rough=.35)
-    P['board']=material('Hoop · white backboard',(.78,.80,.82),rough=.3)
+    # Arena-style glass and hardware: separate paint, metal, rubber and net
+    # materials keep the board from reading as one plastic slab at web scale.
+    P['board_glass']=arena_backboard_glass()
+    P['board_frame']=material('Hoop · satin aluminium frame',(.34,.39,.43),metal=.78,rough=.26)
+    P['board_white']=material('Hoop · fired white markings',(.88,.90,.89),rough=.32)
+    P['board_pad']=textured('Hoop · graphite safety padding',(.012,.014,.020),(.026,.030,.040),'fabric',rough=.78)
+    P['hoop_steel']=material('Hoop · powder-coated support',(.024,.030,.038),metal=.35,rough=.38)
+    P['hoop_net']=material('Hoop · braided ivory nylon',(.80,.79,.73),rough=.82)
     box('Court · poured concrete pad',(cx,(y0+y1)/2,top/2-.06),(x1-x0,y1-y0,top+.12),'stone',.012)
     # A purple border all round, then the playing floor: maple strips (about
     # 6cm wide, like a real court's) running the length of the court.
@@ -3136,32 +3170,78 @@ def half_court():
     curve('Court · three-point arc',arc,.009,'line')
     for x in [cx-half_width,cx+half_width]:
         line((x,hy-radius*math.sin(angle)),(x,base))
-    # The hoop: pole behind the baseline, an arm, the board, rim and net.
+    # Keep the small yard's footprint, but give its hoop an arena-quality
+    # 72:42 glass silhouette, white target, padded edge and real load path.
+    # The rim bolts into a steel carrier behind the pane, not the glass.
     px,py=cx,y1+.32;rim_z=3.10 if refined('projects','court') else 3.40
-    cylinder('Hoop · concrete footing',(px,py,.12),.16,.30,'stone',24,bevel=.01)
-    rod('Hoop · black steel pole',(px,py,.10),(px,py,rim_z+.90),.055,'ink',20)
-    rod('Hoop · arm',(px,py,rim_z+.20),(px,base+.08,rim_z+.20),.032,'ink',12)
-    board_y=base+.06
-    box('Hoop · backboard',(px,board_y,rim_z+.30),(1.20,.035,.74),'board',.01)
-    for z,h in [(rim_z+.665,.02),(rim_z-.065,.02)]:box('Hoop · board edge',(px,board_y-.019,z),(1.20,.004,h),'rim',0)
-    for x in [px-.59,px+.59]:box('Hoop · board edge',(x,board_y-.019,rim_z+.30),(.02,.004,.74),'rim',0)
-    for z,h in [(rim_z+.42,.018),(rim_z+.07,.018)]:box('Hoop · target square',(px,board_y-.019,z),(.44,.004,h),'rim',0)
-    for x in [px-.22,px+.22]:box('Hoop · target square',(x,board_y-.019,rim_z+.245),(.018,.004,.37),'rim',0)
+    board_y=base+.06;bw=1.62;bh=bw*42/72;bottom=rim_z-.105;cz=bottom+bh/2
+    box('Hoop · anchored base plate',(px,py,.20),(.28,.25,.045),'hoop_steel',.006)
+    cylinder('Hoop · concrete footing',(px,py,.10),.19,.26,'stone',24,bevel=.012)
+    for dx in [-.10,.10]:
+        for dy in [-.08,.08]:
+            cylinder('Hoop · footing anchor bolt',(px+dx,py+dy,.235),.012,.025,'board_frame',6,bevel=.002)
+    support_top=bottom-.055
+    box('Hoop · square steel stanchion',(px,py,support_top/2),(.13,.13,support_top),'hoop_steel',.009)
+    box('Hoop · padded stanchion',(px,py-.016,.91),(.20,.20,1.28),'board_pad',.027)
+    # A compact central mount stays below the glass; no branching braces
+    # or tall pole show through the transparent playing surface.
+    box('Hoop · central support arm',(px,(py+board_y+.045)/2,support_top-.04),(.13,py-board_y-.045,.12),'hoop_steel',.009)
+    box('Hoop · rear mounting neck',(px,board_y+.065,bottom-.005),(.13,.10,.19),'hoop_steel',.006)
+    box('Hoop · clear glass pane',(px,board_y,cz),(bw,.018,bh),'board_glass',.004)
+    # Slim, bevelled perimeter strongback behind the pane. A white ceramic
+    # border is inset from it, leaving a visible glass lip along the edge.
+    for z in [bottom,bottom+bh]:
+        box('Hoop · aluminium perimeter',(px,board_y+.020,z),(bw+.028,.055,.028),'board_frame',.004)
+    for x in [px-bw/2,px+bw/2]:
+        box('Hoop · aluminium perimeter',(x,board_y+.020,cz),(.028,.055,bh),'board_frame',.004)
+    face=board_y-.012;inset=.045;stripe=.026
+    for z in [bottom+inset,bottom+bh-inset]:
+        box('Hoop · white perimeter marking',(px,face,z),(bw-2*inset,.003,stripe),'board_white',.001)
+    for x in [px-bw/2+inset,px+bw/2-inset]:
+        box('Hoop · white perimeter marking',(x,face,cz),(stripe,.003,bh-2*inset),'board_white',.001)
+    tw,th=bw/3,bw/4;target_bottom=rim_z+.025
+    for z in [target_bottom,target_bottom+th]:
+        box('Hoop · white target marking',(px,face-.001,z),(tw,.003,stripe),'board_white',.001)
+    for x in [px-tw/2,px+tw/2]:
+        box('Hoop · white target marking',(x,face-.001,target_bottom+th/2),(stripe,.003,th),'board_white',.001)
+    # Thick rubber wraps the bottom edge and both lower corners, as on an
+    # arena board. The small seams read as separate fitted pads, not a stripe.
+    for side in [-1,1]:
+        box('Hoop · lower edge safety pad',(px+side*(bw/4+.006),board_y-.008,bottom-.008),(bw/2-.012,.105,.075),'board_pad',.012)
+        box('Hoop · corner safety pad',(px+side*(bw/2-.012),board_y-.008,bottom+.065),(.070,.105,.15),'board_pad',.011)
+    for dx in [-bw/2+.075,bw/2-.075]:
+        for z in [bottom+.08,bottom+bh-.08]:
+            rod('Hoop · perimeter fastener',(px+dx,face-.008,z),(px+dx,face-.015,z),.009,'board_frame',8)
     ry=board_y-.02-.30
-    box('Hoop · rim bracket',(px,board_y-.08,rim_z),(.18,.13,.03),'rim',.004)
-    torus('Hoop · orange rim',(px,ry,rim_z),.28,.018,'rim')
-    for k in range(14):
-        a=k*math.tau/14;b=a+math.tau/28
-        rod('Hoop · net cord',(px+.28*math.cos(a),ry+.28*math.sin(a),rim_z-.01),(px+.17*math.cos(b),ry+.17*math.sin(b),rim_z-.40),.005,'paper',6)
-    for z,r in [(rim_z-.20,.225),(rim_z-.39,.175)]:torus('Hoop · net loop',(px,ry,z),r,.004,'paper')
-    # A cool-white LED floodlight on top of the pole, aimed down the court.
-    P['flood']=material('Court floodlight · LED panel',(.80,.88,1),emission=8)
-    # It reaches over the top of the backboard on an arm, so the board
-    # doesn't shade the court.
-    fy,fz=board_y-.18,rim_z+.88
-    rod('Court floodlight · arm',(px,py,rim_z+.86),(px,fy+.06,fz+.02),.022,'ink',10)
-    box('Court floodlight · housing',(px,fy,fz),(.30,.12,.18),'ink',.01).rotation_euler.x=math.radians(-50)
-    box('Court floodlight · LED panel',(px,fy-.05,fz-.05),(.25,.006,.13),'flood',0).rotation_euler.x=math.radians(-50)
+    box('Hoop · steel rim carrier',(px,board_y+.045,rim_z+.025),(.20,.105,.19),'hoop_steel',.006)
+    box('Hoop · orange breakaway housing',(px,board_y-.075,rim_z-.015),(.18,.13,.105),'rim',.012)
+    box('Hoop · rim mounting tongue',(px,board_y-.14,rim_z),(.14,.18,.028),'rim',.004)
+    for dx in [-.055,.055]:
+        for z in [rim_z-.04,rim_z+.028]:
+            rod('Hoop · breakaway mounting bolt',(px+dx,board_y-.143,z),(px+dx,board_y-.151,z),.009,'board_frame',8)
+    torus('Hoop · orange rim',(px,ry,rim_z),.28,.014,'rim')
+    for side in [-1,1]:
+        rod('Hoop · under-rim gusset',(px+side*.055,board_y-.11,rim_z-.055),(px+side*.19,ry+.13,rim_z-.013),.009,'rim',10)
+    # Twelve attachment loops and staggered rows make a real diamond net.
+    # Fine ivory cord and an open bottom replace the old straight wire cage.
+    count=12;rows=[(0,.273),(.075,.265),(.18,.225),(.29,.180),(.40,.175)]
+    for row in range(len(rows)-1):
+        za,ra=rows[row];zb,rb=rows[row+1]
+        phase=(row%2)*.5;next_phase=((row+1)%2)*.5
+        for k in range(count):
+            a=(k+phase)*math.tau/count
+            start=(px+ra*math.cos(a),ry+ra*math.sin(a),rim_z-.016-za)
+            for step in ([0,-1] if row%2==0 else [0,1]):
+                b=(k+step+next_phase)*math.tau/count
+                end=(px+rb*math.cos(b),ry+rb*math.sin(b),rim_z-.016-zb)
+                rod('Hoop · diamond net braid',start,end,.0032,'hoop_net',6)
+    for k in range(count):
+        a=k*math.tau/count
+        torus('Hoop · net attachment',(px+.273*math.cos(a),ry+.273*math.sin(a),rim_z-.012),.008,.0025,'hoop_net',(math.pi/2,0,a))
+    torus('Hoop · net bottom binding',(px,ry,rim_z-.416),.175,.0032,'hoop_net')
+    # Overhead court lighting keeps the playing surface lit without a
+    # fixture or extra support projecting above the backboard.
+    fy,fz=board_y-.18,rim_z+1.03
     spot('Court floodlight',(px,fy-.10,fz-.10),(cx,(y0+y1)/2-.2,top),(.84,.86,1) if refined('projects','court') else (.78,.86,1),650 if refined('projects','court') else 2000,78 if refined('projects','court') else 70,.78 if refined('projects','court') else .6,.15 if refined('projects','court') else .10)
     if refined('projects','court'):
         terrain_path('Court · low stone approach',[(3.05,-1.05),(3.55,-1.05)],.48,107,'paving',.25)
@@ -3403,25 +3483,6 @@ def workshop():
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
     # A Wilson Evolution game ball rests on the court with its print visible.
     wilson_evolution(COURT[0]+.42 if refined('projects','court') else COURT[0]+.32,.62,(.202 if refined('projects','court') else .262)+.24)
-    # A small telescope on its tripod in the yard, aimed up past the roof.
-    from mathutils.bvhtree import BVHTree
-    bpy.context.view_layer.update()
-    ground=bpy.data.objects['Island · eroded basalt escarpment']
-    gtree=BVHTree.FromObject(ground,bpy.context.evaluated_depsgraph_get())
-    tx,ty=-2.85,-2.35
-    hit=gtree.ray_cast(ground.matrix_world.inverted()@Vector((tx,ty,10)),Vector((0,0,-1)))[0]
-    tz=(ground.matrix_world@hit).z if hit is not None else .1
-    apex=Vector((tx,ty,tz+.78))
-    for k in range(3):
-        a=k*math.tau/3+.4
-        rod('Telescope · tripod leg',(tx+math.cos(a)*.30,ty+math.sin(a)*.30,tz),tuple(apex),.012,'wood',8)
-    cylinder('Telescope · mount',tuple(apex+Vector((0,0,.04))),.035,.08,'ink',16,bevel=.004)
-    aim=Vector((.45,.55,.70)).normalized()
-    base_pt=apex+Vector((0,0,.10))-aim*.30;tip=apex+Vector((0,0,.10))+aim*.42
-    rod('Telescope · white tube',tuple(base_pt),tuple(tip),.055,'paper',24)
-    rod('Telescope · dew shield',tuple(tip),tuple(tip+aim*.10),.062,'ink',24)
-    rod('Telescope · eyepiece',tuple(base_pt+aim*.08),tuple(base_pt+aim*.08+Vector((0,0,.09))),.014,'ink',12)
-    rod('Telescope · finder',tuple(base_pt+aim*.25+Vector((0,0,.07))),tuple(base_pt+aim*.48+Vector((0,0,.07))),.012,'steel',12)
     # A low stool with metal legs and a modest padded seat.
     # It stands in front of the monitor (the bench is turned 9 degrees, so
     # that's at about (1.17, -1.15) here), where you'd sit to work.
@@ -3629,7 +3690,7 @@ def lights_out(scene,world):
 LIGHT_SOURCES={
     'writing':[('lamp',('Arundel lamp','Lamp · frosted diffuser')),('sconce',('Up Down Sconce',)),
                ('shelves',('Bookshelf',)),('lava',('Glow · lava lamp','Lava lamp')),
-               ('tree',('Tree uplight',)),('spot',('Spotlight',))],
+               ('tree',('Tree uplight','Lounge chair · underseat')),('spot',('Spotlight',))],
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
                 ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('Lightstick',)),

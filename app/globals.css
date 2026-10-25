@@ -504,6 +504,9 @@ select {
   white-space: nowrap;
 }
 
+.site-nav-primary a { font-weight: 400; }
+.site-nav-primary a[aria-current="page"] { font-weight: 600; }
+
 .site-nav-primary a:hover,
 .site-nav a.is-active {
   color: var(--cw-paper);
