@@ -12,8 +12,10 @@ export const siteConfig = {
   description:
     "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios. Writing and building things for fun on the side.",
   shortDescription: "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios.",
-  // A capture of the homepage's opening view: the real islands, not a poster.
-  image: { url: "/og-image.jpg", width: 2400, height: 1260, alt: "Carter Wang, with the Work, Writing and Projects islands floating in space" },
+  // Matching still/video captures of the homepage. Version filenames together
+  // when refreshing them: public media is cached immutably for one year.
+  image: { url: "/social-preview-v6.jpg", width: 1200, height: 630, type: "image/jpeg", alt: "Carter Wang beside three floating islands for Work, Writing and Projects against a starfield" },
+  video: { url: "/social-preview-v6.mp4", width: 1200, height: 630, type: "video/mp4" },
   social: {
     x: "https://x.com/CarterKoWang",
     linkedin: "https://www.linkedin.com/in/cartergrantwang",
@@ -120,10 +122,16 @@ export function buildMetadata(routeKey: RouteKey): Metadata {
       locale: siteConfig.locale,
       type: "website",
       images: [siteConfig.image],
+      videos: [{
+        ...siteConfig.video,
+        url: absoluteUrl(siteConfig.video.url),
+        secureUrl: absoluteUrl(siteConfig.video.url),
+      }],
     },
     twitter: {
       card: "summary_large_image",
-      images: [siteConfig.image.url],
+      // Keep the image card for clients that do not support og:video.
+      images: [{ url: siteConfig.image.url, alt: siteConfig.image.alt }],
       title: route.title,
       description: route.description,
       creator: "@CarterKoWang",

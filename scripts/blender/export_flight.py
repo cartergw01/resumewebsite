@@ -8,6 +8,9 @@ unlit and cheaply while still looking like the stills. Taipei also bakes its
 daytime lighting into a second colour layer, written as its own day file. The mesh is then decimated to a
 flight budget and written as a Draco GLB to public/blender/flight-<world>-*.glb,
 with its path recorded in lib/island-flight-assets.json.
+
+--social-preview instead writes a capture-only GLB under .blender-build,
+retaining emissive fixtures and denser surfaces for the social video.
 """
 import argparse
 import hashlib
@@ -16,6 +19,7 @@ import sys
 from pathlib import Path
 
 import bpy
+import bmesh
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +28,7 @@ args = argparse.ArgumentParser()
 args.add_argument('--world', required=True, choices=['work', 'writing', 'projects'])
 args.add_argument('--faces', type=int, default=45000)
 args.add_argument('--samples', type=int, default=24)
+args.add_argument('--social-preview', action='store_true', help='Keep lit fixtures and denser light pools in capture-only models')
 opts = args.parse_args(sys.argv[sys.argv.index('--') + 1:])
 scene = bpy.context.scene
 scene.frame_set(1)
@@ -48,8 +53,15 @@ def volume_only(mat):
     return bool(outputs) and all(node.inputs['Volume'].is_linked and not node.inputs['Surface'].is_linked for node in outputs)
 
 
+def emissive(mat):
+    if not mat or not mat.use_nodes: return False
+    return any(node.type == 'BSDF_PRINCIPLED' and node.inputs['Emission Strength'].default_value > 0
+               for node in mat.node_tree.nodes)
+
+
 depsgraph = bpy.context.evaluated_depsgraph_get()
 parts = []
+fixtures = []
 for obj in list(scene.objects):
     if obj.type not in {'MESH', 'CURVE', 'FONT'} or obj.hide_render: continue
     if obj.name.startswith(SKIP):
@@ -63,6 +75,23 @@ for obj in list(scene.objects):
     evaluated = obj.evaluated_get(depsgraph)
     data = bpy.data.meshes.new_from_object(evaluated, preserve_all_data_layers=True, depsgraph=depsgraph)
     if not data or not len(data.vertices): continue
+    # Tiny bulbs, windows and LED strips disappear into the flight mesh's
+    # decimation. Keep their original geometry and emissive materials for the
+    # offline social capture. They remain present while the surrounding light
+    # is baked, so their illumination and visible source agree.
+    if opts.social_preview and obj.material_slots and all(emissive(slot.material) for slot in obj.material_slots):
+        fixture = bpy.data.objects.new('Social light · ' + obj.name, data)
+        fixture.matrix_world = obj.matrix_world.copy()
+        fixtures.append(fixture)
+        obj.hide_render = True
+        continue
+    # Vertex baking needs samples inside broad surfaces, not just their
+    # corners, to retain a lamp's pool on a desk, shelf, wall or deck.
+    if opts.social_preview and len(data.polygons) < 300:
+        mesh = bmesh.new(); mesh.from_mesh(data)
+        edges = [edge for edge in mesh.edges if (obj.matrix_world.to_3x3() @ (edge.verts[0].co - edge.verts[1].co)).length > .2]
+        if edges: bmesh.ops.subdivide_edges(mesh, edges=edges, cuts=5, use_grid_fill=True)
+        mesh.to_mesh(data); mesh.free()
     # Procedural wood and stone read the original object's coordinates.
     coords = data.attributes.new('LocalSurface', 'FLOAT_VECTOR', 'POINT')
     values = np.empty(len(data.vertices) * 3, dtype=np.float32)
@@ -72,6 +101,7 @@ for obj in list(scene.objects):
     parts.append(part)
     obj.hide_render = True
 for part in parts: scene.collection.objects.link(part)
+for fixture in fixtures: scene.collection.objects.link(fixture)
 for mat in bpy.data.materials:
     if not mat.use_nodes: continue
     for node in list(mat.node_tree.nodes):
@@ -109,7 +139,7 @@ def report(stage):
 
 
 bake('Night')
-if opts.world == 'work':
+if opts.world == 'work' and not opts.social_preview:
     import build_islands
     build_islands.daylight(scene)
     bake('Day')
@@ -140,11 +170,38 @@ if copy:
 for uv in list(model.data.uv_layers): model.data.uv_layers.remove(uv)
 model.data.materials.clear()
 plain = bpy.data.materials.new('Flight · baked light'); model.data.materials.append(plain)
+model.data.polygons.foreach_set('material_index', np.zeros(len(model.data.polygons), dtype=np.int32))
 model.data.color_attributes.active_color = model.data.color_attributes['Night']
 report('after decimation')
 print(f'FLIGHT {opts.world}: {len(model.data.polygons)} faces after decimation', flush=True)
 
-output = ROOT / '.blender-build' / 'flight'; output.mkdir(parents=True, exist_ok=True)
+output = ROOT / '.blender-build' / ('social-preview' if opts.social_preview else 'flight'); output.mkdir(parents=True, exist_ok=True)
+if opts.social_preview:
+    # Thousands of city windows share a handful of materials. Join each
+    # material group without simplifying it, preserving every lit surface
+    # while avoiding thousands of draw calls in the capture browser.
+    groups = {}
+    for fixture in fixtures:
+        groups.setdefault(tuple(slot.material.name for slot in fixture.material_slots), []).append(fixture)
+    fixtures = []
+    for group in groups.values():
+        bpy.ops.object.select_all(action='DESELECT')
+        for fixture in group: fixture.select_set(True)
+        bpy.context.view_layer.objects.active = group[0]
+        if len(group) > 1: bpy.ops.object.join()
+        fixtures.append(bpy.context.object)
+    bpy.ops.object.select_all(action='DESELECT')
+    model.select_set(True)
+    for fixture in fixtures: fixture.select_set(True)
+    bpy.context.view_layer.objects.active = model
+    path = output / f'{opts.world}.glb'
+    bpy.ops.export_scene.gltf(filepath=str(path), export_format='GLB', use_selection=True,
+        export_animations=False, export_cameras=False, export_lights=False,
+        export_materials='EXPORT', export_vertex_color='ACTIVE')
+    print(f'SOCIAL {opts.world}: {path} with {len(fixtures)} lit fixtures', flush=True)
+    # Capture-only source models are never installed into the live flight
+    # manifest or shipped to visitors; only the finished MP4/JPEG are public.
+    sys.exit(0)
 manifest_path = ROOT / 'lib' / 'island-flight-assets.json'
 manifest = json.loads(manifest_path.read_text()) if manifest_path.exists() else {}
 entry = {}
