@@ -76,6 +76,7 @@ export default function RoomLightSwitch({ world }: { world: RoomWorld }) {
       onPointerMove={pull.onPointerMove}
       onPointerUp={pull.onPointerUp}
       onPointerCancel={pull.onPointerCancel}
+      onLostPointerCapture={pull.onLostPointerCapture}
       onFocus={intent}
       onClick={pull.onClick}
     >

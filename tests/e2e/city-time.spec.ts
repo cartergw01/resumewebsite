@@ -24,6 +24,8 @@ test("Taipei switches between night and day, remembers it, and still enters Work
   await expect(page.locator("html")).toHaveAttribute("data-city-time", "day");
   await page.getByRole("link", { name: /^Work,/ }).click();
   await expect(page).toHaveURL(/\/work$/, { timeout: 15_000 });
+  // The URL can update before WebKit finishes mounting the destination.
+  await expect(page.getByRole("heading", { name: "Work", exact: true, level: 1 })).toBeVisible();
   await page.goto("/#work");
   await page.getByRole("switch", { name: "Taipei daylight" }).click();
   await expect(page.locator("html")).not.toHaveAttribute("data-city-time", "day");

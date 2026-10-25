@@ -52,6 +52,7 @@ export default function CityTimeToggle() {
       onPointerMove={pull.onPointerMove}
       onPointerUp={pull.onPointerUp}
       onPointerCancel={pull.onPointerCancel}
+      onLostPointerCapture={pull.onLostPointerCapture}
       onFocus={intent}
       onClick={pull.onClick}
     >

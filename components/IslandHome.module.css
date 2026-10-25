@@ -591,7 +591,8 @@
   font: 400 0.75rem/16px var(--font-sans);
   letter-spacing: 0.04em;
   text-shadow: 0 1px 5px #030611;
-  cursor: pointer;
+  cursor: grab;
+  user-select: none;
   pointer-events: auto;
   /* A drag here pulls the chain; the page doesn't scroll or page under it. */
   touch-action: none;
@@ -601,30 +602,25 @@
 .islandToggle:hover { color: #fff4df; }
 .islandToggle:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; }
 .islandToggle[aria-disabled="true"] { cursor: progress; }
-/* --pull is how far the chain hangs below rest, in px: a tug sets 8, a
-   drag follows the pointer. The cord stretches and the bead and word drop
-   with it, then spring back. Transforms only, so nothing reflows. */
-.chainCord { width: 1px; height: 34px; background: linear-gradient(#fff1d700, #fff1d74d 30%, #fff1d799); transform-origin: top; transform: scaleY(calc(1 + var(--pull, 0) / 34)); transition: transform 260ms var(--cw-ease); }
-.islandToggle[data-tug] { --pull: 8; }
-.islandToggle[data-tug] :is(.chainCord, .chainBead, .chainLabel) { transition-duration: 120ms; }
-.islandToggle[data-dragging] :is(.chainCord, .chainLabel) { transition: none; }
-.islandToggle[data-dragging] .chainBead { transition: background-color 320ms ease, box-shadow 320ms ease; }
+/* The SVG bends from a fixed anchor. Its endpoint and bead share the same
+   coordinates; the button's layout and focus target never move. */
+.chainCord { flex: none; overflow: visible; pointer-events: none; }
+.islandToggle[data-dragging] { cursor: grabbing; }
 /* Lit, the bead glows like the tab bar's comet; dark, it's a dim bead. */
 .chainBead {
   width: 7px;
-  height: 9px;
   border-radius: 3.5px;
   background-color: #fff1d7;
   box-shadow: 0 0 6px #ffe3adaa, 0 0 14px #ffd58a55;
-  translate: 0 calc(var(--pull, 0) * 1px);
-  transition: background-color 320ms ease, box-shadow 320ms ease, translate 260ms var(--cw-ease);
+  translate: var(--cord-x, 0px) var(--cord-y, 0px);
+  transition: background-color 320ms ease, box-shadow 320ms ease;
 }
 .islandToggle[data-lights="off"] .chainBead { background-color: #fff1d766; box-shadow: 0 0 6px #ffe3ad00, 0 0 14px #ffd58a00; }
 .islandToggle:hover[data-lights="off"] .chainBead { background-color: #fff1d7aa; }
 /* While the dark still loads, the bead breathes instead of snapping. */
 .islandToggle[data-pending] .chainBead { animation: chain-wait 900ms ease-in-out infinite alternate; }
 @keyframes chain-wait { from { opacity: 0.35; } to { opacity: 1; } }
-.chainLabel { display: grid; justify-items: center; margin-top: 0.5rem; translate: 0 calc(var(--pull, 0) * 1px); transition: translate 260ms var(--cw-ease); }
+.chainLabel { display: grid; justify-items: center; margin-top: 0.5rem; translate: calc(var(--cord-x, 0px) * 0.25) max(0px, var(--cord-y, 0px)); }
 /* "pull" at rest; what the pull will do while someone hovers, focuses or
    pulls it. Both share one cell and crossfade, so nothing shifts. */
 .chainLabel > span { grid-area: 1 / 1; transition: opacity 200ms ease; }
@@ -657,7 +653,7 @@
   .scene { --island-control-bottom: calc(var(--controls-bottom) + 64px); }
   :is(.work, .writing, .projects) .art { bottom: calc(var(--island-control-bottom) + 60px); height: auto; }
 }
-@media (prefers-reduced-motion: reduce) { .sceneControl, .islandToggle, .chainCord, .chainBead, .chainLabel, .chainLabel > span { transition: none; } .islandToggle[data-tug] { --pull: 0; } .islandToggle[data-pending] .chainBead, .islandToggle[data-sway] .chain { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sceneControl, .islandToggle, .chainCord, .chainBead, .chainLabel, .chainLabel > span { transition: none; } .islandToggle[data-pending] .chainBead, .islandToggle[data-sway] .chain { animation: none; } }
 /* Every island's description holds two lines, so the headings, the islands
    in stacked layouts, and the chains under them sit in the same place
    on every stop as you scroll. */
