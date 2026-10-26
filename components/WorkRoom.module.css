@@ -6,6 +6,8 @@
   --quiet: #c7bdac;
   --gold: #e6c794;
   --gold-dim: #b69b70;
+  --topic-body-size: clamp(1.0625rem, 1rem + 0.15vw, 1.125rem);
+  --topic-meta-size: 0.875rem;
   position: relative;
   min-height: 100svh;
   isolation: isolate;
@@ -52,8 +54,8 @@
 
 .mission { margin: 2rem 0 0; color: var(--topic-body-color); font-size: var(--topic-body-size); line-height: var(--topic-body-leading); }
 .contributions { display: grid; gap: 2.5rem; margin-top: 2.75rem; }
-.contributions h4 { margin: 0 0 .65rem; color: var(--paper); font-size: 1.1875rem; font-weight: 600; line-height: 1.4; }
-.contributions p + p { margin-top: 1rem; }
+.contributions h4 { margin: 0 0 .65rem; color: var(--paper); font-size: clamp(1.1875rem, 1.1rem + .2vw, 1.25rem); font-weight: 600; line-height: 1.4; }
+.contributions p + p { margin-top: 1.25rem; }
 .contributions p { margin: 0; color: var(--topic-body-color); font-size: var(--topic-body-size); line-height: var(--topic-body-leading); }
 
 .photo { margin: 3.5rem 0 0; }
@@ -72,7 +74,7 @@
 .more { margin: 0.6rem 0 0; font-size: 1rem; }
 .story { margin: 1.25rem 0 0; color: var(--topic-body-color); font-size: var(--topic-body-size); line-height: var(--topic-body-leading); }
 .story p { margin: 0; }
-.story p + p { margin-top: 1rem; }
+.story p + p { margin-top: 1.25rem; }
 
 .closing { margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: clamp(1.35rem, 2vw, 1.65rem); line-height: 1.4; letter-spacing: -0.01em; }
 

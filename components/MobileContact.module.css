@@ -23,9 +23,12 @@
 
   /* Matches the islands' chapter bar: three names on a faint arc above the
      bottom edge, the current one lit, with a star on the arc beneath it.
-     It stays put while reading, as it does on the islands. */
+     Long reading pages can tuck it away on downward scroll. */
   .dock { position: fixed; z-index: 50; right: 1.5rem; bottom: max(1.25rem, env(safe-area-inset-bottom)); left: 1.5rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); height: 60px; padding: 0 18px; }
   .dock::before { content: ""; position: absolute; z-index: -1; right: -1.5rem; bottom: calc(-1 * max(1.25rem, env(safe-area-inset-bottom))); left: -1.5rem; height: calc(100% + 4rem + max(1.25rem, env(safe-area-inset-bottom))); background: linear-gradient(0deg, #030611 0%, #030611 58%, #030611d9 70%, #03061100 100%); pointer-events: none; }
+  .dock[data-reading-mode] { transition: translate 220ms var(--cw-ease), opacity 180ms ease; }
+  .dock[data-reading-mode]::before { height: calc(100% + 1.5rem + max(1.25rem, env(safe-area-inset-bottom))); }
+  .dock[data-tucked]:not(:focus-within) { translate: 0 calc(100% + max(1.25rem, env(safe-area-inset-bottom)) + 2rem); opacity: 0; pointer-events: none; }
   .dockArc { position: absolute; inset: 0; width: 100%; height: 60px; overflow: visible; pointer-events: none; -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent); }
   .dockArc path { fill: none; stroke: #c4dcff38; stroke-width: .8; vector-effect: non-scaling-stroke; }
   .dock a { position: relative; display: block; min-width: 0; min-height: 60px; color: #b9c2cf; text-align: center; text-decoration: none; -webkit-tap-highlight-color: transparent; }
@@ -37,4 +40,8 @@
   .dock a[aria-current]::after { content: ""; position: absolute; left: calc(50% - 2px); top: calc(var(--stop-y) - 1px); width: 4px; height: 2px; border-radius: 50%; background: #fffbed; box-shadow: 0 0 3px #fff3d8, 0 0 8px #b4d7ff88, 0 0 10px 2px #b9d9ff44; }
   .dock a:focus-visible { outline: 2px solid #fff7eae6; outline-offset: 2px; border-radius: 6px; }
   .dock a:active .dockLabel { color: #fff4df; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock[data-reading-mode] { transition: none; }
 }

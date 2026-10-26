@@ -9,6 +9,7 @@ import { socialLinks } from "./socialLinks";
 type SiteNavProps = {
   active?: "home" | "work" | "writing" | "projects" | "resume";
   hidePrimary?: boolean;
+  readingMode?: boolean;
 };
 
 const primaryLinks = [
@@ -23,7 +24,7 @@ function externalLinkProps(href: string) {
     : {};
 }
 
-export default function SiteNav({ active = "home", hidePrimary = false }: SiteNavProps) {
+export default function SiteNav({ active = "home", hidePrimary = false, readingMode = false }: SiteNavProps) {
   const [scrolled, setScrolled] = useState(false);
   // On phones a page's bar steps out of the way as you read down it and comes
   // back as soon as you scroll up (styles in app/globals.css).
@@ -44,14 +45,19 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
       if (next !== previous) { previous = next; setScrolled(next); }
       // A few pixels of travel either way decide; near the top it always shows.
       const delta = y - lastY;
-      const hide = y < 80 ? false : delta > 8 ? true : delta < -8 ? false : hidden;
+      const atEnd = readingMode && y + window.innerHeight >= document.documentElement.scrollHeight - 24;
+      const hide = y < 80 || atEnd ? false : delta > 8 ? true : delta < -8 ? false : hidden;
       if (Math.abs(delta) > 8 || y < 80) lastY = y;
       if (hide !== hidden) { hidden = hide; setTucked(hide); }
     };
     sync();
     window.addEventListener("scroll", sync, { passive: true });
-    return () => window.removeEventListener("scroll", sync);
-  }, [destination]);
+    window.addEventListener("resize", sync);
+    return () => {
+      window.removeEventListener("scroll", sync);
+      window.removeEventListener("resize", sync);
+    };
+  }, [destination, readingMode]);
 
   return (
     <>
@@ -97,7 +103,7 @@ export default function SiteNav({ active = "home", hidePrimary = false }: SiteNa
     {/* Phones: the same Work / Writing / Projects bar as the islands, in the
         same place, so the three names mean one thing everywhere. */}
     {destination && active !== "resume" && !hidePrimary && (
-      <nav aria-label="Primary navigation" className={styles.dock}>
+      <nav aria-label="Primary navigation" className={styles.dock} data-reading-mode={readingMode || undefined} data-tucked={readingMode && tucked || undefined}>
         <svg className={styles.dockArc} viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 46Q240 28 480 46" />
         </svg>
