@@ -1,24 +1,34 @@
-import { useEffect, useId, useRef, type PointerEvent, type MouseEvent, type RefObject } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore, type PointerEvent, type MouseEvent, type RefObject } from "react";
 import styles from "./IslandHome.module.css";
 
-const CORD_LENGTH = 34, BEAD_HEIGHT = 9;
+const CORD_LENGTH = 34, DESKTOP_CORD_LENGTH = 46, BEAD_HEIGHT = 9;
+// Match the island's side-by-side layout; stacked phone/tablet cords stay compact.
+const DESKTOP_CORD_QUERY = "(min-width: 761px) and (orientation: landscape), (min-width: 1101px)";
+const subscribeCordSize = (notify: () => void) => {
+  const media = window.matchMedia(DESKTOP_CORD_QUERY);
+  media.addEventListener("change", notify);
+  return () => media.removeEventListener("change", notify);
+};
+const getCordLength = () => window.matchMedia(DESKTOP_CORD_QUERY).matches ? DESKTOP_CORD_LENGTH : CORD_LENGTH;
+const getServerCordLength = () => CORD_LENGTH;
 
 // The pull chain each island's light hangs from: a hairline cord, a bead
 // that glows while the light is on, and the word for what to do with it.
 // Hovering, focusing or pulling it says what the pull will do instead.
 export function PullChain({ action }: { action: string }) {
   const gradientId = useId();
+  const cordLength = useSyncExternalStore(subscribeCordSize, getCordLength, getServerCordLength);
   // The anchor and hit area stay still; only the cord and bead move.
   return <span className={styles.chain} aria-hidden="true">
-    <svg className={styles.chainCord} width="1" height={CORD_LENGTH} viewBox={`-0.5 0 1 ${CORD_LENGTH}`} overflow="visible" focusable="false">
+    <svg className={styles.chainCord} width="1" height={cordLength} viewBox={`-0.5 0 1 ${cordLength}`} overflow="visible" focusable="false">
       <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2={CORD_LENGTH} gradientUnits="userSpaceOnUse">
+        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2={cordLength} gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#fff1d7" stopOpacity="0" />
           <stop offset="0.3" stopColor="#fff1d7" stopOpacity="0.3" />
           <stop offset="1" stopColor="#fff1d7" stopOpacity="0.6" />
         </linearGradient>
       </defs>
-      <path data-cord d={`M 0 0 C 0 12 0 23 0 ${CORD_LENGTH + BEAD_HEIGHT / 2}`} fill="none" stroke={`url(#${gradientId})`} strokeWidth="1" strokeLinecap="round" />
+      <path data-cord d={`M 0 0 C 0 ${cordLength * 0.35} 0 ${cordLength * 0.8} 0 ${cordLength + BEAD_HEIGHT / 2}`} fill="none" stroke={`url(#${gradientId})`} strokeWidth="1" strokeLinecap="round" />
     </svg>
     <span className={styles.chainBead} data-bead style={{ height: BEAD_HEIGHT }} />
     <span className={styles.chainLabel}>
@@ -46,9 +56,12 @@ export function usePullChain(toggle: () => void) {
       visual.current = { button, cord: button.querySelector<SVGPathElement>("[data-cord]") };
     }
     motion.current = { x, pull };
-    const y = Math.sqrt(CORD_LENGTH ** 2 - Math.min(Math.abs(x), SWING_MAX) ** 2) + pull;
+    // Read SVG coordinates (no layout measurement) so dragging and spring-back
+    // stay attached to the bead at either responsive size, including on resize.
+    const cordLength = visual.current.cord?.ownerSVGElement?.viewBox.baseVal.height ?? CORD_LENGTH;
+    const y = Math.sqrt(cordLength ** 2 - Math.min(Math.abs(x), SWING_MAX) ** 2) + pull;
     button.style.setProperty("--cord-x", `${x}px`);
-    button.style.setProperty("--cord-y", `${y - CORD_LENGTH}px`);
+    button.style.setProperty("--cord-y", `${y - cordLength}px`);
     // A vertical tangent at the anchor makes it bend instead of rotating
     // like a stick. The SVG origin is centered on the bead; extend the
     // path beneath it to its exact center, including during spring-back.
