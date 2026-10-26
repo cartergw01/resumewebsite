@@ -65,6 +65,7 @@
     linear-gradient(0deg, #030611 0%, transparent 20%, transparent 90%, #03061133);
 }
 .scene {
+  --copy-measure: 33rem;
   position: absolute;
   inset: 0;
   display: grid;
@@ -83,7 +84,7 @@
 .copy {
   position: relative;
   z-index: 2;
-  max-width: 33rem;
+  max-width: var(--copy-measure);
   text-shadow: 0 2px 24px #030611;
   will-change: transform;
 }
@@ -197,6 +198,13 @@
   .overviewIsland[data-overview-island="projects"] { left: 1.12%; top: 55.16%; width: 54.67%; height: 37.39%; }
 }
 .overviewIsland { position: absolute; display: grid; place-items: center; color: #f3e2c7; filter: drop-shadow(0 24px 28px #0005); -webkit-tap-highlight-color: transparent; transition: filter 300ms ease; }
+/* A two-line name on a short phone leaves a shallow overview. Give Work's
+   label its own line before the Projects island begins below it. */
+@media (max-width: 760px) and (orientation: portrait) {
+  @container (max-height: 13rem) {
+    .overviewIsland[data-overview-island="projects"] { top: calc(55.16% + 1rem); }
+  }
+}
 .overviewVisual { position: relative; display: block; width: 100%; height: 100%; min-height: 0; transition: transform 180ms var(--cw-ease); }
 .overviewImage { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
 .overviewDetails { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -209,7 +217,7 @@
 .overviewLabel { opacity: calc(var(--cue-opacity, 1) * 0.94); }
 /* Labels sit just under each island's contained 3:2 art, at every width. */
 .overviewIsland { container-type: size; }
-.overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - 1.1em); }
+.overviewIsland .overviewLabel { top: calc((100% + min(66.6667cqw, 100cqh)) / 2 + .25rem); bottom: auto; }
 /* The ring wraps the island and its label underneath. */
 .overviewIsland:focus-visible { outline: none; }
 .overviewIsland::after { content: ""; position: absolute; inset: 0.25rem 0.25rem -1.75rem; border: 2px solid transparent; border-radius: 1rem; pointer-events: none; }
@@ -329,7 +337,7 @@
 .controls button:hover { color: var(--cw-paper); }
 
 @media (max-width: 1000px) and (min-width: 761px) {
-  .copy { max-width: 24rem; }
+  .scene { --copy-measure: 24rem; }
   .art { right: -7%; width: 71%; }
   .overviewIsland[data-overview-island="writing"] { left: 18%; }
   .overviewIsland[data-overview-island="projects"] { left: 48%; }
@@ -364,7 +372,7 @@
      (and the gap above the cue) stays where it was while the islands grow. */
   .scene:has(.overview) .art { width: calc(100% + 3rem); height: calc(100% + .5rem); margin-top: -1.5rem; margin-inline: -1.5rem; }
   .overview { max-height: 34rem; }
-  .overviewIsland .overviewLabel { bottom: calc((100% - min(66.6667cqw, 100cqh)) / 2 - .5rem); font-size: .75rem; }
+  .overviewIsland .overviewLabel { font-size: .75rem; }
   .island { max-height: 50svh; }
   .controls { right: 1.5rem; left: 1.5rem; flex-direction: column; align-items: stretch; gap: 0.5rem; }
   /* The three islands' names float over the stars on the comet's arc. */
@@ -654,6 +662,16 @@
    in stacked layouts, and the chains under them sit in the same place
    on every stop as you scroll. */
 :is(.work, .writing, .projects) .description { min-height: 2lh; }
+
+/* In side-by-side scenes, the art starts after the copy's actual grid column.
+   Its old viewport-wide box extended under longer lines on tall desktops.
+   Keep the reading width and fit the island into the space beside it. */
+@media (min-width: 761px) and (min-height: 501px) and (orientation: landscape), (min-width: 1101px) and (min-height: 501px) {
+  :is(.work, .writing, .projects) .art {
+    left: calc(var(--page-x) + min(var(--copy-measure), (100% - 2 * var(--page-x)) * .45) + clamp(1.5rem, 2vw, 2rem));
+    width: auto;
+  }
+}
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */

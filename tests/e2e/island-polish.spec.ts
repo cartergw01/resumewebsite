@@ -90,6 +90,31 @@ test("mobile copy, heading links, and island controls fit without overlap", asyn
   }
 });
 
+test("desktop copy keeps a clear gap from every island on wide and square screens", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "One browser covers the desktop geometry matrix.");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const viewport of [
+    { width: 1024, height: 768 }, { width: 1101, height: 1101 },
+    { width: 1280, height: 720 }, { width: 1280, height: 1024 },
+    { width: 1440, height: 900 }, { width: 1440, height: 1200 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/#work");
+    for (const title of ["Work", "Writing", "Projects"]) {
+      await page.getByRole("button", { name: `Show ${title} island` }).click();
+      const scene = page.locator(`#${title.toLowerCase()}`);
+      const copy = (await scene.locator("[data-scene-copy]").boundingBox())!;
+      const art = (await scene.locator("[data-scene-art]").boundingBox())!;
+      // Reserve a real gutter outside the entire text column, including long
+      // linked descriptions, so floating or hovering artwork cannot cover it.
+      expect(art.x - copy.x - copy.width, `${title} at ${viewport.width}×${viewport.height}`).toBeGreaterThanOrEqual(23);
+      await expect(scene.locator("h2")).toBeInViewport({ ratio: 1 });
+      await expect(scene.getByRole("switch")).toBeInViewport({ ratio: 1 });
+    }
+  }
+});
+
 test("destination navigation stays readable on scroll and the matching island restores", async ({ page, isMobile }) => {
   for (const world of ["work", "writing", "projects"]) {
     await page.goto(`/${world}`);
