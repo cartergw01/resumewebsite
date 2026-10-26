@@ -32,18 +32,19 @@ function Out({ href, children }: { href: string; children: ReactNode }) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
 
-// Inline markdown from content/work.md: [links](url) and *italics*. Links to
-// this site stay in the tab; the rest open in a new one.
+// Inline markdown from content/work.md: [links](url), *italics*, and **bold**.
+// Links to this site stay in the tab; the rest open in a new one.
 function Md({ text }: { text: string }): ReactNode {
   const parts: ReactNode[] = [];
-  const pattern = /\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
   let last = 0;
   for (const match of text.matchAll(pattern)) {
     if (match.index > last) parts.push(text.slice(last, match.index));
     const key = match.index;
-    if (match[1] !== undefined) parts.push(<em key={key}><Md text={match[1]} /></em>);
-    else if (match[3].startsWith("/")) parts.push(<Link key={key} href={match[3]}>{match[2]}</Link>);
-    else parts.push(<Out key={key} href={match[3]}>{match[2]}</Out>);
+    if (match[1] !== undefined) parts.push(<strong key={key}><Md text={match[1]} /></strong>);
+    else if (match[2] !== undefined) parts.push(<em key={key}><Md text={match[2]} /></em>);
+    else if (match[4].startsWith("/")) parts.push(<Link key={key} href={match[4]}>{match[3]}</Link>);
+    else parts.push(<Out key={key} href={match[4]}>{match[3]}</Out>);
     last = match.index + match[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));

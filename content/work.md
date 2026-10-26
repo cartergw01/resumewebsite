@@ -4,7 +4,7 @@ and push; the site updates in a minute or two.
 
 - Leave a blank line between paragraphs.
 - Links: [words](https://example.com). Links to this site start with /.
-- Italics: *words*.
+- Italics: *words*. Bold: **words**.
 - The "# " lines are the page's sections; keep those as they are.
 - "## " lines are the names of jobs and side projects. For jobs, the role and
   dates shown beside the name come from content/portfolio.ts, which /resume
@@ -16,23 +16,21 @@ and push; the site updates in a minute or two.
 
 # Now
 
-886 Studios is a Taiwan-based venture capital firm started by the founders behind Twitch, Guitar Hero, and Kabam.
+**886 Studios** is a venture capital firm in Taiwan started by the founders of Twitch, Guitar Hero, and Kabam.
 
 ### Building ikigai Launchpad
 
-[ikigai Launchpad](https://886studios.com/programs) is our accelerator in Taipei and the main way we back startups. Every team gets funding, hands-on mentorship from our partners, and access to our network across Taiwan and Silicon Valley to help them go further, faster.
+[ikigai Launchpad](https://886studios.com/programs) is our Taipei accelerator and the main way we invest. Teams get funding, mentorship from our partners, a program designed for speed & durable growth, and access to our network in Taiwan and Silicon Valley.
 
-I was on the core team that built it and helped shape how we pick teams and design the program, then worked with 15+ portfolio teams through workshops and partnerships.
+I was on the core team that built it, shaping how we select teams and run the program, and have since worked directly with 15+ portfolio teams.
 
 ### Finding founders
 
-I lead deal sourcing for our [accelerator](https://withikigai.com) and manage the pipeline end to end, from first outreach to final decision. I find founders through cold outreach, events, referrals, community initiatives, and an AI agent I built to spot early builders online. I'm currently building a team of scouts to help us reach founders in places we can't cover ourselves.
+I lead deal sourcing and own the pipeline from first outreach to final decision. I find founders through cold outreach, events, referrals, and an AI agent I built to spot early builders online. Now I’m building a scout network to reach founders in places we can’t cover ourselves.
 
 ### Community & content
 
-I built *[Launch Station](https://www.886studios.com/launch-station)*, a residency with over 20 builders.
-
-I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our [website](https://www.886studios.com/). I also write our [newsletter](https://886studios.substack.com/).
+I created [Launch Station](https://www.886studios.com/launch-station), a residency for 20+ builders. I also host hackathons, pitch nights, and co-founder matching events, write our [newsletter](https://886studios.substack.com/), run our socials, and rebuilt our [website](https://www.886studios.com/).
 
 # Previously
 
