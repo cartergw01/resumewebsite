@@ -29,7 +29,12 @@ overlay is applied.
 `lib/seo.ts` supplies server-rendered
 `og:video` metadata on every public page. Messages can play the direct MP4;
 clients that ignore video keep the image, including the X large-image card.
-Playback and caching are controlled by the receiving app.
+Slack discovers a separate oEmbed photo at `/social-preview-v7.oembed.json`
+and automatically animates its 600 × 315 GIF. This avoids replacing the JPEG
+that WhatsApp needs. Real desktop self-chat tests on October 26, 2026 confirmed
+Messages video autoplay and Slack GIF autoplay. WhatsApp kept a static image;
+X Chat kept plain links even with a Player Card. Playback, user preferences and
+caching remain controlled by the receiving app.
 
 To refresh the preview after changing the homepage artwork or typography:
 
@@ -40,17 +45,24 @@ To refresh the preview after changing the homepage artwork or typography:
    live site's lighter flight models. On macOS the Blender executable may be
    `/Applications/Blender.app/Contents/MacOS/Blender`.
 2. Start the local site.
-3. Run `node scripts/render-social-preview.mjs http://127.0.0.1:3000 v7` with
+3. Run `node scripts/render-social-preview.mjs http://127.0.0.1:3000 v8` with
    Playwright Chromium and FFmpeg installed. Add `--stills` first to review five
    frames in a temporary folder. The capture scene in
    `scripts/social-preview-scene.mjs` uses the site's existing GLB models and
    font. Its modules are served only inside the capture browser; the production
    site receives only the finished media, with no added client rendering cost.
-4. Update both media filenames in `siteConfig` in `lib/seo.ts` and the expected
-   filenames in `tests/e2e/social-preview.spec.ts` to the new version. Media
-   filenames are versioned because these assets have immutable caching.
+4. Export a looping GIF from the MP4 using the command below. Copy the oEmbed
+   JSON to the new version and update its GIF URL. Update the image, video and
+   oEmbed filenames in `siteConfig` in `lib/seo.ts` and the expected filenames
+   in `tests/e2e/social-preview.spec.ts`. Media filenames are versioned because
+   these assets have immutable caching.
 5. Run `npm run test:e2e -- tests/e2e/social-preview.spec.ts`.
-6. Deploy the site and check a newly shared link in Messages. Localhost testing
-   verifies metadata and playback, but cannot verify another app's live unfurl.
+6. Deploy the site and check newly shared links in Messages, Slack and WhatsApp.
+   Localhost testing verifies metadata and media, but cannot verify another
+   app's live unfurl. Existing messages may retain cached previews.
+
+```sh
+ffmpeg -i public/social-preview-v8.mp4 -filter_complex '[0:v]fps=12,scale=600:315:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3' -loop 0 public/social-preview-v8.gif
+```
 
 Reference: [Apple's rich preview guidance](https://developer.apple.com/documentation/technotes/tn3156-create-rich-previews-for-messages).

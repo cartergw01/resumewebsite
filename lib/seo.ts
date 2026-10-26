@@ -16,6 +16,8 @@ export const siteConfig = {
   // when refreshing them: public media is cached immutably for one year.
   image: { url: "/social-preview-v6.jpg", width: 1200, height: 630, type: "image/jpeg", alt: "Carter Wang beside three floating islands for Work, Writing and Projects against a starfield" },
   video: { url: "/social-preview-v6.mp4", width: 1200, height: 630, type: "video/mp4" },
+  // Slack uses the animated oEmbed photo; OG and X retain the JPEG fallback.
+  oembedUrl: "/social-preview-v7.oembed.json",
   social: {
     x: "https://x.com/CarterKoWang",
     linkedin: "https://www.linkedin.com/in/cartergrantwang",
@@ -113,6 +115,9 @@ export function buildMetadata(routeKey: RouteKey): Metadata {
     keywords: [...route.keywords],
     alternates: {
       canonical: route.path,
+      types: {
+        "application/json+oembed": absoluteUrl(siteConfig.oembedUrl),
+      },
     },
     openGraph: {
       title: route.title,

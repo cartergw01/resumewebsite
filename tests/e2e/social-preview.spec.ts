@@ -8,6 +8,7 @@ const siteConfig = {
     alt: "Carter Wang beside three floating islands for Work, Writing and Projects against a starfield",
   },
   video: { url: "/social-preview-v6.mp4" },
+  oembedUrl: "/social-preview-v7.oembed.json",
 };
 const routes = [
   { path: "/", title: "Carter Wang" },
@@ -43,6 +44,8 @@ test("sharing crawlers receive video metadata and a complete image fallback with
     expect(tags.get("twitter:card")).toBe("summary_large_image");
     expect(tags.get("twitter:image")).toBe(tags.get("og:image"));
     expect(tags.get("twitter:image:alt")).toBe(siteConfig.image.alt);
+    const discovery = head.match(/<link\s+rel="alternate"\s+type="application\/json\+oembed"\s+href="([^"]+)"/);
+    expect(discovery?.[1]).toBe(`${siteConfig.url}${siteConfig.oembedUrl}`);
   }
 
   const video = await request.get(siteConfig.video.url);
@@ -58,6 +61,26 @@ test("sharing crawlers receive video metadata and a complete image fallback with
   expect((await range.body()).byteLength).toBe(1024);
 });
 
+test("the Slack oEmbed points to a public looping GIF without replacing OG images", async ({ request }) => {
+  const response = await request.get(siteConfig.oembedUrl);
+  expect(response.ok()).toBe(true);
+  expect(response.headers()["content-type"]).toContain("application/json");
+  const embed = await response.json();
+  expect(embed).toMatchObject({
+    version: "1.0", type: "photo", title: "Carter Wang",
+    url: `${siteConfig.url}/social-preview-v7.gif`, width: 600, height: 315,
+  });
+  const media = await request.get(new URL(embed.url).pathname);
+  expect(media.ok()).toBe(true);
+  expect(media.headers()["content-type"]).toContain("image/gif");
+  const bytes = await media.body();
+  expect(bytes.subarray(0, 6).toString()).toBe("GIF89a");
+  expect([bytes.readUInt16LE(6), bytes.readUInt16LE(8)]).toEqual([embed.width, embed.height]);
+  expect(bytes.includes(Buffer.from("NETSCAPE2.0"))).toBe(true);
+  expect(bytes.byteLength).toBeLessThan(5_000_000);
+});
+
+// This harness verifies the media itself; actual chat autoplay needs self-chat tests.
 test("the sharing MP4 decodes, animates and loops with its matching poster", async ({ page, baseURL }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
