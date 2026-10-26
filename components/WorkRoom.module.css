@@ -31,7 +31,7 @@
 .section { width: min(100%, var(--reading-width)); margin-inline: auto; }
 .body { min-width: 0; }
 .main p { overflow-wrap: break-word; }
-.main :is(h2, h3, h4) { text-wrap: balance; }
+.main :is(h2, h3, h4) { text-wrap: wrap; }
 
 /* Inline links in running text */
 .contributions a, .story a, .closing a, .more a { color: #ead6b8; text-decoration: underline; text-decoration-color: #e6c79466; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 200ms ease, text-decoration-color 200ms ease; }

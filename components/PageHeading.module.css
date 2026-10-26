@@ -5,7 +5,7 @@
 .header.header { display: grid; gap: 0.75rem; max-width: none; margin: 0 0 clamp(1.15rem, 2.8vw, 2rem); padding-bottom: 2rem; border-bottom: 1px solid #eddbbf30; }
 .header.header h1 { max-width: none; margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: clamp(2.75rem, 4.8vw, 4.5rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.03em; }
 .header.header h1:focus { outline: none; }
-.header.header p { max-width: 40rem; margin: 0; text-wrap: balance; color: #fff7ead9; font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.65; }
+.header.header p { max-width: none; margin: 0; text-wrap: wrap; color: #fff7ead9; font-size: clamp(1rem, 1.2vw, 1.125rem); line-height: 1.65; }
 .header.header p a { color: var(--cw-paper); text-decoration: underline; text-decoration-color: #fff7ea40; text-underline-offset: 0.22em; transition: text-decoration-color 180ms ease; }
 .header.header p a:hover, .header.header p a:focus-visible { text-decoration-color: #fff7eab3; }
 @media (max-width: 760px) {

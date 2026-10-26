@@ -933,7 +933,7 @@ select {
   font-family: var(--font-display); font-stretch: 125%;
   font-weight: 700;
   letter-spacing: 0;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .hero-copy h1 {
@@ -976,7 +976,7 @@ select {
   color: rgba(255, 247, 234, 0.74);
   font-size: var(--type-body);
   line-height: 1.56;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .hero-copy p {
@@ -1696,7 +1696,6 @@ select {
   display: grid;
   grid-column: 2;
   gap: 0.42rem;
-  max-width: 56ch;
   min-width: 0;
 }
 
@@ -1707,16 +1706,15 @@ select {
   font-weight: 700;
   line-height: var(--leading-tight);
   overflow-wrap: break-word;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .archive-main span {
-  max-width: 58ch;
   color: rgba(255, 247, 234, 0.66);
   font-size: var(--type-body);
   line-height: var(--leading-body);
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .archive-meta {
@@ -1856,15 +1854,14 @@ select {
   font-size: clamp(1.6rem, 2.5vw, 2.2rem);
   line-height: 1.12;
   overflow-wrap: break-word;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .project-row-copy > span {
-  max-width: 46rem;
   color: rgba(255, 247, 234, 0.64);
   font-size: var(--type-body);
   line-height: var(--leading-body);
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .project-row > em {

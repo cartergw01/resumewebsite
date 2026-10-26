@@ -96,20 +96,18 @@
   line-height: 1;
   letter-spacing: -0.025em;
 }
-.copy h1 { max-width: 6ch; }
 /* The name is the heaviest, tightest type on the site. */
 .copy h1 { font-weight: 850; letter-spacing: -0.035em; }
 /* Each stop's heading is also a way into its page. */
 .copy h2 a { color: inherit; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 2px; text-underline-offset: 0.14em; transition: text-decoration-color 220ms ease, text-shadow 220ms ease; }
 .copy h2 a:hover, .copy h2 a:focus-visible { text-decoration-color: #fff7ea66; text-shadow: 0 0 28px #eacb8833; outline: none; }
 .description {
-  max-width: 35ch;
   margin: 1.75rem 0 0;
   color: #fff7ead9;
   /* Large enough to hold its own beside a 6rem heading on wide screens. */
   font-size: clamp(1.0625rem, 1.4vw, 1.3125rem);
   line-height: 1.7;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 /* Links in running copy must look like links at rest, not only on hover. */
 .description a { color: inherit; text-decoration: underline; text-decoration-color: #fff7ea66; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: color 150ms ease, text-decoration-color 150ms ease; }
@@ -332,7 +330,6 @@
 
 @media (max-width: 1000px) and (min-width: 761px) {
   .copy { max-width: 24rem; }
-  .description { max-width: 30ch; }
   .art { right: -7%; width: 71%; }
   .overviewIsland[data-overview-island="writing"] { left: 18%; }
   .overviewIsland[data-overview-island="projects"] { left: 48%; }
@@ -343,7 +340,6 @@
   .scene { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); align-items: start; gap: 1.5rem; padding-top: 7rem; }
   .copy { max-width: 34rem; }
   .copy h1 { max-width: none; }
-  .description { max-width: 40ch; }
   .art { position: relative; top: auto; right: auto; bottom: auto; width: 100%; height: 100%; min-height: 0; }
   .overview { max-height: 46rem; }
   .overviewIsland[data-overview-island="work"] { left: 3%; top: 0; width: 52%; height: 40%; }
@@ -358,7 +354,7 @@
   .copy { max-width: 29rem; }
   .copy h1, .copy h2 { max-width: none; font-size: clamp(2.75rem, 11vw, 4.5rem); letter-spacing: -0.025em; }
   .copy h1 { letter-spacing: -0.035em; }
-  .description { max-width: 37ch; margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
+  .description { margin-top: 1rem; font-size: 0.9375rem; line-height: 1.65; }
   .contact { margin-top: 1rem; }
   /* Lift the island on tall phones and reserve a separate row for touch help. */
   .art { position: relative; top: auto; right: auto; bottom: auto; width: calc(100% + 6rem); height: calc(100% - clamp(3rem, 9svh, 5rem)); min-height: 0; margin-inline: -3rem; }

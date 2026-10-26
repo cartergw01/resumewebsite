@@ -11,7 +11,7 @@
 @media (max-width: 760px) {
   .page :global(.project-row) { grid-template-columns: minmax(0, 1fr) auto; gap: .875rem .75rem; }
   .page :global(.project-row-copy) { display: contents; }
-  .page :global(.project-row-copy strong) { grid-column: 1; grid-row: 1; text-wrap: pretty; }
+  .page :global(.project-row-copy strong) { grid-column: 1; grid-row: 1; text-wrap: wrap; }
   .page :global(.project-row > em) { grid-column: 2; grid-row: 1; align-self: center; }
   .page :global(.project-shot) { grid-column: 1 / -1; grid-row: 2; }
   .page :global(.project-row-copy > span) { grid-column: 1 / -1; grid-row: 3; }
