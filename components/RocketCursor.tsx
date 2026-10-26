@@ -886,6 +886,9 @@ export function RocketCursor() {
 
       const link = anchorFromEventTarget(e);
       if (!link) return;
+      // Recovery links must work immediately, including while a decorative
+      // click launch is still finishing. Let the browser follow them directly.
+      if (link.hasAttribute("data-native-navigation")) return;
 
       const newTabHref = newTabNavigationHref(link);
       const internalHref = newTabHref ? null : internalRouteHref(link);

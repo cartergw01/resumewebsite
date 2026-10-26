@@ -2,8 +2,8 @@ import { useEffect, useId, useRef, useSyncExternalStore, type PointerEvent, type
 import styles from "./IslandHome.module.css";
 
 const CORD_LENGTH = 34, DESKTOP_CORD_LENGTH = 46, BEAD_HEIGHT = 9;
-// Match the island's side-by-side layout; stacked phone/tablet cords stay compact.
-const DESKTOP_CORD_QUERY = "(min-width: 761px) and (orientation: landscape), (min-width: 1101px)";
+// Keep stacked layouts and short landscape screens clear of navigation.
+const DESKTOP_CORD_QUERY = "(min-width: 761px) and (min-height: 501px) and (orientation: landscape), (min-width: 1101px) and (min-height: 501px)";
 const subscribeCordSize = (notify: () => void) => {
   const media = window.matchMedia(DESKTOP_CORD_QUERY);
   media.addEventListener("change", notify);

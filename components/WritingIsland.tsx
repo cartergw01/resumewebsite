@@ -83,6 +83,9 @@ export default function WritingIsland({ artwork: island, landmark, pages }: { ar
             {/* An invisible entry anchor; paper and ink belong to the rendered book. */}
             <path data-book-spread data-corners={JSON.stringify(island.spread)} data-essays={JSON.stringify(pages)} fill="none" d={artworkOutline(island.spread)} />
           </svg>
+          <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
+            <path data-touch-surface="spread" d={artworkOutline(island.spread)} />
+          </svg>
         </span>
       </IslandLink>
     </>

@@ -23,7 +23,7 @@ for (const width of [320, 390]) test(`navigation has distinct, comfortable tap t
   }
 });
 
-test("email validation prevents an invalid subscription handoff", async ({ page }) => {
+test("subscription validates email and offers an editable fallback when the popup is blocked", async ({ page }) => {
   await page.goto("/writing");
   await page.evaluate(() => {
     const w = window as Window & { opened?: string[] };
@@ -39,6 +39,37 @@ test("email validation prevents an invalid subscription handoff", async ({ page 
   await page.getByRole("button", { name: "Subscribe", exact: true }).click();
   expect(await page.evaluate(() => (window as Window & { opened?: string[] }).opened)).toEqual(["https://carterko.substack.com/subscribe?email=reader%40example.com"]);
   await expect(page.getByRole("status")).toHaveText("Continue on Substack to finish subscribing.");
+  const retry = page.getByRole("link", { name: "Continue on Substack", exact: true });
+  await expect(retry).toHaveAttribute("href", "https://carterko.substack.com/subscribe?email=reader%40example.com");
+  await expect(email).toHaveValue("reader@example.com");
+  await email.fill("reader+updated@example.com");
+  await expect(retry).toHaveCount(0);
+  await page.getByRole("button", { name: "Subscribe", exact: true }).click();
+  const correctedUrl = "https://carterko.substack.com/subscribe?email=reader%2Bupdated%40example.com";
+  await expect(retry).toHaveAttribute("href", correctedUrl);
+  // Intercept the external handoff: never send a test subscription to Substack.
+  await page.route("https://carterko.substack.com/subscribe**", route => route.fulfill({ contentType: "text/html", body: "<h1>Subscription handoff</h1>" }));
+  await retry.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(correctedUrl);
+  await expect(page.getByRole("heading", { name: "Subscription handoff" })).toBeVisible();
+});
+
+test("subscription can be retried after its new tab is closed", async ({ page, context }) => {
+  await context.route("https://carterko.substack.com/subscribe**", route => route.fulfill({ contentType: "text/html", body: "<h1>Subscription handoff</h1>" }));
+  await page.goto("/writing");
+  const email = page.getByRole("textbox", { name: "Email address" });
+  await email.fill("reader@example.com");
+  const popupPromise = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Subscribe", exact: true }).click();
+  const popup = await popupPromise;
+  const url = "https://carterko.substack.com/subscribe?email=reader%40example.com";
+  await expect(popup).toHaveURL(url);
+  await popup.close();
+  await expect(email).toBeEditable();
+  await expect(email).toHaveValue("reader@example.com");
+  await page.getByRole("link", { name: "Continue on Substack", exact: true }).click();
+  await expect(page).toHaveURL(url);
 });
 
 test("data saver keeps the workshop usable without preloading models or the whole gallery", async ({ page }) => {

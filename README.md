@@ -15,6 +15,27 @@ To run it locally from this folder:
 
 Then open `http://127.0.0.1:3000`.
 
+Before releasing, run `npm run lint`, `npm run build`, and
+`npm audit --omit=dev`. To test the production build, start it with
+`npm run start -- --hostname 127.0.0.1 --port 3100`, then run
+`npm run test:e2e` in another terminal; Playwright reuses that server.
+The subscription tests intercept Substack requests so they never create real
+subscriptions. The cache-header test checks stable, versioned and hashed assets.
+
+Public media with stable filenames must revalidate before reuse. Only filenames
+ending in `-v<number>` or `-<content hash>` receive immutable caching; replace
+the filename and its references whenever those assets change. Next.js handles
+its own hashed static assets. Existing browser entries cached by an older
+release retain their old lifetime, so use a new URL when replacing such an image.
+
+Security overrides keep Next.js 15's pinned PostCSS and the Vercel CLI's pinned
+tar/js-yaml packages on patched releases within their existing major versions.
+Review these overrides when updating their parent packages. `npm audit` also
+checks development tools: Vercel CLI 65.2.0 still pins other dependencies with
+upstream advisories. Those findings are separate from the deployed application's
+production audit; do not use `npm audit fix --force` to downgrade the CLI or
+silently replace its dependencies across major versions.
+
 Social sharing uses a 12-second, silent H.264 camera tour of the site's 3D
 islands at 1200 × 630, with a matching JPEG fallback. The sequence establishes
 all three worlds, flies into Work, Writing and Projects, then returns to the

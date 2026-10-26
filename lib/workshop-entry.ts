@@ -325,7 +325,6 @@ function beginEntry(source: SVGGraphicsElement, content: Node, kind: Entry["kind
     const scale = shown / layoutWidth;
     const tilt = Math.acos(Math.max(.2, Math.min(1, deep / (layoutHeight * scale))));
     const lift = { duration: BOOK_LIFT, fill: "forwards" } as const;
-    const rest = bookPose(innerWidth / 2, innerHeight / 2, 0, 0, 1);
     // How far it rises off the desk before it comes to you: just clear of
     // it, in proportion to how large the book looks there.
     const rise = Math.min(innerHeight * .08, Math.max(30, shown * .5));

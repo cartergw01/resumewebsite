@@ -119,7 +119,10 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       if (!a || !b) return false;
       const width = canvas.clientWidth, height = canvas.clientHeight;
       const ratio = Math.min(devicePixelRatio, 1.25);
-      if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) renderer.setPixelRatio(ratio), renderer.setSize(width, height, false);
+      if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
+        renderer.setPixelRatio(ratio);
+        renderer.setSize(width, height, false);
+      }
       const e = smooth(t);
       // Pull back and rise off the first island, cross, then settle onto the next.
       const lift = new Vector3(0, 6, 0);
