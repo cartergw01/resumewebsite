@@ -13,10 +13,11 @@
      the footer clears the bottom bar and its fade instead. */
   :global(.subpage-main):has(> .contact),
   :global(.fa-subscribe):has(+ .contact) { padding-bottom: 0; }
-  .contact { position: relative; display: flex; flex-wrap: wrap; align-items: center; column-gap: .5rem; width: var(--subpage-column); max-width: 100%; margin: 2.5rem auto 0; padding-bottom: calc(var(--dock-space) + 4rem); color: var(--cw-paper); }
+  .contact { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.5rem; width: var(--subpage-column); max-width: 100%; margin: 2.5rem auto 0; padding-bottom: calc(var(--dock-space) + 4rem); color: var(--cw-paper); }
+  :global(.subpage-main) > .contact { width: 100%; }
   .contact p { margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: 1.125rem; }
-  .contact nav { display: flex; flex-wrap: wrap; }
-  .contact a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: #e9d4b6; transition: color .2s ease; }
+  .contact nav { display: flex; flex-shrink: 0; margin-left: auto; }
+  .contact a { display: flex; align-items: center; justify-content: center; width: 36px; height: 44px; color: #e9d4b6; transition: color .2s ease; }
   .contact a:hover { color: var(--cw-paper); }
   .contact a svg { width: 16px; height: 16px; }
   .contact a:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 2px; border-radius: 4px; }

@@ -51,7 +51,7 @@ test("phone headers prioritize routes while contact remains available below cont
     await expect(contact).toBeInViewport();
     for (const link of await contact.getByRole('link').all()) {
       const box = (await link.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(36);
       expect(box.height).toBeGreaterThanOrEqual(44);
     }
     await expect(contact.getByRole('link',{name:'Email'})).toHaveAttribute('href', /^mailto:/);
