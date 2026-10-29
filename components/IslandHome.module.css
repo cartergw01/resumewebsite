@@ -428,16 +428,17 @@
 }
 @media (max-height: 500px) and (orientation: landscape) {
   .stage { --controls-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
-  .scene { display: block; padding: 3.5rem 1.5rem 4rem; }
+  /* Sideways, the notch sits in one gutter: both clear it. */
+  .scene { display: block; padding: 3.5rem max(1.5rem, var(--safe-x)) 4rem; }
   .copy { max-width: 44%; }
   .copy h1, .copy h2 { max-width: none; font-size: 2.25rem; }
   .description { margin-top: 0.75rem; font-size: 0.75rem; line-height: 1.4; }
-  .art { position: absolute; top: 15%; right: -3%; bottom: 16%; width: 59%; height: auto; max-height: none; margin-inline: 0; }
-  .scene:has(.overview) .art { width: 59%; height: auto; margin-inline: 0; }
+  .art { position: absolute; top: 15%; right: calc(var(--safe-x) - 3%); bottom: 16%; width: calc(59% - var(--safe-x)); height: auto; max-height: none; margin-inline: 0; }
+  .scene:has(.overview) .art { width: calc(59% - var(--safe-x)); height: auto; margin-inline: 0; }
   .island { max-height: 68svh; }
   /* Landscape keeps the bar to the right half, beside the free left column
      (where a turned island's "reset view" sits). */
-  .controls { right: 1.5rem; left: 1.5rem; flex-direction: row; align-items: end; gap: 1rem; }
+  .controls { right: max(1.5rem, var(--safe-x)); left: max(1.5rem, var(--safe-x)); flex-direction: row; align-items: end; gap: 1rem; }
   .chapters { width: 52%; }
   .chapters button { min-width: 0; }
   .chapterLabel { font-size: 0.75rem; }

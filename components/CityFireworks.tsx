@@ -63,9 +63,16 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
       width = canvas.clientWidth; height = canvas.clientHeight;
       artWidth = visual.clientWidth; artHeight = visual.clientHeight;
       offsetX = -canvas.offsetLeft; offsetY = -canvas.offsetTop;
-      canvas.width = Math.max(1, Math.round(width * ratio)); canvas.height = Math.max(1, Math.round(height * ratio));
+      if (frame) allocate();
     };
-    const start = () => { if (!frame) frame = requestAnimationFrame(draw); };
+    // The canvas only holds its full-size buffer while sparks fly; at rest it
+    // gives the memory back (it spends most of its life idle or by day).
+    const allocate = () => {
+      const w = Math.max(1, Math.round(width * ratio)), h = Math.max(1, Math.round(height * ratio));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    };
+    const release = () => { canvas.width = 1; canvas.height = 1; };
+    const start = () => { if (!frame) { allocate(); frame = requestAnimationFrame(draw); } };
 
     // A spray out of one tier corner: sparks fly outward, mostly level and a
     // little up, then arc down.
@@ -159,13 +166,13 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
         context.fillStyle = `rgba(255,248,235,${fade.toFixed(3)})`;
         context.beginPath(); context.arc(hx, hy, line * .7 * spark.size, 0, Math.PI * 2); context.fill();
       }
-      if (!sparks.length) { cancelAnimationFrame(frame); frame = 0; previous = 0; context.clearRect(0, 0, width, height); }
+      if (!sparks.length) { cancelAnimationFrame(frame); frame = 0; previous = 0; release(); }
     };
     const schedule = () => {
       clearTimeout(timer); timer = undefined;
       if (!allowed()) {
         pending.forEach(clearTimeout); pending.clear();
-        sparks.length = 0; cancelAnimationFrame(frame); frame = 0; previous = 0; context.clearRect(0, 0, canvas.width, canvas.height);
+        sparks.length = 0; cancelAnimationFrame(frame); frame = 0; previous = 0; release();
         if (answering() && !answered) { answered = true; crown(PALETTES[0], true, answering); }
         if (!stage.dataset.entering) answered = false;
         return;
@@ -187,7 +194,7 @@ export default function CityFireworks({ tower, launch: from, className }: { towe
     window.addEventListener(CITY_TIME_EVENT, schedule);
     motion.addEventListener("change", schedule);
     document.addEventListener("visibilitychange", schedule);
-    resize(); schedule();
+    release(); resize(); schedule();
     return () => {
       clearTimeout(timer); cancelAnimationFrame(frame);
       pending.forEach(clearTimeout);

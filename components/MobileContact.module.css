@@ -17,8 +17,10 @@
   :global(.subpage-main) > .contact { width: 100%; }
   .contact p { margin: 0; font-family: var(--font-display); font-stretch: 125%; font-size: 1.125rem; }
   .contact nav { display: flex; flex-shrink: 0; margin-left: auto; }
-  .contact a { display: flex; align-items: center; justify-content: center; width: 36px; height: 44px; color: #e9d4b6; transition: color .2s ease; }
+  /* 44px touch targets; the negative margins keep the icons 36px apart. */
+  .contact a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; margin-inline: -4px; color: #e9d4b6; -webkit-tap-highlight-color: transparent; transition: color .2s ease, opacity .12s ease; }
   .contact a:hover { color: var(--cw-paper); }
+  .contact a:active { color: var(--cw-paper); opacity: .6; }
   .contact a svg { width: 16px; height: 16px; }
   .contact a:focus-visible { outline: 1px solid #e9d4b6; outline-offset: 2px; border-radius: 4px; }
 

@@ -15,11 +15,13 @@
   --cw-deep: #030611;
   --cw-panel: rgba(7, 12, 25, 0.62);
   --cw-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --page-x: clamp(1.25rem, 6vw, 7rem);
+  /* Phones held sideways put the notch inside the page; gutters clear it. */
+  --safe-x: max(env(safe-area-inset-left), env(safe-area-inset-right));
+  --page-x: max(clamp(1.25rem, 6vw, 7rem), var(--safe-x));
   --nav-top: clamp(0.9rem, 2vw, 1.4rem);
-  --nav-clearance: clamp(6.25rem, 9vw, 8rem);
+  --nav-clearance: calc(clamp(6.25rem, 9vw, 8rem) + env(safe-area-inset-top));
   /* Destination pages share one column, lined up with their nav. */
-  --subpage-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --subpage-gutter: max(clamp(1.25rem, 4vw, 2.5rem), var(--safe-x));
   --subpage-column: min(1120px, calc(100% - 2 * var(--subpage-gutter)));
   --subpage-top: calc(var(--nav-clearance) + clamp(0.75rem, 3svh, 2rem));
   --type-caption: 0.72rem;
@@ -57,6 +59,9 @@
 html {
   scroll-behavior: smooth;
   background: var(--cw-deep);
+  /* Rotating a phone must not inflate the type. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -425,13 +430,13 @@ select {
 /* Shared navigation */
 .site-nav {
   position: fixed;
-  top: var(--nav-top);
+  top: calc(var(--nav-top) + env(safe-area-inset-top));
   left: 50%;
   z-index: 50;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  width: min(1120px, calc(100% - clamp(1rem, 4vw, 3rem)));
+  width: min(1120px, calc(100% - max(clamp(1rem, 4vw, 3rem), 2 * var(--safe-x))));
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -441,7 +446,7 @@ select {
 .site-nav::before {
   content: "";
   position: absolute;
-  top: calc(var(--nav-top) * -1);
+  top: calc(-1 * (var(--nav-top) + env(safe-area-inset-top)));
   left: 50%;
   z-index: -1;
   width: 100vw;
@@ -1911,7 +1916,7 @@ select {
 
 @media (max-width: 980px) {
   :root {
-    --nav-clearance: clamp(5.5rem, 10vw, 7rem);
+    --nav-clearance: calc(clamp(5.5rem, 10vw, 7rem) + env(safe-area-inset-top));
   }
 
   .cosmic-home::before {
@@ -1999,7 +2004,7 @@ select {
 @media (max-width: 760px) {
   :root {
     --nav-top: 0.55rem;
-    --nav-clearance: 4.8rem;
+    --nav-clearance: calc(4.8rem + env(safe-area-inset-top));
   }
 
   .cosmic-hero {
@@ -2027,7 +2032,7 @@ select {
   .site-nav {
     grid-template-columns: auto 1fr auto;
     gap: 0;
-    width: calc(100% - 1.25rem);
+    width: calc(100% - max(1.25rem, 2 * var(--safe-x)));
   }
 
   .site-nav-primary {
@@ -2050,7 +2055,7 @@ select {
   /* Reading down a page tucks the bar away; scrolling up (or focusing it)
      brings it straight back. */
   .site-nav[data-destination-nav] { transition: translate 280ms var(--cw-ease), opacity 220ms ease; }
-  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) { translate: 0 calc(-100% - var(--nav-top) - 1.5rem); opacity: 0; pointer-events: none; }
+  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) { translate: 0 calc(-100% - var(--nav-top) - env(safe-area-inset-top) - 1.5rem); opacity: 0; pointer-events: none; }
   .site-nav[data-destination-nav][data-tucked]:not(:focus-within) :is(a, nav) { pointer-events: none; }
   /* The arrow already goes home, so phones drop Home to give the routes room. */
   .site-nav[data-destination-nav] .site-nav-home { display: none; }
@@ -2370,7 +2375,7 @@ select {
 
 @media (max-width: 520px) {
   :root {
-    --nav-clearance: 4.2rem;
+    --nav-clearance: calc(4.2rem + env(safe-area-inset-top));
   }
 
   .site-nav a {
@@ -2511,7 +2516,7 @@ select {
 
 @media (max-width: 760px) and (orientation: landscape), (max-height: 540px) {
   :root {
-    --nav-clearance: 5.35rem;
+    --nav-clearance: calc(5.35rem + env(safe-area-inset-top));
   }
 
   .cosmic-hero {
@@ -2856,6 +2861,20 @@ select {
 
 @media (hover: none) {
   /* ── Cancel all hover effects on touch devices ── */
+
+  /* A press answers the tap before the next page arrives. */
+  .site-nav a,
+  .archive-row,
+  .project-row {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .site-nav a:active {
+    opacity: 0.6;
+  }
+  .archive-row:active,
+  .project-row:active {
+    opacity: 0.72;
+  }
 
   /* World links */
   .world-title-link:hover,
