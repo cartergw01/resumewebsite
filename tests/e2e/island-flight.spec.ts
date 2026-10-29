@@ -2,13 +2,19 @@ import { expect, test, type Page } from "@playwright/test";
 import artwork from "../../lib/blender-islands.json" with { type: "json" };
 import { hydrated } from "./hydrated";
 
-// Positions are set directly, as a finger mid-drag would hold them. Touch
-// screens snap natively to each stop once a gesture ends (app/globals.css),
-// which would pull a set mid-flight position to a stop, so it's paused here.
+// Positions are set directly, as a finger mid-drag would hold them. `progress`
+// is how far through the crossing the camera is, mirrored from
+// IslandScrollTransport: desktop holds 0.34 of each stop and crosses in 0.54;
+// touch screens rest only 0.035 and cross in 0.93 of the gap between the
+// actual stop anchors (index + 0.11, the last at the end, over 4.5).
 async function cross(page: Page, journey: number, progress: number) {
   await page.evaluate(({ journey, progress }) => {
     document.documentElement.style.scrollSnapType = "none";
-    const position = (journey + 0.34 + progress * 0.54) / 4.5;
+    const duration = 4.5;
+    const stop = (index: number) => (index === 0 ? 0 : index === 4 ? duration : index + 0.11) / duration;
+    const position = matchMedia("(pointer: coarse)").matches
+      ? stop(journey) + (stop(journey + 1) - stop(journey)) * (0.035 + progress * 0.93)
+      : (journey + 0.34 + progress * 0.54) / duration;
     scrollTo({ top: (document.documentElement.scrollHeight - innerHeight) * position, behavior: "instant" });
   }, { journey, progress });
   await expect.poll(() => page.locator("[data-island-stage]").evaluate((stage) => {
