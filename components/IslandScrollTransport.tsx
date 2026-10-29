@@ -802,12 +802,20 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // per swipe. A swipe that interrupts a glide counts from where it was
     // headed, so quick repeated swipes keep going.
     const SWIPE_SPAN = .5, SWIPE_SLOP = 6, SWIPE_COMMIT = .16, SWIPE_FLING = .3;
-    let swipe: { y: number; from: number; origin: number; claimed: boolean; moved: boolean; pull: number; trail: [number, number][] } | null = null;
+    let swipe: { x: number; y: number; from: number; origin: number; chain: boolean; claimed: boolean; moved: boolean; pull: number; trail: [number, number][] } | null = null;
     const onTouchMove = (event: TouchEvent) => {
       if (!swipe) return;
       if (event.touches.length !== 1 || !swipeOn() || stage.dataset.entering) { swipe = null; return; }
       const y = event.touches[0].clientY;
       const dy = y - swipe.y;
+      if (!swipe.claimed && swipe.chain) {
+        // From an island's pull chain, pulling down and swaying sideways are
+        // the chain's; only a clear push up the screen pages on. A push up
+        // never toggles the light (the chain only arms on a downward pull).
+        const dx = event.touches[0].clientX - swipe.x;
+        if (dy > 0 || Math.abs(dx) > Math.abs(dy)) { swipe = null; return; }
+        if (-dy <= SWIPE_SLOP) return;
+      }
       if (!swipe.claimed) {
         // Pull-to-refresh above the opening view and the rubber band past the
         // closing one stay the browser's.
@@ -846,10 +854,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       markIntent();
       const y = event.touches[0]?.clientY;
       if (event.touches.length !== 1 || typeof y !== "number" || !swipeOn() || stage.dataset.entering) { swipe = null; return; }
-      // A finger on an island's pull chain is pulling it, not paging.
-      if (event.target instanceof Element && event.target.closest("[data-island-control]")) { swipe = null; return; }
+      // A finger on an island's pull chain may be pulling it: onTouchMove
+      // waits to see which way it goes before paging.
+      const chain = event.target instanceof Element && Boolean(event.target.closest("[data-island-control]"));
       const from = stopSpace();
-      swipe = { y, from, origin: heading >= 0 ? heading : Math.round(from), claimed: false, moved: false, pull: 0, trail: [[event.timeStamp, y]] };
+      swipe = { x: event.touches[0].clientX, y, from, origin: heading >= 0 ? heading : Math.round(from), chain, claimed: false, moved: false, pull: 0, trail: [[event.timeStamp, y]] };
     };
     const onTouchEnd = (event: TouchEvent) => {
       touching = event.touches.length > 0;

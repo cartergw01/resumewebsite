@@ -84,6 +84,19 @@ test("touch drags play sideways and a deliberate pull toggles once", async ({ pa
   await session.detach();
 });
 
+test("a swipe up that starts on the chain pages on and leaves the light alone", async ({ page, browserName, isMobile }) => {
+  test.skip(browserName !== "chromium" || !isMobile, "Uses Chromium touch input.");
+  const { x, y } = await study(page);
+  const session = await page.context().newCDPSession(page);
+  // The chain sits where a thumb starts a swipe, under the island.
+  await session.send("Input.synthesizeScrollGesture", { x, y, yDistance: -180, speed: 800, preventFling: true, gestureSourceType: "touch" });
+  await expect(page).toHaveURL(/#projects$/);
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
+  // Writing is off screen now, so read its switch directly rather than by role.
+  await expect(page.locator('#writing [role="switch"]')).toHaveAttribute("aria-checked", "true");
+  await session.detach();
+});
+
 test("the cord endpoint stays at the bead center while dragging and swinging", async ({ page }) => {
   const { chain, x, y } = await study(page);
   const gap = () => chain.evaluate(el => {

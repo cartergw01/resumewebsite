@@ -13,8 +13,10 @@ test("the book opens the complete Writing archive", async ({ page, isMobile }) =
   if (isMobile) await lightsOff.tap(); else await lightsOff.click();
   await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
   if (!isMobile) await page.locator("#writing [data-island-link]").hover();
-  await expect(page.locator("#writing [data-book-page], #writing [data-book-response], #writing [data-touch-surface='spread']")).toHaveCount(0);
+  await expect(page.locator("#writing [data-book-page], #writing [data-book-response]")).toHaveCount(0);
   expect(await spread.evaluate(node => getComputedStyle(node).fill)).toBe("none");
+  // The spread's touch glow exists for press feedback, but stays unseen at rest.
+  await expect(page.locator("#writing svg:has([data-touch-surface='spread'])")).toHaveCSS("opacity", "0");
   const lightsOn = page.getByRole("switch", { name: "study lights" });
   if (isMobile) await lightsOn.tap(); else await lightsOn.click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
