@@ -1,10 +1,14 @@
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import { workPageExperience } from "@/content/portfolio";
 import { getWorkCopy, type WorkEntry } from "@/lib/work-copy";
 import batchPhoto from "@/public/ikigai-batch.jpg";
+import studios886 from "@/public/logos/886-studios.png";
+import contrary from "@/public/logos/contrary.svg";
+import slugFund from "@/public/logos/slug-fund.svg";
+import korobra from "@/public/logos/korobra-capital.png";
 import IslandLine from "./IslandLine";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
@@ -15,17 +19,18 @@ const [current] = workPageExperience;
 
 // Company marks, shown beside each name. They're decorative (the name is right
 // there), and CSS tints them all the same cream so they read as one family.
-const logos: Record<string, string> = {
-  "886 Studios": "/logos/886-studios.png",
-  "Contrary Research": "/logos/contrary.svg",
-  "Slug Fund Investment Group": "/logos/slug-fund.svg",
-  "Korobra Capital": "/logos/korobra-capital.png",
+// Imported, so they get hashed URLs browsers can keep, and resized to fit.
+const logos: Record<string, StaticImageData> = {
+  "886 Studios": studios886,
+  "Contrary Research": contrary,
+  "Slug Fund Investment Group": slugFund,
+  "Korobra Capital": korobra,
 };
 
-function Logo({ company, size }: { company: string; size: number }) {
+function Logo({ company, size, eager = false }: { company: string; size: number; eager?: boolean }) {
   const src = logos[company];
   if (!src) return null;
-  return <Image className={styles.logo} src={src} alt="" aria-hidden="true" width={size} height={size} unoptimized />;
+  return <Image className={styles.logo} src={src} alt="" aria-hidden="true" width={size} height={size} loading={eager ? "eager" : "lazy"} />;
 }
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
@@ -96,7 +101,7 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
       <div className={styles.body}>
         <header className={styles.experienceHeading}>
           <h3 className={styles.current}>
-            <Logo company={current.company} size={36} />
+            <Logo company={current.company} size={36} eager />
             <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
           </h3>
           <div className={styles.tenure}>
