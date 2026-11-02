@@ -23,7 +23,7 @@ test("desk thoughts preserve the original voice, remember the last post, and lea
   await expect(page).toHaveTitle(/Carter/);
   await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
   await openObject(page, "[data-thought-cards]", isMobile);
-  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Close thoughts" })).toBeFocused();
   await expect.poll(() => page.locator("[data-background-video]").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
@@ -74,7 +74,7 @@ test("shared thoughts work without storage and removed promotional links fall ba
     Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Storage blocked", "SecurityError"); } });
   });
   await page.goto("/?thought=1944727397909279094#writing");
-  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "1944727397909279094");
   await expect(dialog.getByRole("navigation", { name: "Thought collection" })).toHaveCount(0);
@@ -117,7 +117,7 @@ test("the note stack handles interrupted lifts and reduced motion", async ({ pag
   });
   await page.goto("/#writing");
   await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
-  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
   await openObject(page, "[data-thought-cards]", isMobile);
   await expect(dialog).toHaveAttribute("data-note-motion", "opening");
   await page.keyboard.press("Escape");

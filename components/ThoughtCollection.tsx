@@ -33,10 +33,9 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
     try { localStorage.setItem(LAST_KEY, id); } catch { /* Reading works without storage. */ }
   };
 
-  return createPortal(<dialog ref={dialog} className={styles.dialog} aria-labelledby="thoughts-title" data-direct-navigation data-thought-collection
+  return createPortal(<dialog ref={dialog} className={styles.dialog} aria-label="Posts by Carter" data-direct-navigation data-thought-collection
     onCancel={event => { event.preventDefault(); dismiss(); }}
     onClick={event => { if (event.target === event.currentTarget) dismiss(); }}>
-    <h2 id="thoughts-title" className="sr-only">A stream of consciousness</h2>
     <div className={styles.dismiss}>
       <button ref={closeButton} className={styles.close} type="button" aria-label="Close thoughts" onClick={dismiss} autoFocus>
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
