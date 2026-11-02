@@ -40,9 +40,6 @@
 .text p:last-child { margin-bottom: 0; }
 .context { margin: 16px 0; color: var(--cw-muted); font-size: 12px; line-height: 1.6; }
 .context a { color: inherit; text-underline-offset: 3px; }
-.related { display: flex; flex-direction: column; gap: 5px; margin-top: 20px; padding: 14px 16px; border: 1px solid var(--cw-line); border-radius: 10px; background: #fff7ea03; color: var(--cw-paper); text-decoration: none; }
-.related span { color: var(--cw-dim); font-size: 11px; line-height: 1.4; }
-.related strong { font-size: 14px; line-height: 1.5; font-weight: 500; }
 .date { display: block; margin: 20px 0 16px; color: var(--cw-dim); font-size: 12px; line-height: 1.5; }
 .actions { display: grid; grid-template-columns: repeat(3, 1fr); align-items: center; border-top: 1px solid var(--cw-line); padding: 6px 0 0; }
 .actions :is(button,a) { display: flex; justify-content: center; align-items: center; gap: 7px; min-height: 44px; padding: 8px 4px; border: 0; border-radius: 8px; background: transparent; color: var(--cw-muted); font: 12px/1.4 var(--font-sans),sans-serif; text-decoration: none; cursor: pointer; }
@@ -64,7 +61,6 @@
   .actions :is(button,a):hover, .browse button:hover:not(:disabled), .close:hover, .empty button:hover { background: #fff7ea0a; color: var(--cw-paper); }
   .collections button:hover { color: var(--cw-paper); }
   .profile:hover strong { text-decoration: underline; text-underline-offset: 3px; }
-  .related:hover { background: #fff7ea08; border-color: #fff7ea30; }
 }
 @keyframes arrive { from { opacity: .65; } to { opacity: 1; } }
 @media (max-width: 600px) {

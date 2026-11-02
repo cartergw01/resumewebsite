@@ -83,9 +83,6 @@ export default function ThoughtCollection({ initialId, onClose }: { initialId: s
             {current.text.split(/\n\s*\n/).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
           </div>
           {current.hasQuotedContext && <p className={styles.context}>Originally shared with a quoted post. <a href={current.source} target="_blank" rel="noopener noreferrer">View the context on X</a></p>}
-          {current.related && <a className={styles.related} href={current.related.href} target={current.related.href.startsWith("/") ? undefined : "_blank"} rel={current.related.href.startsWith("/") ? undefined : "noopener noreferrer"}>
-            <span>{current.related.kind}</span><strong>{current.related.title}</strong>
-          </a>}
           <time className={styles.date} dateTime={current.date}>{dateFormat.format(new Date(current.date))}</time>
           <footer className={styles.actions}>
             <button type="button" aria-pressed={saved.includes(current.id)} aria-label={saved.includes(current.id) ? "Unsave thought" : "Save thought"} onClick={save}>
