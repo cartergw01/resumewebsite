@@ -75,10 +75,18 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
           </article>
         </div>
         <footer className={styles.browse}>
-          <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index - 1 + thoughts.length) % thoughts.length].id)}>Previous</button>
-          <button type="button" aria-label="Shuffle thoughts" disabled={thoughts.length < 2} onClick={() => choose(randomThought(current.id))}>Shuffle</button>
+          <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index - 1 + thoughts.length) % thoughts.length].id)}>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            Previous
+          </button>
+          <button type="button" aria-label="Shuffle thoughts" title="Shuffle" disabled={thoughts.length < 2} onClick={() => choose(randomThought(current.id))}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m18 3 3 3-3 3M18 15l3 3-3 3M3 6h2c5 0 9 12 14 12h2M3 18h2c2 0 4-2 6-5M14 9c2-2 3-3 5-3h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
           <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{index + 1} of {thoughts.length}</span>
-          <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index + 1) % thoughts.length].id)}>Next</button>
+          <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index + 1) % thoughts.length].id)}>
+            Next
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
         </footer>
       </div>
     </div>
