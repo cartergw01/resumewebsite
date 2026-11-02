@@ -1,0 +1,31 @@
+.dialog { position: fixed; inset: 0; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 0; overflow: auto; border: 1px solid #c2c9d438; border-radius: 12px; color: #f7f2e9; background: #101721; overscroll-behavior: contain; }
+.dialog::backdrop { background: #02050be6; backdrop-filter: blur(6px); }
+.content { --poker-pad: clamp(22px, 5vw, 36px); padding: 0 var(--poker-pad) var(--poker-pad); }
+.header { position: sticky; top: 0; z-index: 1; background: #101721; margin: 0 calc(-1 * var(--poker-pad)); padding: var(--poker-pad); display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 22px; }
+.header p { margin: 0; font-size: 14px; color: #e6d6b9; }
+.close { display: grid; place-items: center; width: 44px; height: 44px; margin: -10px -12px -10px 0; border: 0; background: transparent; color: #f7f2e9; font-size: 28px; cursor: pointer; }
+.progress { margin: 0 0 20px; color: #afb9c8; font-size: 13px; }
+.hand { display: flex; gap: 8px; margin: 0 0 24px; }
+.card { display: grid; place-items: center; width: 55px; height: 74px; background: #eee9df; border-radius: 5px; color: #17212c; font-size: 24px; font-weight: 600; }
+.card:first-child { rotate: -6deg; }
+.card:last-child { rotate: 5deg; }
+.card[data-red="true"] { color: #aa2436; }
+.content h2 { margin: 0 0 14px; font-size: clamp(24px, 5vw, 30px); line-height: 1.15; font-weight: 600; text-wrap: balance; letter-spacing: -.02em; }
+.content h2:focus { outline: none; }
+.context, .explanation { font-size: 15px; line-height: 1.65; color: #d2d8e0; }
+.context strong { color: #fff4de; font-weight: 600; }
+.assumption { margin: 8px 0 24px; color: #aeb9c9; font-size: 12px; }
+.answers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.answers button { min-height: 48px; border: 1px solid #8493aa70; border-radius: 6px; color: #f7f2e9; background: #1a2534; font: inherit; cursor: pointer; }
+.answers button:hover:enabled { background: #28384c; }
+.answers button[data-correct="true"] { border-color: #89ddba; background: #183e35; color: #c2f7e2; }
+.answers button[data-wrong="true"] { border-color: #f0a5a5; background: #50282d; color: #ffe1df; }
+.answers button:disabled { cursor: default; }
+.feedback { display: grid; gap: 5px; margin-top: 20px; font-size: 14px; line-height: 1.5; color: #d2d8e0; }
+.feedback:empty { margin-top: 0; }
+.feedback:focus { outline: none; }
+.feedback strong { color: #fff4de; }
+.next { min-height: 44px; margin-top: 20px; padding: 10px 18px; background: #f0d6a8; color: #151c26; border: 0; border-radius: 6px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.footer { margin-top: 28px; border-top: 1px solid #8493aa40; padding-top: 18px; font-size: 13px; color: #d9c5a3; }
+.footer a { display: inline-flex; align-items: center; min-height: 44px; text-underline-offset: 4px; }
+.content button:focus-visible, .content a:focus-visible { outline: 2px solid #fae4bc; outline-offset: 4px; }

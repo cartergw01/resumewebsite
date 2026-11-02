@@ -469,3 +469,25 @@ stalled the page for about a quarter of a second as it built, a sideways
 swipe competed with scrolling on phones, the real-time lighting only
 approximated the Cycles stills, and every scene change had to be re-exported
 to match.
+
+## Playable workshop objects
+
+The workshop adds eight project objects to the current scene using
+`scripts/blender/workshop_projects.py`. Its build preserves the current main
+branch's scene, including prop positions, lighting, and court details.
+`pipeline.sh projects` exports their hit regions and inspectable props from the
+same camera and crop. The homepage has no object-directory call to action;
+visitors pick up objects directly. “All objects” inside an inspector opens its
+searchable directory. The current scene has 32 inspectable groups and eight
+project objects. Props removed on main are not reintroduced.
+
+The viewer loads on demand, shares one renderer across inspections, renders
+only after interaction, cancels obsolete downloads, and disposes GPU resources
+on close. Horizontal gestures rotate; vertical gestures scroll the dialog.
+Failed downloads and lost graphics contexts offer a retry and artwork fallback.
+The room-light rewards use the same state as main's existing pull chains.
+
+`node scripts/blender/bake_workshop_environment.mjs` precomputes lighting into
+`lib/workshop-environment.json` and its fingerprinted HDR asset. The bundled
+`lib/meshopt-worker.ts` provides a stable worker URL for Safari decoding, with
+main-thread fallback when workers are unavailable.

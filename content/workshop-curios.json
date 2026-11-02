@@ -1,0 +1,304 @@
+[
+  {
+    "id": "basketball",
+    "name": "Wilson basketball",
+    "prefixes": [
+      "Basketball ·"
+    ],
+    "reward": "hoops"
+  },
+  {
+    "id": "hoop",
+    "name": "Basketball hoop",
+    "prefixes": [
+      "Hoop ·"
+    ],
+    "reward": "hoops"
+  },
+  {
+    "id": "jersey",
+    "name": "Kobe’s number 24",
+    "prefixes": [
+      "Jersey ·",
+      "Shadow box ·"
+    ],
+    "reward": "hoops"
+  },
+  {
+    "id": "shield",
+    "name": "Captain America’s shield",
+    "prefixes": [
+      "Captain America shield ·"
+    ],
+    "reward": "inspect",
+    "essay": "We All Have Superpowers",
+    "hint": "Turn it over to find the leather grips."
+  },
+  {
+    "id": "starship",
+    "name": "Starship & Super Heavy",
+    "prefixes": [
+      "Starship model ·",
+      "Starship ·",
+      "Super Heavy ·"
+    ],
+    "reward": "inspect",
+    "research": "SpaceX",
+    "hint": "Look underneath for the engines, then turn toward the heat shield."
+  },
+  {
+    "id": "lugia",
+    "name": "Lugia",
+    "prefixes": [
+      "Lugia ·"
+    ],
+    "reward": "inspect",
+    "hint": "Look for the navy plates along its back."
+  },
+  {
+    "id": "cybertruck",
+    "name": "Cybertruck model",
+    "prefixes": [
+      "Cybertruck model ·"
+    ],
+    "reward": "inspect",
+    "hint": "Turn it to catch the light on the steel body."
+  },
+  {
+    "id": "lightstick",
+    "name": "BLACKPINK light stick",
+    "prefixes": [
+      "Lightstick ·"
+    ],
+    "reward": "lightstick"
+  },
+  {
+    "id": "speaker",
+    "name": "JBL Charge 4",
+    "prefixes": [
+      "JBL Charge 4 ·"
+    ],
+    "reward": "synth"
+  },
+  {
+    "id": "headphones",
+    "name": "AirPods Max",
+    "prefixes": [
+      "AirPods Max ·"
+    ],
+    "reward": "synth"
+  },
+  {
+    "id": "keyboard",
+    "name": "Keyboard",
+    "prefixes": [
+      "Workstation · aluminium keyboard",
+      "Workstation · key"
+    ],
+    "reward": "synth"
+  },
+  {
+    "id": "trackpad",
+    "name": "Trackpad",
+    "prefixes": [
+      "Workstation · trackpad"
+    ],
+    "reward": "inspect",
+    "hint": "Turn it sideways. There is almost nothing to it."
+  },
+  {
+    "id": "ipad",
+    "name": "iPad & Magic Keyboard",
+    "prefixes": [
+      "iPad ·",
+      "iPad Pro ·",
+      "Magic Keyboard ·"
+    ],
+    "reward": "inspect",
+    "research": "SpaceX",
+    "hint": "Look closer at the launch on the screen."
+  },
+  {
+    "id": "watches",
+    "name": "Six-watch box",
+    "prefixes": [
+      "Watch box ·",
+      "Watch ·"
+    ],
+    "reward": "clocks"
+  },
+  {
+    "id": "poker-set",
+    "name": "Poker chip set",
+    "prefixes": [
+      "Chip case ·"
+    ],
+    "reward": "poker"
+  },
+  {
+    "id": "scooter",
+    "name": "Ninebot scooter",
+    "prefixes": [
+      "Scooter ·"
+    ],
+    "reward": "inspect",
+    "project": "taipei-guide",
+    "hint": "Find the folding joint and the brake light."
+  },
+  {
+    "id": "desk-lamp",
+    "name": "Eave table lamp",
+    "prefixes": [
+      "Eave lamp ·"
+    ],
+    "reward": "lights"
+  },
+  {
+    "id": "wall-lamp",
+    "name": "Luca wall sconce",
+    "prefixes": [
+      "Luca sconce ·"
+    ],
+    "reward": "lights"
+  },
+  {
+    "id": "festoon",
+    "name": "String lights",
+    "prefixes": [
+      "Festoon · cable",
+      "Festoon · bulb"
+    ],
+    "reward": "lights"
+  },
+  {
+    "id": "planet-poster",
+    "name": "Planet poster",
+    "prefixes": [
+      "Poster ·"
+    ],
+    "reward": "inspect",
+    "essay": "An Ode to Ignorance",
+    "hint": "A banded planet, stars, and four pieces of tape."
+  },
+  {
+    "id": "pennant",
+    "name": "Lakers pennant",
+    "prefixes": [
+      "Pennant ·"
+    ],
+    "reward": "inspect",
+    "essay": "Fuck It, We Ball!",
+    "hint": "Purple and gold, right down to the pin."
+  },
+  {
+    "id": "tools",
+    "name": "Hammers & screwdrivers",
+    "prefixes": [
+      "Hammer ·",
+      "Driver ·"
+    ],
+    "reward": "inspect",
+    "essay": "Work as Play",
+    "hint": "The claw and the grip are modeled too."
+  },
+  {
+    "id": "stool",
+    "name": "Workshop stool",
+    "prefixes": [
+      "Stool ·"
+    ],
+    "reward": "inspect",
+    "essay": "Work as Play",
+    "hint": "Follow the foot ring around the steel legs."
+  },
+  {
+    "id": "plant",
+    "name": "Potted plant",
+    "prefixes": [
+      "Plant ·",
+      "Planter ·"
+    ],
+    "reward": "inspect",
+    "hint": "Look underneath a leaf."
+  },
+  {
+    "id": "drawers",
+    "name": "Spare parts drawer",
+    "prefixes": [
+      "Bench · open drawer",
+      "Bench · drawer side",
+      "Drawer ·"
+    ],
+    "reward": "inspect",
+    "hint": "The spare components are still inside."
+  },
+  {
+    "id": "storage",
+    "name": "Parts organizer",
+    "prefixes": [
+      "Parts ·"
+    ],
+    "reward": "inspect",
+    "hint": "Find the tiny paper labels."
+  },
+  {
+    "id": "roof",
+    "name": "Corrugated roof",
+    "prefixes": [
+      "Workshop · corrugated lean-to roof"
+    ],
+    "reward": "inspect",
+    "hint": "Tilt it to see the corrugation."
+  },
+  {
+    "id": "workbench",
+    "name": "Beech workbench",
+    "prefixes": [
+      "Bench · laminated beech top",
+      "Bench · welded steel leg",
+      "Bench · steel"
+    ],
+    "reward": "inspect",
+    "hint": "Look along the edge to see the individual beech strips."
+  },
+  {
+    "id": "court",
+    "name": "Maple half-court",
+    "prefixes": [
+      "Court ·"
+    ],
+    "reward": "hoops"
+  },
+  {
+    "id": "floor",
+    "name": "Oak deck",
+    "prefixes": [
+      "Floor · aged oak plank",
+      "Deck ·"
+    ],
+    "reward": "inspect",
+    "hint": "Look along the edges of the oak planks."
+  },
+  {
+    "id": "flix-print",
+    "name": "TaipeiFlix working print",
+    "prefixes": [
+      "Project reference · TaipeiFlix",
+      "Project print · TaipeiFlix"
+    ],
+    "reward": "inspect",
+    "project": "taipei-flix",
+    "hint": "The working print opens the real project below."
+  },
+  {
+    "id": "run-print",
+    "name": "Taipei Run working print",
+    "prefixes": [
+      "Project reference · Taipei Run",
+      "Project print · Taipei Run"
+    ],
+    "reward": "inspect",
+    "project": "taipei-run",
+    "hint": "The working print opens the real project below."
+  }
+]

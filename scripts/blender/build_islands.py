@@ -3497,6 +3497,10 @@ def workshop():
     light('Workshop · task strip',(1.56,1.35,1.58),(.80,.88,1),26,1.0,(1.1,.6,1.1))
     plant(-2.98,.95,.16,.64)
     half_court()
+    # Add project objects to the current island without moving its belongings.
+    sys.path.insert(0,str(Path(__file__).parent))
+    from workshop_projects import add_projects
+    add_projects(globals())
 
 
 def unseen_lights(scene):

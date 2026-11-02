@@ -1,0 +1,18 @@
+.objects { position: absolute; inset: 0; display: grid; place-items: center; z-index: 4; pointer-events: none; }
+.frame { position: relative; display: block; }
+.position { position: absolute; display: block; }
+.target { display: block; position: relative; width: 100%; height: 100%; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #fff4dc; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.pin { position: absolute; width: 0; height: 0; pointer-events: none; }
+.dot { position: absolute; left: 0; top: 0; width: 7px; height: 7px; transform: translate(-50%, -50%); border-radius: 50%; background: #fff1cd; border: 1.5px solid #33291c; box-shadow: 0 0 0 3px #0c101c88; opacity: .82; transition: opacity 150ms ease, scale 150ms ease; }
+.target:hover .dot, .target:focus-visible .dot { opacity: 1; scale: 1.25; }
+.target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 3px; background: #ffe3ac12; }
+.label { position: absolute; left: 0; bottom: 13px; transform: translateX(-50%); padding: 6px 9px; background: #0b1020; border-radius: 4px; white-space: nowrap; font: 500 12px/1.3 var(--font-sans), sans-serif; opacity: 0; }
+.target:focus-visible .label { opacity: 1; }
+.curio .dot { opacity: 0; }
+.curio[data-found="true"] .dot { opacity: .45; }
+.curio:has(.target:hover) .dot, .curio:has(.target:focus-visible) .dot { opacity: 1; }
+.curioLabel { position: absolute; left: 50%; bottom: calc(50% + 14px); padding: 6px 9px; transform: translateX(-50%); color: #f6efdf; background: #101721; border-radius: 4px; white-space: nowrap; font: 500 12px/1.3 var(--font-sans),sans-serif; opacity: 0; pointer-events: none; }
+.target:focus-visible + .curioLabel { opacity: 1; }
+:global([data-island-stage][data-travelling="true"]) .objects,
+:global([data-island-stage][data-entering]) .objects { visibility: hidden; }
+@media (prefers-reduced-motion: reduce) { .dot { transition: none; } }

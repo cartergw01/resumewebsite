@@ -686,3 +686,9 @@
 .flightCanvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; opacity: 0; pointer-events: none; filter: var(--island-grade); display: none; }
 /* Phones never fly in 3D; until a flight model is ready the canvas is no layer at all. */
 .stage[data-flight-ready="true"] .flightCanvas { display: block; }
+
+/* The workshop entry and physical objects are sibling controls. */
+.workshopEntryHit { position: absolute; inset: 0; z-index: 0; }
+.islandLink[data-workshop] > [data-island-visual] { position: relative; z-index: 1; pointer-events: none; }
+.workshopEntryHit:focus-visible { outline: none; }
+.workshopEntryHit:focus-visible + .island { outline: 2px solid #eddbbf; outline-offset: -24px; border-radius: 12px; }

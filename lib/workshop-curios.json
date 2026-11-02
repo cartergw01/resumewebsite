@@ -1,0 +1,418 @@
+{
+  "basketball": {
+    "point": [
+      848.877,
+      496.662
+    ],
+    "bounds": [
+      823.694,
+      469.915,
+      50.366,
+      53.495
+    ],
+    "src": "/workshop/basketball-35db2365.glb"
+  },
+  "hoop": {
+    "point": [
+      969.701,
+      308.79
+    ],
+    "bounds": [
+      891.825,
+      146.037,
+      155.752,
+      325.505
+    ],
+    "src": "/workshop/hoop-3781bbaa.glb"
+  },
+  "jersey": {
+    "point": [
+      541.067,
+      250.766
+    ],
+    "bounds": [
+      506.126,
+      203.297,
+      69.881,
+      94.937
+    ],
+    "src": "/workshop/jersey-82329ffd.glb"
+  },
+  "shield": {
+    "point": [
+      703.071,
+      497.118
+    ],
+    "bounds": [
+      632.286,
+      425.377,
+      141.57,
+      143.483
+    ],
+    "src": "/workshop/shield-336d0eec.glb"
+  },
+  "starship": {
+    "point": [
+      759.916,
+      222.01
+    ],
+    "bounds": [
+      751.574,
+      186.39,
+      16.685,
+      71.24
+    ],
+    "src": "/workshop/starship-63bc1ca6.glb"
+  },
+  "lugia": {
+    "point": [
+      738.123,
+      283.736
+    ],
+    "bounds": [
+      699.821,
+      251.646,
+      76.605,
+      64.18
+    ],
+    "src": "/workshop/lugia-d745e1b3.glb"
+  },
+  "cybertruck": {
+    "point": [
+      721.909,
+      243.212
+    ],
+    "bounds": [
+      700.756,
+      232.162,
+      42.306,
+      22.099
+    ],
+    "src": "/workshop/cybertruck-ef509a76.glb"
+  },
+  "lightstick": {
+    "point": [
+      676.123,
+      232.21
+    ],
+    "bounds": [
+      658.297,
+      212.499,
+      35.65,
+      39.423
+    ],
+    "src": "/workshop/lightstick-8a57a6f9.glb"
+  },
+  "speaker": {
+    "point": [
+      617.102,
+      231.83
+    ],
+    "bounds": [
+      595.706,
+      218.087,
+      42.793,
+      27.486
+    ],
+    "src": "/workshop/speaker-ecbb429a.glb"
+  },
+  "headphones": {
+    "point": [
+      354.973,
+      356.001
+    ],
+    "bounds": [
+      339.081,
+      343.65,
+      31.785,
+      24.702
+    ],
+    "src": "/workshop/headphones-7bf253b6.glb"
+  },
+  "keyboard": {
+    "point": [
+      595.587,
+      375.335
+    ],
+    "bounds": [
+      554.973,
+      365.369,
+      81.228,
+      19.932
+    ],
+    "src": "/workshop/keyboard-32bf5ccc.glb"
+  },
+  "trackpad": {
+    "point": [
+      656.84,
+      379.882
+    ],
+    "bounds": [
+      643.93,
+      372.389,
+      25.819,
+      14.987
+    ],
+    "src": "/workshop/trackpad-2cb413c1.glb"
+  },
+  "ipad": {
+    "point": [
+      505.134,
+      358.483
+    ],
+    "bounds": [
+      473.807,
+      327.017,
+      62.653,
+      62.932
+    ],
+    "src": "/workshop/ipad-bc1ea72b.glb"
+  },
+  "watches": {
+    "point": [
+      470.331,
+      444.511
+    ],
+    "bounds": [
+      438.809,
+      408.329,
+      63.044,
+      72.365
+    ],
+    "src": "/workshop/watches-99b73f5d.glb"
+  },
+  "poker-set": {
+    "point": [
+      550.785,
+      443.744
+    ],
+    "bounds": [
+      510.244,
+      404.123,
+      81.083,
+      79.241
+    ],
+    "src": "/workshop/poker-set-b9c79d22.glb"
+  },
+  "scooter": {
+    "point": [
+      331.989,
+      499.27
+    ],
+    "bounds": [
+      229.263,
+      393.257,
+      205.452,
+      212.026
+    ],
+    "src": "/workshop/scooter-b91a514d.glb"
+  },
+  "desk-lamp": {
+    "point": [
+      385.428,
+      303.449
+    ],
+    "bounds": [
+      359.775,
+      268.707,
+      51.307,
+      69.484
+    ],
+    "src": "/workshop/desk-lamp-0a1b8116.glb"
+  },
+  "wall-lamp": {
+    "point": [
+      589.413,
+      197.804
+    ],
+    "bounds": [
+      576.41,
+      179.273,
+      26.005,
+      37.062
+    ],
+    "src": "/workshop/wall-lamp-ed3eb18a.glb"
+  },
+  "festoon": {
+    "point": [
+      542.878,
+      168.278
+    ],
+    "bounds": [
+      293.491,
+      129.974,
+      498.774,
+      76.607
+    ],
+    "src": "/workshop/festoon-32b8fc21.glb"
+  },
+  "planet-poster": {
+    "point": [
+      356.867,
+      152.217
+    ],
+    "bounds": [
+      330.049,
+      119.051,
+      53.636,
+      66.331
+    ],
+    "src": "/workshop/planet-poster-f0d93219.glb"
+  },
+  "pennant": {
+    "point": [
+      547.843,
+      173.111
+    ],
+    "bounds": [
+      520.287,
+      156.863,
+      55.114,
+      32.496
+    ],
+    "src": "/workshop/pennant-4f560fc5.glb"
+  },
+  "tools": {
+    "point": [
+      438.462,
+      265.236
+    ],
+    "bounds": [
+      368.254,
+      242.092,
+      140.416,
+      46.289
+    ],
+    "src": "/workshop/tools-8f70afa6.glb"
+  },
+  "stool": {
+    "point": [
+      579.699,
+      519.259
+    ],
+    "bounds": [
+      537.014,
+      459.433,
+      85.371,
+      119.652
+    ],
+    "src": "/workshop/stool-67b4cd69.glb"
+  },
+  "plant": {
+    "point": [
+      295.762,
+      396.205
+    ],
+    "bounds": [
+      265.201,
+      364.699,
+      61.123,
+      63.012
+    ],
+    "src": "/workshop/plant-7676da7c.glb"
+  },
+  "drawers": {
+    "point": [
+      362.77,
+      421.673
+    ],
+    "bounds": [
+      307.515,
+      389.006,
+      110.51,
+      65.333
+    ],
+    "src": "/workshop/drawers-1ad5a08d.glb"
+  },
+  "storage": {
+    "point": [
+      673.297,
+      321.083
+    ],
+    "bounds": [
+      597.852,
+      289.846,
+      150.89,
+      62.474
+    ],
+    "src": "/workshop/storage-87a7240a.glb"
+  },
+  "roof": {
+    "point": [
+      553.44,
+      125.883
+    ],
+    "bounds": [
+      262.09,
+      54.286,
+      582.701,
+      143.195
+    ],
+    "src": "/workshop/roof-ba77fb2d.glb"
+  },
+  "workbench": {
+    "point": [
+      507.801,
+      426.49
+    ],
+    "bounds": [
+      285.116,
+      316.887,
+      445.371,
+      219.207
+    ],
+    "src": "/workshop/workbench-e3bb773b.glb"
+  },
+  "court": {
+    "point": [
+      901.383,
+      556.322
+    ],
+    "bounds": [
+      743.664,
+      441.45,
+      315.438,
+      229.744
+    ],
+    "src": "/workshop/court-c9f8d703.glb"
+  },
+  "floor": {
+    "point": [
+      509.042,
+      505.594
+    ],
+    "bounds": [
+      200.268,
+      401.388,
+      617.548,
+      208.41
+    ],
+    "src": "/workshop/floor-ebaae213.glb"
+  },
+  "flix-print": {
+    "point": [
+      372.87,
+      214.653
+    ],
+    "bounds": [
+      341.34,
+      191.328,
+      63.06,
+      46.649
+    ],
+    "src": "/workshop/flix-print-2d67a1b8.glb"
+  },
+  "run-print": {
+    "point": [
+      445.447,
+      224.163
+    ],
+    "bounds": [
+      413.775,
+      200.7,
+      63.344,
+      46.927
+    ],
+    "src": "/workshop/run-print-9ba8391c.glb"
+  }
+}

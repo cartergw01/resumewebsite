@@ -104,7 +104,7 @@ test("pinching cancels each entry cover and leaves the island usable", async ({ 
   for (const world of ["work", "writing", "projects"]) {
     await ready(page, world);
     const stage = page.locator("[data-island-stage]");
-    await page.locator(`#${world} [data-island-link]`).click();
+    await page.locator(`#${world} a[data-island-link], #${world} [data-workshop-entry]`).press("Enter");
     await expect(stage).toHaveAttribute("data-entering", world);
     const cover = world === "writing" ? "book" : world === "projects" ? "workshop" : "work";
     await expect(page.locator(`body > [data-${cover}-transition]`)).toHaveCount(1);
@@ -119,7 +119,7 @@ test("pinching cancels each entry cover and leaves the island usable", async ({ 
     await expect(page).toHaveURL(new RegExp(`#${world}$`));
     await expect(page.locator("html")).toHaveAttribute("data-rocket-transition", "idle");
   }
-  await page.locator("#projects [data-island-link]").click();
+  await page.locator("#projects [data-workshop-entry]").press("Enter");
   await expect(page).toHaveURL(/\/projects$/, { timeout: 15_000 });
   await expect(page.locator("main h1")).toHaveText("Projects");
 });
