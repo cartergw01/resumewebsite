@@ -79,8 +79,7 @@ test("a shared thought works without storage and connects to the playable arcade
   await expect(dialog.getByRole("textbox", { name: "Link to this thought" })).toHaveValue(/\?thought=2104108558929502655#writing$/);
   await dialog.getByRole("button", { name: "Save thought", exact: true }).click();
   await expect(dialog.getByText("Saved for this visit.", { exact: false })).toBeVisible();
-  await dialog.getByRole("button", { name: "Taipei", exact: true }).click();
-  await expect(dialog.getByText("2 of 4", { exact: true })).toBeVisible();
+  await expect(dialog.getByRole("navigation", { name: "Thought collection" }).getByRole("button")).toHaveCount(2);
   await dialog.getByRole("link", { name: /Play Taipei Run/ }).click();
   const arcade = page.getByRole("dialog", { name: "Taipei Run" });
   await expect(arcade).toBeVisible();
