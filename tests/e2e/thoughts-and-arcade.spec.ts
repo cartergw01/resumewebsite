@@ -18,7 +18,7 @@ test("desk thoughts preserve the original voice, save across visits, and leave t
   await expect(page).toHaveTitle(/Carter/);
   await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
   await openObject(page, "[data-thought-cards]", isMobile);
-  const dialog = page.getByRole("dialog", { name: "Loose thoughts." });
+  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Close thoughts" })).toBeFocused();
   await expect.poll(() => page.locator("[data-background-video]").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
@@ -26,10 +26,9 @@ test("desk thoughts preserve the original voice, save across visits, and leave t
   await expect.poll(() => page.locator('#writing [data-island-visual]').evaluate(node => getComputedStyle(node).animationPlayState.split(",").every(state => state.trim() === "paused"))).toBe(true);
   await expect(dialog.getByText("1 of 30", { exact: true })).toBeVisible();
   await expect(dialog.getByText(/the conclusion isn’t predetermined, but discovered\./)).toBeVisible();
-  await expect(dialog.getByRole("link", { name: "Original post" })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/2080978926567067695");
+  await expect(dialog.getByRole("link", { name: "View on X" })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/2080978926567067695");
   await dialog.getByRole("button", { name: "Save thought", exact: true }).click();
   await page.screenshot({ path: `/tmp/carter-thoughts-${testInfo.project.name}.png` });
-  await dialog.getByRole("button", { name: "Read the full thought" }).click();
   await expect(dialog.getByText("after all…no pain, no gain.", { exact: true })).toBeVisible();
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
@@ -72,7 +71,7 @@ test("a shared thought works without storage and connects to the playable arcade
   });
   await page.route("https://taipeirun.com/", route => route.fulfill({ contentType: "text/html", body: gameFixture }));
   await page.goto("/?thought=2104108558929502655#writing");
-  const dialog = page.getByRole("dialog", { name: "Loose thoughts." });
+  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "2104108558929502655");
   await dialog.getByRole("button", { name: "Copy link", exact: true }).click();

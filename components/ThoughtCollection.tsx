@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import thoughts from "@/content/thoughts.json";
 import { useIslandDialog } from "@/lib/use-island-dialog";
 import styles from "./ThoughtCollection.module.css";
@@ -29,7 +30,6 @@ export default function ThoughtCollection({ initialId, onClose }: { initialId: s
   });
   const [saved, setSaved] = useState(readSaved);
   const [collection, setCollection] = useState<"All" | "Saved">("All");
-  const [full, setFull] = useState(false);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "fallback">("idle");
   const [saveNotice, setSaveNotice] = useState("");
   const filtered = collection === "Saved" ? thoughts.filter(thought => saved.includes(thought.id)) : thoughts;
@@ -39,7 +39,7 @@ export default function ThoughtCollection({ initialId, onClose }: { initialId: s
 
   useIslandDialog(dialog, closeButton);
   const choose = (id: string) => {
-    setSelected(id); setFull(false); setCopyState("idle"); setSaveNotice("");
+    setSelected(id); setCopyState("idle"); setSaveNotice("");
     if (scroll.current) scroll.current.scrollTop = 0;
     try { localStorage.setItem(LAST_KEY, id); } catch { /* Reading works without storage. */ }
   };
@@ -59,31 +59,42 @@ export default function ThoughtCollection({ initialId, onClose }: { initialId: s
   return createPortal(<dialog ref={dialog} className={styles.dialog} aria-labelledby="thoughts-title" data-direct-navigation data-thought-collection
     onCancel={event => { event.preventDefault(); onClose(); }}
     onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <div className={styles.desk}>
+    <div className={styles.reader}>
       <header className={styles.header}>
-        <div><p className={styles.eyebrow}>From the writing desk</p><h2 id="thoughts-title">Loose thoughts.</h2><p className={styles.subtitle}>A selection from <a href="https://x.com/carterkowang/highlights" target="_blank" rel="noopener noreferrer">@carterkowang’s Highlights</a></p></div>
-        <button ref={closeButton} className={styles.close} type="button" aria-label="Close thoughts" onClick={onClose} autoFocus>×</button>
+        <h2 id="thoughts-title">A stream of consciousness</h2>
+        <button ref={closeButton} className={styles.close} type="button" aria-label="Close thoughts" onClick={onClose} autoFocus>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+        </button>
       </header>
-      <nav className={styles.filters} aria-label="Thought collection">
+      <nav className={styles.collections} aria-label="Thought collection">
         {collections.map(item => <button key={item} type="button" aria-pressed={collection === item} onClick={() => filter(item)}>{item}{item === "Saved" && saved.length > 0 ? ` · ${saved.length}` : ""}</button>)}
+        <span className={styles.count} role="status" aria-live="polite">{current ? `${index + 1} of ${filtered.length}` : "No saved thoughts"}</span>
       </nav>
-      <div ref={scroll} className={styles.scroll}>
-        {current ? <article key={current.id} className={styles.paper} data-thought-id={current.id} data-full={full}>
-          <div className={styles.meta}><time dateTime={current.date}>{dateFormat.format(new Date(current.date))}</time></div>
-          <div className={full ? styles.full : styles.excerpt}>
-            {(full ? current.text : current.excerpt).split(/\n\s*\n/).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+      <div ref={scroll} className={styles.scroll} tabIndex={0} aria-label="Post content">
+        {current ? <article key={current.id} className={styles.post} data-thought-id={current.id}>
+          <header className={styles.author}>
+            <a className={styles.profile} href="https://x.com/carterkowang" target="_blank" rel="noopener noreferrer" aria-label="Carter Wang, @carterkowang on X">
+              <span className={styles.avatar}><Image src="/headshot.jpg" alt="" width={88} height={88} sizes="88px" /></span>
+              <span className={styles.identity}><strong>Carter Wang</strong><span>@carterkowang</span></span>
+            </a>
+            <svg className={styles.xMark} viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.6 5.5 22H2.3l8.2-9.4L.8 2h6.5l4.5 6.8L18.9 2Zm-1.1 18h1.7L6.4 3.9H4.6L17.8 20Z" /></svg>
+          </header>
+          <div className={styles.text}>
+            {current.text.split(/\n\s*\n/).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
           </div>
-          {current.excerpt !== current.text && <button className={styles.read} type="button" aria-expanded={full} onClick={() => { setFull(value => !value); if (scroll.current) scroll.current.scrollTop = 0; }}>{full ? "Back to the excerpt" : "Read the full thought"}</button>}
-          {full && current.hasQuotedContext && <p className={styles.context}>Originally shared with a quoted post. <a href={current.source} target="_blank" rel="noopener noreferrer">View the context on X</a></p>}
+          {current.hasQuotedContext && <p className={styles.context}>Originally shared with a quoted post. <a href={current.source} target="_blank" rel="noopener noreferrer">View the context on X</a></p>}
           {current.related && <a className={styles.related} href={current.related.href} target={current.related.href.startsWith("/") ? undefined : "_blank"} rel={current.related.href.startsWith("/") ? undefined : "noopener noreferrer"}>
             <span>{current.related.kind}</span><strong>{current.related.title}</strong>
           </a>}
-          <footer className={styles.paperFooter}>
-            <a href={current.source} target="_blank" rel="noopener noreferrer">Original post</a>
-            <div><button type="button" onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setCopyState("copied"); } catch { setCopyState("fallback"); } }}>{copyState === "copied" ? "Link copied" : "Copy link"}</button>
-              <button type="button" aria-pressed={saved.includes(current.id)} aria-label={saved.includes(current.id) ? "Unsave thought" : "Save thought"} onClick={save}>
-                <svg viewBox="0 0 16 20" width="13" height="16" fill={saved.includes(current.id) ? "currentColor" : "none"} aria-hidden="true"><path d="M2 1h12v17l-6-4-6 4Z" stroke="currentColor" strokeWidth="1.3" /></svg>{saved.includes(current.id) ? "Saved" : "Save"}
-              </button></div>
+          <time className={styles.date} dateTime={current.date}>{dateFormat.format(new Date(current.date))}</time>
+          <footer className={styles.actions}>
+            <button type="button" aria-pressed={saved.includes(current.id)} aria-label={saved.includes(current.id) ? "Unsave thought" : "Save thought"} onClick={save}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill={saved.includes(current.id) ? "currentColor" : "none"} aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>{saved.includes(current.id) ? "Saved" : "Save"}
+            </button>
+            <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setCopyState("copied"); } catch { setCopyState("fallback"); } }}>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m10 13 4-4m-6 6-1 1a4.24 4.24 0 0 1-6-6l4-4a4.24 4.24 0 0 1 6 0m2 2 1-1a4.24 4.24 0 0 1 6 6l-4 4a4.24 4.24 0 0 1-6 0" transform="translate(1 1)" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>{copyState === "copied" ? "Copied" : "Copy link"}
+            </button>
+            <a href={current.source} target="_blank" rel="noopener noreferrer">View on X</a>
           </footer>
           {copyState === "fallback" && <label className={styles.copy}>Copy this link<input aria-label="Link to this thought" readOnly value={shareUrl} onFocus={event => event.currentTarget.select()} /></label>}
           <span className="sr-only" role="status">{copyState === "copied" ? "Link copied to clipboard." : ""}</span>
@@ -91,9 +102,9 @@ export default function ThoughtCollection({ initialId, onClose }: { initialId: s
         </article> : <div className={styles.empty}><h3>Keep a thought for later.</h3><p>Save the ones that stay with you.<br />They’ll be here when you come back on this device.</p><button type="button" onClick={() => filter("All")}>Browse all thoughts</button></div>}
       </div>
       <footer className={styles.browse}>
-        <button type="button" aria-label="Previous thought" disabled={filtered.length < 2} onClick={() => choose(filtered[(index - 1 + filtered.length) % filtered.length].id)}><span>Previous</span></button>
-        <div><span className={styles.count} role="status" aria-live="polite">{current ? `${index + 1} of ${filtered.length}` : "No saved thoughts"}</span><button type="button" disabled={filtered.length < 2} onClick={() => choose(filtered[(index + 1 + Math.floor(Math.random() * (filtered.length - 1))) % filtered.length].id)}>Shuffle</button></div>
-        <button type="button" aria-label="Next thought" disabled={filtered.length < 2} onClick={() => choose(filtered[(index + 1) % filtered.length].id)}><span>Next</span></button>
+        <button type="button" aria-label="Previous thought" disabled={filtered.length < 2} onClick={() => choose(filtered[(index - 1 + filtered.length) % filtered.length].id)}>Previous</button>
+        <button type="button" disabled={filtered.length < 2} onClick={() => choose(filtered[(index + 1 + Math.floor(Math.random() * (filtered.length - 1))) % filtered.length].id)}>Shuffle</button>
+        <button type="button" aria-label="Next thought" disabled={filtered.length < 2} onClick={() => choose(filtered[(index + 1) % filtered.length].id)}>Next</button>
       </footer>
     </div>
   </dialog>, document.body);
