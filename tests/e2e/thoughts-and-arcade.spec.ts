@@ -36,6 +36,7 @@ test("desk thoughts preserve the original voice, remember the last post, and lea
   const avatar = dialog.locator('img');
   await expect(avatar).toHaveAttribute("src", /x-profile\.jpg/);
   await expect.poll(() => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
   await page.screenshot({ path: `/tmp/carter-thoughts-${testInfo.project.name}.png` });
   await expect(dialog.getByText("after all…no pain, no gain.", { exact: true })).toBeVisible();
   await page.keyboard.press("ArrowDown");
@@ -50,11 +51,13 @@ test("desk thoughts preserve the original voice, remember the last post, and lea
   await dialog.getByRole("button", { name: "Next thought" }).click();
   const nextId = await dialog.locator("article").getAttribute("data-thought-id");
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
+  await expect(dialog).toHaveCount(0);
   await openObject(page, "[data-thought-cards]", isMobile);
   await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", nextId!);
   await dialog.getByRole("button", { name: "Previous thought" }).click();
   await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
+  await expect(dialog).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(remoteRequests).toEqual([]);
   expect(errors).toEqual([]);
@@ -82,6 +85,7 @@ test("shared thoughts work without storage and removed promotional links fall ba
   await dialog.getByRole("button", { name: "Next thought" }).click();
   await expect(dialog.locator("article")).not.toHaveAttribute("data-thought-id", "1944727397909279094");
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
+  await expect(dialog).toHaveCount(0);
   await expect(page).toHaveURL(/\/#writing$/);
   await expect(page.locator("[data-thought-cards]")).toBeFocused();
   // An old shared link must never resurrect the removed Taipei Run launch post.
@@ -89,6 +93,54 @@ test("shared thoughts work without storage and removed promotional links fall ba
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "2080978926567067695");
   await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test("the note stack handles interrupted lifts and reduced motion", async ({ page, isMobile }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  // Hold the first lift midway so the interruption check is independent of
+  // browser speed; later animations, including the exit, run normally.
+  await page.addInitScript(() => {
+    const animate = Element.prototype.animate;
+    let held = false;
+    Element.prototype.animate = function (frames, options) {
+      const animation = animate.call(this, frames, options);
+      if (!held && this.hasAttribute("data-note-stack")) {
+        held = true;
+        animation.pause();
+        animation.currentTime = 140;
+      }
+      return animation;
+    };
+  });
+  await page.goto("/#writing");
+  await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
+  const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
+  await openObject(page, "[data-thought-cards]", isMobile);
+  await expect(dialog).toHaveAttribute("data-note-motion", "opening");
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator("[data-thought-cards]")).toBeFocused();
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-overlay");
+
+  await openObject(page, "[data-thought-cards]", isMobile);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  await expect(dialog.locator("[data-note-sheet]")).toHaveCount(2);
+  await expect.poll(() => dialog.locator("[data-note-stack]").evaluate(node => node.getAnimations({ subtree: true }).length)).toBe(0);
+  await dialog.getByRole("button", { name: "Close thoughts" }).click();
+  await expect(dialog).toHaveCount(0);
+
+  await openObject(page, "[data-thought-cards]", isMobile);
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  await expect.poll(() => dialog.locator("[data-note-stack]").evaluate(node => node.getAnimations({ subtree: true }).length)).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+  expect(await page.evaluate(() => document.documentElement.style.overflow)).not.toBe("hidden");
   expect(errors).toEqual([]);
 });
 

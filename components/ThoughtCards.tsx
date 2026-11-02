@@ -1,20 +1,25 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ARTWORK_PARALLAX_EVENT } from "@/lib/artwork-perspective";
 import type { ParallaxState } from "./IslandLife";
+import type { NoteOrigin } from "@/lib/use-note-stack-motion";
 import styles from "./ThoughtCards.module.css";
 
-const ThoughtCollection = dynamic(() => import("./ThoughtCollection"), { ssr: false });
+const loadCollection = () => import("./ThoughtCollection");
+const ThoughtCollection = dynamic(loadCollection, { ssr: false });
+const warmCollection = () => { void loadCollection().catch(() => {}); };
 const point = [447, 431] as const;
 
 export default function ThoughtCards() {
   const layer = useRef<HTMLSpanElement>(null);
   const position = useRef<HTMLSpanElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
   const [scale, setScale] = useState(0);
   const [open, setOpen] = useState(false);
+  const [origin, setOrigin] = useState<NoteOrigin | null>(null);
   const [initialId, setInitialId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,11 +41,17 @@ export default function ThoughtCards() {
     resize(); move();
     return () => { observer.disconnect(); visual.removeEventListener(ARTWORK_PARALLAX_EVENT, move); };
   }, [scale]);
+  useLayoutEffect(() => {
+    if (!open && restoreFocus.current) {
+      restoreFocus.current = false;
+      button.current?.focus({ preventScroll: true });
+    }
+  }, [open]);
   const close = () => {
-    setOpen(false); setInitialId(null);
+    restoreFocus.current = true;
+    setOpen(false); setInitialId(null); setOrigin(null);
     const url = new URL(location.href);
     if (url.searchParams.has("thought")) { url.searchParams.delete("thought"); history.replaceState(history.state, "", url); }
-    requestAnimationFrame(() => button.current?.focus({ preventScroll: true }));
   };
 
   return <>
@@ -57,12 +68,17 @@ export default function ThoughtCards() {
           </svg>
           {scale > 0 && <button ref={button} className={styles.target} type="button" data-thought-cards
             style={{ left: point[0] * scale, top: point[1] * scale }} aria-label="Read Carter's thoughts" aria-haspopup="dialog"
-            data-tip="A stream of consciousness" onClick={() => setOpen(true)}>
+            data-tip="A stream of consciousness" onPointerEnter={warmCollection} onPointerDown={warmCollection} onFocus={warmCollection}
+            onClick={event => {
+              const box = event.currentTarget.getBoundingClientRect();
+              setOrigin({ x: box.x + box.width / 2, y: box.y + box.height / 2, width: box.width });
+              setOpen(true);
+            }}>
             <span className={styles.dot} aria-hidden="true" /><span className={styles.hint} aria-hidden="true">A stream of consciousness</span>
           </button>}
         </span>
       </span>
     </span>
-    {open && <ThoughtCollection initialId={initialId} onClose={close} />}
+    {open && <ThoughtCollection initialId={initialId} origin={origin} onClose={close} />}
   </>;
 }
