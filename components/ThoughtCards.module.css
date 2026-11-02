@@ -2,11 +2,14 @@
 .frame, .position { position: relative; display: block; width: 100%; height: 100%; }
 .art { position: absolute; inset: 0; width: 100%; height: 100%; transition: filter 300ms; }
 .target { position: absolute; translate: -50% -50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; border-radius: 8px; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.dot { width: 6px; height: 6px; background: #fff1cd; border: 1px solid #55452d; border-radius: 50%; box-shadow: 0 0 0 3px #17130d66; }
+/* Keep the 44px tap area, with the same quiet pinpoint as the workshop. */
+.dot { width: 3px; height: 3px; background: #fff1cd; border-radius: 50%; box-shadow: 0 1px 2px #080b13; opacity: .65; transition: opacity 150ms ease, scale 150ms ease; }
+.target:focus-visible .dot { opacity: 1; scale: 1.3333; }
+@media (hover: hover) and (pointer: fine) { .target:hover .dot { opacity: 1; scale: 1.3333; } }
 .hint { position: absolute; bottom: 40px; left: 50%; translate: -50% 0; white-space: nowrap; padding: 7px 10px; border-radius: 4px; color: #f5e8cd; background: #101721; font: 12px/1.3 var(--font-sans),sans-serif; opacity: 0; pointer-events: none; }
 .target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
 .target:focus-visible .hint { opacity: 1; }
 :global(html[data-writing-lights="off"]) .art { filter: brightness(.34) saturate(.65); }
 :global([data-island-stage][data-travelling="true"]) .layer,
 :global([data-island-stage][data-entering]) .layer { visibility: hidden; }
-@media (prefers-reduced-motion: reduce) { .art { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .art, .dot { transition: none; } }
