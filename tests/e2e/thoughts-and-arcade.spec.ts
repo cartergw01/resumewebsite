@@ -1,4 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+const thoughts = JSON.parse(readFileSync(new URL("../../content/thoughts.json", import.meta.url), "utf8")) as { id: string; text: string; source: string }[];
 
 async function openObject(page: Page, selector: string, mobile: boolean) {
   const object = page.locator(selector);
@@ -9,16 +11,23 @@ async function openObject(page: Page, selector: string, mobile: boolean) {
 }
 const gameFixture = '<title>Taipei Run test session</title><button onclick="this.textContent=\'Session started\'">Start session</button>';
 
-test("desk thoughts preserve the original voice, remember the last post, and leave the notebook usable", async ({ page, isMobile }, testInfo) => {
+async function expectOriginalThought(dialog: Locator) {
+  const id = await dialog.locator("article").getAttribute("data-thought-id");
+  const thought = thoughts.find(thought => thought.id === id);
+  expect(thought, "The selected tweet belongs to the curated collection").toBeDefined();
+  await expect(dialog.locator("article p")).toHaveText(thought!.text.split(/\n\s*\n/));
+  await expect(dialog.getByRole("link", { name: "View on X", exact: true })).toHaveAttribute("href", thought!.source);
+  await expect(dialog.getByRole("status")).toHaveText(`${thoughts.indexOf(thought!) + 1} of ${thoughts.length}`);
+  return thought!.id;
+}
+
+test("desk thoughts open randomly, shuffle without immediate repeats, and leave the notebook usable", async ({ page, isMobile }, testInfo) => {
   const errors: string[] = [];
   const remoteRequests: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (/^https:\/\/(?:x\.com|platform\.twitter\.com|taipeirun\.com)/.test(request.url())) remoteRequests.push(request.url()); });
-  await page.addInitScript(() => {
-    if (localStorage.getItem("carter-thoughts-last-v1") === null) {
-      localStorage.setItem("carter-thoughts-last-v1", "2104108558929502655");
-    }
-  });
+  // A prior reading should not pin every new visit to the same tweet.
+  await page.addInitScript(id => localStorage.setItem("carter-thoughts-last-v1", id), thoughts[0].id);
   await page.goto("/#writing");
   await expect(page).toHaveTitle(/Carter/);
   await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
@@ -29,33 +38,36 @@ test("desk thoughts preserve the original voice, remember the last post, and lea
   await expect.poll(() => page.locator("[data-background-video]").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-overlay", "true");
   await expect.poll(() => page.locator('#writing [data-island-visual]').evaluate(node => getComputedStyle(node).animationPlayState.split(",").every(state => state.trim() === "paused"))).toBe(true);
-  await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
-  await expect(dialog.getByText(/the conclusion isn’t predetermined, but discovered\./)).toBeVisible();
-  await expect(dialog.getByRole("link", { name: "View on X" })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/2080978926567067695");
-  await expect(dialog.getByRole("button", { name: /save|saved|shuffle|copy link/i })).toHaveCount(0);
+  const firstId = await expectOriginalThought(dialog);
+  expect(firstId).not.toBe(thoughts[0].id);
+  await expect(dialog.getByRole("button", { name: /save|saved|copy link/i })).toHaveCount(0);
   const avatar = dialog.locator('img');
   await expect(avatar).toHaveAttribute("src", /x-profile\.jpg/);
   await expect.poll(() => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  const shuffle = dialog.getByRole("button", { name: "Shuffle thoughts" });
+  await expect(shuffle).toBeVisible();
+  const tapArea = (await shuffle.boundingBox())!;
+  expect(tapArea.width).toBeGreaterThanOrEqual(44);
+  expect(tapArea.height).toBeGreaterThanOrEqual(44);
+  // Exercise the real touch target on phones and keyboard activation on desktop.
+  if (isMobile) await shuffle.tap();
+  else { await shuffle.focus(); await page.keyboard.press("Enter"); }
+  const shuffledId = await expectOriginalThought(dialog);
+  expect(shuffledId).not.toBe(firstId);
   await page.screenshot({ path: `/tmp/carter-thoughts-${testInfo.project.name}.png` });
-  await expect(dialog.getByText("after all…no pain, no gain.", { exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Next thought" }).click();
+  expect(await expectOriginalThought(dialog)).not.toBe(shuffledId);
+  await dialog.getByRole("button", { name: "Previous thought" }).click();
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", shuffledId);
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.locator("[data-thought-cards]")).toBeFocused();
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-overlay");
-  await page.reload();
-  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await openObject(page, "[data-thought-cards]", isMobile);
-  await dialog.getByRole("button", { name: "Next thought" }).click();
-  const nextId = await dialog.locator("article").getAttribute("data-thought-id");
-  await dialog.getByRole("button", { name: "Close thoughts" }).click();
-  await expect(dialog).toHaveCount(0);
-  await openObject(page, "[data-thought-cards]", isMobile);
-  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", nextId!);
-  await dialog.getByRole("button", { name: "Previous thought" }).click();
-  await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
+  expect(await expectOriginalThought(dialog)).not.toBe(shuffledId);
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
   await expect(dialog).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -67,7 +79,7 @@ test("desk thoughts preserve the original voice, remember the last post, and lea
   await expect(page).toHaveURL(/\/writing$/);
 });
 
-test("shared thoughts work without storage and removed promotional links fall back gracefully", async ({ page }) => {
+test("shared thoughts and shuffle work without storage, and removed promotional links fall back gracefully", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.addInitScript(() => {
@@ -80,10 +92,10 @@ test("shared thoughts work without storage and removed promotional links fall ba
   await expect(dialog.getByRole("navigation", { name: "Thought collection" })).toHaveCount(0);
   await expect(dialog.getByText("Originally shared with a quoted post.", { exact: false })).toHaveCount(0);
   await expect(dialog.getByRole("link", { name: "View the context on X" })).toHaveCount(0);
-  await expect(dialog.getByRole("link", { name: "View on X", exact: true })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/1944727397909279094");
+  await expectOriginalThought(dialog);
   await expect(dialog.locator('a:not([href^="https://x.com/"])')).toHaveCount(0);
-  await dialog.getByRole("button", { name: "Next thought" }).click();
-  await expect(dialog.locator("article")).not.toHaveAttribute("data-thought-id", "1944727397909279094");
+  await dialog.getByRole("button", { name: "Shuffle thoughts" }).click();
+  expect(await expectOriginalThought(dialog)).not.toBe("1944727397909279094");
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page).toHaveURL(/\/#writing$/);
@@ -91,8 +103,7 @@ test("shared thoughts work without storage and removed promotional links fall ba
   // An old shared link must never resurrect the removed Taipei Run launch post.
   await page.goto("/?thought=2104108558929502655#writing");
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "2080978926567067695");
-  await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
+  expect(await expectOriginalThought(dialog)).not.toBe("2104108558929502655");
   expect(errors).toEqual([]);
 });
 

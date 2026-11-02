@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import thoughts from "@/content/thoughts.json";
@@ -12,25 +12,32 @@ const LAST_KEY = "carter-thoughts-last-v1";
 const ids = new Set(thoughts.map(thought => thought.id));
 const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "Asia/Taipei" });
 const readLast = () => { try { return localStorage.getItem(LAST_KEY); } catch { return null; } };
+const randomThought = (except: string | null) => {
+  const candidates = thoughts.filter(thought => thought.id !== except);
+  return candidates.length ? candidates[Math.floor(Math.random() * candidates.length)].id : thoughts[0].id;
+};
 
 export default function ThoughtCollection({ initialId, origin, onClose }: { initialId: string | null; origin: NoteOrigin | null; onClose: () => void }) {
   const closeButton = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const stack = useRef<HTMLDivElement>(null);
   const scroll = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState(() => {
-    const id = initialId ?? readLast();
-    return id && ids.has(id) ? id : thoughts[0].id;
-  });
+  const [selected, setSelected] = useState(() =>
+    initialId && ids.has(initialId) ? initialId : randomThought(readLast())
+  );
   const current = thoughts.find(thought => thought.id === selected) ?? thoughts[0];
   const index = thoughts.indexOf(current);
+
+  // Remember only to avoid immediately repeating a post on the next opening.
+  useEffect(() => {
+    try { localStorage.setItem(LAST_KEY, selected); } catch { /* Reading works without storage. */ }
+  }, [selected]);
 
   useIslandDialog(dialog, closeButton);
   const dismiss = useNoteStackMotion(dialog, stack, origin, onClose);
   const choose = (id: string) => {
     setSelected(id);
     if (scroll.current) scroll.current.scrollTop = 0;
-    try { localStorage.setItem(LAST_KEY, id); } catch { /* Reading works without storage. */ }
   };
 
   return createPortal(<dialog ref={dialog} className={styles.dialog} aria-label="Posts by Carter" data-direct-navigation data-thought-collection
@@ -69,7 +76,8 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
         </div>
         <footer className={styles.browse}>
           <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index - 1 + thoughts.length) % thoughts.length].id)}>Previous</button>
-          <span className={styles.count} role="status" aria-live="polite">{index + 1} of {thoughts.length}</span>
+          <button type="button" aria-label="Shuffle thoughts" disabled={thoughts.length < 2} onClick={() => choose(randomThought(current.id))}>Shuffle</button>
+          <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{index + 1} of {thoughts.length}</span>
           <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index + 1) % thoughts.length].id)}>Next</button>
         </footer>
       </div>

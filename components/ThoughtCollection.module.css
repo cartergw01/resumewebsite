@@ -49,7 +49,6 @@
 .browse button:first-child { justify-self: start; margin-left: -12px; }
 .browse button:last-child { justify-self: end; margin-right: -12px; }
 .browse button:disabled { opacity: .35; cursor: default; }
-.count { text-align: center; color: var(--post-muted); font-size: 12px; line-height: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dialog :is(button,a):focus-visible { outline: 2px solid var(--post-blue); outline-offset: 2px; }
 .scroll:focus-visible { outline: 1px solid var(--post-blue); outline-offset: -3px; }
 @media (hover: hover) {
