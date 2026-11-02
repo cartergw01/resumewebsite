@@ -9,7 +9,7 @@ async function openObject(page: Page, selector: string, mobile: boolean) {
 }
 const gameFixture = '<title>Taipei Run test session</title><button onclick="this.textContent=\'Session started\'">Start session</button>';
 
-test("desk thoughts preserve the original voice, save across visits, and leave the notebook usable", async ({ page, isMobile }, testInfo) => {
+test("desk thoughts preserve the original voice, remember the last post, and leave the notebook usable", async ({ page, isMobile }, testInfo) => {
   const errors: string[] = [];
   const remoteRequests: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -17,7 +17,6 @@ test("desk thoughts preserve the original voice, save across visits, and leave t
   await page.addInitScript(() => {
     if (localStorage.getItem("carter-thoughts-last-v1") === null) {
       localStorage.setItem("carter-thoughts-last-v1", "2104108558929502655");
-      localStorage.setItem("carter-thoughts-saved-v1", JSON.stringify(["2104108558929502655"]));
     }
   });
   await page.goto("/#writing");
@@ -33,7 +32,10 @@ test("desk thoughts preserve the original voice, save across visits, and leave t
   await expect(dialog.getByText("1 of 26", { exact: true })).toBeVisible();
   await expect(dialog.getByText(/the conclusion isn’t predetermined, but discovered\./)).toBeVisible();
   await expect(dialog.getByRole("link", { name: "View on X" })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/2080978926567067695");
-  await dialog.getByRole("button", { name: "Save thought", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: /save|saved/i })).toHaveCount(0);
+  const avatar = dialog.locator('img');
+  await expect(avatar).toHaveAttribute("src", /x-profile\.jpg/);
+  await expect.poll(() => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await page.screenshot({ path: `/tmp/carter-thoughts-${testInfo.project.name}.png` });
   await expect(dialog.getByText("after all…no pain, no gain.", { exact: true })).toBeVisible();
   await page.keyboard.press("ArrowDown");
@@ -45,12 +47,6 @@ test("desk thoughts preserve the original voice, save across visits, and leave t
   await page.reload();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await openObject(page, "[data-thought-cards]", isMobile);
-  await dialog.getByRole("button", { name: "Saved · 1", exact: true }).click();
-  await expect(dialog.getByText("1 of 1", { exact: true })).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Next thought" })).toBeDisabled();
-  await dialog.getByRole("button", { name: "Unsave thought", exact: true }).click();
-  await expect(dialog.getByRole("heading", { name: "Keep a thought for later." })).toBeVisible();
-  await dialog.getByRole("button", { name: "Browse all thoughts" }).click();
   await dialog.getByRole("button", { name: "Next thought" }).click();
   const nextId = await dialog.locator("article").getAttribute("data-thought-id");
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
@@ -75,15 +71,16 @@ test("shared thoughts work without storage and removed promotional links fall ba
     Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Storage blocked", "SecurityError"); } });
     Object.defineProperty(navigator, "clipboard", { value: { writeText: async () => { throw new Error("Clipboard blocked"); } } });
   });
-  await page.goto("/?thought=2021535795115708894#writing");
+  await page.goto("/?thought=1944727397909279094#writing");
   const dialog = page.getByRole("dialog", { name: "A stream of consciousness" });
   await expect(dialog).toBeVisible();
-  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "2021535795115708894");
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", "1944727397909279094");
   await dialog.getByRole("button", { name: "Copy link", exact: true }).click();
-  await expect(dialog.getByRole("textbox", { name: "Link to this thought" })).toHaveValue(/\?thought=2021535795115708894#writing$/);
-  await dialog.getByRole("button", { name: "Save thought", exact: true }).click();
-  await expect(dialog.getByText("Saved for this visit.", { exact: false })).toBeVisible();
-  await expect(dialog.getByRole("navigation", { name: "Thought collection" }).getByRole("button")).toHaveCount(2);
+  await expect(dialog.getByRole("textbox", { name: "Link to this thought" })).toHaveValue(/\?thought=1944727397909279094#writing$/);
+  await expect(dialog.getByRole("navigation", { name: "Thought collection" })).toHaveCount(0);
+  await expect(dialog.getByText("Originally shared with a quoted post.", { exact: false })).toHaveCount(0);
+  await expect(dialog.getByRole("link", { name: "View the context on X" })).toHaveCount(0);
+  await expect(dialog.getByRole("link", { name: "View on X", exact: true })).toHaveAttribute("href", "https://x.com/CarterKoWang/status/1944727397909279094");
   await expect(dialog.locator('a:not([href^="https://x.com/"])')).toHaveCount(0);
   await dialog.getByRole("button", { name: "Close thoughts" }).click();
   await expect(page).toHaveURL(/\/#writing$/);
