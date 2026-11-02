@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useIslandDialog } from "@/lib/use-island-dialog";
 import styles from "./PokerChallenge.module.css";
 
 const rounds = [
@@ -13,6 +14,7 @@ const rounds = [
 
 export default function PokerChallenge({ onClose }: { onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
   const question = useRef<HTMLHeadingElement>(null);
   const feedback = useRef<HTMLDivElement>(null);
   const [round, setRound] = useState(0);
@@ -21,13 +23,7 @@ export default function PokerChallenge({ onClose }: { onClose: () => void }) {
   const [finished, setFinished] = useState(false);
   const current = rounds[round];
 
-  useEffect(() => {
-    const element = dialog.current!;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    element.showModal();
-    return () => { element.close(); document.body.style.overflow = overflow; };
-  }, []);
+  useIslandDialog(dialog, closeButton);
 
   const answer = (value: string) => {
     if (selected !== null) return;
@@ -54,7 +50,7 @@ export default function PokerChallenge({ onClose }: { onClose: () => void }) {
     <div className={styles.content}>
       <header className={styles.header}>
         <p>Poker odds challenge</p>
-        <button type="button" className={styles.close} onClick={onClose} aria-label="Close poker challenge">×</button>
+        <button ref={closeButton} type="button" className={styles.close} onClick={onClose} aria-label="Close poker challenge">×</button>
       </header>
       {finished ? <>
         <p className={styles.progress}>Four hands played</p>

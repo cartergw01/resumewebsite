@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useIslandDialog } from "@/lib/use-island-dialog";
 import { essays, islandProjects as projects } from "@/content/portfolio";
 import { curios } from "@/lib/workshop-discoveries";
 import WorkshopModel from "./WorkshopModel";
@@ -21,11 +22,7 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
   const essay = item?.essay && essays.find(essay => essay.title === item.essay);
   const project = item?.project ? projects.find(project => project.id === item.project) : undefined;
   const total = curios.length + projects.length;
-  useEffect(() => {
-    const element=dialog.current!;
-    const overflow=document.body.style.overflow; document.body.style.overflow="hidden"; element.showModal();
-    return () => { element.close(); document.body.style.overflow=overflow; };
-  }, []);
+  useIslandDialog(dialog, title);
   useLayoutEffect(() => {
     if (!dialog.current?.open) return;
     dialog.current.scrollTop = 0;

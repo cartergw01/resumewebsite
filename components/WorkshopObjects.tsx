@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { islandProjects as projects } from "@/content/portfolio";
 import objects from "@/lib/workshop-objects.json";
@@ -16,14 +16,9 @@ const allPoints = [...projects.map(project => objects[project.id as keyof typeof
 const known = new Set([...projects, ...curios].map(object => object.id));
 const FOUND_KEY = "carter-workshop-discoveries-v1";
 
-const descriptions: Record<string, string> = {
-  "taipei-run": "Play Taipei Run at the arcade",
-  "taipei-flix": "Explore TaipeiFlix on the cinema poster",
-  "poker-odds": "Play the poker odds challenge",
-  stocker: "Open Stocker on the research terminal",
-  "taipei-guide": "Explore Carter's Taipei Guide on the map",
-  "ikigai-timer": "Open the ikigai Timer",
-  "night-night-ko": "Open Night night, Ko from the moon clock",
+const labels: Record<string, string> = {
+  "poker-odds": "Poker Odds",
+  "taipei-guide": "Taipei Guide",
 };
 
 export default function WorkshopObjects() {
@@ -33,6 +28,7 @@ export default function WorkshopObjects() {
   const [arcade, setArcade] = useState(false);
   const pokerButton = useRef<HTMLButtonElement>(null);
   const pokerOrigin = useRef<HTMLElement | null>(null);
+  const restorePokerFocus = useRef(false);
   const [scale, setScale] = useState(0);
   const [challenge, setChallenge] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -88,9 +84,15 @@ export default function WorkshopObjects() {
     requestAnimationFrame(() => (arcadeOrigin.current ?? arcadeButton.current)?.focus({ preventScroll: true }));
   };
   const playArcade = () => { arcadeOrigin.current = selected ? opener.current : arcadeButton.current; discover("taipei-run"); setSelected(null); setArcade(true); };
+  useLayoutEffect(() => {
+    if (!challenge && restorePokerFocus.current) {
+      restorePokerFocus.current = false;
+      (pokerOrigin.current ?? pokerButton.current)?.focus({ preventScroll: true });
+    }
+  }, [challenge]);
   const close = () => {
+    restorePokerFocus.current = true;
     setChallenge(false);
-    requestAnimationFrame(() => (pokerOrigin.current ?? pokerButton.current)?.focus({ preventScroll: true }));
   };
   const closeDiscovery = () => { setSelected(null); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
   const playPoker = () => { pokerOrigin.current = selected ? opener.current : pokerButton.current; discover("poker-odds"); setSelected(null); setChallenge(true); };
@@ -108,10 +110,10 @@ export default function WorkshopObjects() {
         const [bx, by, bw, bh] = object.bounds;
         const width = Math.max((bw + 10) * scale, 28), height = Math.max((bh + 10) * scale, 28);
         const x = (bx + bw / 2) * scale - width / 2, y = (by + bh / 2) * scale - height / 2;
-        const label = descriptions[project.id];
+        const label = labels[project.id] ?? project.title;
         const contents = <span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }}>
           <span className={styles.dot} aria-hidden="true" />
-          <span className={styles.label} aria-hidden="true">{project.id === "poker-odds" ? "Poker odds challenge" : project.title}</span>
+          <span className={styles.label} aria-hidden="true">{label}</span>
         </span>;
         return <span key={project.id} className={styles.position} data-object-position={project.id}
           style={{ left: x, top: y, width, height }}>

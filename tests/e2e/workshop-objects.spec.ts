@@ -55,12 +55,15 @@ test("every physical project object opens its own destination without leaving th
 
 test("desk cards play four scored hands, replay, and restore keyboard focus", async ({ page, isMobile }, testInfo) => {
   await page.goto("/#projects");
-  const cards = page.getByRole("button", { name: "Play the poker odds challenge", exact: true });
+  const cards = page.getByRole("button", { name: "Poker Odds", exact: true });
   await expect(cards).toBeVisible();
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-travelling", "true");
+  const islandScroll = await page.evaluate(() => scrollY);
   if (isMobile) await clickObject(page, cards, true); else { await cards.focus(); await page.keyboard.press("Enter"); }
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Close poker challenge" })).toBeFocused();
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-overlay", "true");
   // Native modal focus stays inside even when tabbing backwards.
   await page.keyboard.press("Shift+Tab");
   await expect(dialog.getByRole("link", { name: /Open the full odds calculator/ })).toBeFocused();
@@ -80,6 +83,8 @@ test("desk cards play four scored hands, replay, and restore keyboard focus", as
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(cards).toBeFocused();
+  await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-overlay");
+  expect(await page.evaluate(() => scrollY)).toBe(islandScroll);
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -99,14 +104,14 @@ test("objects follow the island's perspective and stay inert offstage", async ({
   }
   await page.getByRole("button", { name: "Show Writing island", exact: true }).click();
   await expect(page.locator("#projects")).toHaveAttribute("inert", "");
-  await expect(page.getByRole("button", { name: "Play the poker odds challenge" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Poker Odds" })).toHaveCount(0);
   // Finish the existing flight before changing the OS motion preference.
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-navigating", "true");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-travelling", "true");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: "Show Projects island", exact: true }).click();
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
-  const cards = (await page.getByRole("button", { name: "Play the poker odds challenge" }).boundingBox())!;
+  const cards = (await page.getByRole("button", { name: "Poker Odds" }).boundingBox())!;
   // Click in place: auto-scroll into a pinned scene can move the island.
   await page.mouse.click(cards.x+cards.width/2,cards.y+cards.height/2);
   await expect(page.getByRole("dialog")).toBeVisible();
