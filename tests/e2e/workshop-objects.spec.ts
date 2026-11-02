@@ -66,7 +66,7 @@ test("desk cards play four scored hands, replay, and restore keyboard focus", as
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-overlay", "true");
   // Native modal focus stays inside even when tabbing backwards.
   await page.keyboard.press("Shift+Tab");
-  await expect(dialog.getByRole("link", { name: /Open the full odds calculator/ })).toBeFocused();
+  await expect(dialog.getByRole("link", { name: "Open poker calculator" })).toBeFocused();
   await page.keyboard.press("ArrowDown");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   for (const [index, answer] of ["10%", "25%", "33.3%", "40%"].entries()) {
@@ -75,7 +75,7 @@ test("desk cards play four scored hands, replay, and restore keyboard focus", as
     await expect(dialog.getByRole("status")).toContainText(index === 0 ? "The answer is 20%." : "Correct.");
     await expect(dialog.getByRole("group").getByRole("button").first()).toBeDisabled();
     if (index === 0) await page.screenshot({ path: `/tmp/carter-poker-${testInfo.project.name}.png` });
-    await dialog.getByRole("button", { name: index === 3 ? "See results →" : "Next hand →", exact: true }).click();
+    await dialog.getByRole("button", { name: index === 3 ? "Results" : "Next", exact: true }).click();
   }
   await expect(dialog.getByRole("heading", { name: "3 of 4 correct." })).toBeVisible();
   await dialog.getByRole("button", { name: "Play again", exact: true }).click();

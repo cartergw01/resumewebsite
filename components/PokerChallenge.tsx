@@ -49,13 +49,11 @@ export default function PokerChallenge({ onClose }: { onClose: () => void }) {
     onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
     <div className={styles.content}>
       <header className={styles.header}>
-        <p>Poker odds challenge</p>
+        <p>Poker Odds</p>
         <button ref={closeButton} type="button" className={styles.close} onClick={onClose} aria-label="Close poker challenge">×</button>
       </header>
       {finished ? <>
-        <p className={styles.progress}>Four hands played</p>
         <h2 ref={question} tabIndex={-1} id="poker-title">{score} of {rounds.length} correct.</h2>
-        <p className={styles.explanation}>The price of a call is the call amount divided by the pot after you call.</p>
         <button className={styles.next} type="button" onClick={() => {
           setRound(0); setSelected(null); setScore(0); setFinished(false);
           requestAnimationFrame(() => question.current?.focus());
@@ -65,9 +63,12 @@ export default function PokerChallenge({ onClose }: { onClose: () => void }) {
         <div className={styles.hand} aria-label={`Your hand: ${current.hand.join(", ")}`}>
           {current.hand.map(card => <span key={card} className={styles.card} data-red={/[♥♦]/.test(card)} aria-hidden="true">{card}</span>)}
         </div>
-        <h2 ref={question} tabIndex={-1} id="poker-title">What equity breaks even?</h2>
-        <p className={styles.context}>There are <strong>{current.pot} chips</strong> in the pot, including your opponent&apos;s bet. It costs <strong>{current.call} chips</strong> to call.</p>
-        <p className={styles.assumption}>Assume no further betting and no rake.</p>
+        <h2 ref={question} tabIndex={-1} id="poker-title">How often do you need to win?</h2>
+        <dl className={styles.stakes}>
+          <div><dt>Pot</dt><dd>{current.pot}<span> chips</span></dd></div>
+          <div><dt>Call</dt><dd>{current.call}<span> chips</span></dd></div>
+        </dl>
+        <p className={styles.assumption}>No more bets or fees.</p>
         <div className={styles.answers} role="group" aria-label="Choose the minimum break-even equity">
           {current.options.map(option => <button key={option} type="button" disabled={selected !== null}
             data-correct={selected !== null && option === current.answer} data-wrong={selected === option && option !== current.answer}
@@ -75,12 +76,12 @@ export default function PokerChallenge({ onClose }: { onClose: () => void }) {
         </div>
         <div ref={feedback} className={styles.feedback} role="status" aria-live="polite" tabIndex={-1}>
           {selected !== null && <><strong>{selected === current.answer ? "Correct." : `The answer is ${current.answer}.`}</strong>
-            <span>{current.call} ÷ ({current.pot} + {current.call}) = {current.answer}. That&apos;s the share of the final pot your call needs to recover.</span></>}
+            <span>{current.call} ÷ ({current.pot} + {current.call}) = {current.answer}.</span></>}
         </div>
-        {selected !== null && <button type="button" className={styles.next} onClick={next}>{round === rounds.length - 1 ? "See results" : "Next hand"} →</button>}
+        {selected !== null && <button type="button" className={styles.next} onClick={next}>{round === rounds.length - 1 ? "Results" : "Next"}</button>}
       </>}
       <footer className={styles.footer} data-direct-navigation>
-        <a href="https://poker-odds-app-pink.vercel.app/" target="_blank" rel="noopener noreferrer">Open the full odds calculator ↗</a>
+        <a href="https://poker-odds-app-pink.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Open poker calculator">Calculator</a>
       </footer>
     </div>
   </dialog>, document.body);

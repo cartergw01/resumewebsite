@@ -165,14 +165,47 @@ test("the cabinet loads the game on demand, reloads it, and releases it on close
   expect(gameRequests).toBe(0);
   const videoWasPlaying = await page.locator("[data-background-video]").evaluate((video: HTMLVideoElement) => !video.paused);
   await openObject(page, '[data-workshop-object="taipei-run"]', isMobile);
-  const arcade = page.getByRole("dialog", { name: "Taipei Run" });
+  const arcade = page.getByRole("dialog", { name: /Taipei Run/i });
   await expect(arcade).toBeVisible();
-  await expect(arcade.getByRole("button", { name: "Back to workshop" })).toBeFocused();
+  await expect(arcade.getByRole("button", { name: "Close arcade" })).toBeFocused();
+  await expect(arcade.getByText("Arcade session", { exact: true })).toHaveCount(0);
+  const frame = arcade.locator("iframe");
+  const screen = (await frame.boundingBox())!;
+  expect(screen.width).toBeGreaterThan(280);
+  expect(screen.height).toBeGreaterThan(420);
+  for (const control of await arcade.locator("button, a").all()) {
+    const box = (await control.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
   await expect(page.frameLocator('iframe[title="Taipei Run game"]').getByRole("button", { name: "Start session" })).toBeVisible();
   await expect.poll(() => gameRequests).toBe(1);
   await expect.poll(() => page.locator("[data-background-video]").evaluate((video: HTMLVideoElement) => video.paused)).toBe(true);
   await arcade.getByRole("button", { name: "Reload game" }).click();
   await expect.poll(() => gameRequests).toBe(2);
+  await expect(page.frameLocator('iframe[title="Taipei Run game"]').getByRole("button", { name: "Start session" })).toBeVisible();
+  await page.frameLocator('iframe[title="Taipei Run game"]').getByRole("button", { name: "Start session" }).click();
+  await expect(page.frameLocator('iframe[title="Taipei Run game"]').getByRole("button", { name: "Session started" })).toBeVisible();
+  if (isMobile) {
+    const originalSize = page.viewportSize()!;
+    for (const size of [{ width: 320, height: 568 }, { width: 844, height: 390 }]) {
+      await page.setViewportSize(size);
+      const bounds = (await frame.boundingBox())!;
+      expect(bounds.x).toBeGreaterThanOrEqual(0);
+      expect(bounds.y).toBeGreaterThanOrEqual(0);
+      expect(bounds.x + bounds.width).toBeLessThanOrEqual(size.width);
+      expect(bounds.y + bounds.height).toBeLessThanOrEqual(size.height);
+      expect(bounds.height).toBeGreaterThan(260);
+      for (const control of await arcade.locator("button, a").all()) {
+        const box = (await control.boundingBox())!;
+        expect(box.y).toBeGreaterThanOrEqual(0);
+        expect(box.y + box.height).toBeLessThanOrEqual(size.height);
+      }
+    }
+    await page.setViewportSize(originalSize);
+  }
+  // Escape belongs to the host dialog while its close control is focused.
+  await arcade.getByRole("button", { name: "Close arcade" }).focus();
   await page.keyboard.press("Escape");
   await expect(arcade).toHaveCount(0);
   await expect(page.locator("iframe")).toHaveCount(0);
@@ -193,14 +226,14 @@ test("a stalled arcade request offers retry and a full-game fallback", async ({ 
     await route.fulfill({ contentType: "text/html", body: gameFixture }).catch(() => {});
   });
   await page.goto("/?play=taipei-run#projects");
-  const arcade = page.getByRole("dialog", { name: "Taipei Run" });
+  const arcade = page.getByRole("dialog", { name: /Taipei Run/i });
   await expect(arcade).toBeVisible();
-  await expect(arcade.getByText("Starting the arcade…")).toBeVisible();
-  await expect(arcade.getByText("The arcade is taking a little longer.")).toBeVisible({ timeout: 15_000 });
-  await expect(arcade.getByRole("link", { name: "Open full game", exact: false })).toHaveAttribute("href", "https://taipeirun.com/");
-  await arcade.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(arcade.getByText("Loading…")).toBeVisible();
+  await expect(arcade.getByText("Still loading.")).toBeVisible({ timeout: 15_000 });
+  await expect(arcade.getByRole("link", { name: "Open game", exact: true })).toHaveAttribute("href", "https://taipeirun.com/");
+  await arcade.getByRole("button", { name: "Retry", exact: true }).click();
   await expect(page.frameLocator('iframe[title="Taipei Run game"]').getByRole("button", { name: "Start session" })).toBeVisible();
   release?.();
-  await arcade.getByRole("button", { name: "Back to workshop" }).click();
+  await arcade.getByRole("button", { name: "Close arcade" }).click();
   await expect(arcade).toHaveCount(0);
 });

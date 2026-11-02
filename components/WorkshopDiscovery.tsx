@@ -9,8 +9,8 @@ import WorkshopModel from "./WorkshopModel";
 import { WorkshopClocks, WorkshopHoops, WorkshopLights, WorkshopSynth } from "./WorkshopRewards";
 import styles from "./WorkshopDiscovery.module.css";
 
-export default function WorkshopDiscovery({ selected, found, onSelect, onFound, onClose, onPoker, onArcade }: {
-  selected: string; found: string[]; onSelect: (id:string)=>void; onFound:(id:string)=>void; onClose:()=>void; onPoker:()=>void; onArcade:()=>void;
+export default function WorkshopDiscovery({ selected, onSelect, onFound, onClose, onPoker, onArcade }: {
+  selected: string; onSelect: (id:string)=>void; onFound:(id:string)=>void; onClose:()=>void; onPoker:()=>void; onArcade:()=>void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -21,7 +21,8 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
   const model = item ?? inspected;
   const essay = item?.essay && essays.find(essay => essay.title === item.essay);
   const project = item?.project ? projects.find(project => project.id === item.project) : undefined;
-  const total = curios.length + projects.length;
+  const hasAction = !!item && item.reward !== "inspect";
+  const hasDetails = hasAction || !!essay || !!item?.research || !!project;
   useIslandDialog(dialog, title);
   useLayoutEffect(() => {
     if (!dialog.current?.open) return;
@@ -45,37 +46,34 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
     }}>
     <div className={styles.sheet}>
       <header className={styles.header}>
-        <div><h2 id="discovery-title" ref={title} tabIndex={-1}>{item?.name ?? "Look around the workshop."}</h2>
-          <p>{found.length} of {total} discovered{found.length===total ? " · You found everything." : ""}</p></div>
+        <h2 id="discovery-title" ref={title} tabIndex={-1}>{item?.name ?? "Objects"}</h2>
         <button type="button" className={styles.close} aria-label="Close discovery" onClick={onClose}>×</button>
       </header>
-        <div className={styles.inspection} hidden={!item}>
+        <div className={styles.inspection} hidden={!item} data-has-action={hasAction}>
           {model && <WorkshopModel src={model.src} name={model.name} bounds={model.bounds} glow={glow} />}
-          {item && <div className={styles.details} key={`details-${item.id}`}>
-            <p className={styles.caption}>Picked up from the island.</p>
+          {item && hasDetails && <div className={styles.details} key={`details-${item.id}`}>
             {item.reward === "hoops" && <WorkshopHoops />}
             {item.reward === "synth" && <WorkshopSynth />}
             {item.reward === "clocks" && <WorkshopClocks />}
             {item.reward === "lights" && <WorkshopLights />}
-            {item.reward === "lightstick" && <section className={styles.reward}><h3>Lights up.</h3><button className={styles.primary} type="button" aria-pressed={glow} onClick={()=>setGlow(value=>!value)}>{glow?"Dim the hearts":"Light the hearts"}</button></section>}
-            {item.reward === "poker" && <section className={styles.reward}><h3>Put the chips to work.</h3><button type="button" className={styles.primary} onClick={onPoker}>Play the odds challenge</button></section>}
-            {item.reward === "inspect" && <p className={styles.invitation}>{item.hint}</p>}
-            {essay && <a className={styles.related} data-direct-navigation href={essay.href} target="_blank" rel="noopener noreferrer"><span>From Carter’s writing</span><strong>{essay.title} ↗</strong><p>{essay.subtitle}</p></a>}
-            {item.research === "SpaceX" && <a className={styles.related} data-direct-navigation href="https://research.contrary.com/company/spacex" target="_blank" rel="noopener noreferrer"><span>Carter’s research</span><strong>SpaceX ↗</strong></a>}
-            {project?.id === "taipei-run" ? <button type="button" className={styles.primary} onClick={onArcade}>Play Taipei Run →</button> : project && <a className={styles.related} data-direct-navigation href={project.href} target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>Keep exploring</span><strong>{project.title} ↗</strong></a>}
+            {item.reward === "lightstick" && <section className={styles.reward}><button className={styles.primary} type="button" aria-pressed={glow} aria-label={glow ? "Turn light stick off" : "Turn light stick on"} onClick={()=>setGlow(value=>!value)}>{glow?"Turn off":"Turn on"}</button></section>}
+            {item.reward === "poker" && <section className={styles.reward}><button type="button" className={styles.primary} onClick={onPoker}>Play poker</button></section>}
+            {essay && <a className={styles.related} data-direct-navigation href={essay.href} target="_blank" rel="noopener noreferrer"><strong>{essay.title}</strong></a>}
+            {item.research === "SpaceX" && <a className={styles.related} data-direct-navigation href="https://research.contrary.com/company/spacex" target="_blank" rel="noopener noreferrer"><strong>SpaceX</strong></a>}
+            {project?.id === "taipei-run" ? <button type="button" className={styles.primary} onClick={onArcade}>Taipei Run</button> : project && <a className={styles.related} data-direct-navigation href={project.href} target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><strong>{project.title}</strong></a>}
           </div>}
         </div>
       {item ? <>
-        <nav className={styles.browse} aria-label="Explore more objects"><button type="button" onClick={()=>select("directory")}>All objects</button><button type="button" onClick={()=>select(curios[(curios.indexOf(item)+1)%curios.length].id)}>Next object →</button></nav>
+        <nav className={styles.browse} aria-label="Explore more objects"><button type="button" onClick={()=>select("directory")}>All objects</button><button type="button" onClick={()=>select(curios[(curios.indexOf(item)+1)%curios.length].id)} aria-label="Next object">Next</button></nav>
       </> : <>
-        <label className={styles.search}>Find an object<input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Try Lugia, AirPods, or basketball" /></label>
+        <label className={styles.search}><span className="sr-only">Search objects</span><input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Search" /></label>
         <div className={styles.index}>
           {projects.filter(project=>project.title.toLowerCase().includes(query.toLowerCase())).map(project=>
-            (project.id==="poker-odds" || project.id==="taipei-run") ? <button key={project.id} type="button" onClick={project.id==="poker-odds" ? onPoker : onArcade}><span>{project.title}</span><small>{found.includes(project.id)?"Found":"Play"}</small></button> :
-            <a key={project.id} href={project.href} data-direct-navigation target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>{project.title} ↗</span><small>{found.includes(project.id)?"Found":"Open project"}</small></a>)}
-          {curios.filter(object=>object.name.toLowerCase().includes(query.toLowerCase())).map(object=><button key={object.id} data-discovery-choice={object.id} type="button" onClick={()=>select(object.id)}><span>{object.name}</span><small>{found.includes(object.id)?"Found":"Pick up"}</small></button>)}
+            (project.id==="poker-odds" || project.id==="taipei-run") ? <button key={project.id} type="button" onClick={project.id==="poker-odds" ? onPoker : onArcade}><span>{project.title}</span></button> :
+            <a key={project.id} href={project.href} data-direct-navigation target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>{project.title}</span></a>)}
+          {curios.filter(object=>object.name.toLowerCase().includes(query.toLowerCase())).map(object=><button key={object.id} data-discovery-choice={object.id} type="button" onClick={()=>select(object.id)}><span>{object.name}</span></button>)}
         </div>
-        {!projects.some(p=>p.title.toLowerCase().includes(query.toLowerCase()))&&!curios.some(o=>o.name.toLowerCase().includes(query.toLowerCase()))&&<p role="status">No objects match “{query}”. Try another name.</p>}
+        {!projects.some(p=>p.title.toLowerCase().includes(query.toLowerCase()))&&!curios.some(o=>o.name.toLowerCase().includes(query.toLowerCase()))&&<p role="status">No objects found.</p>}
       </>}
     </div>
   </dialog>,document.body);

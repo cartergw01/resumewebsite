@@ -140,7 +140,7 @@ export default function WorkshopObjects() {
       })}
       </span>
     </span>
-    {selected && <WorkshopDiscovery selected={selected} found={found} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} onArcade={playArcade} />}
+    {selected && <WorkshopDiscovery selected={selected} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} onArcade={playArcade} />}
     {arcade && <TaipeiArcade onClose={closeArcade} />}
     {challenge && <PokerChallenge onClose={close} />}
   </>;
