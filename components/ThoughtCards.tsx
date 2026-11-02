@@ -57,8 +57,8 @@ export default function ThoughtCards() {
           </svg>
           {scale > 0 && <button ref={button} className={styles.target} type="button" data-thought-cards
             style={{ left: point[0] * scale, top: point[1] * scale }} aria-label="Read Carter's thoughts" aria-haspopup="dialog"
-            data-tip="A few thoughts, scribbled down" onClick={() => setOpen(true)}>
-            <span className={styles.dot} aria-hidden="true" /><span className={styles.hint} aria-hidden="true">A few thoughts</span>
+            data-tip="A stream of consciousness" onClick={() => setOpen(true)}>
+            <span className={styles.dot} aria-hidden="true" /><span className={styles.hint} aria-hidden="true">A stream of consciousness</span>
           </button>}
         </span>
       </span>
