@@ -14,7 +14,6 @@ async function clickObject(page: Page, object: Locator, touch: boolean) {
 
 const destinations = {
   "taipei-flix": "https://taipeiflix.com/",
-  "886-studios": "https://886studios.com/",
   "taipei-run": "https://taipeirun.com/",
   stocker: "https://stocker-app-one.vercel.app/",
   "taipei-guide": "https://taipei-guide-etaa.vercel.app/",
@@ -30,7 +29,8 @@ test("every physical project object opens its own destination without leaving th
   await page.goto("/#projects");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   const objects = page.locator("#projects [data-workshop-object]");
-  await expect(objects).toHaveCount(8);
+  await expect(objects).toHaveCount(7);
+  await expect(page.locator('#projects a[href="https://886studios.com"]')).toHaveCount(0);
   await expect(page.locator("#projects [data-island-visual]")).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
   await expect(page.locator("html")).toHaveAttribute("data-rocket-transition", "idle");
   for (const [id, href] of Object.entries(destinations)) {

@@ -53,7 +53,7 @@ test("all exported props can be picked up and inspected",async({page},testInfo)=
     await expect(page.locator('[data-model-state="ready"]'),spec.id).toBeVisible({timeout:15_000});
     await expect(page.getByRole("heading",{name:spec.name,exact:true})).toBeVisible();
   }
-  await expect(page.getByText(`${specs.length} of ${specs.length+8} discovered`,{exact:true})).toBeVisible();
+  await expect(page.getByText(`${specs.length} of ${specs.length+7} discovered`,{exact:true})).toBeVisible();
   expect(errors).toEqual([]);
 });
 

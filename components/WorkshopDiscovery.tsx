@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { essays, projects } from "@/content/portfolio";
+import { essays, linkedProjects as projects } from "@/content/portfolio";
 import { curios } from "@/lib/workshop-discoveries";
 import WorkshopModel from "./WorkshopModel";
 import { WorkshopClocks, WorkshopHoops, WorkshopLights, WorkshopSynth } from "./WorkshopRewards";

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { projects } from "@/content/portfolio";
+import { linkedProjects as projects } from "@/content/portfolio";
 import objects from "@/lib/workshop-objects.json";
 import { ARTWORK_PARALLAX_EVENT } from "@/lib/artwork-perspective";
 import type { ParallaxState } from "./IslandLife";
@@ -11,7 +11,7 @@ import styles from "./WorkshopObjects.module.css";
 import { curios, curiosityClip } from "@/lib/workshop-discoveries";
 
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
-const allPoints = [...Object.values(objects), ...curios].map(object => object.point);
+const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...curios].map(object => object.point);
 const known = new Set([...projects, ...curios].map(object => object.id));
 const FOUND_KEY = "carter-workshop-discoveries-v1";
 
@@ -21,7 +21,6 @@ const descriptions: Record<string, string> = {
   "poker-odds": "Play the poker odds challenge",
   stocker: "Open Stocker on the research terminal",
   "taipei-guide": "Explore Carter's Taipei Guide on the map",
-  "886-studios": "Visit 886 Studios from the studio plaque",
   "ikigai-timer": "Open the ikigai Timer",
   "night-night-ko": "Open Night night, Ko from the moon clock",
 };

@@ -46,25 +46,28 @@ export default function ProjectsPage() {
             <section className="project-list" aria-label="Live projects">
               {projects.length === 0 ? (
                 <p className="project-empty">Projects will appear here soon.</p>
-              ) : projects.map((project, index) => (
-                <a
-                  className="project-row"
-                  key={project.href}
-                  href={project.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Open ${project.title} live project in a new tab`}
-                  style={{ animationDelay: `${0.08 + index * 0.045}s` }}
-                  data-workshop-reveal
-                >
-                  <ProjectShot src={project.image} title={project.title} dock={index === 0} eager={index < 3} mobilePreview={project.mobilePreview} />
-                  <span className="project-row-copy">
-                    <strong>{project.title}</strong>
-                    <span>{project.description}</span>
-                  </span>
-                  <em>View →</em>
-                </a>
-              ))}
+              ) : projects.map((project, index) => {
+                const ProjectRow = project.href ? "a" : "div";
+                return (
+                  <ProjectRow
+                    className="project-row"
+                    key={project.id}
+                    href={project.href}
+                    target={project.href ? "_blank" : undefined}
+                    rel={project.href ? "noopener noreferrer" : undefined}
+                    aria-label={project.href ? `Open ${project.title} live project in a new tab` : undefined}
+                    style={{ animationDelay: `${0.08 + index * 0.045}s` }}
+                    data-workshop-reveal
+                  >
+                    <ProjectShot src={project.image} title={project.title} dock={index === 0} eager={index < 3} mobilePreview={project.mobilePreview} />
+                    <span className="project-row-copy">
+                      <strong>{project.title}</strong>
+                      <span>{project.description}</span>
+                    </span>
+                    <em aria-hidden={!project.href || undefined} style={project.href ? undefined : { visibility: "hidden" }}>View →</em>
+                  </ProjectRow>
+              );
+              })}
             </section>
 
           </section>

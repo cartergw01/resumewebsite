@@ -107,5 +107,9 @@ test("reduced motion and direct entry show the complete project without a transi
   await expect(page.getByRole("heading", { name: "Projects", exact: true })).toBeVisible();
   await page.reload();
   await expect(page.locator("[data-project-screen]")).toBeVisible();
-  await expect(page.getByRole("link", { name: /Open .* live project/ })).toHaveCount(8);
+  await expect(page.getByRole("link", { name: /Open .* live project/ })).toHaveCount(7);
+  const studios = page.locator(".project-row").filter({ hasText: "886 Studios (website)" });
+  await expect(studios).toBeVisible();
+  await expect(studios).not.toHaveAttribute("href");
+  await expect(studios.locator("em")).not.toBeVisible();
 });
