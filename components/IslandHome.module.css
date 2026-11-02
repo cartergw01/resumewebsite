@@ -689,6 +689,9 @@
 
 /* The workshop entry and physical objects are sibling controls. */
 .workshopEntryHit { position: absolute; inset: 0; z-index: 0; }
-.islandLink[data-workshop] > [data-island-visual] { position: relative; z-index: 1; pointer-events: none; }
+.islandLink[data-island-objects] > [data-island-visual] { position: relative; z-index: 1; pointer-events: none; }
 .workshopEntryHit:focus-visible { outline: none; }
 .workshopEntryHit:focus-visible + .island { outline: 2px solid #eddbbf; outline-offset: -24px; border-radius: 12px; }
+
+/* The foreground experience owns the frame budget while it is open. */
+.stage[data-overlay] .island, .stage[data-overlay] .scrollStar, .stage[data-overlay] [data-next-label] { animation-play-state: paused !important; }

@@ -225,11 +225,11 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     }).catch(() => { /* Unmounting cancels the animation. */ });
   };
 
-  if (workshop && !overview) return (
-    <div className={styles.islandLink} data-island-link data-workshop data-world="projects" tabIndex={-1} {...touchFeedback}>
-      <Link href={href} className={styles.workshopEntryHit} data-workshop-entry onClick={enter}
+  if ((workshop || book) && !overview) return (
+    <div className={styles.islandLink} data-island-link data-island-objects data-workshop={workshop || undefined} data-world={title.toLowerCase()} tabIndex={-1} {...touchFeedback}>
+      <Link href={href} className={styles.workshopEntryHit} data-island-entry data-workshop-entry={workshop || undefined} data-writing-entry={book || undefined} onClick={enter}
         aria-label={`${title}, ${prompt}`} data-tip={prompt} data-tip-side="nw" draggable={false}>
-        <span className="sr-only">View all projects</span>
+        <span className="sr-only">{book ? "Read my essays" : "View all projects"}</span>
       </Link>
       {children}
     </div>

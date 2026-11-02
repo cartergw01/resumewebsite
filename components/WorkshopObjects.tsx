@@ -10,6 +10,7 @@ import PokerChallenge from "./PokerChallenge";
 import styles from "./WorkshopObjects.module.css";
 import { curios, curiosityClip } from "@/lib/workshop-discoveries";
 
+const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
 const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...curios].map(object => object.point);
 const known = new Set([...projects, ...curios].map(object => object.id));
@@ -27,6 +28,9 @@ const descriptions: Record<string, string> = {
 
 export default function WorkshopObjects() {
   const layerRef = useRef<HTMLSpanElement>(null);
+  const arcadeButton = useRef<HTMLButtonElement>(null);
+  const arcadeOrigin = useRef<HTMLElement | null>(null);
+  const [arcade, setArcade] = useState(false);
   const pokerButton = useRef<HTMLButtonElement>(null);
   const pokerOrigin = useRef<HTMLElement | null>(null);
   const [scale, setScale] = useState(0);
@@ -47,6 +51,10 @@ export default function WorkshopObjects() {
   });
   const select = (id: string) => { if (id !== "directory") discover(id); setSelected(id); };
   const inspect = (id: string, source: HTMLElement) => { opener.current = source; select(id); };
+
+  useEffect(() => {
+    if (new URL(location.href).searchParams.get("play") === "taipei-run") setArcade(true);
+  }, []);
 
   useEffect(() => {
     const layer = layerRef.current;
@@ -73,6 +81,13 @@ export default function WorkshopObjects() {
     return () => { observer.disconnect(); visual.removeEventListener(ARTWORK_PARALLAX_EVENT, move); };
   }, [scale]);
 
+  const closeArcade = () => {
+    setArcade(false);
+    const url = new URL(location.href);
+    if (url.searchParams.get("play") === "taipei-run") { url.searchParams.delete("play"); history.replaceState(history.state, "", url); }
+    requestAnimationFrame(() => (arcadeOrigin.current ?? arcadeButton.current)?.focus({ preventScroll: true }));
+  };
+  const playArcade = () => { arcadeOrigin.current = selected ? opener.current : arcadeButton.current; discover("taipei-run"); setSelected(null); setArcade(true); };
   const close = () => {
     setChallenge(false);
     requestAnimationFrame(() => (pokerOrigin.current ?? pokerButton.current)?.focus({ preventScroll: true }));
@@ -100,9 +115,9 @@ export default function WorkshopObjects() {
         </span>;
         return <span key={project.id} className={styles.position} data-object-position={project.id}
           style={{ left: x, top: y, width, height }}>
-            {project.id === "poker-odds" ?
-              <button ref={pokerButton} type="button" className={styles.target} data-workshop-object={project.id}
-                aria-label={label} aria-haspopup="dialog" data-tip={label} onClick={playPoker}>{contents}</button> :
+            {project.id === "poker-odds" || project.id === "taipei-run" ?
+              <button ref={project.id === "poker-odds" ? pokerButton : arcadeButton} type="button" className={styles.target} data-workshop-object={project.id}
+                aria-label={label} aria-haspopup="dialog" data-tip={label} onClick={project.id === "poker-odds" ? playPoker : playArcade}>{contents}</button> :
               <a className={styles.target} data-workshop-object={project.id} href={project.href} target="_blank" rel="noopener noreferrer"
                 aria-label={`${label} (opens in a new tab)`} data-tip={label} onClick={() => discover(project.id)}>{contents}</a>}
         </span>;
@@ -123,7 +138,8 @@ export default function WorkshopObjects() {
       })}
       </span>
     </span>
-    {selected && <WorkshopDiscovery selected={selected} found={found} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} />}
+    {selected && <WorkshopDiscovery selected={selected} found={found} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} onArcade={playArcade} />}
+    {arcade && <TaipeiArcade onClose={closeArcade} />}
     {challenge && <PokerChallenge onClose={close} />}
   </>;
 }

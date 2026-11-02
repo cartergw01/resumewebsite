@@ -907,7 +907,7 @@ export function RocketCursor() {
       // Launch the rocket alongside the island camera move. The island link
       // owns navigation, so this launch supplies only the visual effect and
       // lets the click continue to its handler without opening the route early.
-      if ((link.hasAttribute("data-island-link") || link.hasAttribute("data-workshop-entry")) && internalHref) {
+      if ((link.hasAttribute("data-island-link") || link.hasAttribute("data-island-entry")) && internalHref) {
         const { originX, originY } = launchOriginForClick(e, link);
         startLaunch({ originX, originY });
         return;

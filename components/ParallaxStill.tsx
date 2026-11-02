@@ -190,7 +190,7 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     };
-    const settled = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !document.hidden;
+    const settled = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !stage.dataset.overlay && !document.hidden;
     const tick = (now: number) => {
       const dt = Math.min(50, last ? now - last : 16); last = now;
       const k = 1 - Math.exp(-dt / 140);

@@ -8,8 +8,8 @@ import WorkshopModel from "./WorkshopModel";
 import { WorkshopClocks, WorkshopHoops, WorkshopLights, WorkshopSynth } from "./WorkshopRewards";
 import styles from "./WorkshopDiscovery.module.css";
 
-export default function WorkshopDiscovery({ selected, found, onSelect, onFound, onClose, onPoker }: {
-  selected: string; found: string[]; onSelect: (id:string)=>void; onFound:(id:string)=>void; onClose:()=>void; onPoker:()=>void;
+export default function WorkshopDiscovery({ selected, found, onSelect, onFound, onClose, onPoker, onArcade }: {
+  selected: string; found: string[]; onSelect: (id:string)=>void; onFound:(id:string)=>void; onClose:()=>void; onPoker:()=>void; onArcade:()=>void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -19,7 +19,7 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
   const [inspected, setInspected] = useState(item);
   const model = item ?? inspected;
   const essay = item?.essay && essays.find(essay => essay.title === item.essay);
-  const project = item?.project && projects.find(project => project.id === item.project);
+  const project = item?.project ? projects.find(project => project.id === item.project) : undefined;
   const total = curios.length + projects.length;
   useEffect(() => {
     const element=dialog.current!;
@@ -65,7 +65,7 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
             {item.reward === "inspect" && <p className={styles.invitation}>{item.hint}</p>}
             {essay && <a className={styles.related} data-direct-navigation href={essay.href} target="_blank" rel="noopener noreferrer"><span>From Carter’s writing</span><strong>{essay.title} ↗</strong><p>{essay.subtitle}</p></a>}
             {item.research === "SpaceX" && <a className={styles.related} data-direct-navigation href="https://research.contrary.com/company/spacex" target="_blank" rel="noopener noreferrer"><span>Carter’s research</span><strong>SpaceX ↗</strong></a>}
-            {project && <a className={styles.related} data-direct-navigation href={project.href} target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>Keep exploring</span><strong>{project.title} ↗</strong></a>}
+            {project?.id === "taipei-run" ? <button type="button" className={styles.primary} onClick={onArcade}>Play Taipei Run →</button> : project && <a className={styles.related} data-direct-navigation href={project.href} target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>Keep exploring</span><strong>{project.title} ↗</strong></a>}
           </div>}
         </div>
       {item ? <>
@@ -74,7 +74,7 @@ export default function WorkshopDiscovery({ selected, found, onSelect, onFound, 
         <label className={styles.search}>Find an object<input type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Try Lugia, AirPods, or basketball" /></label>
         <div className={styles.index}>
           {projects.filter(project=>project.title.toLowerCase().includes(query.toLowerCase())).map(project=>
-            project.id==="poker-odds" ? <button key={project.id} type="button" onClick={onPoker}><span>{project.title}</span><small>{found.includes(project.id)?"Found":"Play"}</small></button> :
+            (project.id==="poker-odds" || project.id==="taipei-run") ? <button key={project.id} type="button" onClick={project.id==="poker-odds" ? onPoker : onArcade}><span>{project.title}</span><small>{found.includes(project.id)?"Found":"Play"}</small></button> :
             <a key={project.id} href={project.href} data-direct-navigation target="_blank" rel="noopener noreferrer" onClick={()=>onFound(project.id)}><span>{project.title} ↗</span><small>{found.includes(project.id)?"Found":"Open project"}</small></a>)}
           {curios.filter(object=>object.name.toLowerCase().includes(query.toLowerCase())).map(object=><button key={object.id} data-discovery-choice={object.id} type="button" onClick={()=>select(object.id)}><span>{object.name}</span><small>{found.includes(object.id)?"Found":"Pick up"}</small></button>)}
         </div>

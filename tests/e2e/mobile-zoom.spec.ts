@@ -104,7 +104,7 @@ test("pinching cancels each entry cover and leaves the island usable", async ({ 
   for (const world of ["work", "writing", "projects"]) {
     await ready(page, world);
     const stage = page.locator("[data-island-stage]");
-    await page.locator(`#${world} a[data-island-link], #${world} [data-workshop-entry]`).press("Enter");
+    await page.locator(`#${world} a[data-island-link], #${world} [data-island-entry]`).press("Enter");
     await expect(stage).toHaveAttribute("data-entering", world);
     const cover = world === "writing" ? "book" : world === "projects" ? "workshop" : "work";
     await expect(page.locator(`body > [data-${cover}-transition]`)).toHaveCount(1);

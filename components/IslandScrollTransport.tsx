@@ -490,7 +490,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // arrived, opens that island, exactly as tapping the island does.
     // Elsewhere scene controls only ever travel (a double click never enters).
     jumpRef.current = (index: number) => {
-      const island = scenes[index].querySelector<HTMLAnchorElement>("a[data-island-link], [data-workshop-entry]");
+      const island = scenes[index].querySelector<HTMLAnchorElement>("a[data-island-link], [data-island-entry]");
       const phone = matchMedia("(max-width: 760px)").matches;
       if (phone && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
         island.click();
@@ -526,7 +526,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("a[data-island-link], [data-workshop-entry]") ?? [])
+      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("a[data-island-link], [data-island-entry]") ?? [])
         .find(candidate => candidate.pathname === heading.pathname);
       if (!island) return;
       event.preventDefault();

@@ -14,7 +14,6 @@ async function clickObject(page: Page, object: Locator, touch: boolean) {
 
 const destinations = {
   "taipei-flix": "https://taipeiflix.com/",
-  "taipei-run": "https://taipeirun.com/",
   stocker: "https://stocker-app-one.vercel.app/",
   "taipei-guide": "https://taipei-guide-etaa.vercel.app/",
   "ikigai-timer": "https://886studios.com/timer",
