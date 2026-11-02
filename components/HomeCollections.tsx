@@ -61,34 +61,31 @@ export default function HomeCollections() {
         </header>
 
         <ul className={styles.gallery} aria-label="Project gallery">
-          {projects.map((project, index) => {
-            const Exhibit = project.href ? "a" : "div";
-            return (
-              <li key={project.id}>
-                <Exhibit
-                  href={project.href}
-                  target={project.href ? "_blank" : undefined}
-                  rel={project.href ? "noopener noreferrer" : undefined}
-                  aria-labelledby={`exhibit-${index}-title`}
-                  className={styles.exhibit}
-                >
-                  <figure>
-                    <div className={styles.artwork}>
-                      <Image
-                        src={project.image}
-                        alt=""
-                        fill
-                        style={{ objectPosition: project.imagePosition }}
-                        quality={86}
-                        sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 1000px) 44vw, 520px"
-                      />
-                    </div>
-                    <figcaption><h3 id={`exhibit-${index}-title`}>{project.title}</h3></figcaption>
-                  </figure>
-                </Exhibit>
-              </li>
-          );
-          })}
+          {projects.map((project, index) => (
+            <li key={project.href}>
+              <a
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-labelledby={`exhibit-${index}-title`}
+                className={styles.exhibit}
+              >
+                <figure>
+                  <div className={styles.artwork}>
+                    <Image
+                      src={project.image}
+                      alt=""
+                      fill
+                      style={{ objectPosition: project.imagePosition }}
+                      quality={86}
+                      sizes="(max-width: 600px) calc(100vw - 48px), (max-width: 1000px) 44vw, 520px"
+                    />
+                  </div>
+                  <figcaption><h3 id={`exhibit-${index}-title`}>{project.title}</h3></figcaption>
+                </figure>
+              </a>
+            </li>
+          ))}
         </ul>
       </section>
     </div>

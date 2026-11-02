@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { linkedProjects as projects } from "@/content/portfolio";
+import { islandProjects as projects } from "@/content/portfolio";
 import objects from "@/lib/workshop-objects.json";
 import { ARTWORK_PARALLAX_EVENT } from "@/lib/artwork-perspective";
 import type { ParallaxState } from "./IslandLife";

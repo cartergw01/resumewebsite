@@ -313,7 +313,7 @@ export const projects = [
   {
     title: "886 Studios (website)",
     id: "886-studios",
-    href: undefined,
+    href: "https://886studios.com",
     image: studiosImage.src,
     mobilePreview: { scale: 1.18, position: "50% 35%" },
     imagePosition: "0% 0%",
@@ -375,7 +375,8 @@ export const projects = [
   },
 ];
 
-export const linkedProjects = projects.filter(project => project.href !== undefined);
+// The studio plaque stays decorative on the island; its project-page link remains.
+export const islandProjects = projects.filter(project => project.id !== "886-studios");
 
 export const workshopQueue = [
   {

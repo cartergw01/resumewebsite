@@ -100,7 +100,7 @@
 .book:focus-visible .bookCover { transform: translateY(-4px); }
 @media (hover: hover) and (pointer: fine) {
   .book:hover .bookCover { transform: translateY(-4px); }
-  .exhibit[href]:hover .artwork img { transform: scale(1.015); }
+  .exhibit:hover .artwork img { transform: scale(1.015); }
 }
 @media (max-width: 1000px) {
   .gallery { gap: 2.5rem 1.5rem; }
