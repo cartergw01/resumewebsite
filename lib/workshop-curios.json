@@ -183,16 +183,16 @@
   },
   "poker-set": {
     "point": [
-      550.785,
-      443.744
+      546.648,
+      456.98
     ],
     "bounds": [
-      510.244,
-      404.123,
-      81.083,
-      79.241
+      505.799,
+      416.995,
+      81.698,
+      79.97
     ],
-    "src": "/workshop/poker-set-b9c79d22.glb"
+    "src": "/workshop/poker-set-5d330549.glb"
   },
   "scooter": {
     "point": [
@@ -287,16 +287,16 @@
   },
   "stool": {
     "point": [
-      579.699,
-      519.259
+      616.297,
+      547.135
     ],
     "bounds": [
-      537.014,
-      459.433,
-      85.371,
-      119.652
+      573.164,
+      486.296,
+      86.266,
+      121.678
     ],
-    "src": "/workshop/stool-67b4cd69.glb"
+    "src": "/workshop/stool-9f8a3ce5.glb"
   },
   "plant": {
     "point": [
@@ -388,18 +388,5 @@
       208.41
     ],
     "src": "/workshop/floor-ebaae213.glb"
-  },
-  "run-print": {
-    "point": [
-      445.447,
-      224.163
-    ],
-    "bounds": [
-      413.775,
-      200.7,
-      63.344,
-      46.927
-    ],
-    "src": "/workshop/run-print-9ba8391c.glb"
   }
 }

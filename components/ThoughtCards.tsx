@@ -92,7 +92,7 @@ export default function ThoughtCards() {
         <span ref={birdPosition} className={styles.birdPosition}>
           {scale > 0 && <button type="button" className={styles.birdTarget} data-thought-bird aria-label="some of my tweets" aria-haspopup="dialog"
             style={{ left: birdPoint[0] * scale, top: birdPoint[1] * scale, width: Math.max(44, 78 * scale), height: Math.max(44, 68 * scale) }}
-            data-tip="some of my tweets" onPointerEnter={warmCollection} onPointerDown={warmCollection} onFocus={warmCollection} onClick={event => read(event.currentTarget)}>
+            data-tip="some of my tweets" data-tip-side="e" onPointerEnter={warmCollection} onPointerDown={warmCollection} onFocus={warmCollection} onClick={event => read(event.currentTarget)}>
             <svg viewBox="0 0 78 68" aria-hidden="true" className={styles.birdArt}>
               <path d="m-33 42 36 17 46-2m-33 2-9-9" fill="none" stroke="#63513c" strokeWidth="3.5" strokeLinecap="round" />
               <path d="m-32 41 36 17 44-2" fill="none" stroke="#a28c68" strokeWidth=".8" strokeLinecap="round" />

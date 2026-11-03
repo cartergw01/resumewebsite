@@ -20,7 +20,10 @@ test("every prop has a reachable marker and models load only on discovery",async
   const models:string[]=[];
   page.on("request",request=>{if(request.url().includes("/workshop/")&&request.url().endsWith(".glb"))models.push(request.url());});
   await page.goto("/#projects");
-  await expect(page.locator("[data-curio]")).toHaveCount(specs.length);
+  // The existing poker case is the project entry, with its model still
+  // available through the directory instead of a second overlapping target.
+  await expect(page.locator("[data-curio]")).toHaveCount(specs.length - 1);
+  await expect(page.locator('[data-curio="poker-set"]')).toHaveCount(0);
   await expect(page.locator("#projects [data-island-visual]")).toHaveAttribute("data-parallax","on");
   expect(models).toEqual([]);
   const blocked=await page.locator("[data-curio]").evaluateAll(nodes=>nodes.flatMap(node=>{
@@ -28,21 +31,21 @@ test("every prop has a reachable marker and models load only on discovery",async
     return node.contains(document.elementFromPoint(pin.x,pin.y))?[]:[node.getAttribute("data-curio")];
   }));
   expect(blocked).toEqual([]);
-  await pick(page,"shield");
+  await pick(page,"starship");
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({timeout:20_000});
   await expect(page.getByText("Picked up from the island.", { exact: true })).toHaveCount(0);
   await expect(page.getByText(/\d+ of \d+ discovered/)).toHaveCount(0);
   expect(models).toHaveLength(1);
-  await expect(page.getByRole("link",{name:/We All Have Superpowers/})).toHaveAttribute("href","https://carterko.substack.com/p/we-all-have-superpowers");
+  await expect(page.getByRole("link",{name:"SpaceX",exact:true})).toHaveAttribute("href","https://research.contrary.com/company/spacex");
   await page.getByRole("button",{name:"Rotate model right"}).click();
   await expect(page.locator("[data-model-turns]")).toHaveAttribute("data-model-turns","1");
   await page.getByRole("button",{name:"Reset view"}).click();
   await expect(page.locator("[data-model-turns]")).toHaveAttribute("data-model-turns","0");
   await page.keyboard.press("Escape");
-  await expect(page.locator('[data-curio="shield"]')).toBeFocused();
-  await expect(page.locator('[data-curio="shield"]')).toHaveCSS("outline-style", "none");
+  await expect(page.locator('[data-curio="starship"]')).toBeFocused();
+  await expect(page.locator('[data-curio="starship"]')).toHaveCSS("outline-style", "none");
   await page.reload();
-  await expect(page.locator('[data-object-position="shield"]')).toHaveAttribute("data-found","true");
+  await expect(page.locator('[data-object-position="starship"]')).toHaveAttribute("data-found","true");
   await expect(page.getByRole("button",{name:/Explore \d+ objects/})).toHaveCount(0);
 });
 

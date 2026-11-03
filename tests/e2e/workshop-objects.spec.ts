@@ -28,6 +28,10 @@ test("every physical project object opens its own destination without leaving th
   const objects = page.locator("#projects [data-workshop-object]");
   await expect(objects).toHaveCount(5);
   await expect(page.locator('[data-workshop-object="taipei-flix"], [data-workshop-object="ikigai-timer"], [data-curio="flix-print"]')).toHaveCount(0);
+  await expect(page.locator('[data-curio="run-print"]')).toHaveCount(0);
+  const stocker = (await page.locator('[data-workshop-object="stocker"]').boundingBox())!;
+  const ipad = (await page.locator('[data-curio="ipad"]').boundingBox())!;
+  expect(stocker.y + stocker.height).toBeLessThan(ipad.y);
   await expect(page.locator('#projects a[href="https://886studios.com"]')).toHaveCount(0);
   await expect(page.locator("#projects [data-island-visual]")).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
   await expect(page.locator("html")).toHaveAttribute("data-rocket-transition", "idle");
@@ -52,10 +56,15 @@ test("every physical project object opens its own destination without leaving th
   expect(errors).toEqual([]);
 });
 
-test("desk cards play four scored hands, replay, and restore keyboard focus", async ({ page, isMobile }, testInfo) => {
+test("the chip case plays four scored hands, replays, and restores keyboard focus", async ({ page, isMobile }, testInfo) => {
   await page.goto("/#projects");
   const cards = page.getByRole("button", { name: "Poker Odds", exact: true });
   await expect(cards).toBeVisible();
+  // Compare the artwork with the iPad's anchor, not the padded mobile hit
+  // areas, which are deliberately larger than the miniature objects.
+  const caseBox = (await cards.locator('[data-project-cue]').boundingBox())!;
+  const ipad = (await page.locator('[data-curio="ipad"] > span').boundingBox())!;
+  expect(caseBox.y).toBeGreaterThan(ipad.y);
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-travelling", "true");
   const islandScroll = await page.evaluate(() => scrollY);
   if (isMobile) await clickObject(page, cards, true); else { await cards.focus(); await page.keyboard.press("Enter"); }

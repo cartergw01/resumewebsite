@@ -14,7 +14,11 @@ import ProjectCue from "./ProjectCue";
 
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
-const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...curios].map(object => object.point);
+const DeclarationScroll = dynamic(() => import("./DeclarationScroll"), { ssr: false });
+// The chip case opens Poker Odds directly. Its inspectable model remains in
+// the object directory, without a second target sitting over the project.
+const islandCurios = curios.filter(object => object.id !== "poker-set");
+const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...islandCurios].map(object => object.point);
 const known = new Set([...projects, ...curios].map(object => object.id));
 const FOUND_KEY = "carter-workshop-discoveries-v1";
 
@@ -35,6 +39,7 @@ export default function WorkshopObjects() {
   const [scale, setScale] = useState(0);
   const [challenge, setChallenge] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [declaration, setDeclaration] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
   const [found, setFound] = useState<string[]>(() => {
     try {
@@ -49,7 +54,11 @@ export default function WorkshopObjects() {
     return next;
   });
   const select = (id: string) => { if (id !== "directory") discover(id); setSelected(id); };
-  const inspect = (id: string, source: HTMLElement) => { opener.current = source; select(id); };
+  const inspect = (id: string, source: HTMLElement) => {
+    opener.current = source;
+    if (id === "shield") { discover(id); setDeclaration(true); }
+    else select(id);
+  };
 
   useEffect(() => {
     if (new URL(location.href).searchParams.get("play") === "taipei-run") setArcade(true);
@@ -98,6 +107,7 @@ export default function WorkshopObjects() {
     setChallenge(false);
   };
   const closeDiscovery = () => { setSelected(null); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
+  const closeDeclaration = () => { setDeclaration(false); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
   const playPoker = () => { pokerOrigin.current = selected ? opener.current : pokerButton.current; discover("poker-odds"); setSelected(null); setChallenge(true); };
 
   return <>
@@ -115,7 +125,6 @@ export default function WorkshopObjects() {
         const x = (bx + bw / 2) * scale - width / 2, y = (by + bh / 2) * scale - height / 2;
         const label = labels[project.id] ?? project.title;
         const contents = <><span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }}>
-          <span className={styles.dot} aria-hidden="true" />
           <span className={styles.label} aria-hidden="true">{label}</span>
         </span><ProjectCue id={project.id} bounds={object.bounds} style={{ left: bx * scale - x, top: by * scale - y, width: bw * scale, height: bh * scale }} /></>;
         return <span key={project.id} className={styles.position} data-object-position={project.id}
@@ -127,14 +136,14 @@ export default function WorkshopObjects() {
                 aria-label={`${label} (opens in a new tab)`} data-tip={label} onClick={() => discover(project.id)}>{contents}</a>}
         </span>;
       })}
-      {scale > 0 && curios.map(object => {
+      {scale > 0 && islandCurios.map(object => {
         const [px,py]=object.point;
         const width=Math.max(28,Math.min(object.bounds[2]*scale,64)), height=Math.max(28,Math.min(object.bounds[3]*scale,64));
         const x=px*scale-width/2,y=py*scale-height/2;
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>
-          <button type="button" className={styles.target} data-curio={object.id} aria-label={`Pick up ${object.name}`} aria-haspopup="dialog"
+          <button type="button" className={styles.target} data-curio={object.id} aria-label={object.id === "shield" ? "Read the Declaration of Independence" : `Pick up ${object.name}`} aria-haspopup="dialog"
             style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
@@ -146,5 +155,6 @@ export default function WorkshopObjects() {
     {selected && <WorkshopDiscovery selected={selected} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} onArcade={playArcade} />}
     {arcade && <TaipeiArcade onClose={closeArcade} />}
     {challenge && <PokerChallenge onClose={close} />}
+    {declaration && <DeclarationScroll onClose={closeDeclaration} />}
   </>;
 }

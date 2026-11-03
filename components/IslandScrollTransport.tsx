@@ -663,6 +663,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         : null;
       if (!target) return hideTip();
       if (tipText.textContent !== target.dataset.tip) tipText.textContent = target.dataset.tip ?? "";
+      // The bird's label stays beside its perch, wrapping into the available sky.
+      if (target.dataset.tipSide === "e") {
+        const box = target.getBoundingClientRect();
+        const x = box.right + 14;
+        tip.dataset.side = "e";
+        tip.style.setProperty("--tip-room", `${Math.max(0, innerWidth - x - 10)}px`);
+        const left = Math.min(x, innerWidth - tipText.offsetWidth - 10);
+        const above = left < x - 1;
+        tip.dataset.edge = above ? "above" : "";
+        tip.style.transform = `translate3d(${left}px, ${above ? box.top - 10 : box.top + box.height / 2}px, 0)`;
+        tip.dataset.visible = "true";
+        return;
+      }
       // Anchor the annotation's star just off the rocket's right shoulder.
       // Open toward the island's own corner, flipping away from a screen edge.
       let side = target.dataset.tipSide ?? "ne";

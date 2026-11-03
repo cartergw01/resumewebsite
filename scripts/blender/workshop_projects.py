@@ -85,8 +85,8 @@ def add_projects(api):
     lettering('Arcade · PLAY','PLAY',(x,y-.339,z+.68),.06,'arcade_display')
     finish(before,'taipei-run',(x,y-.25,z+1.43))
 
-    # Three face-up cards and a few chips on the desk, independent of the
-    # original poker set which stays on the lower shelf.
+    # Keep the face-up desk cards, but use the original chip case for Poker
+    # Odds. It already contains the chips, cards and dealer button.
     before = start()
     x,y,z=-.85,-.56,1.802
     for i,(rank,suit) in enumerate([('A','S'),('K','H'),('Q','S')]):
@@ -99,17 +99,33 @@ def add_projects(api):
             mesh('Poker · heart point',[(cx-.054,cy,z+.016+i*.004),(cx+.054,cy,z+.016+i*.004),(cx,cy-.065,z+.016+i*.004)],[(0,1,2)],'project_red')
         else:
             lettering('Poker · spade', '\u2660',(cx,cy-.025,z+.014+i*.004),.13,'ink',rotation=(0,0,0))
-    for i in range(4): cylinder('Poker · stacked chip',(x+.35,y+.03,z+.012+i*.017),.052,.016,'arcade_trim' if i%2 else 'paper',32)
-    finish(before,'poker-odds',(x,y,z+.035),desk=True)
+    for part in start()-before: part.parent=bench
+    case=[o for o in bpy.context.scene.objects if o.name.startswith('Chip case ·')]
+    root=bpy.data.objects.new('Workshop project · poker-odds',None)
+    bpy.context.collection.objects.link(root)
+    root.parent=bench
+    root['workshop_project']='poker-odds'
+    for part in case: part.parent=root
+    bpy.context.view_layer.update()
+    tray=bpy.data.objects['Chip case · felt chip tray']
+    root['anchor']=tuple(tray.matrix_local.translation+Vector((0,0,.06)))
 
+    # A rising stock chart replaces the Taipei Run print above the tools.
     before=start()
-    x,y,z=-.03,.48,1.80
-    box('Stocker · terminal foot',(x,y,z+.015),(.43,.24,.025),'steel',.007)
-    box('Stocker · terminal stand',(x,y+.02,z+.15),(.035,.035,.27),'steel',.004)
-    box('Stocker · terminal housing',(x,y,z+.37),(.62,.05,.43),'project_blue',.014)
-    display('Stocker · research screen','project-shots/stocker.jpg',(x,y-.028,z+.38),.56,.33)
-    lettering('Stocker · name','STOCKER',(x,y-.03,z+.185),.037,'project_display')
-    finish(before,'stocker',(x,y-.03,z+.38),desk=True)
+    x,y,z=-1.36,1.80,2.55
+    P['stock_grid']=material('Stocker · quiet grid',(.045,.075,.065),rough=.7)
+    box('Stocker · wall frame',(x,y,z),(.78,.04,.50),'steel',.008)
+    box('Stocker · chart face',(x,y-.025,z),(.72,.012,.44),'ink',.003)
+    for dz in [-.14,-.04,.06,.16]:
+        rod('Stocker · horizontal grid',(x-.31,y-.033,z+dz),(x+.31,y-.033,z+dz),.002,'stock_grid',6)
+    for dx in [-.30,-.15,0,.15,.30]:
+        rod('Stocker · vertical grid',(x+dx,y-.033,z-.16),(x+dx,y-.033,z+.16),.002,'stock_grid',6)
+    chart=[(x+dx,y-.040,z+dz) for dx,dz in [(-.30,-.14),(-.24,-.11),(-.19,-.13),(-.13,-.04),(-.06,-.06),(.01,.02),(.08,-.01),(.16,.08),(.23,.07),(.30,.16)]]
+    for a,b in zip(chart,chart[1:]): rod('Stocker · rising chart',a,b,.008,'project_green',10)
+    for p in chart[1:-1]: sphere('Stocker · chart joint',p,(.008,.008,.008),'project_green',1)
+    root=finish(before,'stocker',(x,y-.04,z))
+    # Project these same vertices for the browser's green hover highlight.
+    root['chart']=json.dumps({'screen':[(x-.36,y-.04,z+.22),(x+.36,y-.04,z+.22),(x+.36,y-.04,z-.22),(x-.36,y-.04,z-.22)],'line':chart})
 
     # Folded map with drawn streets and a red destination pin.
     before=start()

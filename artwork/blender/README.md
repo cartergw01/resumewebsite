@@ -474,13 +474,27 @@ to match.
 
 The workshop adds six project objects to the current scene using
 `scripts/blender/workshop_projects.py`. Its build preserves the current main
-branch's scene, including prop positions, lighting, and court details.
+branch's belongings and court details, with the placement changes below.
 `pipeline.sh projects` exports their hit regions and inspectable props from the
 same camera and crop. The homepage has no object-directory call to action;
 visitors pick up objects directly. “All objects” inside an inspector opens its
-searchable directory. The current scene has 31 inspectable groups and six
+searchable directory. The current scene has 30 inspectable groups and six
 project objects (five clickable, plus the 886 plaque). The TaipeiFlix wall
 prints and ikigai timer are omitted. Props removed on main are not reintroduced.
+Stocker is a green stock chart on the wall in place of the Taipei Run print;
+its chart vertices are exported with its hit region so the hover trace aligns
+with the Blender artwork. Its former desktop terminal is omitted.
+The original poker chip case opens Poker Odds directly from the lower shelf;
+its 3D model remains in the object directory. The case sits toward the shelf's
+front edge and the stool is pulled aside. A concealed warm-white LED strip
+lights both cases and follows the workshop's task-light switch group. The
+face-up desk cards remain, without the duplicate loose chip stack. Project
+objects have no dot markers; hover cues trace the artwork itself.
+Clicking the shield opens a readable parchment Declaration of Independence.
+Its complete text and signers come from the National Archives transcription
+in `content/declaration.json`. The reader and its locally hosted, OFL-licensed
+blackletter heading and Pinyon Script body fonts load on demand. The shield
+model remains in the object directory.
 
 The viewer loads on demand, shares one renderer across inspections, renders
 only after interaction, cancels obsolete downloads, and disposes GPU resources

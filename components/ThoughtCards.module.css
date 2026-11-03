@@ -28,6 +28,7 @@
 .target:focus-visible .dot { opacity: 1; scale: 1.3333; }
 @media (hover: hover) and (pointer: fine) { .target:hover .dot { opacity: 1; scale: 1.3333; } }
 .hint { position: absolute; bottom: 40px; left: 50%; translate: -50% 0; white-space: nowrap; padding: 7px 10px; border-radius: 4px; color: #f5e8cd; background: #101721; font: 12px/1.3 var(--font-sans),sans-serif; opacity: 0; pointer-events: none; }
+.birdTarget .hint { left: auto; right: 0; bottom: calc(100% + 8px); translate: none; }
 .target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
 .target:focus-visible .hint { opacity: 1; }
 :global(html[data-writing-lights="off"]) .art { filter: brightness(.34) saturate(.65); }

@@ -29,7 +29,7 @@ test("the bird opens the same notes and restores focus without replaying the inv
   expect(errors).toEqual([]);
 });
 
-test("project cues settle, leave props quiet, and respect reduced motion", async ({ page }, info) => {
+test("project cues settle, leave props quiet, and respect reduced motion", async ({ page, isMobile }, info) => {
   await page.goto("/#projects");
   const cues = page.locator("[data-workshop-objects]");
   await expect(cues).toHaveAttribute("data-cue-state", "playing");
@@ -43,6 +43,18 @@ test("project cues settle, leave props quiet, and respect reduced motion", async
   await page.screenshot({ path: `/tmp/carter-project-cues-${info.project.name}.png` });
   await expect(cues).toHaveAttribute("data-cue-state", "done", { timeout: 6000 });
   await expect.poll(() => cues.evaluate(node => node.getAnimations({ subtree: true }).filter(animation => animation.playState === "running").length)).toBe(0);
+  if (!isMobile) {
+    const stocker = page.locator('[data-workshop-object="stocker"]');
+    const pin = (await stocker.locator('span').first().boundingBox())!;
+    await page.mouse.move(pin.x, pin.y);
+    const trace = stocker.locator('[data-stock-trace]');
+    await expect(trace).toHaveCSS("opacity", "1");
+    await expect(trace).toHaveCSS("stroke-dashoffset", "0px");
+    await expect.poll(() => trace.evaluate(node => node.getAnimations().every(animation => animation.playState === "finished"))).toBe(true);
+    await expect(trace).toHaveCSS("opacity", "1");
+    await page.mouse.move(20, 20);
+    await expect(trace).toHaveCSS("opacity", "0");
+  }
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
   await expect(page.locator("[data-workshop-object]")).toHaveCount(5);
