@@ -20,6 +20,6 @@ for root in scene.objects:
     xs,ys=zip(*corners)
     objects[slug]={'point':project(root.matrix_world@Vector(root['anchor'])),
                    'bounds':[round(min(xs),3),round(min(ys),3),round(max(xs)-min(xs),3),round(max(ys)-min(ys),3)]}
-assert len(objects)==8, f'Expected 8 workshop objects, found {len(objects)}'
+assert len(objects)==6, f'Expected 6 workshop objects, found {len(objects)}'
 (ROOT/'lib/workshop-objects.json').write_text(json.dumps(objects,indent=2)+'\n')
 print('WORKSHOP OBJECTS '+', '.join(objects),flush=True)

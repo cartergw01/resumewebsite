@@ -1,6 +1,27 @@
 .layer { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 4; }
 .frame, .position { position: relative; display: block; width: 100%; height: 100%; }
 .art { position: absolute; inset: 0; width: 100%; height: 100%; transition: filter 300ms; }
+.noteTop { transform-box: fill-box; transform-origin: right bottom; transition: transform 220ms ease; }
+.birdPosition { position: absolute; inset: 0; pointer-events: none; }
+.birdTarget { position: absolute; translate: -50% -50%; padding: 0; border: 0; border-radius: 50%; background: none; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.birdArt { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 1px #07101a55); transition: filter 180ms ease; }
+.birdBody { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 220ms ease; }
+.birdWing { transform-box: fill-box; transform-origin: 15% 40%; transition: transform 220ms ease; }
+.layer[data-cue-state="playing"] .birdBody { animation: bird-hop 1600ms 100ms ease both; }
+.layer[data-cue-state="playing"] .birdWing { animation: wing-flutter 1600ms 100ms ease both; }
+.layer[data-cue-state="playing"] .noteTop { animation: note-lift 1600ms 800ms ease both; }
+.birdTarget:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
+.birdTarget:focus-visible .hint { opacity: 1; }
+.birdTarget:focus-visible .birdBody { transform: translateY(-2px) rotate(-4deg); }
+.layer:has(.target:focus-visible) .noteTop { transform: translateY(-4px) rotate(-2deg); }
+.birdTarget:active .birdBody { transform: translateY(1px) scale(.96); }
+.target:active { scale: .96; }
+@media (hover: hover) and (pointer: fine) {
+  .birdTarget:hover .birdBody { transform: translateY(-2px) rotate(-4deg); }
+  .birdTarget:hover .birdWing { transform: rotate(-12deg); }
+  .birdTarget:hover .birdArt { filter: drop-shadow(0 3px 2px #07101a66) brightness(1.12); }
+  .layer:has(.target:hover, .birdTarget:hover) .noteTop { transform: translateY(-4px) rotate(-2deg); }
+}
 .target { position: absolute; translate: -50% -50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; border-radius: 8px; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Keep the 44px tap area, with the same quiet pinpoint as the workshop. */
 .dot { width: 3px; height: 3px; background: #fff1cd; border-radius: 50%; box-shadow: 0 1px 2px #080b13; opacity: .65; transition: opacity 150ms ease, scale 150ms ease; }
@@ -10,6 +31,13 @@
 .target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
 .target:focus-visible .hint { opacity: 1; }
 :global(html[data-writing-lights="off"]) .art { filter: brightness(.34) saturate(.65); }
+:global(html[data-writing-lights="off"]) .birdArt { filter: brightness(.65) saturate(.8); }
 :global([data-island-stage][data-travelling="true"]) .layer,
 :global([data-island-stage][data-entering]) .layer { visibility: hidden; }
-@media (prefers-reduced-motion: reduce) { .art, .dot { transition: none; } }
+@keyframes bird-hop { 0%, 25%, 65%, 100% { transform: translate(0, 0) rotate(0); } 40% { transform: translate(-4px, -9px) rotate(-7deg); } 54% { transform: translate(-2px, 0) rotate(3deg); } }
+@keyframes wing-flutter { 0%, 26%, 70%, 100% { transform: rotate(0); } 38%, 55% { transform: rotate(-18deg); } 46% { transform: rotate(6deg); } }
+@keyframes note-lift { 0%, 100% { transform: translateY(0) rotate(0); } 35%, 65% { transform: translateY(-7px) rotate(-3deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .layer .noteTop, .layer .birdBody, .layer .birdWing { animation: none; transform: none; transition: none; }
+  .art, .dot, .birdArt { transition: none; }
+}

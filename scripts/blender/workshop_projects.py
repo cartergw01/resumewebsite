@@ -85,17 +85,6 @@ def add_projects(api):
     lettering('Arcade · PLAY','PLAY',(x,y-.339,z+.68),.06,'arcade_display')
     finish(before,'taipei-run',(x,y-.25,z+1.43))
 
-    # An additional framed cinema poster in the empty upper wall bay. Both
-    # old project prints and the planet poster remain exactly where they are.
-    before = start()
-    x,y,z=-1.30,1.98,3.23
-    box('Cinema · brass frame',(x,y,z),(.82,.05,.76),'brass',.012)
-    box('Cinema · midnight poster',(x,y-.029,z),(.76,.006,.70),'ink',.002)
-    lettering('Cinema · TAIPEIFLIX','TAIPEIFLIX',(x,y-.038,z+.235),.088,'project_gold')
-    image_panel('Cinema · film selection','project-shots/taipei-flix.webp',(x,y-.035,z-.015),.70,.34)
-    lettering('Cinema · NOW SHOWING','NOW SHOWING',(x,y-.038,z-.275),.045,'paper')
-    finish(before,'taipei-flix',(x,y-.04,z))
-
     # Three face-up cards and a few chips on the desk, independent of the
     # original poker set which stays on the lower shelf.
     before = start()
@@ -135,15 +124,6 @@ def add_projects(api):
     rod('Taipei guide · destination pin',(x+.10,y+.05,z+.03),(x+.10,y+.05,z+.13),.009,'project_red')
     sphere('Taipei guide · pin head',(x+.10,y+.05,z+.145),(.032,.032,.032),'project_red',2)
     finish(before,'taipei-guide',(x,y,z+.045),desk=True)
-
-    before=start()
-    x,y,z=1.48,1.31,3.42
-    for dx in [-.24,.24]:rod('ikigai timer · hanging strap',(x+dx,y,z+.19),(x+dx,y,3.69),.009,'ink')
-    box('ikigai timer · housing',(x,y,z),(.72,.13,.32),'ink',.018)
-    box('ikigai timer · display',(x,y-.069,z+.035),(.64,.008,.18),'project_blue',.004)
-    lettering('ikigai timer · digits','05:00',(x,y-.076,z+.035),.127,'project_display')
-    lettering('ikigai timer · label','ikigai',(x,y-.076,z-.108),.055,'paper')
-    finish(before,'ikigai-timer',(x,y-.08,z))
 
     before=start()
     x,y,z=-3.06,1.24,3.12

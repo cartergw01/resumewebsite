@@ -13,10 +13,8 @@ async function clickObject(page: Page, object: Locator, touch: boolean) {
 }
 
 const destinations = {
-  "taipei-flix": "https://taipeiflix.com/",
   stocker: "https://stocker-app-one.vercel.app/",
   "taipei-guide": "https://taipei-guide-etaa.vercel.app/",
-  "ikigai-timer": "https://886studios.com/timer",
   "night-night-ko": "https://nightnightko.vercel.app/",
 };
 
@@ -28,7 +26,8 @@ test("every physical project object opens its own destination without leaving th
   await page.goto("/#projects");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   const objects = page.locator("#projects [data-workshop-object]");
-  await expect(objects).toHaveCount(7);
+  await expect(objects).toHaveCount(5);
+  await expect(page.locator('[data-workshop-object="taipei-flix"], [data-workshop-object="ikigai-timer"], [data-curio="flix-print"]')).toHaveCount(0);
   await expect(page.locator('#projects a[href="https://886studios.com"]')).toHaveCount(0);
   await expect(page.locator("#projects [data-island-visual]")).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
   await expect(page.locator("html")).toHaveAttribute("data-rocket-transition", "idle");
@@ -83,6 +82,7 @@ test("desk cards play four scored hands, replay, and restore keyboard focus", as
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(cards).toBeFocused();
+  await expect(cards).toHaveCSS("outline-style", "none");
   await expect(page.locator("[data-island-stage]")).not.toHaveAttribute("data-overlay");
   expect(await page.evaluate(() => scrollY)).toBe(islandScroll);
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");

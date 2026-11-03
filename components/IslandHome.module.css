@@ -675,7 +675,7 @@
 .workshopEntryHit { position: absolute; inset: 0; z-index: 0; }
 .islandLink[data-island-objects] > [data-island-visual] { position: relative; z-index: 1; pointer-events: none; }
 .workshopEntryHit:focus-visible { outline: none; }
-.workshopEntryHit:focus-visible + .island { outline: 2px solid #eddbbf; outline-offset: -24px; border-radius: 12px; }
+.scene:has(.workshopEntryHit:focus-visible) .copy h2 a { text-decoration-color: #fff7eae6; }
 
 /* The foreground experience owns the frame budget while it is open. */
 .stage[data-overlay] .island, .stage[data-overlay] .scrollArrow svg, .stage[data-overlay] [data-next-label] { animation-play-state: paused !important; }

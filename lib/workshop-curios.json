@@ -389,19 +389,6 @@
     ],
     "src": "/workshop/floor-ebaae213.glb"
   },
-  "flix-print": {
-    "point": [
-      372.87,
-      214.653
-    ],
-    "bounds": [
-      341.34,
-      191.328,
-      63.06,
-      46.649
-    ],
-    "src": "/workshop/flix-print-2d67a1b8.glb"
-  },
   "run-print": {
     "point": [
       445.447,
