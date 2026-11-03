@@ -135,6 +135,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let measuredSceneHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
+    let massPosition: number | null = null;
+    let massVelocity = 0;
     // Browser pinch/pan changes scrollY too. Keep that separate from travel.
     const viewport = window.visualViewport;
     let zoomProgress: number | null = null;
@@ -184,7 +186,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 32);
+      const elapsed = Math.max(0, Math.min(now - previousFrame, 64));
+      const smoothing = 1 - Math.exp(-elapsed / 32);
       // Touch momentum and our navigation glide already supply smooth positions.
       // Follow them in this frame instead of adding a second easing layer.
       cameraProgress = cameraProgress === null || zoomProgress !== null || motion.matches || touchScroll.matches || direct
@@ -199,6 +202,28 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // Map touch travel between the actual snap anchors, with only a small
       // rest at either end. Desktop retains its longer cinematic holds.
       const position = touchScroll.matches ? segment + fraction : cameraProgress * duration;
+      // The scroll and navigation stay attached to the finger. Only the art
+      // has mass: a bounded spring banks into travel, then settles on release.
+      // Small time steps keep the response stable on slow and 120Hz phones.
+      if (massPosition === null || motion.matches || zoomProgress !== null) {
+        massPosition = position;
+        massVelocity = 0;
+      } else {
+        massPosition = position - Math.max(-0.2, Math.min(0.2, position - massPosition));
+        for (let remaining = elapsed / 1000; remaining > 0;) {
+          const dt = Math.min(remaining, 1 / 120);
+          massVelocity += ((position - massPosition) * 260 - massVelocity * 24) * dt;
+          massPosition += massVelocity * dt;
+          remaining -= dt;
+        }
+        if (Math.abs(position - massPosition) < 0.0001 && Math.abs(massVelocity) < 0.001) {
+          massPosition = position;
+          massVelocity = 0;
+        }
+      }
+      const coasting = massPosition !== position;
+      if (stage.dataset.coasting !== String(coasting)) stage.dataset.coasting = String(coasting);
+      const weight = Math.max(-1, Math.min(1, (position - massPosition) / 0.14));
       const from = Math.min(scenes.length - 1, Math.floor(position));
       const hold = touchScroll.matches ? .035 : .34;
       const crossing = from < scenes.length - 1 ? clamp((position - from - hold) / (touchScroll.matches ? .93 : .54)) : 0;
@@ -266,6 +291,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             opacity = phase(crossing, 0.3, 0.6).toFixed(4);
           }
         }
+        if (!motion.matches && !flightOn && weight) {
+          // Keep the bank continuous across stop boundaries; only reversing
+          // the scroll reverses the pull, not the next path's alternating arc.
+          const pull = weight * (0.35 + 0.65 * phase(position, 0.6, 1));
+          transform = `translate3d(${(pull * 18).toFixed(2)}px, ${(pull * 12).toFixed(2)}px, 0) rotate(${(-pull * 2.4).toFixed(3)}deg) ${transform}`;
+        }
         paintArt[index]("transform", transform);
         if (flightMix && (index === from || index === from + 1)) opacity = (Number(opacity) * (1 - flightMix)).toFixed(4);
         paintArt[index]("opacity", opacity);
@@ -277,7 +308,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         paintCopy[index]("opacity", copyOpacity.toFixed(4));
         paintRead(index, "cue-opacity", motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue);
         const arrivingLight = from === 0 ? 0.85 + 0.15 * arrivalLight : 0.34 + 0.16 * approach + 0.5 * arrivalLight;
-        paintRead(index, "island-light", motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight);
+        // Touch flights use transform and opacity; animating a full-island
+        // brightness filter adds large offscreen rendering work every frame.
+        // The small window/lamp overlays still supply the arrival lighting.
+        paintRead(index, "island-light", motion.matches || touchScroll.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight);
         paintRead(index, "island-lights", motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight);
         // Distinct, reversible welcomes: city blocks first, then the tower;
         // the reading lamp precedes warm paper; the workshop screen wakes last.
@@ -286,7 +320,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         if (worlds[index].id === "projects") paintRead(index, "workshop-screen", motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, 0.86, 0.97));
       });
-      stage.dataset.cameraProgress = String(cameraProgress);
+      if (stage.dataset.cameraProgress !== String(cameraProgress)) stage.dataset.cameraProgress = String(cameraProgress);
       // Animate the three camera layers directly. Inherited variables on the
       // entire stage forced style recalculation through every hidden island.
       const path = from + passage, bend = arc * Math.sin(mix * Math.PI);
@@ -346,7 +380,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (!entryPending && !glideFrame && cameraProgress === progress && (motion.matches || crossing === 0 || crossing === 1)) {
         rememberIsland(worlds[current].id);
       }
-      if (cameraProgress !== progress) schedule();
+      if (cameraProgress !== progress || coasting) schedule();
     };
 
     const schedule = () => {
@@ -373,6 +407,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // browser snaps the new pixel position to an old marker during rotation.
       // A real viewport resize or phone rotation preserves the current shot.
       if (resized && zoomProgress === null) {
+        massPosition = null;
         window.scrollTo({ top: Math.round(start + progress * travel), behavior: "instant" });
       }
       measuredHeight = height;
@@ -446,6 +481,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // targets the current position. Cancel that flight before starting one.
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
       if (instant || motion.matches) {
+        massPosition = null;
         // Rounded: WebKit truncates a fractional scroll position, which would
         // leave the camera a pixel short of its stop.
         window.scrollTo({ top: Math.round(start + stopProgress(index) * travel), behavior: "instant" });
@@ -1043,9 +1079,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} disabled={!ready} data-next-scene aria-label={`Scroll down to the ${worlds[1].title} island`}>
-            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
+            <span className={styles.scrollArrow} aria-hidden="true"><svg viewBox="0 0 20 28" fill="none"><path d="M10 3v20m-6-6 6 6 6-6" /></svg></span>
             <span data-next-label>scroll down</span>
-            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
+            <span className={styles.scrollArrow} aria-hidden="true"><svg viewBox="0 0 20 28" fill="none"><path d="M10 3v20m-6-6 6 6 6-6" /></svg></span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
             <svg className={styles.cometLight} data-comet-light viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
