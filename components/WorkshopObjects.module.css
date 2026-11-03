@@ -13,8 +13,7 @@
 /* Discovery should not gradually cover the artwork in permanent markers. */
 .curio:has(.target:focus-visible) .dot { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
-  .target:hover .dot { opacity: 1; scale: 1.3333; }
-  .curio:has(.target:hover) .dot { opacity: 1; }
+  .target[data-workshop-object]:hover .dot { opacity: 1; scale: 1.3333; }
 }
 .curioLabel { position: absolute; left: 50%; bottom: calc(50% + 14px); padding: 6px 9px; transform: translateX(-50%); color: #f6efdf; background: #101721; border-radius: 4px; white-space: nowrap; font: 500 12px/1.3 var(--font-sans),sans-serif; opacity: 0; pointer-events: none; }
 .target:focus-visible + .curioLabel { opacity: 1; }
