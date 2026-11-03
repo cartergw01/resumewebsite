@@ -132,7 +132,7 @@ export default function WorkshopObjects() {
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>
           <button type="button" className={styles.target} data-curio={object.id} aria-label={`Pick up ${object.name}`} aria-haspopup="dialog"
-            data-tip={object.name} style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
+            style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
           <span className={styles.curioLabel} aria-hidden="true">{object.name}</span>
