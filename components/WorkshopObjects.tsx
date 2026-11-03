@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import dynamic from "next/dynamic";
 import { islandProjects as projects } from "@/content/portfolio";
 import objects from "@/lib/workshop-objects.json";
@@ -9,6 +9,8 @@ import type { ParallaxState } from "./IslandLife";
 import PokerChallenge from "./PokerChallenge";
 import styles from "./WorkshopObjects.module.css";
 import { curios, curiosityClip } from "@/lib/workshop-discoveries";
+import { useIslandCue } from "@/lib/use-island-cue";
+import ProjectCue from "./ProjectCue";
 
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
@@ -23,6 +25,7 @@ const labels: Record<string, string> = {
 
 export default function WorkshopObjects() {
   const layerRef = useRef<HTMLSpanElement>(null);
+  useIslandCue(layerRef);
   const arcadeButton = useRef<HTMLButtonElement>(null);
   const arcadeOrigin = useRef<HTMLElement | null>(null);
   const [arcade, setArcade] = useState(false);
@@ -103,20 +106,20 @@ export default function WorkshopObjects() {
       {/* A contained HTML frame matches the image's 3:2 projection. Native
           HTML also avoids WebKit's transformed foreignObject hit-test bug. */}
       <span className={styles.frame} style={{ width: scale * 1200, height: scale * 800 }}>
-      {scale > 0 && projects.map(project => {
+      {scale > 0 && projects.map((project, index) => {
         const object = objects[project.id as keyof typeof objects];
         if (!object) return null;
         const [px, py] = object.point;
         const [bx, by, bw, bh] = object.bounds;
-        const width = Math.max((bw + 10) * scale, 28), height = Math.max((bh + 10) * scale, 28);
+        const width = Math.max((bw + 10) * scale, 44), height = Math.max((bh + 10) * scale, 44);
         const x = (bx + bw / 2) * scale - width / 2, y = (by + bh / 2) * scale - height / 2;
         const label = labels[project.id] ?? project.title;
-        const contents = <span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }}>
+        const contents = <><span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }}>
           <span className={styles.dot} aria-hidden="true" />
           <span className={styles.label} aria-hidden="true">{label}</span>
-        </span>;
+        </span><ProjectCue id={project.id} bounds={object.bounds} style={{ left: bx * scale - x, top: by * scale - y, width: bw * scale, height: bh * scale }} /></>;
         return <span key={project.id} className={styles.position} data-object-position={project.id}
-          style={{ left: x, top: y, width, height }}>
+          style={{ left: x, top: y, width, height, "--cue-delay": `${index * 160}ms` } as CSSProperties}>
             {project.id === "poker-odds" || project.id === "taipei-run" ?
               <button ref={project.id === "poker-odds" ? pokerButton : arcadeButton} type="button" className={styles.target} data-workshop-object={project.id}
                 aria-label={label} aria-haspopup="dialog" data-tip={label} onClick={project.id === "poker-odds" ? playPoker : playArcade}>{contents}</button> :

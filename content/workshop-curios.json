@@ -280,17 +280,6 @@
     "hint": "Look along the edges of the oak planks."
   },
   {
-    "id": "flix-print",
-    "name": "TaipeiFlix working print",
-    "prefixes": [
-      "Project reference · TaipeiFlix",
-      "Project print · TaipeiFlix"
-    ],
-    "reward": "inspect",
-    "project": "taipei-flix",
-    "hint": "The working print opens the real project below."
-  },
-  {
     "id": "run-print",
     "name": "Taipei Run working print",
     "prefixes": [

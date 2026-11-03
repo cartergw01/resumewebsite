@@ -109,9 +109,9 @@ for w in "${worlds[@]}"; do
     node scripts/blender/compress_workshop_curios.mjs
   fi
   step "$w: flight model"
-  flight_args=()
+  flight_args=(--world "$w")
   if [ "$device" = CPU ]; then flight_args+=(--cpu); fi
-  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- --world "$w" "${flight_args[@]}"
+  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- "${flight_args[@]}"
   grep "FLIGHT.*MiB" "$out/$w-flight.log"
 done
 

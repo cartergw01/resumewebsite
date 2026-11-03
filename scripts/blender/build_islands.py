@@ -3264,7 +3264,7 @@ def workshop():
         rod('Driver · shaft',(x,1.80,1.85),(x,1.80,2.10),.008,'steel')
         rod('Driver · rubber handle',(x,1.80,2.10),(x,1.80,2.27),.022,'ink' if i%2 else 'clay')
     # Real project references are pinned above the tools, like working prints.
-    for x,source,title in [(-2.25,'taipei-flix.webp','TaipeiFlix'),(-1.36,'taipei-run.jpg','Taipei Run')]:
+    for x,source,title in [(-1.36,'taipei-run.jpg','Taipei Run')]:
         box('Project reference · '+title,(x,1.813,2.55),(.76,.017,.48),'paper',.002)
         image_panel('Project print · '+title,'project-shots/'+source,(x,1.800,2.55),.71,.43)
         pin=cylinder('Project pin',(x,1.78,2.79),.016,.008,'brass',16);pin.rotation_euler.x=math.pi/2

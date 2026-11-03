@@ -472,14 +472,15 @@ to match.
 
 ## Playable workshop objects
 
-The workshop adds eight project objects to the current scene using
+The workshop adds six project objects to the current scene using
 `scripts/blender/workshop_projects.py`. Its build preserves the current main
 branch's scene, including prop positions, lighting, and court details.
 `pipeline.sh projects` exports their hit regions and inspectable props from the
 same camera and crop. The homepage has no object-directory call to action;
 visitors pick up objects directly. “All objects” inside an inspector opens its
-searchable directory. The current scene has 32 inspectable groups and eight
-project objects. Props removed on main are not reintroduced.
+searchable directory. The current scene has 31 inspectable groups and six
+project objects (five clickable, plus the 886 plaque). The TaipeiFlix wall
+prints and ikigai timer are omitted. Props removed on main are not reintroduced.
 
 The viewer loads on demand, shares one renderer across inspections, renders
 only after interaction, cancels obsolete downloads, and disposes GPU resources

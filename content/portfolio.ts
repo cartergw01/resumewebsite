@@ -375,8 +375,8 @@ export const projects = [
   },
 ];
 
-// The studio plaque stays decorative on the island; its project-page link remains.
-export const islandProjects = projects.filter(project => project.id !== "886-studios");
+// Only projects with a physical object appear as island targets.
+export const islandProjects = projects.filter(project => !["886-studios", "taipei-flix", "ikigai-timer"].includes(project.id));
 
 export const workshopQueue = [
   {

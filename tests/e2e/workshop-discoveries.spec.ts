@@ -40,6 +40,7 @@ test("every prop has a reachable marker and models load only on discovery",async
   await expect(page.locator("[data-model-turns]")).toHaveAttribute("data-model-turns","0");
   await page.keyboard.press("Escape");
   await expect(page.locator('[data-curio="shield"]')).toBeFocused();
+  await expect(page.locator('[data-curio="shield"]')).toHaveCSS("outline-style", "none");
   await page.reload();
   await expect(page.locator('[data-object-position="shield"]')).toHaveAttribute("data-found","true");
   await expect(page.getByRole("button",{name:/Explore \d+ objects/})).toHaveCount(0);
