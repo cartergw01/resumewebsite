@@ -12,6 +12,13 @@
   font-weight: 400;
   font-display: swap;
 }
+@font-face {
+  font-family: "IM Fell English";
+  src: url("/fonts/declaration/IMFellEnglish-Italic-Latin.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
 
 .dialog {
   width: min(840px, calc(100vw - 32px));
@@ -67,9 +74,9 @@
 .date { margin: 0 0 25px; font-size: clamp(17px, 2.7vw, 25px); font-variant: small-caps; letter-spacing: .08em; }
 .date span { white-space: nowrap; letter-spacing: .025em; }
 .heading h2 { margin: 0; font-family: "Declaration Blackletter", Georgia, serif; font-size: clamp(31px, 5.2vw, 46px); font-weight: 400; line-height: 1.15; text-wrap: balance; }
-.heading small { display: block; margin: 10px 0; font-family: "Pinyon Script", "Apple Chancery", cursive; font-size: 26px; }
+.heading small { display: block; margin: 10px 0; font-family: "IM Fell English", Georgia, serif; font-size: 22px; font-style: italic; }
 .heading h2:focus { outline: none; }
-.text { font-family: "Pinyon Script", "Apple Chancery", cursive; font-size: 27px; line-height: 1.55; overflow-wrap: break-word; }
+.text { font-family: "IM Fell English", Georgia, serif; font-size: 22px; font-style: italic; line-height: 1.75; overflow-wrap: break-word; }
 .text p { margin: 0 0 .9em; }
 .text p:first-child::first-letter { float: left; padding: .12em .14em 0 0; font-size: 2.5em; line-height: .9; }
 .text p:last-child { margin-top: 1.8em; }
@@ -92,7 +99,7 @@
   .dialog { width: calc(100vw - 20px); height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
   .document { padding: 72px 24px 40px; }
   .heading { margin-bottom: 30px; }
-  .text { font-size: 25px; line-height: 1.55; }
+  .text { font-size: 21px; line-height: 1.75; }
   .signatures { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
   .signatures p { font-size: 22px; }
   .close { top: 13px; right: 9px; }

@@ -493,8 +493,8 @@ objects have no dot markers; hover cues trace the artwork itself.
 Clicking the shield opens a readable parchment Declaration of Independence.
 Its complete text and signers come from the National Archives transcription
 in `content/declaration.json`. The reader and its locally hosted, OFL-licensed
-blackletter heading and Pinyon Script body fonts load on demand. The shield
-model remains in the object directory.
+blackletter heading, readable IM Fell English italic body, and Pinyon Script
+signature fonts load on demand. The shield model remains in the object directory.
 
 The viewer loads on demand, shares one renderer across inspections, renders
 only after interaction, cancels obsolete downloads, and disposes GPU resources
