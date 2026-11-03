@@ -1,11 +1,17 @@
 import { useId, type CSSProperties } from "react";
+import objects from "@/lib/workshop-objects.json";
 import styles from "./WorkshopObjects.module.css";
+
+const stockChart = objects.stocker.chart;
+const stockScreen = stockChart.screen.map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`).join(" ") + "Z";
+const stockLine = stockChart.line.map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`).join(" ");
+const pokerTray = objects["poker-odds"].tray.map(([x, y], index) => `${index ? "L" : "M"}${x} ${y}`).join(" ") + "Z";
 
 // Small details traced onto the existing render, in its 1200 × 800 space.
 // Their parent shares the physical object's depth and pointer target.
 export default function ProjectCue({ id, bounds, style }: { id: string; bounds: number[]; style: CSSProperties }) {
   const clip = useId().replaceAll(":", "");
-  const screen = id === "taipei-run" ? "M169 302 229 310 231 354 171 346Z" : "M489 302 538 305 538 331 489 328Z";
+  const screen = id === "taipei-run" ? "M169 302 229 310 231 354 171 346Z" : stockScreen;
   return <svg aria-hidden="true" className={styles.cue} data-project-cue={id} viewBox={bounds.join(" ")} style={style}>
     <defs><clipPath id={clip}><path d={screen} /></clipPath></defs>
     {id === "taipei-run" && <>
@@ -18,14 +24,10 @@ export default function ProjectCue({ id, bounds, style }: { id: string; bounds: 
       </g>
       <path className={styles.edge} d="m159 287 72 10-2 66" stroke="#92dfdf" />
     </>}
-    {id === "poker-odds" && <g className={styles.cardCorner}>
-      <path d="m433 376 14 1-4 9-13-1Z" fill="#efe8d5" stroke="#fff1cd" strokeWidth=".65" />
-      <path d="m436 378 5 1-1 3-5-.5Z" fill="#243041" />
-      <path d="m430 385 13 1" stroke="#8a7051" strokeWidth="1" />
-    </g>}
+    {id === "poker-odds" && <path className={styles.chipTray} data-poker-tray d={pokerTray} fill="none" stroke="#ffe1a3" strokeWidth="1.2" strokeLinejoin="round" pathLength="1" />}
     {id === "stocker" && <g clipPath={`url(#${clip})`}>
-      <path className={styles.screenWash} d={screen} fill="#c3e5e7" />
-      <path className={styles.stockTrace} d="m492 323 8-4 6 2 8-8 6 3 12-6" fill="none" stroke="#b0ddc9" strokeWidth="1.3" pathLength="1" />
+      <path className={styles.screenWash} d={screen} fill="#67df99" />
+      <path className={styles.stockTrace} data-stock-trace d={stockLine} fill="none" stroke="#79e8a0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" pathLength="1" />
     </g>}
     {id === "taipei-guide" && <>
       <path className={styles.mapRoute} d="m676 367 4-9 14 1 5-8" fill="none" stroke="#e8b882" strokeWidth="1.5" pathLength="1" />

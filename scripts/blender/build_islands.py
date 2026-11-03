@@ -3093,8 +3093,8 @@ def blackpink_lightstick(x,y,z,angle,k=1.3):
     place(built,x,y,z,angle)
 
 
-# The workshop stool, in front of the monitor.
-STOOL=(1.17,-1.15)
+# Pulled aside so the open poker case is visible beneath the bench.
+STOOL=(1.72,-1.62)
 
 
 def arena_backboard_glass():
@@ -3263,11 +3263,7 @@ def workshop():
     for i,x in enumerate([-.98,-.80,-.62]):
         rod('Driver · shaft',(x,1.80,1.85),(x,1.80,2.10),.008,'steel')
         rod('Driver · rubber handle',(x,1.80,2.10),(x,1.80,2.27),.022,'ink' if i%2 else 'clay')
-    # Real project references are pinned above the tools, like working prints.
-    for x,source,title in [(-1.36,'taipei-run.jpg','Taipei Run')]:
-        box('Project reference · '+title,(x,1.813,2.55),(.76,.017,.48),'paper',.002)
-        image_panel('Project print · '+title,'project-shots/'+source,(x,1.800,2.55),.71,.43)
-        pin=cylinder('Project pin',(x,1.78,2.79),.016,.008,'brass',16);pin.rotation_euler.x=math.pi/2
+    # The Stocker wall chart is added with the other clickable project objects.
     # Carter's a Lakers fan: Kobe's gold #24, framed on the wall above the bench.
     kobe_jersey(-.20,1.80,2.38)
     furniture=set(bpy.context.scene.objects)
@@ -3329,13 +3325,20 @@ def workshop():
     watch_box(-.43,-.14,.5175,math.radians(4))
     # Carter asked for a poker chip set on the lower shelf and blue AirPods
     # Max on the bench.
-    poker_chip_case(.45,.02,.5175,math.radians(-5))
+    poker_chip_case(.45,-.30,.5175,math.radians(-5))
     airpods_max(-1.68,-.30,1.792,math.radians(14))
     # Lakers gold: an LED strip along the bench's front edge, washing the
     # drawers and the deck below.
     P['gold_strip']=material('Glow · gold LED strip',(1,.58,.08),emission=4)
     box('Glow · bench edge strip',(0,-.797,1.703),(4.60,.006,.014),'gold_strip',0)
     for bx in [-1.4,1.4]:light('Glow · gold bench wash',(bx,-.86,1.62),(1,.56,.08),12,.8,(bx,-1.45,.2))
+    # A concealed warm-white strip lights the open shelf and both cases.
+    # Its own housing stays under the desktop, inside the existing apron.
+    P['shelf_strip']=material('Shelf LED · warm diffuser',(1,.82,.58),emission=3)
+    box('Shelf LED · housing',(.49,-.43,1.675),(2.98,.065,.025),'steel',.003)
+    box('Shelf LED · diffuser',(.49,-.43,1.659),(2.92,.042,.007),'shelf_strip',.002)
+    for bx in [-.48,.48,1.44]:
+        light('Shelf LED · wash',(bx,-.40,1.63),(1,.82,.60),11,.65,(bx,-.16,.55))
     # The shield's lower rim rests on the boards and its upper rim leans
     # against the bench's right apron, clear of the stool and basketball court.
     captain_america_shield(2.28 if refined('projects','shield') else 2.17,-.98 if refined('projects','shield') else -.85,lean=15,yaw=-2 if refined('projects','shield') else 22)
@@ -3484,8 +3487,7 @@ def workshop():
     # A Wilson Evolution game ball rests on the court with its print visible.
     wilson_evolution(COURT[0]+.42 if refined('projects','court') else COURT[0]+.32,.62,(.202 if refined('projects','court') else .262)+.24)
     # A low stool with metal legs and a modest padded seat.
-    # It stands in front of the monitor (the bench is turned 9 degrees, so
-    # that's at about (1.17, -1.15) here), where you'd sit to work.
+    # Pulled forward and right, clear of the original poker chip case.
     stx,sty=STOOL
     for xx in [-.27,.27]:
         for yy in [-.27,.27]:rod('Stool · splayed steel leg',(stx+xx*1.25,sty+yy*1.25,.16),(stx+xx,sty+yy,1.08),.021,'teal',20)
@@ -3697,7 +3699,7 @@ LIGHT_SOURCES={
                ('tree',('Tree uplight','Lounge chair · underseat')),('spot',('Spotlight',))],
     'projects':[('lamp',('Eave lamp',)),('luca',('Luca sconce',)),('purple',('Glow · purple','Glow · post','Glow · roof beam')),
                 ('gold',('Glow · gold','Glow · bench edge')),('festoon',('Festoon',)),
-                ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight')),('ball',('Lightstick',)),
+                ('task',('Workshop · task strip','Workshop · practical LED strip','Court floodlight','Shelf LED ·')),('ball',('Lightstick',)),
                 ('devices',('iPad Pro','Magic Keyboard','Cybertruck model','Scooter','Shadow box','Starship display')),('spot',('Spotlight',))],
 }
 

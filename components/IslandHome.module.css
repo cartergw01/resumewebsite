@@ -545,6 +545,13 @@
   translate: 4px 3px;
 }
 .islandTip[data-side^="s"] .tipText { top: calc(21px - 1.2em - 0.3rem); bottom: auto; }
+.islandTip[data-side="e"] .tipStar, .islandTip[data-side="e"] .tipLeader { display: none; }
+.islandTip[data-side="e"] .tipText {
+  top: 0; bottom: auto; left: 0; transform: translateY(-50%);
+  width: max-content; min-width: min-content; max-width: var(--tip-room); padding: 0 0 4px;
+  white-space: normal; text-align: left; font-stretch: 100%; letter-spacing: .08em; line-height: 1.4;
+}
+.islandTip[data-side="e"][data-edge="above"] .tipText { transform: translateY(-100%); }
 .islandTip[data-visible="true"] .tipStar { opacity: 1; scale: 1; transition-duration: 140ms; }
 .islandTip[data-visible="true"] .tipLeader { scale: 1 1; transition: scale 160ms var(--cw-ease) 30ms; }
 .islandTip[data-visible="true"] .tipText {

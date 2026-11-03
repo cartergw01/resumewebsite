@@ -278,16 +278,5 @@
     ],
     "reward": "inspect",
     "hint": "Look along the edges of the oak planks."
-  },
-  {
-    "id": "run-print",
-    "name": "Taipei Run working print",
-    "prefixes": [
-      "Project reference · Taipei Run",
-      "Project print · Taipei Run"
-    ],
-    "reward": "inspect",
-    "project": "taipei-run",
-    "hint": "The working print opens the real project below."
   }
 ]
