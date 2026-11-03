@@ -49,9 +49,9 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
     };
     if (document.readyState === "complete") settle(); else window.addEventListener("load", settle, { once: true });
     // No manual pause control: the video only stills for reduced motion,
-    // data saver, a hidden tab, or while entering an island.
+    // data saver, a hidden tab, an island entry, or a foreground experience.
     const prefersStill = () => motion.matches || Boolean(connection?.saveData);
-    const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering;
+    const shouldPlay = () => !prefersStill() && !document.hidden && !stage.dataset.entering && !stage.dataset.overlay;
     const sync = () => {
       // Keep the real video running while reading, with more energy in flight.
       const rate = (!page && stage.dataset.travelling !== "true" && stage.dataset.engaged !== "true" ? 0.55 : 1) * playbackRate;
@@ -84,7 +84,7 @@ export default function GalaxyBackground({ page = false, playbackRate = 1 }: { p
       }).finally(() => { if (attempt === generation) attempting = false; });
     };
     const observer = new MutationObserver(sync);
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-entering", "data-travelling", "data-engaged", "data-overlay"] });
     motion.addEventListener("change", sync);
     portrait.addEventListener("change", sync);
     connection?.addEventListener("change", sync);

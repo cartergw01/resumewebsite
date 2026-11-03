@@ -101,8 +101,17 @@ for w in "${worlds[@]}"; do
   step "$w: live details"
   blender "$w-life" -b "artwork/blender/$w.blend" --python scripts/blender/export_life_anchors.py -- --world "$w"
   grep "LIFE" "$out/$w-life.log"
+  if [ "$w" = projects ]; then
+    step "projects: clickable object coordinates"
+    blender projects-objects -b artwork/blender/projects.blend --python scripts/blender/export_workshop_objects.py
+    step "projects: inspectable props"
+    blender projects-curios -b artwork/blender/projects.blend --python scripts/blender/export_workshop_curios.py
+    node scripts/blender/compress_workshop_curios.mjs
+  fi
   step "$w: flight model"
-  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- --world "$w"
+  flight_args=()
+  if [ "$device" = CPU ]; then flight_args+=(--cpu); fi
+  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- --world "$w" "${flight_args[@]}"
   grep "FLIGHT.*MiB" "$out/$w-flight.log"
 done
 

@@ -148,9 +148,11 @@ test("each island zooms into its own page and owns navigation until arrival", as
     await expectScene(page, id);
     await expect(page.getByRole("link", { name: /^Explore / })).toHaveCount(0);
     const island = page.getByRole("link", { name: new RegExp(`^${world},`) });
-    await island.click();
+    // The entry link now sits beside the physical object buttons. Keyboard
+    // activation targets it without clicking whichever prop covers its center.
+    await island.press("Enter");
     await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-entering", id);
-    await expect.poll(() => island.locator("[data-island-visual]").evaluate((visual) => {
+    await expect.poll(() => page.locator(`#${id} [data-island-visual]`).evaluate((visual) => {
       const matrix = new DOMMatrixReadOnly(getComputedStyle(visual).transform);
       return Math.hypot(matrix.a, matrix.b);
     })).toBeGreaterThan(1.2);
@@ -168,7 +170,7 @@ test("reduced motion enters an island without zooming", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/#projects");
   await expectScene(page, "projects");
-  await page.getByRole("link", { name: /^Projects,/ }).click();
+  await page.getByRole("link", { name: /^Projects,/ }).press("Enter");
   await expect(page).toHaveURL(/\/projects$/);
   await expect(page.locator("main h1")).toHaveText("Projects");
 });
@@ -350,7 +352,7 @@ test("settled worlds survive refresh, browser Back, and the islands return link"
     await expectScene(page, id);
     await page.reload();
     await expectScene(page, id);
-    await page.getByRole("link", { name: new RegExp(`^${world},`) }).click();
+    await page.getByRole("link", { name: new RegExp(`^${world},`) }).press("Enter");
     // Each entry plays out before the route changes: Writing lifts its
     // notebook and riffles the essays first (~4.4s), past the default wait.
     await expect(page).toHaveURL(new RegExp(`/${id}$`), { timeout: 15_000 });

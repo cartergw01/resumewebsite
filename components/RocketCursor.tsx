@@ -888,7 +888,7 @@ export function RocketCursor() {
       if (!link) return;
       // Recovery links must work immediately, including while a decorative
       // click launch is still finishing. Let the browser follow them directly.
-      if (link.hasAttribute("data-native-navigation")) return;
+      if (link.hasAttribute("data-native-navigation") || link.closest("[data-direct-navigation]")) return;
 
       const newTabHref = newTabNavigationHref(link);
       const internalHref = newTabHref ? null : internalRouteHref(link);
@@ -907,7 +907,7 @@ export function RocketCursor() {
       // Launch the rocket alongside the island camera move. The island link
       // owns navigation, so this launch supplies only the visual effect and
       // lets the click continue to its handler without opening the route early.
-      if (link.hasAttribute("data-island-link") && internalHref) {
+      if ((link.hasAttribute("data-island-link") || link.hasAttribute("data-island-entry")) && internalHref) {
         const { originX, originY } = launchOriginForClick(e, link);
         startLaunch({ originX, originY });
         return;

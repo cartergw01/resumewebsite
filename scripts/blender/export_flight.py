@@ -28,15 +28,19 @@ args = argparse.ArgumentParser()
 args.add_argument('--world', required=True, choices=['work', 'writing', 'projects'])
 args.add_argument('--faces', type=int, default=45000)
 args.add_argument('--samples', type=int, default=24)
+args.add_argument('--cpu', action='store_true', help='Bake without a Metal GPU')
 args.add_argument('--social-preview', action='store_true', help='Keep lit fixtures and denser light pools in capture-only models')
 opts = args.parse_args(sys.argv[sys.argv.index('--') + 1:])
 scene = bpy.context.scene
 scene.frame_set(1)
 scene.render.engine = 'CYCLES'
-prefs = bpy.context.preferences.addons['cycles'].preferences
-prefs.compute_device_type = 'METAL'; prefs.get_devices()
-for device in prefs.devices: device.use = device.type == 'METAL'
-scene.cycles.device = 'GPU'
+if opts.cpu:
+    scene.cycles.device = 'CPU'
+else:
+    prefs = bpy.context.preferences.addons['cycles'].preferences
+    prefs.compute_device_type = 'METAL'; prefs.get_devices()
+    for device in prefs.devices: device.use = device.type == 'METAL'
+    scene.cycles.device = 'GPU'
 scene.cycles.samples = opts.samples
 scene.cycles.use_denoising = False
 

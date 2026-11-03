@@ -39,8 +39,10 @@ test("the workshop screen fans out every project and deals each into its row", a
   // The decorative launch comes from a deferred component on both input types.
   await expect(page.locator("html")).toHaveAttribute("data-rocket-transition", "idle");
   await watchRocketLaunch(page);
-  const island = page.locator("#projects [data-island-link]");
-  if (isMobile) await island.tap(); else await island.click();
+  await expect(source).toBeInViewport({ ratio: .99 });
+  const screenBox = (await source.boundingBox())!;
+  if (isMobile) await page.touchscreen.tap(screenBox.x+screenBox.width/2,screenBox.y+screenBox.height/2);
+  else await page.mouse.click(screenBox.x+screenBox.width/2,screenBox.y+screenBox.height/2);
   await expectRocketLaunched(page);
   const carry = page.locator("body > [data-workshop-transition]");
   await expect(carry).toHaveAttribute("data-workshop-transition", "entering");
@@ -91,7 +93,11 @@ test("reduced motion and direct entry show the complete project without a transi
   // Tap where the island is, as a finger would. Playwright's click first
   // scrolls the link "into view", which in this pinned stage scrolls the page
   // back toward Writing and, with reduced motion, swaps the island away.
-  const island = (await page.locator("#projects [data-island-link]").boundingBox())!;
+  const screen = page.locator("#projects [data-workshop-screen]");
+  // The initial hash layout can still be positioning the island in WebKit.
+  // Read coordinates only once the actual screen is fully onstage.
+  await expect(screen).toBeInViewport({ ratio: .99 });
+  const island = (await screen.boundingBox())!;
   const [x, y] = [island.x + island.width / 2, island.y + island.height / 2];
   if (isMobile) await page.touchscreen.tap(x, y);
   else await page.mouse.click(x, y);

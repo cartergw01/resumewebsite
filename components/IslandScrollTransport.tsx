@@ -133,6 +133,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let measuredHeight = 0;
     let measuredWidth = 0;
     let measuredSceneHeight = 0;
+    let measuredViewportWidth = 0;
+    let measuredViewportHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
     let massPosition: number | null = null;
@@ -182,6 +184,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
+      // Safari can clamp scrollY and draw a frame before delivering resize.
+      // Re-measure first so that clamp cannot overwrite the saved camera pose.
+      if (innerWidth !== measuredViewportWidth || innerHeight !== measuredViewportHeight) measure();
       const progress = zoomProgress ?? clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
@@ -387,6 +392,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (zoomProgress === null && !frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
     const measure = () => {
+      measuredViewportWidth = innerWidth;
+      measuredViewportHeight = innerHeight;
       const height = track.offsetHeight;
       const width = stage.offsetWidth;
       const sceneHeight = scenes[0].offsetHeight;
@@ -526,7 +533,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // arrived, opens that island, exactly as tapping the island does.
     // Elsewhere scene controls only ever travel (a double click never enters).
     jumpRef.current = (index: number) => {
-      const island = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
+      const island = scenes[index].querySelector<HTMLAnchorElement>("a[data-island-link], [data-island-entry]");
       const phone = matchMedia("(max-width: 760px)").matches;
       if (phone && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
         island.click();
@@ -562,7 +569,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("[data-island-link]") ?? [])
+      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("a[data-island-link], [data-island-entry]") ?? [])
         .find(candidate => candidate.pathname === heading.pathname);
       if (!island) return;
       event.preventDefault();
@@ -737,7 +744,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       jump(index);
     };
     const settle = () => {
-      if (zoomProgress !== null || touching || stage.dataset.entering) return;
+      if (zoomProgress !== null || touching || stage.dataset.entering || document.querySelector("dialog[open]")) return;
       const here = place();
       const nearest = nearestStop();
       if (Math.abs(stopAt(nearest) - here) < 0.04) {
@@ -774,7 +781,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       settleTimer = window.setTimeout(settle, 150);
     };
     // A new wheel or touch takes over from any glide in progress.
-    const markIntent = () => {
+    const dialogInput = (event?: Event) => !!document.querySelector("dialog[open]") || (event?.target instanceof Element && !!event.target.closest("dialog"));
+    const markIntent = (event?: Event) => {
+      if (dialogInput(event)) { cancelSettle(); return; }
       if (zoomProgress !== null) return;
       intentAt = performance.now(); settling = false; stopGlide();
       if (!stage.dataset.entering && document.documentElement.dataset.rocketTransition === "idle") {
@@ -883,6 +892,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       glideTo(Math.min(scenes.length - 1, Math.max(0, gesture.origin + step)));
     };
     const onTouchStart = (event: TouchEvent) => {
+      if (dialogInput(event)) { swipe = null; cancelSettle(); return; }
       touching = true;
       if (event.touches.length > 1) pinching = true;
       syncZoom();
@@ -898,6 +908,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     };
     const onTouchEnd = (event: TouchEvent) => {
       touching = event.touches.length > 0;
+      if (dialogInput(event)) { swipe = null; cancelSettle(); return; }
       if (zoomProgress !== null || pinching) {
         // Keep the gesture owned by zoom even if one finger lifts first.
         if (!touching) pinching = false;
@@ -935,7 +946,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (event.key === "Escape") { entryPending = false; window.clearTimeout(entryRecovery); schedule(); }
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering || zoomProgress !== null) return;
       const target0 = event.target as Element | null;
-      if (target0?.closest("input, textarea, select, [contenteditable]")) return;
+      if (target0?.closest("input, textarea, select, [contenteditable], dialog")) return;
       // Space still presses a focused button or link.
       if (event.key === " " && target0?.closest("button, a")) return;
       const current = nearestStop();

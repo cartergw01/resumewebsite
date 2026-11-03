@@ -84,6 +84,6 @@ test("data saver keeps the workshop usable without preloading models or the whol
   const otherImages: string[] = JSON.parse(posters!).slice(1);
   expect(downloads.filter(url => otherImages.some(src => url.includes(src)))).toEqual([]);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.locator("#projects [data-island-link]").click();
+  await page.locator("#projects [data-workshop-entry]").press("Enter");
   await expect(page).toHaveURL(/\/projects$/);
 });

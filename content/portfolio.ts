@@ -303,6 +303,7 @@ export const readingLists = essays.filter(isReadingList);
 export const projects = [
   {
     title: "TaipeiFlix",
+    id: "taipei-flix",
     href: "https://taipeiflix.com/",
     image: taipeiFlixImage.src,
     mobilePreview: { scale: 1.65, position: "0% 35%" },
@@ -311,6 +312,7 @@ export const projects = [
   },
   {
     title: "886 Studios (website)",
+    id: "886-studios",
     href: "https://886studios.com",
     image: studiosImage.src,
     mobilePreview: { scale: 1.18, position: "50% 35%" },
@@ -319,6 +321,7 @@ export const projects = [
   },
   {
     title: "Taipei Run",
+    id: "taipei-run",
     href: "https://taipeirun.com/",
     image: taipeiRunImage.src,
     mobilePreview: { scale: 1.18, position: "50% 75%" },
@@ -327,6 +330,7 @@ export const projects = [
   },
   {
     title: "Stocker",
+    id: "stocker",
     href: "https://stocker-app-one.vercel.app/",
     image: stockerImage.src,
     mobilePreview: { scale: 1.55, position: "12% 15%" },
@@ -335,6 +339,7 @@ export const projects = [
   },
   {
     title: "Carter's Taipei Guide",
+    id: "taipei-guide",
     href: "https://taipei-guide-etaa.vercel.app/",
     image: taipeiGuideImage.src,
     mobilePreview: { scale: 1.5, position: "18% 60%" },
@@ -343,6 +348,7 @@ export const projects = [
   },
   {
     title: "Poker Odds Calculator",
+    id: "poker-odds",
     href: "https://poker-odds-app-pink.vercel.app/",
     image: pokerImage.src,
     mobilePreview: { scale: 1.4, position: "50% 55%" },
@@ -351,6 +357,7 @@ export const projects = [
   },
   {
     title: "ikigai Timer",
+    id: "ikigai-timer",
     href: "https://886studios.com/timer",
     image: timerImage.src,
     mobilePreview: { scale: 1.08, position: "50% 50%" },
@@ -359,6 +366,7 @@ export const projects = [
   },
   {
     title: "Night night, Ko",
+    id: "night-night-ko",
     href: "https://nightnightko.vercel.app/",
     image: sleepImage.src,
     mobilePreview: { scale: 1.4, position: "12% 30%" },
@@ -366,6 +374,9 @@ export const projects = [
     description: "My custom sleep dashboard to track my sleep and all the stats surrounding that.",
   },
 ];
+
+// The studio plaque stays decorative on the island; its project-page link remains.
+export const islandProjects = projects.filter(project => project.id !== "886-studios");
 
 export const workshopQueue = [
   {

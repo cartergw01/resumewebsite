@@ -15,6 +15,7 @@ import { TIMINGS } from "@/lib/light-switch";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
+import WorkshopObjects from "./WorkshopObjects";
 
 // A festoon bulb's switch timing at `x` along the string.
 function festoonTiming(xs: number[], x: number) {
@@ -180,6 +181,7 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
           <path data-touch-surface={world === "work" ? "entryWindow" : "screen"} d={artworkOutline(world === "work" ? city.entryWindow : workshop.screen)} />
         </svg>
+        {world === "projects" && warm ? <WorkshopObjects /> : null}
       </span>
     </IslandLink>
   </>;

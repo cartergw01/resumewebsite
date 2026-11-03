@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry, bookOpened } from "@/lib/workshop-entry";
 import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
@@ -56,12 +56,29 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
 
   useEffect(() => () => cleanupRef.current?.(), []);
 
+  const touchFeedback = {
+    onPointerDown: (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType !== "touch" || !event.isPrimary || event.currentTarget.closest<HTMLElement>("[data-island-stage]")?.dataset.entering) return;
+      touch.current = { x: event.clientX, y: event.clientY };
+      event.currentTarget.dataset.touchPressed = "true";
+    },
+    onPointerMove: (event: PointerEvent<HTMLElement>) => {
+      if (touch.current && Math.hypot(event.clientX - touch.current.x, event.clientY - touch.current.y) > 7) {
+        touch.current = null;
+        delete event.currentTarget.dataset.touchPressed;
+      }
+    },
+    onPointerUp: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+    onPointerCancel: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+    onPointerLeave: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+  };
+
   const enter = (event: MouseEvent<HTMLAnchorElement>) => {
     // Keep native new-tab, context-menu, reduced-motion and magnified navigation.
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || (window.visualViewport?.scale ?? 1) > 1.01) return;
 
-    const link = event.currentTarget;
+    const link = event.currentTarget.closest<HTMLElement>("[data-island-link]") ?? event.currentTarget;
     const stage = link.closest<HTMLElement>("[data-island-stage]");
     const visual = link.querySelector<HTMLElement>("[data-island-visual]");
     if (!stage || !visual) return;
@@ -207,6 +224,16 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       });
     }).catch(() => { /* Unmounting cancels the animation. */ });
   };
+
+  if ((workshop || book) && !overview) return (
+    <div className={styles.islandLink} data-island-link data-island-objects data-workshop={workshop || undefined} data-world={title.toLowerCase()} tabIndex={-1} {...touchFeedback}>
+      <Link href={href} className={styles.workshopEntryHit} data-island-entry data-workshop-entry={workshop || undefined} data-writing-entry={book || undefined} onClick={enter}
+        aria-label={`${title}, ${prompt}`} data-tip={prompt} data-tip-side="nw" draggable={false}>
+        <span className="sr-only">{book ? "Read my essays" : "View all projects"}</span>
+      </Link>
+      {children}
+    </div>
+  );
 
   return (
     <Link

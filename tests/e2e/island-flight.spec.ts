@@ -21,6 +21,9 @@ async function cross(page: Page, journey: number, progress: number) {
     const actual = Number((stage as HTMLElement).dataset.cameraProgress);
     return Math.abs(actual - scrollY / (document.documentElement.scrollHeight - innerHeight));
   })).toBeLessThan(0.000002);
+  // Compare the same settled pose in both directions, after the artwork's
+  // scroll-weight spring has stopped banking into the movement.
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-coasting", "false");
 }
 
 async function pose(page: Page, world: string) {
@@ -67,7 +70,7 @@ test("camera pulls back, follows opposite arcs, and retraces the same path", asy
   }
 });
 
-test("island settles before its lights, heading, and switch arrive", async ({ page }) => {
+test("island settles before its lights, heading, and switch arrive", async ({ page, isMobile }) => {
   await page.goto("/");
   for (const [journey, world] of [[1, "writing"], [2, "projects"]] as const) {
     const copy = page.locator(`#${world} [data-scene-copy]`);
@@ -75,7 +78,10 @@ test("island settles before its lights, heading, and switch arrive", async ({ pa
     const brightness = () => page.locator(`#${world} [data-island-visual]`).evaluate(el => Number(getComputedStyle(el).filter.match(/brightness\(([^)]+)\)/)?.[1]));
     await cross(page, journey, 0.84);
     expect((await pose(page, world)).scale).toBeCloseTo(1, 3);
-    expect(await brightness()).toBeLessThan(0.65);
+    // Phones keep the full artwork bright to avoid animating a costly filter;
+    // the individual lights, heading and switch still arrive in sequence.
+    if (isMobile) expect(await brightness()).toBe(1);
+    else expect(await brightness()).toBeLessThan(0.65);
     await expect(copy).toHaveCSS("opacity", "0");
     await expect(control).toBeHidden();
     await cross(page, journey, 0.93);
@@ -104,7 +110,7 @@ test("book and workshop entry centers their landmarks", async ({ page }) => {
     if (midFlight) await cross(page, 1, 0.3);
     const visual = page.locator(`#${world} [data-island-visual]`);
     // Keyboard activation doesn't scroll a moving link into the center first.
-    await page.locator(`#${world} [data-island-link]`).focus();
+    await page.locator(`#${world} [data-island-entry]`).focus();
     await page.keyboard.press("Enter");
     await expect(visual).toHaveAttribute("data-entry-landmark", name);
     const point = await visual.evaluate((node: HTMLElement, { fx, fy }) => {
