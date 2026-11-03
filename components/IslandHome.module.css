@@ -678,4 +678,4 @@
 .workshopEntryHit:focus-visible + .island { outline: 2px solid #eddbbf; outline-offset: -24px; border-radius: 12px; }
 
 /* The foreground experience owns the frame budget while it is open. */
-.stage[data-overlay] .island, .stage[data-overlay] .scrollStar, .stage[data-overlay] [data-next-label] { animation-play-state: paused !important; }
+.stage[data-overlay] .island, .stage[data-overlay] .scrollArrow svg, .stage[data-overlay] [data-next-label] { animation-play-state: paused !important; }

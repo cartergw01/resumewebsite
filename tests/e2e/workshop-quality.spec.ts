@@ -27,7 +27,7 @@ test("object browsing reuses one renderer and stays idle between interactions", 
   const timings: number[] = [];
   for (let i = 0; i < 4; i++) {
     const began = performance.now();
-    await page.getByRole("button", { name: "Next object →", exact: true }).click();
+    await page.getByRole("button", { name: "Next object", exact: true }).click();
     await expect(page.locator('[data-model-state="ready"]')).toBeVisible({ timeout: 15_000 });
     timings.push(Math.round(performance.now() - began));
   }
@@ -61,11 +61,11 @@ test("failed downloads and GPU context loss recover, and close releases the rend
   await pickUp(page,"headphones");
   await expect(page.locator('[data-model-state="error"]')).toBeVisible();
   fail=false;
-  await page.getByRole("button",{name:"Try 3D again",exact:true}).click();
+  await page.getByRole("button",{name:"Retry",exact:true}).click();
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({timeout:15_000});
   await page.locator("[data-model-state] canvas").evaluate((canvas:HTMLCanvasElement)=>canvas.getContext("webgl2")!.getExtension("WEBGL_lose_context")!.loseContext());
   await expect(page.locator('[data-model-state="error"]')).toBeVisible();
-  await page.getByRole("button",{name:"Try 3D again",exact:true}).click();
+  await page.getByRole("button",{name:"Retry",exact:true}).click();
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({timeout:15_000});
   await page.locator("[data-model-state] canvas").evaluate((canvas:HTMLCanvasElement)=>Object.assign(window,{closedWorkshopContext:canvas.getContext("webgl2")}));
   await page.getByRole("button",{name:"Close discovery",exact:true}).click();
@@ -84,7 +84,7 @@ test("switching away from a slow model cancels it without overwriting the next o
   await pickUp(page,"basketball");
   await requested;
   const aborted=page.waitForEvent("requestfailed",{predicate:request=>request.url().includes("/workshop/basketball-")});
-  await page.getByRole("button",{name:"Next object →",exact:true}).click();
+  await page.getByRole("button",{name:"Next object",exact:true}).click();
   release();
   await aborted;
   await expect(page.getByRole("heading",{name:"Basketball hoop",exact:true})).toBeVisible();
@@ -103,8 +103,8 @@ test("small phone through tablet keeps inspection and close controls within reac
     await expect(page.locator('main[data-scene]')).toHaveAttribute('data-scene','projects');
     await pickUp(page,"lightstick");
     await expect(page.locator('[data-model-state="ready"]')).toBeVisible({ timeout:15_000 });
-    await page.getByRole("button", { name: "Light the hearts", exact:true }).click();
-    await expect(page.getByRole("button", { name: "Dim the hearts", exact:true })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Turn light stick on", exact:true }).click();
+    await expect(page.getByRole("button", { name: "Turn light stick off", exact:true })).toHaveAttribute("aria-pressed", "true");
     const dialog = page.getByRole("dialog");
     await dialog.evaluate(node => { node.scrollTop = node.scrollHeight; });
     const close = await page.getByRole("button", { name:"Close discovery", exact:true }).boundingBox();

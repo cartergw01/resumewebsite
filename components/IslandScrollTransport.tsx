@@ -133,6 +133,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let measuredHeight = 0;
     let measuredWidth = 0;
     let measuredSceneHeight = 0;
+    let measuredViewportWidth = 0;
+    let measuredViewportHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
     let massPosition: number | null = null;
@@ -182,6 +184,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
+      // Safari can clamp scrollY and draw a frame before delivering resize.
+      // Re-measure first so that clamp cannot overwrite the saved camera pose.
+      if (innerWidth !== measuredViewportWidth || innerHeight !== measuredViewportHeight) measure();
       const progress = zoomProgress ?? clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
@@ -387,6 +392,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (zoomProgress === null && !frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
     const measure = () => {
+      measuredViewportWidth = innerWidth;
+      measuredViewportHeight = innerHeight;
       const height = track.offsetHeight;
       const width = stage.offsetWidth;
       const sceneHeight = scenes[0].offsetHeight;
