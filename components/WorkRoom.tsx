@@ -191,8 +191,8 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
     community: preview ? null : contribution(2),
     research: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[0]} /></ul>,
     slug: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[1]} /></ul>,
-    side: preview ? null : <ul className={styles.experiences}>{copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}</ul>,
-    about: preview ? null : <About />,
+    side: preview ? null : <><p className={styles.label}>On the side</p><ul className={styles.experiences}>{copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}</ul></>,
+    about: preview ? null : <><p className={styles.label}>About me</p><About /></>,
   };
   return <OfficeExplorer header={<WorkHeader preview={preview} />} panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
 }

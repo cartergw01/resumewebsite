@@ -3,12 +3,12 @@
   --map-top: var(--subpage-top);
   --ink: #2a2233;
   --menu-paper: #f8f4e6;
-  --menu-frame: #3e9390;
+  --brand-886: #6d35d8;
   --stepped: polygon(0 6px, 2px 6px, 2px 4px, 4px 4px, 4px 2px, 6px 2px, 6px 0, calc(100% - 6px) 0, calc(100% - 6px) 2px, calc(100% - 4px) 2px, calc(100% - 4px) 4px, calc(100% - 2px) 4px, calc(100% - 2px) 6px, 100% 6px, 100% calc(100% - 6px), calc(100% - 2px) calc(100% - 6px), calc(100% - 2px) calc(100% - 4px), calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) calc(100% - 2px), calc(100% - 6px) calc(100% - 2px), calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 2px), 4px calc(100% - 2px), 4px calc(100% - 4px), 2px calc(100% - 4px), 2px calc(100% - 6px), 0 calc(100% - 6px));
   display: grid;
   grid-template-columns: minmax(21rem, 26rem) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr;
-  grid-template-areas: "intro map" "menu map" "detail map";
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "intro map" "detail map";
   column-gap: clamp(1rem, 3vw, 3rem);
   width: 100%;
 }
@@ -17,34 +17,11 @@
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .explorer button:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; }
 
-/* The menu window, stepped at the corners: ink, paper, teal, paper. */
-.menu { grid-area: menu; position: relative; padding: 6px; background: var(--ink); clip-path: var(--stepped); scroll-margin-top: var(--nav-clearance); }
-.menu::before, .menu::after { content: ""; position: absolute; clip-path: var(--stepped); }
-.menu::before { inset: 2px; background: var(--menu-paper); }
-.menu::after { inset: 4px; background: var(--menu-frame); }
-.menuBody { position: relative; z-index: 1; display: grid; grid-template-columns: 1.4fr 1fr; gap: 0 .75rem; padding: .625rem .875rem .625rem .625rem; background: var(--menu-paper); clip-path: var(--stepped); }
-.nameGroup { display: grid; min-width: 0; }
-.name { display: flex; align-items: center; gap: .4375rem; min-height: 32px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 1.0625rem; font-weight: 500; line-height: 1; text-align: left; white-space: nowrap; cursor: pointer; }
-.explorer .name:focus-visible { outline: 2px solid var(--menu-frame); outline-offset: 1px; }
-.name[aria-pressed="true"] { font-weight: 600; }
-.cursor { flex: none; width: 10px; height: 14px; fill: var(--ink); opacity: 0; }
-.name:hover .cursor, .name:focus-visible .cursor,
-.explorer:has(.room[data-stop="now"]:hover) .name[data-stop="now"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="accelerator"]:hover) .name[data-stop="accelerator"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="founders"]:hover) .name[data-stop="founders"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="community"]:hover) .name[data-stop="community"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="research"]:hover) .name[data-stop="research"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="slug"]:hover) .name[data-stop="slug"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="side"]:hover) .name[data-stop="side"]:not([aria-pressed="true"]) .cursor,
-.explorer:has(.room[data-stop="about"]:hover) .name[data-stop="about"]:not([aria-pressed="true"]) .cursor { opacity: .35; }
-.name[aria-pressed="true"] .cursor, .name[aria-pressed="true"]:hover .cursor { opacity: 1; animation: nudge 800ms steps(1) infinite; }
-@keyframes nudge { 0%, 100% { transform: none; } 50% { transform: translateX(2px); } }
-
 .mapColumn { grid-area: map; position: sticky; top: var(--map-top); align-self: start; display: flex; align-items: center; min-width: 0; min-height: calc(100svh - var(--map-top) - 1rem); margin-right: calc(-1 * max(0px, (100vw - 1120px) / 2 - 2rem)); scroll-margin-top: var(--nav-clearance); }
 .mapColumn[hidden], .detail[hidden], .list[hidden] { display: none; }
 .plan { position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * 340 / 272)); aspect-ratio: 340 / 272; margin-inline: auto; isolation: isolate; }
-.drawing, .scene { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; }
-.scene, .floorName, .worker { image-rendering: pixelated; }
+.drawing, .scene { position: absolute; inset: 0; display: block; width: 100%; height: 100%; user-select: none; }
+.scene, .floorNames, .worker { image-rendering: pixelated; pointer-events: none; }
 
 /* Night falls room by room, in the stepped fade of an old console. */
 .station { --engaged: 0; display: contents; }
@@ -57,24 +34,35 @@
 .explorer:has([data-stop="slug"]:is(:hover, :focus-visible)) .station[data-station="slug"]:not([data-active="true"]),
 .explorer:has([data-stop="side"]:is(:hover, :focus-visible)) .station[data-station="side"]:not([data-active="true"]),
 .explorer:has([data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"]:not([data-active="true"]) { --engaged: .5; }
-.roomDark, .hallDark { position: absolute; background: #0a1030; }
+.roomDark, .hallDark { position: absolute; background: #0a1030; pointer-events: none; }
 .roomDark { opacity: calc((1 - var(--engaged)) * .5); transition: opacity 300ms steps(5); }
 .hallDark { left: calc(4 / 340 * 100%); top: calc(116 / 272 * 100%); width: calc(332 / 340 * 100%); height: calc(36 / 272 * 100%); opacity: .26; }
-.floorName { position: absolute; inset: 0; background: var(--names) 0 0 / 100% 100%; opacity: var(--engaged); transition: opacity 300ms steps(5); }
+/* Names are part of the building: on every floor, lit or not. */
+.floorNames { position: absolute; inset: 0; background: var(--names) 0 0 / 100% 100%; }
 
-.worker { position: absolute; left: 0; top: 0; z-index: 1; width: calc(16 / 340 * 100%); aspect-ratio: 16 / 24; background: var(--sheet) 0 0 / 300% 400% no-repeat; }
+.worker { position: absolute; left: 0; top: 0; z-index: 2; width: calc(16 / 340 * 100%); aspect-ratio: 16 / 24; background: var(--sheet) 0 0 / 300% 400% no-repeat; }
 .worker[data-walking="true"] { animation: walk 340ms steps(1) infinite; }
 @keyframes walk { 0% { background-position-x: 50%; } 25% { background-position-x: 0%; } 50% { background-position-x: 100%; } 75% { background-position-x: 0%; } }
 
-/* A floor answers the pointer. Its name is in the menu. */
-.room { position: absolute; z-index: 2; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* A room's floor is its button: click to send him there. */
+.room { position: absolute; z-index: 1; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .explorer .room:focus { outline: none; }
+.explorer .room:focus-visible { outline: 2px solid #e6c794; outline-offset: -2px; }
 
-.detail { grid-area: detail; min-width: 0; padding: var(--subpage-section-space) 0 2rem; }
+/* Things in the lit room that are also links in its story. */
+.object { position: absolute; z-index: 3; cursor: pointer; }
+.object:hover, .object[data-near="true"] { outline: 2px solid #e7c693; outline-offset: 1px; }
+
+/* A game's text bubble, over his head and going where he goes. */
+.prompt { position: absolute; left: 50%; bottom: calc(100% + 4px); display: flex; align-items: center; gap: .5rem; padding: .3125rem .5625rem; background: var(--menu-paper); color: var(--ink); font-size: 1rem; font-weight: 500; line-height: 1.1; white-space: nowrap; clip-path: var(--stepped); transform: translateX(-50%); pointer-events: none; }
+.prompt kbd { padding: .0625rem .375rem; background: var(--brand-886); color: #fff; font: inherit; font-size: .875rem; }
+
+.detail { grid-area: detail; min-width: 0; padding: var(--subpage-row-space) 0 2rem; }
 .detailEnter { animation: arrive 460ms cubic-bezier(.16, 1, .3, 1) both; }
 @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.detailEnd { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: var(--subpage-row-space); }
-.nextRoom { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; min-width: 0; padding: 0; border: 0; background: none; color: var(--cw-paper); font-size: 1.125rem; font-weight: 500; text-align: left; cursor: pointer; transition: color 180ms ease; }
+@keyframes nudge { 0%, 100% { transform: none; } 50% { transform: translateX(2px); } }
+.detailEnd { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 1rem; margin-top: var(--subpage-row-space); }
+.nextRoom { display: inline-flex; white-space: nowrap; align-items: center; gap: .5rem; min-height: 44px; min-width: 0; padding: 0; border: 0; background: none; color: var(--cw-paper); font-size: 1.125rem; font-weight: 500; text-align: left; cursor: pointer; transition: color 180ms ease; }
 .nextRoom svg { flex: none; width: 10px; height: 14px; fill: currentColor; animation: nudge 800ms steps(1) infinite; }
 .nextRoom:hover { color: #e6c794; }
 .viewSwitch { flex: none; min-height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font-size: 1rem; text-decoration: underline; text-decoration-color: var(--subpage-rule); text-underline-offset: .25em; cursor: pointer; }
@@ -82,21 +70,19 @@
 .list { padding-top: var(--subpage-section-space); }
 
 @media (max-width: 960px) {
-  .explorer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "intro" "map" "menu" "detail"; }
+  .explorer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "intro" "map" "detail"; }
   .mapColumn { position: static; display: block; min-height: 0; width: 100vw; margin: 0 0 var(--subpage-row-space) calc(50% - 50vw); padding-inline: max(4px, calc((100vw - 44rem) / 2)); }
   .plan { width: 100%; }
-  .detail { padding-top: var(--subpage-section-space); }
 }
-@media (max-width: 700px) {
-  .name { min-height: 40px; font-size: 1rem; }
-  .menuBody { padding: .375rem .625rem .375rem .5rem; }
+/* Touch screens have no arrow keys, and these links are all in the story below. */
+@media (hover: none) {
+  .object, .prompt { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .detailEnter, .worker[data-walking="true"], .name[aria-pressed="true"] .cursor, .name[aria-pressed="true"]:hover .cursor, .nextRoom svg { animation: none; }
-  .roomDark, .floorName, .nextRoom { transition: none; }
+  .detailEnter, .worker[data-walking="true"], .nextRoom svg { animation: none; }
+  .roomDark, .nextRoom { transition: none; }
 }
 @media (forced-colors: active) {
-  .menu, .menuBody { clip-path: none; }
-  .menu::before, .menu::after { display: none; }
-  .cursor, .nextRoom svg { fill: CanvasText; }
+  .prompt { clip-path: none; border: 1px solid CanvasText; }
+  .nextRoom svg { fill: CanvasText; }
 }
