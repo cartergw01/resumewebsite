@@ -255,13 +255,15 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
     {view !== "office" && viewSwitch}
     <div className={styles.mapColumn} ref={map} hidden={view !== "office"}>
       <div className={styles.plan} ref={plan} role="group" aria-label="Rooms in the office">
-        <OfficePlan workerRef={worker} lit={lit} active="now" bubble={!preview && (nearby || !walked) && <div className={`${styles.prompt} ${pixel.className}`} data-hint={!nearby} aria-hidden="true">
-          {nearby
-            ? <><span>{nearby.label}</span><kbd>Enter</kbd></>
-            : <span>Walk with the arrow keys</span>}
-        </div>}>
+        <OfficePlan workerRef={worker} lit={lit} active="now" bubble={!preview && !walked && !nearby && <div className={`${styles.prompt} ${pixel.className}`} aria-hidden="true"><span>Walk with the arrow keys</span></div>}>
           {officeStops.map(renderRoom)}
           {!preview && officeObjects.filter(item => item.room === selected).map(renderObject)}
+          {!preview && nearby && <div className={`${styles.prompt} ${styles.promptOver} ${pixel.className}`} data-under={nearby.box[1] < 24} aria-hidden="true" style={{
+            left: percent(Math.min(officeView.width - 48, Math.max(48, nearby.box[0] + nearby.box[2] / 2)), officeView.width),
+            top: percent(nearby.box[1] < 24 ? nearby.box[1] + nearby.box[3] : nearby.box[1], officeView.height),
+          }}>
+            <span>{nearby.label}</span><kbd>Enter</kbd>
+          </div>}
         </OfficePlan>
       </div>
     </div>

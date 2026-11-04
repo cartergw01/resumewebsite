@@ -48,8 +48,8 @@ test("arrow keys walk him through the office and the story follows", async ({ pa
   // he is steered into it, and walking in lights the room and brings up its story.
   await walk(page, "ArrowDown", at => at.y >= 136);
   await expect(page.locator(worker)).toHaveAttribute("data-walking", "false");
-  const atDoor = await walk(page, "ArrowRight", at => at.x >= 138);
-  expect(Math.abs(atDoor.x - 144)).toBeLessThan(14);
+  const atDoor = await walk(page, "ArrowRight", at => at.x >= 166);
+  expect(Math.abs(atDoor.x - 172)).toBeLessThan(14);
   await walk(page, "ArrowDown", at => at.y >= 200);
   await expect(explorer).toHaveAttribute("data-selected", "slug");
   await expect(page.getByRole("heading", { name: "Slug Fund Investment Group" })).toBeVisible();

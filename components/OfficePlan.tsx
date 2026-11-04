@@ -12,16 +12,15 @@ const facingRows: Record<OfficeFacing, number> = { down: 0, left: 1, right: 2, u
 export const workerFacing = (facing: OfficeFacing) => `${facingRows[facing] / 3 * 100}%`;
 export const workerPlace = ([x, y]: Point) => `translate(${(x - 8) / 16 * 100}%, ${(y - 22) / 24 * 100}%)`;
 
-/** The office at night: baked art, a pane of dark over every unlit room, names always on the floor. */
+/** The office at night: baked art, with a pane of dark over every unlit room. */
 export default function OfficePlan({ workerRef, lit, active, bubble, children }: { workerRef: Ref<HTMLDivElement>; lit: OfficeStopId | null; active: OfficeStopId; bubble?: ReactNode; children?: ReactNode }) {
   const stop = officeStops.find(item => item.id === active)!;
-  return <div className={styles.drawing} style={{ "--names": `url(${art.names})`, "--sheet": `url(${art.worker})` } as CSSProperties}>
+  return <div className={styles.drawing} style={{ "--sheet": `url(${art.worker})` } as CSSProperties}>
     <Image className={styles.scene} src={art.scene} alt="" width={officeView.width} height={officeView.height} loading="eager" unoptimized />
     <span className={styles.hallDark} />
     {officeStops.map(({ id, box: [x, y, width, height] }) => <div key={id} className={styles.station} data-station={id} data-active={lit === id}>
       <span className={styles.roomDark} style={{ left: percent(x, officeView.width), top: percent(y, officeView.height), width: percent(width, officeView.width), height: percent(height, officeView.height) }} />
     </div>)}
-    <span className={styles.floorNames} />
     <div className={styles.worker} ref={workerRef} data-walking="false" style={{ transform: workerPlace(stop.point), backgroundPositionY: workerFacing(stop.facing) }}>{bubble}</div>
     {children}
   </div>;

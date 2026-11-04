@@ -20,6 +20,8 @@
   margin: 0 auto;
   padding: var(--subpage-top) 0 7rem;
 }
+/* The page container takes focus so keys reach the office; it needs no ring of its own. */
+.main:focus { outline: none; }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
 .title { display: flex; align-items: center; gap: clamp(1.4rem, 3vw, 2.5rem); }
 /* Use the same left edge as Writing and Projects, with a readable copy width. */

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
+import { OFFICE_PORTFOLIO, officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
 
 const inside = ([x, y], [left, top, width, height]) => x >= left && x <= left + width && y >= top && y <= top + height;
 const copy = readFileSync(new URL("../../content/work.md", import.meta.url), "utf8");
@@ -43,15 +43,16 @@ test("a route can start from anywhere he has walked to", () => {
 test("room names are the copy's own words, never shortened", () => {
   const titles = [...copy.matchAll(/^#{1,3}\s+(.+)$/gm)].map(match => match[1]);
   for (const { id, label } of officeStops) {
-    if (id === "now") continue; // 886 Studios is the job's name, from content/portfolio.ts.
+    if (id === "now") { assert(copy.includes("[886 Studios]")); continue; } // The job's name.
+    if (id === "side") { assert(titles.includes("Korobra Capital")); continue; } // Names the section's fund.
     assert(titles.includes(label), `"${label}" is not a heading in content/work.md`);
   }
-  assert(copy.includes("[886 Studios]"));
 });
 
-test("objects in a room are real links from the copy, and he can reach them", () => {
+test("objects in a room are real links, and he can reach them", () => {
   for (const item of officeObjects) {
-    assert(copy.includes(`(${item.href})`) , `${item.id} links to ${item.href}, which content/work.md does not`);
+    if (item.person) assert.equal(item.href, OFFICE_PORTFOLIO, `${item.id} should send you to the portfolio`);
+    else assert(copy.includes(`(${item.href})`), `${item.id} links to ${item.href}, which content/work.md does not`);
     const stop = officeStops.find(room => room.id === item.room);
     const [x, y, width, height] = item.reach;
     let reachable = false;
@@ -59,4 +60,9 @@ test("objects in a room are real links from the copy, and he can reach them", ()
     assert(reachable, `nowhere to stand for ${item.id}`);
     assert(inside([x + width / 2, y + height / 2], stop.box), `${item.id} is outside its room`);
   }
+});
+
+test("Contrary Research is bigger than Slug Fund Investment Group", () => {
+  const area = id => { const [, , width, height] = officeStops.find(room => room.id === id).floor; return width * height; };
+  assert(area("research") > area("slug"));
 });

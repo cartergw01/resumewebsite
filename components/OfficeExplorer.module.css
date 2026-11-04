@@ -19,9 +19,9 @@
 
 .mapColumn { grid-area: map; position: sticky; top: var(--map-top); align-self: start; display: flex; align-items: center; min-width: 0; min-height: calc(100svh - var(--map-top) - 1rem); margin-right: calc(-1 * max(0px, (100vw - 1120px) / 2 - 2rem)); scroll-margin-top: var(--nav-clearance); }
 .mapColumn[hidden], .detail[hidden], .list[hidden] { display: none; }
-.plan { position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * 340 / 272)); aspect-ratio: 340 / 272; margin-inline: auto; isolation: isolate; }
+.plan { container-type: inline-size; position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * 372 / 272)); aspect-ratio: 372 / 272; margin-inline: auto; isolation: isolate; }
 .drawing, .scene { position: absolute; inset: 0; display: block; width: 100%; height: 100%; user-select: none; }
-.scene, .floorNames, .worker { image-rendering: pixelated; pointer-events: none; }
+.scene, .worker { pointer-events: none; }
 
 /* Night falls room by room, in the stepped fade of an old console. */
 .station { --engaged: 0; display: contents; }
@@ -36,11 +36,9 @@
 .explorer:has([data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"]:not([data-active="true"]) { --engaged: .5; }
 .roomDark, .hallDark { position: absolute; background: #0a1030; pointer-events: none; }
 .roomDark { opacity: calc((1 - var(--engaged)) * .5); transition: opacity 300ms steps(5); }
-.hallDark { left: calc(4 / 340 * 100%); top: calc(116 / 272 * 100%); width: calc(332 / 340 * 100%); height: calc(36 / 272 * 100%); opacity: .26; }
-/* Names are part of the building: on every floor, lit or not. */
-.floorNames { position: absolute; inset: 0; background: var(--names) 0 0 / 100% 100%; }
+.hallDark { left: calc(4 / 372 * 100%); top: calc(116 / 272 * 100%); width: calc(364 / 372 * 100%); height: calc(36 / 272 * 100%); opacity: .26; }
 
-.worker { position: absolute; left: 0; top: 0; z-index: 2; width: calc(16 / 340 * 100%); aspect-ratio: 16 / 24; background: var(--sheet) 0 0 / 300% 400% no-repeat; }
+.worker { position: absolute; left: 0; top: 0; z-index: 2; width: calc(16 / 372 * 100%); aspect-ratio: 16 / 24; background: var(--sheet) 0 0 / 300% 400% no-repeat; }
 .worker[data-walking="true"] { animation: walk 340ms steps(1) infinite; }
 @keyframes walk { 0% { background-position-x: 50%; } 25% { background-position-x: 0%; } 50% { background-position-x: 100%; } 75% { background-position-x: 0%; } }
 
@@ -54,7 +52,9 @@
 .object:hover, .object[data-near="true"] { outline: 2px solid #e7c693; outline-offset: 1px; }
 
 /* A game's text bubble, over his head and going where he goes. */
-.prompt { position: absolute; left: 50%; bottom: calc(100% + 4px); display: flex; align-items: center; gap: .5rem; padding: .3125rem .5625rem; background: var(--menu-paper); color: var(--ink); font-size: 1rem; font-weight: 500; line-height: 1.1; white-space: nowrap; clip-path: var(--stepped); transform: translateX(-50%); pointer-events: none; }
+.prompt { position: absolute; left: 50%; bottom: calc(100% + 4px); display: flex; align-items: center; gap: .5rem; padding: .3125rem .5625rem; background: var(--menu-paper); color: var(--ink); font-size: clamp(.875rem, 2.1cqw, 1.0625rem); font-weight: 500; line-height: 1.1; white-space: nowrap; clip-path: var(--stepped); transform: translateX(-50%); pointer-events: none; }
+.promptOver { bottom: auto; z-index: 4; transform: translate(-50%, calc(-100% - 3px)); }
+.promptOver[data-under="true"] { transform: translate(-50%, 3px); }
 .prompt kbd { padding: .0625rem .375rem; background: var(--brand-886); color: #fff; font: inherit; font-size: .875rem; }
 
 .detail { grid-area: detail; min-width: 0; padding: var(--subpage-row-space) 0 2rem; }
