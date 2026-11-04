@@ -9,30 +9,27 @@ and push; the site updates in a minute or two.
 - "## " lines are the names of jobs and side projects. For jobs, the role and
   dates shown beside the name come from content/portfolio.ts, which /resume
   shares, so the name here has to match the name there.
-- Under "# Now", each "### " line starts a new heading with its paragraphs.
+- The paragraph under "# Now" is the page introduction. Each "### " line
+  starts a contribution heading with its paragraphs.
 - In "# On the side", a line that is only a link becomes the small link under
   that item.
 -->
 
 # Now
 
-886 Studios is a Taiwan-based venture capital firm started by a group of Taiwanese-American founders from Silicon Valley, including the people behind Twitch, Guitar Hero, and Kabam.
+I help early-stage founders get started in Taipei. At [886 Studios](https://886studios.com/), I work on our accelerator and bring builders together.
 
 ### Building ikigai Launchpad
 
-[ikigai Launchpad](https://886studios.com/programs) is our accelerator in Taipei and the main way we back startups. Every team gets funding, hands-on mentorship from our partners, and access to our network across Taiwan and Silicon Valley to help them go further, faster.
-
-I was on the core team that built it and helped shape how we pick teams and design the program, then worked with 15+ portfolio teams through workshops and partnerships.
+I helped build [ikigai Launchpad](https://886studios.com/programs), our accelerator in Taipei, from shaping how we choose teams to supporting 15+ startups through workshops and partnerships.
 
 ### Finding founders
 
-I lead deal sourcing for our [accelerator](https://withikigai.com) and manage the pipeline end to end, from first outreach to final decision. I find founders through cold outreach, events, referrals, community initiatives, and an AI agent I built to spot early builders online. I'm currently building a team of scouts to help us reach founders in places we can't cover ourselves.
+I find founders and manage our [accelerator](https://withikigai.com) pipeline, from first outreach to final decision. I also built an AI agent to spot early builders online and am putting together a team of scouts.
 
 ### Community & content
 
-I built *[Launch Station](https://www.886studios.com/launch-station)*, a residency with over 20 builders.
-
-I host events for the wider community (hackathons, pitch nights, co-founder matching), run our socials, and rebuilt our [website](https://www.886studios.com/). I also write our [newsletter](https://886studios.substack.com/).
+I built [Launch Station](https://www.886studios.com/launch-station), a residency for 20+ builders. I also host founder events, run our socials, write our [newsletter](https://886studios.substack.com/), and rebuilt our [website](https://www.886studios.com/).
 
 # Previously
 
@@ -42,9 +39,7 @@ I profiled and wrote deep dives on startups like [Shield AI](https://research.co
 
 ## Slug Fund Investment Group
 
-UC Santa Cruz's student investment club. When leadership graduated during COVID and left a vacuum, I stepped up, revived the club, and revamped the whole thing.
-
-I went from equity analyst to head of the equity analyst team, then started a venture analyst team that wrote 15+ memos for a fantasy VC portfolio.
+I helped revive UC Santa Cruz's student investment club after its leadership graduated during COVID. I went from equity analyst to vice president and started a venture team that wrote 15+ memos for a fantasy VC portfolio.
 
 # On the side
 
@@ -54,13 +49,13 @@ A fund I started in 2020 for family and friends. It's now $180K+, invested long 
 
 ## Coding projects
 
-I build web apps and tools for fun. I've built TaipeiFlix for movie showtimes, Taipei Run (an endless runner on a moped), a sleep tracker app, a stock portfolio tracker, a poker odds calculator, and more.
+I build things for fun, from movie showtimes in Taipei to a game about dodging traffic on a moped.
 
 [See my coding projects](/projects)
 
 ## Writing
 
-I enjoy writing essays on Substack about how technology and human nature intertwine to shape culture.
+I write essays about human nature, culture, and technology.
 
 [Read my writing](/writing)
 

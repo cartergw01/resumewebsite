@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import GalaxyBackground from "@/components/GalaxyBackground";
+import OfficeExplorer from "./OfficeExplorer";
+import type { OfficeStopId } from "@/lib/office-plan";
 import { workPageExperience } from "@/content/portfolio";
 import { getWorkCopy, type WorkEntry } from "@/lib/work-copy";
 import batchPhoto from "@/public/ikigai-batch.jpg";
-import IslandLine from "./IslandLine";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
@@ -76,13 +76,33 @@ function Entry({ entry }: { entry: WorkEntry }) {
 }
 
 function WorkHeader({ preview = false }: { preview?: boolean }) {
+  const { now } = getWorkCopy();
   return (
     <header className={`${heading.header} ${styles.pageHeader}`}>
       <div className={styles.title}>
         <h1 tabIndex={-1}>Work</h1>
         {!preview && <WorkArrival />}
       </div>
-      <p><IslandLine id="work" /></p>
+      {now.intro.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
+    </header>
+  );
+}
+
+function CurrentRole() {
+  return (
+    <header className={styles.experienceHeading}>
+      <h3 className={styles.current}>
+        <Logo company={current.company} size={36} />
+        <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
+      </h3>
+      <div className={styles.tenure}>
+        <p className={styles.role}>{current.role}</p>
+        <p className={styles.date}>{current.dates}</p>
+      </div>
+      <div className={styles.tenure}>
+        <p className={styles.role}>Venture Fellow</p>
+        <p className={styles.date}>June 2024 - September 2024</p>
+      </div>
     </header>
   );
 }
@@ -93,21 +113,7 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
     <section className={styles.section} aria-labelledby={preview ? undefined : "now-title"}>
       <h2 id={preview ? undefined : "now-title"} className={styles.label}>Now</h2>
       <div className={styles.body}>
-        <header className={styles.experienceHeading}>
-          <h3 className={styles.current}>
-            <Logo company={current.company} size={36} />
-            <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
-          </h3>
-          <div className={styles.tenure}>
-            <p className={styles.role}>{current.role}</p>
-            <p className={styles.date}>{current.dates}</p>
-          </div>
-          <div className={styles.tenure}>
-            <p className={styles.role}>Venture Fellow</p>
-            <p className={styles.date}>June 2024 - September 2024</p>
-          </div>
-        </header>
-        {now.intro.map((paragraph, index) => <p key={index} className={styles.mission}><Md text={paragraph} /></p>)}
+        <CurrentRole />
         <div className={styles.contributions}>
           {now.highlights.map((item) => (
             <div key={item.title}>
@@ -118,24 +124,87 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
             </div>
           ))}
         </div>
-        {!preview && <figure className={styles.photo}>
-          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={90} placeholder="blur" />
+        <figure className={styles.photo}>
+          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={86} placeholder="blur" />
           <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
-        </figure>}
+        </figure>
       </div>
     </section>
   );
 }
 
-// Inert source for the carried window. The opening is rendered from the same
-// components as /work, so the view through the glass matches its destination.
+function About() {
+  const { about } = getWorkCopy();
+  return <div className={styles.about}>
+    <dl className={styles.facts}>
+      {about.facts.map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+    </dl>
+    {about.paragraphs.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
+  </div>;
+}
+
+function WorkHistory() {
+  const copy = getWorkCopy();
+  return <div className={styles.workHistory}>
+    <CurrentWork />
+    <section className={styles.section} aria-labelledby="earlier-work-title">
+      <h2 id="earlier-work-title" className={styles.label}>Previously</h2>
+      <ol className={`${styles.body} ${styles.experiences}`}>
+        {copy.previously.map(entry => <Entry key={entry.title} entry={entry} />)}
+      </ol>
+    </section>
+    <section className={styles.section} aria-labelledby="side-work-title">
+      <h2 id="side-work-title" className={styles.label}>On the side</h2>
+      <ul className={`${styles.body} ${styles.experiences}`}>
+        {copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}
+      </ul>
+    </section>
+    <section className={styles.section} aria-labelledby="about-title">
+      <h2 id="about-title" className={styles.label}>About me</h2>
+      <div className={styles.body}><About /></div>
+    </section>
+  </div>;
+}
+
+function OfficeContent({ preview = false }: { preview?: boolean }) {
+  const copy = getWorkCopy();
+  const contribution = (index: number) => {
+    const item = copy.now.highlights[index];
+    return <article>
+      <header className={styles.experienceHeading}>
+        <h3><Logo company={current.company} size={26} />{item.title}</h3>
+        <p className={styles.date}>{current.company} · {current.dates}</p>
+      </header>
+      <div className={`${styles.story} ${styles.panelStory}`}>
+        {item.paragraphs.map((paragraph, i) => <p key={i}><Md text={paragraph} /></p>)}
+      </div>
+      {index === 0 && <figure className={styles.photo}>
+        <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 900px) 420px, calc(100vw - 40px)" quality={86} />
+        <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
+      </figure>}
+    </article>;
+  };
+  const panels: Record<OfficeStopId, ReactNode> = {
+    now: <CurrentRole />,
+    accelerator: preview ? null : contribution(0),
+    founders: preview ? null : contribution(1),
+    community: preview ? null : contribution(2),
+    research: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[0]} /></ul>,
+    slug: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[1]} /></ul>,
+    side: preview ? null : <ul className={styles.experiences}>{copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}</ul>,
+    about: preview ? null : <About />,
+  };
+  return <OfficeExplorer panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
+}
+
+// Same opening composition for the island transition and its destination.
 export function WorkWindowPreview() {
   return <div data-work-window-content hidden inert aria-hidden="true">
     <div className={styles.page}>
       <div className={styles.main}>
         <div className={styles.desk}>
           <WorkHeader preview />
-          <div className={styles.workHistory}><CurrentWork preview /></div>
+          <OfficeContent preview />
         </div>
       </div>
     </div>
@@ -144,49 +213,13 @@ export function WorkWindowPreview() {
 
 export default function WorkRoom() {
   const copy = getWorkCopy();
-  return (
-    <>
-      <GalaxyBackground page playbackRate={0.55} />
-      <main className={styles.main} data-work-desk>
-        <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
-          <WorkHeader />
-
-          {/* A centered reading column; section labels sit in the desktop margin. */}
-          <div className={styles.workHistory}>
-            <CurrentWork />
-
-            <section className={styles.section} aria-labelledby="earlier-work-title">
-              <h2 id="earlier-work-title" className={styles.label}>Previously</h2>
-              <ol className={`${styles.body} ${styles.experiences}`}>
-                {copy.previously.map((entry) => <Entry key={entry.title} entry={entry} />)}
-              </ol>
-            </section>
-
-            <section className={styles.section} aria-labelledby="side-work-title">
-              <h2 id="side-work-title" className={styles.label}>On the side</h2>
-              <ul className={`${styles.body} ${styles.experiences}`}>
-                {copy.onTheSide.map((entry) => <Entry key={entry.title} entry={entry} />)}
-              </ul>
-            </section>
-
-            <section className={styles.section} aria-labelledby="about-title">
-              <h2 id="about-title" className={styles.label}>About me</h2>
-              <div className={`${styles.body} ${styles.about}`}>
-                <dl className={styles.facts}>
-                  {copy.about.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
-                </dl>
-                {copy.about.paragraphs.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
-              </div>
-            </section>
-
-            <div className={styles.section}>
-              {copy.closing.map((paragraph, index) => (
-                <p key={index} className={`${styles.body} ${styles.closing}`}><Md text={paragraph} /></p>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
-  );
+  return <main className={styles.main} data-work-desk id="main-content" tabIndex={-1}>
+    <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
+      <WorkHeader />
+      <OfficeContent />
+      <footer className={styles.contact}>
+        {copy.closing.map((paragraph, index) => <p key={index} className={styles.closing}><Md text={paragraph} /></p>)}
+      </footer>
+    </div>
+  </main>;
 }
