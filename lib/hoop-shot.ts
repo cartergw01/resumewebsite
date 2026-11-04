@@ -84,11 +84,13 @@ export function planShot(from: Ball, landing: { x: number; y: number }) {
     const rolling = Math.max(0, bouncing + ROLL - t);
     return carry / (2 * ROLL) * rolling * rolling;
   };
-  // Backspin in the air; then it turns as far as it travels, and stops square
-  // on one of its rendered frames.
+  // Backspin in the air; then it turns about as far as it travels, and stops
+  // square on one of its rendered frames.
   const atExit = from.spin + AIR_SPIN * leaves;
   const way = (landing.x - rimX) * (restX - rimX) + (landing.y - rimY) * (restY - rimY) < 0 ? -1 : 1;
-  const final = Math.round((atExit + way * out / R) / FRAME) * FRAME;
+  // It settles with the Wilson logo in view (near the still's own frame, 0).
+  const logoTurn = Math.round((atExit + way * out / R) / TURN) * TURN;
+  const final = logoTurn + (Math.round(landing.x * 37 + landing.y * 53) % 5 - 2) * FRAME;
 
   const pose = (time: number): BallPose => {
     if (time <= 0) return { ...from, squash: 0 };

@@ -100,6 +100,54 @@ test("it only moves when tapped, and can be shot again from where it lands", asy
   expect(errors).toEqual([]);
 });
 
+test("it stays on its new spot through a resize and a flip of the lights, with its target", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One viewport is enough for the layout-independent logic.");
+  test.setTimeout(60_000);
+  await page.goto("/#projects");
+  await tapBall(page);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "flying", { timeout: 15_000 });
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle", { timeout: 20_000 });
+  await page.waitForTimeout(100);
+  // Across a resize the canvas is never left empty over the still's ball.
+  await page.setViewportSize({ width: 1100, height: 680 });
+  await expect.poll(() => painted(page)).toBe(true);
+  await page.waitForTimeout(300);
+  expect(await painted(page)).toBe(true);
+  const canvas = (await shot(page).boundingBox())!;
+  const target = (await ball(page).locator(":scope > span").boundingBox())!;
+  expect(target.x).toBeGreaterThan(canvas.x);
+  expect(target.x).toBeLessThan(canvas.x + canvas.width);
+  // The other lighting's layers are there for the flip, and the ball's redrawn.
+  const lit = await picture(page);
+  await page.evaluate(() => { window.dispatchEvent(new CustomEvent("roomlightsintent", { detail: "projects" })); });
+  await page.waitForTimeout(800);
+  await page.evaluate(() => { document.documentElement.dataset.projectsLights = "off"; window.dispatchEvent(new CustomEvent("roomlightschange", { detail: { world: "projects", on: false } })); });
+  await expect.poll(() => picture(page)).not.toBe(lit);
+  // A tap still lands on it, wherever it went.
+  await tapBall(page);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "flying");
+});
+
+test("while it's in the net a tap does nothing, and mid-bounce it can be shot again", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "The same logic on every device.");
+  test.setTimeout(60_000);
+  await page.goto("/#projects");
+  await tapBall(page);
+  await expect(page.locator("[data-island-visual][data-net-cut]")).toHaveCount(1, { timeout: 20_000 });
+  await ball(page).evaluate((node: HTMLElement) => node.click());
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
+  await shot(page).evaluate((canvas: HTMLElement) => {
+    (window as Window & { rests?: number }).rests = 0;
+    new MutationObserver(() => { if (canvas.dataset.hoopShot === "idle") (window as Window & { rests?: number }).rests!++; }).observe(canvas, { attributes: true });
+  });
+  // Once the net is still, keep tapping as it bounces out: one tap will be far
+  // enough from the hoop, and the ball goes back up without ever having rested.
+  await expect(page.locator("[data-island-visual][data-net-cut]")).toHaveCount(0, { timeout: 20_000 });
+  await ball(page).evaluate((node: HTMLElement) => { const tap = setInterval(() => node.click(), 60); setTimeout(() => clearInterval(tap), 500); });
+  await expect(page.locator("[data-island-visual][data-net-cut]")).toHaveCount(1, { timeout: 8_000 });
+  expect(await page.evaluate(() => (window as Window & { rests?: number }).rests)).toBe(0);
+});
+
 test("leaving the island mid-shot lands the ball and leaves nothing cut", async ({ page }) => {
   await page.goto("/#projects");
   await tapBall(page);
