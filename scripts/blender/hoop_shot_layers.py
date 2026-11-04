@@ -2,7 +2,8 @@
 
 The ball, net and court are baked into the island's still, so a live shot
 needs them apart, from the same scene, camera and lighting:
-- the court with the ball gone, and with only its shadow left;
+- the court with the ball gone, and with only its shadow left (their
+  difference is the shadow, which then follows the ball);
 - the ball alone, turning once on the axis it rolls home on (24 frames; frame 0
   is the still's own pose, so the swap at each end of a shot is invisible);
 - the hoop with no net, the net's back and front halves, and the rim's front.

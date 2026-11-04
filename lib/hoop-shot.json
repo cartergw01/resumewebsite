@@ -1,6 +1,6 @@
 {
-  "lit": "/blender/hoop-shot-lit-23447e1b.webp",
-  "dark": "/blender/hoop-shot-dark-17ec56da.webp",
+  "lit": "/blender/hoop-shot-lit-4dbef5f1.webp",
+  "dark": "/blender/hoop-shot-dark-878d9a3a.webp",
   "atlas": {
     "court-clean": [
       4,
@@ -8,20 +8,20 @@
       288,
       264
     ],
-    "court-shadow": [
+    "ball-shadow": [
       296,
       4,
-      288,
-      264
+      252,
+      173
     ],
     "net-plate": [
-      588,
+      552,
       4,
       180,
       163
     ],
     "net-back": [
-      772,
+      736,
       4,
       180,
       163
@@ -201,6 +201,12 @@
       222,
       75,
       68
+    ],
+    "shadow": [
+      800,
+      495,
+      105,
+      72
     ]
   },
   "frames": 24,
