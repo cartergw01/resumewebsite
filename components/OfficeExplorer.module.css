@@ -49,7 +49,6 @@
 
 /* Things in the lit room that are also links in its story. */
 .object { position: absolute; z-index: 3; cursor: pointer; }
-.object:hover, .object[data-near="true"] { outline: 2px solid #e7c693; outline-offset: 1px; }
 
 /* A game's text bubble, over his head and going where he goes. */
 .prompt { position: absolute; left: 50%; bottom: calc(100% + 4px); display: flex; align-items: center; gap: .5rem; padding: .3125rem .5625rem; background: var(--menu-paper); color: var(--ink); font-size: clamp(.875rem, 2.1cqw, 1.0625rem); font-weight: 500; line-height: 1.1; white-space: nowrap; clip-path: var(--stepped); transform: translateX(-50%); pointer-events: none; }
