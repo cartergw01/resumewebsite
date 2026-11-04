@@ -107,6 +107,12 @@ for w in "${worlds[@]}"; do
     step "projects: inspectable props"
     blender projects-curios -b artwork/blender/projects.blend --python scripts/blender/export_workshop_curios.py
     node scripts/blender/compress_workshop_curios.mjs
+    step "projects: basketball shot layers"
+    blender projects-hoop -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world projects --time hoop-shot --output "$out/hoop" --width "$width" --samples "$samples" --device "$device"
+    blender projects-hoop-dark -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world projects --time hoop-shot-dark --output "$out/hoop-dark" --width "$width" --samples "$samples" --device "$device"
+    node scripts/blender/export_hoop_shot.mjs "$out/hoop" "$out/hoop-dark"
   fi
   step "$w: flight model"
   flight_args=(--world "$w")

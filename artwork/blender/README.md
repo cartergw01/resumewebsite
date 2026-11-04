@@ -114,6 +114,20 @@ capable desktops (fine pointer, WebGL2, no data saver, ≥4 GB memory, 4G-class
 connection, motion allowed); phones, or any visit until they arrive, use the
 light 2D flight.
 
+### The basketball shot
+
+Tapping the workshop's basketball shoots it through the hoop and it bounces and
+rolls back. The ball, net and court are baked into the still, so
+`scripts/blender/hoop_shot_layers.py` renders them apart from the same scene,
+lit and with the lights off: the court with no ball, and with only its shadow;
+the ball turning once on the axis it rolls home on (24 frames, the first being
+the still's own pose); the hoop with no net; the net's two halves; and the rim's
+front. `export_hoop_shot.mjs` packs each lighting into one image on the still's
+crop and records it in `lib/hoop-shot.json`. `lib/hoop-shot.ts` works out the
+shot in scene units and `components/HoopShot.tsx` draws it, and only during a
+shot. Rendering the layers needs `artwork/blender/projects.blend`, and a change
+to the court or lighting needs them rendered again; the pipeline does both.
+
 ### Live details
 
 `scripts/blender/export_life_anchors.py` projects extra points from each saved

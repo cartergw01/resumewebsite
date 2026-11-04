@@ -3859,7 +3859,9 @@ def main():
     # lifted and lifted-dark are the study with its notebook lifted away (lights
     # on or off): what stays on the desk while the Writing entry carries it off.
     # masks renders each light source alone for the site's light switch.
-    parser.add_argument('--time',choices=['night','day','dark','lifted','lifted-dark','masks'],default='night')
+    # hoop-shot and hoop-shot-dark render the workshop's basketball, net and
+    # bare court as separate layers for the shot on the site.
+    parser.add_argument('--time',choices=['night','day','dark','lifted','lifted-dark','masks','hoop-shot','hoop-shot-dark'],default='night')
     args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True,exist_ok=True)
     sources=ROOT/'artwork'/'blender'
@@ -3885,6 +3887,12 @@ def main():
             repeatable(scene)
             if args.time=='masks':
                 light_masks(scene,world,args.output)
+                continue
+            if args.time.startswith('hoop-shot'):
+                sys.path.insert(0,str(Path(__file__).parent))
+                from hoop_shot_layers import render_layers
+                unseen_lights(scene)
+                render_layers(scene,args.output,ROOT)
                 continue
             scene.render.filepath=str(args.output/f'{world}.png')
             unseen_lights(scene)

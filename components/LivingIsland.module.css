@@ -27,6 +27,15 @@
 .nightOnly { transition: opacity 450ms cubic-bezier(.45, 0, .25, 1); }
 :global(html[data-city-time="day"]) .nightOnly { opacity: 0 !important; }
 @media (prefers-reduced-motion: reduce) { .dayImage, .nightOnly { transition: none; } }
+/* While a shot's net moves (components/HoopShot.tsx), the still's own net is
+   cut away: it hangs over open sky, where no painted patch could cover it. */
+.artwork[data-net-cut] .image,
+.artwork[data-net-cut] :global([data-parallax-still]) {
+  -webkit-mask: linear-gradient(#000 0 0) 0 0 / 100% 100% no-repeat, linear-gradient(#000 0 0) var(--net-x) var(--net-y) / var(--net-w) var(--net-h) no-repeat;
+  mask: linear-gradient(#000 0 0) 0 0 / 100% 100% no-repeat, linear-gradient(#000 0 0) var(--net-x) var(--net-y) / var(--net-w) var(--net-h) no-repeat;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
 .details { opacity: calc(var(--island-lights, 1) * 0.4); transition: opacity 160ms ease; }
 :global([data-island-link]:focus-visible) .details { opacity: var(--island-lights, 1); }
 @media (hover: hover) and (pointer: fine) { :global([data-island-link]:hover) .details { opacity: var(--island-lights, 1); } }

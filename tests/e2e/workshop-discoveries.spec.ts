@@ -5,6 +5,8 @@ const specs = JSON.parse(readFileSync(new URL("../../content/workshop-curios.jso
 
 async function pick(page: Page, id: string) {
   const dialog=page.getByRole("dialog");
+  // Tapping the ball on the court shoots it; picking it up is in the directory.
+  if (id==="basketball" && !await dialog.count()) await pickUp(page,"hoop");
   if (await dialog.count()) await dialog.getByRole("button",{name:"All objects",exact:true}).click();
   else {
     await pickUp(page,id);
@@ -93,7 +95,7 @@ test("basketball, synth, clocks, lights, and hidden poker set give real rewards"
   await expect(page.getByRole("button",{name:"20%",exact:true})).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator('[data-curio="basketball"]')).toBeFocused();
+  await expect(page.locator('[data-curio="hoop"]')).toBeFocused();
   expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe("hidden");
 });
 

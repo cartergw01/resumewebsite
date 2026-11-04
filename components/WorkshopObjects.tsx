@@ -11,6 +11,7 @@ import styles from "./WorkshopObjects.module.css";
 import { curios, curiosityClip } from "@/lib/workshop-discoveries";
 import { useIslandCue } from "@/lib/use-island-cue";
 import ProjectCue from "./ProjectCue";
+import HoopShot, { type HoopShotHandle } from "./HoopShot";
 
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
@@ -27,6 +28,9 @@ const labels: Record<string, string> = {
   "taipei-guide": "Taipei Guide",
 };
 
+const curioLabel = ({ id, name }: { id: string; name: string }) =>
+  id === "shield" ? "Read the Declaration of Independence" : id === "basketball" ? "Shoot the basketball" : `Pick up ${name}`;
+
 export default function WorkshopObjects() {
   const layerRef = useRef<HTMLSpanElement>(null);
   useIslandCue(layerRef);
@@ -41,6 +45,7 @@ export default function WorkshopObjects() {
   const [selected, setSelected] = useState<string | null>(null);
   const [declaration, setDeclaration] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
+  const hoopShot = useRef<HoopShotHandle>(null);
   const [found, setFound] = useState<string[]>(() => {
     try {
       const saved: unknown = JSON.parse(sessionStorage.getItem(FOUND_KEY) ?? "[]");
@@ -56,7 +61,10 @@ export default function WorkshopObjects() {
   const select = (id: string) => { if (id !== "directory") discover(id); setSelected(id); };
   const inspect = (id: string, source: HTMLElement) => {
     opener.current = source;
-    if (id === "shield") { discover(id); setDeclaration(true); }
+    // The ball on the court goes up at the hoop. Picking it up stays in the
+    // objects directory, and is what reduced motion gets instead.
+    if (id === "basketball") { discover(id); hoopShot.current?.shoot(); }
+    else if (id === "shield") { discover(id); setDeclaration(true); }
     else select(id);
   };
 
@@ -116,6 +124,7 @@ export default function WorkshopObjects() {
       {/* A contained HTML frame matches the image's 3:2 projection. Native
           HTML also avoids WebKit's transformed foreignObject hit-test bug. */}
       <span className={styles.frame} style={{ width: scale * 1200, height: scale * 800 }}>
+      {scale > 0 && <HoopShot ref={hoopShot} scale={scale} onUnavailable={() => select("basketball")} />}
       {scale > 0 && projects.map((project, index) => {
         const object = objects[project.id as keyof typeof objects];
         if (!object) return null;
@@ -143,7 +152,7 @@ export default function WorkshopObjects() {
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>
-          <button type="button" className={styles.target} data-curio={object.id} aria-label={object.id === "shield" ? "Read the Declaration of Independence" : `Pick up ${object.name}`} aria-haspopup="dialog"
+          <button type="button" className={styles.target} data-curio={object.id} aria-label={curioLabel(object)} aria-haspopup={object.id === "basketball" ? undefined : "dialog"}
             style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>

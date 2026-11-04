@@ -17,7 +17,7 @@ test("object browsing reuses one renderer and stays idle between interactions", 
   });
   await page.goto("/#projects");
   const start = performance.now();
-  await pickUp(page,"basketball");
+  await pickUp(page,"hoop");
   await expect(page.getByRole("dialog")).toBeVisible();
   const openMs = performance.now() - start;
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({ timeout: 20_000 });
@@ -78,19 +78,19 @@ test("switching away from a slow model cancels it without overwriting the next o
   test.skip(info.project.name!=="mobile","Chromium inspects request cancellation.");
   let release:()=>void=()=>{};
   const gate=new Promise<void>(resolve=>{release=resolve;});
-  await page.route("**/workshop/basketball-*.glb",async route=>{await gate;await route.continue().catch(()=>{});});
+  await page.route("**/workshop/hoop-*.glb",async route=>{await gate;await route.continue().catch(()=>{});});
   await page.goto("/#projects");
-  const requested=page.waitForRequest("**/workshop/basketball-*.glb");
-  await pickUp(page,"basketball");
+  const requested=page.waitForRequest("**/workshop/hoop-*.glb");
+  await pickUp(page,"hoop");
   await requested;
-  const aborted=page.waitForEvent("requestfailed",{predicate:request=>request.url().includes("/workshop/basketball-")});
+  const aborted=page.waitForEvent("requestfailed",{predicate:request=>request.url().includes("/workshop/hoop-")});
   await page.getByRole("button",{name:"Next object",exact:true}).click();
   release();
   await aborted;
-  await expect(page.getByRole("heading",{name:"Basketball hoop",exact:true})).toBeVisible();
+  await expect(page.getByRole("heading",{name:"Kobe’s number 24",exact:true})).toBeVisible();
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({timeout:15_000});
   await page.keyboard.press("Escape");
-  await expect(page.locator('[data-curio="basketball"]')).toBeFocused();
+  await expect(page.locator('[data-curio="hoop"]')).toBeFocused();
 });
 
 test("small phone through tablet keeps inspection and close controls within reach", async ({ page }, info) => {
@@ -125,7 +125,7 @@ test("a vertical swipe over the model scrolls the mobile inspector", async ({ pa
   test.skip(info.project.name !== "mobile", "CDP drives a native touch gesture in Chromium.");
   await page.setViewportSize({width:390,height:568});
   await page.goto("/#projects");
-  await pickUp(page,"basketball");
+  await pickUp(page,"hoop");
   await expect(page.locator('[data-model-state="ready"]')).toBeVisible({timeout:15_000});
   const canvas = await page.locator("[data-model-state] canvas").boundingBox();
   const dialog=page.getByRole("dialog");
