@@ -74,9 +74,10 @@
   .mapColumn { position: static; display: block; min-height: 0; width: 100vw; margin: 0 0 var(--subpage-row-space) calc(50% - 50vw); padding-inline: max(4px, calc((100vw - 44rem) / 2)); }
   .plan { width: 100%; }
 }
-/* Touch screens have no arrow keys, and these links are all in the story below. */
+/* Touch screens have no arrow keys, and most of these links are in the story below.
+   The people's aren't, so they stay tappable. */
 @media (hover: none) {
-  .object, .prompt { display: none; }
+  .object:not([data-person]), .prompt { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detailEnter, .worker[data-walking="true"], .nextRoom svg { animation: none; }

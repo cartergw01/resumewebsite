@@ -233,6 +233,7 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
       key={item.id}
       className={styles.object}
       data-object={item.id}
+      data-person={item.person || undefined}
       data-near={near === item.id}
       href={item.href}
       target={external ? "_blank" : undefined}
