@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("Work video stays fixed while scrolling and keeps playing", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile atmosphere behavior.");
   await page.goto("/work");
+  await page.getByRole("button", { name: "Read as a list" }).click(); // The long view of this page.
   const video = page.locator("[data-background-video]");
   // The fixed layer holds still; the stars inside it drift slowly on purpose.
   const layer = page.locator("[data-galaxy-background]");

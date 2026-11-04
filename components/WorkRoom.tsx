@@ -10,6 +10,8 @@ import contrary from "@/public/logos/contrary.svg";
 import slugFund from "@/public/logos/slug-fund.svg";
 import korobra from "@/public/logos/korobra-capital.png";
 import IslandLine from "./IslandLine";
+import OfficeExplorer from "./OfficeExplorer";
+import type { OfficeStopId } from "@/lib/office-plan";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
@@ -93,26 +95,32 @@ function WorkHeader({ preview = false }: { preview?: boolean }) {
   );
 }
 
-function CurrentWork({ preview = false }: { preview?: boolean }) {
+function CurrentRole() {
+  return (
+    <header className={styles.experienceHeading}>
+      <h3 className={styles.current}>
+        <Logo company={current.company} size={36} eager />
+        <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
+      </h3>
+      <div className={styles.tenure}>
+        <p className={styles.role}>{current.role}</p>
+        <p className={styles.date}>{current.dates}</p>
+      </div>
+      <div className={styles.tenure}>
+        <p className={styles.role}>Venture Fellow</p>
+        <p className={styles.date}>June 2024 - September 2024</p>
+      </div>
+    </header>
+  );
+}
+
+function CurrentWork() {
   const { now } = getWorkCopy();
   return (
-    <section className={styles.section} aria-labelledby={preview ? undefined : "now-title"}>
-      <h2 id={preview ? undefined : "now-title"} className={styles.label}>Now</h2>
+    <section className={styles.section} aria-labelledby="now-title">
+      <h2 id="now-title" className={styles.label}>Now</h2>
       <div className={styles.body}>
-        <header className={styles.experienceHeading}>
-          <h3 className={styles.current}>
-            <Logo company={current.company} size={36} eager />
-            <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
-          </h3>
-          <div className={styles.tenure}>
-            <p className={styles.role}>{current.role}</p>
-            <p className={styles.date}>{current.dates}</p>
-          </div>
-          <div className={styles.tenure}>
-            <p className={styles.role}>Venture Fellow</p>
-            <p className={styles.date}>June 2024 - September 2024</p>
-          </div>
-        </header>
+        <CurrentRole />
         {now.intro.map((paragraph, index) => <p key={index} className={styles.mission}><Md text={paragraph} /></p>)}
         <div className={styles.contributions}>
           {now.highlights.map((item) => (
@@ -124,13 +132,85 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
             </div>
           ))}
         </div>
-        {!preview && <figure className={styles.photo}>
+        <figure className={styles.photo}>
           <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={90} placeholder="blur" />
           <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
-        </figure>}
+        </figure>
       </div>
     </section>
   );
+}
+
+function About() {
+  const { about } = getWorkCopy();
+  return <div className={styles.about}>
+    <dl className={styles.facts}>
+      {about.facts.map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+    </dl>
+    {about.paragraphs.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
+  </div>;
+}
+
+function WorkHistory() {
+  const copy = getWorkCopy();
+  return <div className={styles.workHistory}>
+    <CurrentWork />
+    <section className={styles.section} aria-labelledby="earlier-work-title">
+      <h2 id="earlier-work-title" className={styles.label}>Previously</h2>
+      <ol className={`${styles.body} ${styles.experiences}`}>
+        {copy.previously.map(entry => <Entry key={entry.title} entry={entry} />)}
+      </ol>
+    </section>
+    <section className={styles.section} aria-labelledby="side-work-title">
+      <h2 id="side-work-title" className={styles.label}>On the side</h2>
+      <ul className={`${styles.body} ${styles.experiences}`}>
+        {copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}
+      </ul>
+    </section>
+    <section className={styles.section} aria-labelledby="about-title">
+      <h2 id="about-title" className={styles.label}>About me</h2>
+      <div className={styles.body}><About /></div>
+    </section>
+  </div>;
+}
+
+// A card for each room says who and when. Its story goes in the office's text box.
+function JobCard({ company }: { company: string }) {
+  const job = workPageExperience.find(item => item.company === company);
+  return <header className={styles.experienceHeading}>
+    <h3><Logo company={company} size={26} />{company}</h3>
+    {job && <div className={styles.tenure}>
+      <p className={styles.role}>{shortTitles[job.company] ?? job.role}</p>
+      <p className={styles.date}>{job.dates}</p>
+    </div>}
+  </header>;
+}
+
+function OfficeContent({ preview = false }: { preview?: boolean }) {
+  const copy = getWorkCopy();
+  const story = (paragraphs: string[]) => paragraphs.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>);
+  const cards: Record<OfficeStopId, ReactNode> = {
+    now: <CurrentRole />,
+    accelerator: null,
+    founders: null,
+    community: null,
+    research: preview ? null : <JobCard company={copy.previously[0].title} />,
+    slug: preview ? null : <JobCard company={copy.previously[1].title} />,
+    side: preview ? null : <><p className={styles.label}>Korobra Capital &amp; side projects</p><div className={styles.experiences}>{copy.onTheSide.map(item => <JobCard key={item.title} company={item.title} />)}</div></>,
+    about: null,
+  };
+  // Each room's copy as written in content/work.md, all of it.
+  const stories: Record<OfficeStopId, ReactNode> = {
+    now: story(copy.now.intro),
+    accelerator: preview ? null : story(copy.now.highlights[0].paragraphs),
+    founders: preview ? null : story(copy.now.highlights[1].paragraphs),
+    community: preview ? null : story(copy.now.highlights[2].paragraphs),
+    research: preview ? null : story(copy.previously[0].paragraphs),
+    slug: preview ? null : story(copy.previously[1].paragraphs),
+    side: preview ? null : copy.onTheSide.map(item => <p key={item.title}>{item.paragraphs.map((line, index) => <Md key={index} text={line} />)}{item.more && <> <Link href={item.more.href}>{item.more.label}</Link></>}</p>),
+    about: preview ? null : <><p>{copy.about.facts.map(fact => `${fact.label}: ${fact.value}`).join(" · ")}</p>{story(copy.about.paragraphs)}</>,
+  };
+  return <OfficeExplorer header={<WorkHeader preview={preview} />} cards={cards} stories={stories} list={preview ? null : <WorkHistory />} preview={preview} />;
 }
 
 // Inert source for the carried window. The opening is rendered from the same
@@ -140,8 +220,7 @@ export function WorkWindowPreview() {
     <div className={styles.page}>
       <div className={styles.main}>
         <div className={styles.desk}>
-          <WorkHeader preview />
-          <div className={styles.workHistory}><CurrentWork preview /></div>
+          <OfficeContent preview />
         </div>
       </div>
     </div>
@@ -155,41 +234,9 @@ export default function WorkRoom() {
       <GalaxyBackground page playbackRate={0.55} />
       <main className={styles.main} data-work-desk>
         <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
-          <WorkHeader />
-
-          {/* A centered reading column; section labels sit in the desktop margin. */}
-          <div className={styles.workHistory}>
-            <CurrentWork />
-
-            <section className={styles.section} aria-labelledby="earlier-work-title">
-              <h2 id="earlier-work-title" className={styles.label}>Previously</h2>
-              <ol className={`${styles.body} ${styles.experiences}`}>
-                {copy.previously.map((entry) => <Entry key={entry.title} entry={entry} />)}
-              </ol>
-            </section>
-
-            <section className={styles.section} aria-labelledby="side-work-title">
-              <h2 id="side-work-title" className={styles.label}>On the side</h2>
-              <ul className={`${styles.body} ${styles.experiences}`}>
-                {copy.onTheSide.map((entry) => <Entry key={entry.title} entry={entry} />)}
-              </ul>
-            </section>
-
-            <section className={styles.section} aria-labelledby="about-title">
-              <h2 id="about-title" className={styles.label}>About me</h2>
-              <div className={`${styles.body} ${styles.about}`}>
-                <dl className={styles.facts}>
-                  {copy.about.facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
-                </dl>
-                {copy.about.paragraphs.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
-              </div>
-            </section>
-
-            <div className={styles.section}>
-              {copy.closing.map((paragraph, index) => (
-                <p key={index} className={`${styles.body} ${styles.closing}`}><Md text={paragraph} /></p>
-              ))}
-            </div>
+          <OfficeContent />
+          <div className={styles.contact}>
+            {copy.closing.map((paragraph, index) => <p key={index} className={styles.closing}><Md text={paragraph} /></p>)}
           </div>
         </div>
       </main>

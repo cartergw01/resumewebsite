@@ -4,6 +4,8 @@ test("Work navigation clears the text while reading and remains reachable", asyn
   test.skip(!isMobile, "The reading dock is only used on phones.");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/work");
+  // Long reading happens in the list. The tour's own controls are covered in office-walk.spec.ts.
+  await page.getByRole("button", { name: "Read as a list" }).click();
   const navigation = page.getByRole("navigation", { name: "Primary navigation" });
   const writing = navigation.getByRole("link", { name: "Writing", exact: true });
   await expect(navigation).toBeInViewport({ ratio: 1 });

@@ -120,6 +120,7 @@ test("destination navigation stays readable on scroll and the matching island re
     await page.goto(`/${world}`);
     const nav = page.locator(".site-nav");
     await expect(page.locator(".site-nav-home")).toHaveAttribute("href", "/");
+    if (world === "work") await page.getByRole("button", { name: "Read as a list" }).click(); // The long view of this page.
     await expect(nav).toHaveAttribute("data-scrolled", "false");
     await page.evaluate(() => window.scrollTo({ top: 700, behavior: "instant" }));
     await expect(nav).toHaveAttribute("data-scrolled", "true");

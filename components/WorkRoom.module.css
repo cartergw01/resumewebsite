@@ -1,4 +1,4 @@
-/* Work: a quiet reading column reached through the Taipei window. */
+/* Work: the office, with the same reading styles as the other pages. */
 .page {
   --ink: #070b10;
   --paper: #fff3df;
@@ -8,13 +8,19 @@
   --gold-dim: #b69b70;
   --topic-body-size: clamp(1.0625rem, 1rem + 0.15vw, 1.125rem);
   --topic-meta-size: 0.875rem;
+  --subpage-rule: #eddbbf24;
+  --subpage-text: #fff7ead1;
+  --subpage-muted: #fff7eaad;
+  --subpage-row-space: clamp(1.25rem, 2vw, 1.5rem);
+  --subpage-section-space: clamp(2.5rem, 5vw, 3.5rem);
   position: relative;
+  overflow-x: clip;
   min-height: 100svh;
   isolation: isolate;
   color: var(--paper);
   background: var(--ink);
 }
-.page > [data-galaxy-background] { opacity: .1; }
+.page > [data-galaxy-background] { opacity: .65; }
 .main {
   position: relative;
   z-index: 1;
@@ -51,6 +57,9 @@
 .tenure:first-of-type { margin-top: .65rem; }
 .tenure + .tenure { margin-top: .3rem; }
 .tenure .role { min-width: 9.25rem; }
+:global([data-office-explorer][data-view="office"]) .tenure { display: grid; gap: .15rem; }
+:global([data-office-explorer][data-view="office"]) .tenure + .tenure { margin-top: .75rem; }
+.contact { margin-top: var(--subpage-section-space); padding-top: var(--subpage-row-space); border-top: 1px solid var(--subpage-rule); }
 
 .mission { margin: 2rem 0 0; color: var(--topic-body-color); font-size: var(--topic-body-size); line-height: var(--topic-body-leading); }
 .contributions { display: grid; gap: 2.5rem; margin-top: 2.75rem; }
@@ -93,6 +102,7 @@
 
 @media (max-width: 760px) {
   .main { padding-bottom: 0; }
+  .contact { display: none; }
   .photo { margin-top: 2.75rem; }
   .facts { gap: 1rem 2rem; }
   .tenure { display: grid; gap: .1rem; }
