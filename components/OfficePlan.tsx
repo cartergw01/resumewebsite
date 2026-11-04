@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties, ReactNode, Ref } from "react";
 import art from "@/lib/office-art.json";
-import { officeScreens, officeStops, officeView, type OfficeFacing, type OfficeStopId, type Point } from "@/lib/office-plan";
+import { officeScreens, officeStart, officeStops, officeView, type OfficeFacing, type OfficeStopId, type Point } from "@/lib/office-plan";
 import styles from "./OfficeExplorer.module.css";
 
 const percent = (part: number, whole: number) => `${part / whole * 100}%`;
@@ -13,10 +13,9 @@ export const workerFacing = (facing: OfficeFacing) => `${facingRows[facing] / 3 
 export const workerPlace = ([x, y]: Point) => `translate(${(x - 8) / 16 * 100}%, ${(y - 22) / 24 * 100}%)`;
 
 /** The office at night: baked art, a pane of dark over every unlit room, and screens that change as he nears them. */
-export default function OfficePlan({ workerRef, lit, screen, children }: { workerRef: Ref<HTMLDivElement>; lit: OfficeStopId | null; screen: string | null; children?: ReactNode }) {
-  const stop = officeStops[0];
+export default function OfficePlan({ workerRef, lit, screen, preview, sign, children }: { workerRef: Ref<HTMLDivElement>; lit: OfficeStopId | null; screen: string | null; preview?: boolean; sign?: ReactNode; children?: ReactNode }) {
   return <div className={styles.drawing} style={{ "--sheet": `url(${art.worker})`, "--screens": `url(${art.screens})` } as CSSProperties}>
-    <Image className={styles.scene} src={art.scene} alt="" width={officeView.width} height={officeView.height} loading="eager" unoptimized />
+    <Image className={styles.scene} src={art.scene} alt="" width={officeView.width} height={officeView.height} loading="eager" fetchPriority={preview ? "low" : "high"} unoptimized />
     {officeScreens.map(({ id, box: [x, y, width, height] }) => <span
       key={id}
       className={styles.screen}
@@ -27,7 +26,7 @@ export default function OfficePlan({ workerRef, lit, screen, children }: { worke
     {officeStops.map(({ id, box: [x, y, width, height] }) => <div key={id} className={styles.station} data-station={id} data-active={lit === id}>
       <span className={styles.roomDark} style={{ left: percent(x, officeView.width), top: percent(y, officeView.height), width: percent(width, officeView.width), height: percent(height, officeView.height) }} />
     </div>)}
-    <div className={styles.worker} ref={workerRef} data-walking="false" style={{ transform: workerPlace(stop.point), backgroundPositionY: workerFacing(stop.facing) }} />
+    <div className={styles.worker} ref={workerRef} data-walking="false" style={{ transform: workerPlace(officeStart), backgroundPositionY: workerFacing("up") }}>{sign}</div>
     {children}
   </div>;
 }

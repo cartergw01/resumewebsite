@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { OFFICE_PORTFOLIO, officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeStoryPages, officeView } from "../../lib/office-plan.ts";
+import { OFFICE_PORTFOLIO, officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
 
 const inside = ([x, y], [left, top, width, height]) => x >= left && x <= left + width && y >= top && y <= top + height;
 const copy = readFileSync(new URL("../../content/work.md", import.meta.url), "utf8");
@@ -51,7 +51,7 @@ test("room names are the copy's own words, never shortened", () => {
 
 test("objects in a room are real links, and he can reach them", () => {
   for (const item of officeObjects) {
-    if (item.person) assert(item.href.startsWith("https://www.886studios.com/"), `${item.id} should open a page on 886's site`);
+    if (item.person) assert(!item.href || item.href.startsWith("https://www.886studios.com/"), `${item.id} should open a page on 886's site`);
     else assert(copy.includes(`(${item.href})`), `${item.id} links to ${item.href}, which content/work.md does not`);
     const stop = officeStops.find(room => room.id === item.room);
     const [x, y, width, height] = item.reach;
@@ -68,10 +68,13 @@ test("people open their own pages, and founders open the portfolio", () => {
   assert.equal(person("kevin").href, "https://www.886studios.com/team/kevin-lin");
   assert.equal(person("patryk").href, "https://www.886studios.com/team/patryk");
   assert.equal(person("max").href, "https://www.886studios.com/team/max");
-  for (const id of ["kai", "kevin", "patryk", "max", "jimmy"]) assert.equal(person(id).room, "accelerator");
+  assert.equal(person("jameson").href, "https://www.886studios.com/team/jameson");
+  assert.equal(person("chris").href, "https://www.886studios.com/team/chris");
+  for (const id of ["kai", "kevin", "patryk", "max", "jimmy", "jameson", "chris", "freya", "ginny"]) assert.equal(person(id).room, "accelerator");
+  for (const id of ["freya", "ginny"]) assert.equal(person(id).href, undefined, `${id} has no page on 886's site yet`);
   const founders = officeObjects.filter(item => item.label === "Founders");
   const inCommunity = founders.filter(item => item.room === "community");
-  assert(inCommunity.length >= 6 && inCommunity.length <= 7, `${inCommunity.length} founders in Community & content`);
+  assert(inCommunity.length >= 10, `${inCommunity.length} founders in Community & content`);
   assert(founders.some(item => item.room === "founders"), "the coffee chat needs its founder");
   for (const founder of founders) assert.equal(founder.href, OFFICE_PORTFOLIO);
 });
@@ -79,15 +82,4 @@ test("people open their own pages, and founders open the portfolio", () => {
 test("Contrary Research is bigger than Slug Fund Investment Group", () => {
   const area = id => { const [, , width, height] = officeStops.find(room => room.id === id).floor; return width * height; };
   assert(area("research") > area("slug"));
-});
-
-test("stories split into short pages without losing a word or breaking a link", () => {
-  const paragraphs = copy.split("\n").filter(line => line && /[.!?]$/.test(line) && !/^(#|-|<|[A-Z][a-z]+ the words)/.test(line));
-  assert(paragraphs.length > 5);
-  const pages = officeStoryPages(paragraphs);
-  assert.equal(pages.join(" ").replace(/\s+/g, " "), paragraphs.join(" ").replace(/\s+/g, " "));
-  for (const page of pages) {
-    assert.equal((page.match(/\[/g) ?? []).length, (page.match(/\]\(/g) ?? []).length, `a link was split: ${page}`);
-    assert(page.replace(/\]\([^)]*\)/g, "]").length <= 240, `too long for the text box: ${page}`);
-  }
 });

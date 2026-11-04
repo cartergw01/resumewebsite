@@ -25,9 +25,12 @@ export const officeStops = [
   { id: "community", label: "Community & content", box: [284, 4, 84, 112], floor: [284, 36, 84, 80], point: [328, 96], facing: "left" },
   { id: "research", label: "Contrary Research", box: [4, 152, 112, 112], floor: [4, 184, 112, 80], point: [56, 216], facing: "left" },
   { id: "slug", label: "Slug Fund Investment Group", box: [120, 152, 96, 112], floor: [120, 184, 96, 80], point: [172, 216], facing: "left" },
-  { id: "side", label: "Korobra Capital & side projects", box: [220, 152, 88, 112], floor: [220, 184, 88, 80], point: [264, 204], facing: "left" },
+  { id: "side", label: "Korobra Capital & side projects", box: [220, 152, 88, 112], floor: [220, 184, 88, 80], point: [260, 204], facing: "left" },
   { id: "about", label: "About me", box: [312, 152, 56, 112], floor: [312, 184, 56, 80], point: [340, 208], facing: "left" },
 ] as const satisfies readonly Stop[];
+
+/** Where he stands when the page opens: just inside the 886 Studios door. */
+export const officeStart: Point = [44, 104];
 
 export type OfficeStopId = (typeof officeStops)[number]["id"];
 export type OfficeStop = (typeof officeStops)[number];
@@ -35,12 +38,16 @@ export type OfficeStop = (typeof officeStops)[number];
 /** Things in a room that are also links in its copy, and people to talk to. Standing at `reach` offers them. */
 export const OFFICE_PORTFOLIO = "https://www.886studios.com/portfolio";
 const TEAM = "https://www.886studios.com/team";
-type OfficeObject = { id: string; room: OfficeStopId; label: string; href: string; box: Box; reach: Box; person?: boolean };
+type OfficeObject = { id: string; room: OfficeStopId; label: string; href?: string; box: Box; reach: Box; person?: boolean };
 export const officeObjects: readonly OfficeObject[] = [
   { id: "desk", room: "now", label: "886 Studios", href: "https://www.886studios.com/", box: [30, 37, 40, 33], reach: [30, 70, 40, 16] },
-  { id: "patryk", room: "accelerator", label: "Patryk Chojecki", href: `${TEAM}/patryk`, box: [109, 52, 16, 19], reach: [124, 62, 10, 16], person: true },
-  { id: "max", room: "accelerator", label: "Max Hsieh", href: `${TEAM}/max`, box: [155, 52, 16, 19], reach: [148, 62, 10, 16], person: true },
-  { id: "jimmy", room: "accelerator", label: "Jimmy Huang, PicPet", href: "https://www.886studios.com/portfolio/o3o-labs", box: [155, 72, 16, 19], reach: [148, 80, 10, 16], person: true },
+  { id: "patryk", room: "accelerator", label: "Patryk Chojecki", href: `${TEAM}/patryk`, box: [109, 53, 16, 17], reach: [124, 62, 10, 16], person: true },
+  { id: "max", room: "accelerator", label: "Max Hsieh", href: `${TEAM}/max`, box: [95, 53, 16, 17], reach: [92, 50, 22, 11], person: true },
+  { id: "jimmy", room: "accelerator", label: "Jimmy Huang, PicPet", href: "https://www.886studios.com/portfolio/o3o-labs", box: [155, 73, 16, 17], reach: [148, 80, 10, 16], person: true },
+  { id: "jameson", room: "accelerator", label: "Jameson Hsu", href: `${TEAM}/jameson`, box: [155, 53, 16, 17], reach: [148, 62, 10, 16], person: true },
+  { id: "chris", room: "accelerator", label: "Chris Wang", href: `${TEAM}/chris`, box: [169, 53, 16, 17], reach: [162, 50, 22, 11], person: true },
+  { id: "ginny", room: "accelerator", label: "Ginny", box: [95, 73, 16, 17], reach: [92, 97, 22, 10], person: true },
+  { id: "freya", room: "accelerator", label: "Freya", box: [109, 73, 16, 17], reach: [124, 82, 10, 14], person: true },
   { id: "kai", room: "accelerator", label: "Kai Huang, Guitar Hero", href: `${TEAM}/kai`, box: [128, 30, 16, 22], reach: [126, 54, 16, 24], person: true },
   { id: "kevin", room: "accelerator", label: "Kevin Lin, Twitch", href: `${TEAM}/kevin-lin`, box: [144, 30, 16, 22], reach: [142, 54, 16, 24], person: true },
   { id: "pitch", room: "accelerator", label: "ikigai Launchpad", href: "https://886studios.com/programs", box: [106, 6, 72, 26], reach: [160, 39, 12, 22] },
@@ -52,15 +59,19 @@ export const officeObjects: readonly OfficeObject[] = [
   { id: "founder-5", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [286, 72, 16, 22], reach: [284, 95, 20, 12], person: true },
   { id: "founder-6", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [332, 62, 16, 22], reach: [332, 85, 16, 12], person: true },
   { id: "founder-7", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [350, 62, 16, 22], reach: [349, 85, 19, 12], person: true },
+  { id: "founder-8", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [284, 49, 16, 17], reach: [284, 76, 22, 10], person: true },
+  { id: "founder-9", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [312, 49, 16, 17], reach: [312, 71, 18, 8], person: true },
+  { id: "founder-10", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [324, 48, 16, 22], reach: [326, 72, 14, 8], person: true },
+  { id: "founder-11", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [353, 74, 15, 22], reach: [350, 98, 18, 10], person: true },
+  { id: "bartender", room: "community", label: "Bartender", box: [296, 24, 16, 24], reach: [296, 76, 8, 8], person: true },
   { id: "residency", room: "community", label: "Launch Station", href: "https://www.886studios.com/launch-station", box: [286, 31, 38, 29], reach: [325, 52, 10, 12] },
-  { id: "newsletter", room: "community", label: "Our newsletter", href: "https://886studios.substack.com/", box: [324, 7, 32, 22], reach: [325, 39, 10, 12] },
   { id: "shield", room: "research", label: "Shield AI", href: "https://research.contrary.com/company/shield-ai", box: [5, 162, 45, 27], reach: [4, 189, 47, 12] },
   { id: "spacex", room: "research", label: "SpaceX", href: "https://research.contrary.com/company/spacex", box: [74, 162, 41, 27], reach: [73, 189, 43, 12] },
   { id: "turo", room: "research", label: "Turo", href: "https://research.contrary.com/company/turo", box: [12, 198, 32, 30], reach: [45, 204, 18, 24] },
   { id: "chime", room: "research", label: "Chime", href: "https://research.contrary.com/company/chime/", box: [83, 208, 24, 20], reach: [76, 229, 38, 15] },
   { id: "hive", room: "research", label: "Hive", href: "https://research.contrary.com/company/hive", box: [10, 232, 30, 14], reach: [4, 246, 44, 18] },
-  { id: "code", room: "side", label: "See my coding projects", href: "/projects", box: [228, 179, 26, 33], reach: [255, 186, 20, 30] },
-  { id: "notebooks", room: "side", label: "Read my writing", href: "/writing", box: [228, 224, 26, 20], reach: [255, 222, 20, 22] },
+  { id: "code", room: "side", label: "See my coding projects", href: "/projects", box: [274, 179, 28, 33], reach: [262, 190, 8, 22] },
+  { id: "notebooks", room: "side", label: "Read my writing", href: "/writing", box: [224, 218, 36, 26], reach: [259, 212, 16, 14] },
 ];
 
 /** Pieces of the art with a second state, shown while he stands within `reach`. */
@@ -69,7 +80,7 @@ export const officeScreens: readonly { id: string; box: Box; reach: Box }[] = [
   { id: "scan", box: [211, 56, 10, 6], reach: [196, 80, 46, 14] },
   { id: "book", box: [129, 187, 26, 10], reach: [158, 192, 14, 30] },
   { id: "tape", box: [185, 187, 26, 10], reach: [172, 192, 12, 30] },
-  { id: "side", box: [231, 180, 21, 10], reach: [255, 186, 20, 30] },
+  { id: "code", box: [281, 180, 14, 10], reach: [262, 190, 8, 22] },
   { id: "shield", box: [4, 168, 52, 20], reach: [4, 189, 47, 12] },
   { id: "spacex", box: [72, 168, 46, 20], reach: [73, 189, 43, 12] },
   { id: "turo", box: [12, 186, 32, 20], reach: [45, 204, 18, 24] },
@@ -86,16 +97,16 @@ export const officeFloors: readonly Box[] = [
 ];
 // The furniture's footprints and the people's feet, as drawn.
 export const officeFurniture: readonly Box[] = [
-  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [62, 78, 12, 14], [58, 91, 20, 14], [62, 101, 12, 12], [10, 98, 12, 10], [116, 40, 14, 18],
+  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [62, 78, 12, 14], [58, 91, 20, 14], [62, 101, 12, 12], [116, 40, 14, 18],
   [97, 62, 26, 14], [157, 62, 26, 14], [97, 82, 26, 14], [157, 82, 26, 14],
   [198, 38, 34, 22], [206, 62, 20, 14], [235, 62, 12, 14], [247, 62, 18, 16], [265, 62, 12, 14], [265, 46, 12, 10], [200, 104, 12, 10],
   [130, 48, 12, 5], [146, 48, 12, 5],
   [286, 38, 38, 22], [336, 40, 30, 20], [344, 60, 14, 9], [288, 60, 8, 10], [302, 60, 8, 10], [316, 60, 8, 10],
-  [290, 70, 12, 5], [306, 78, 12, 5], [288, 90, 12, 5], [334, 80, 12, 5], [352, 80, 12, 5],
+  [290, 70, 12, 5], [306, 78, 12, 5], [288, 90, 12, 5], [334, 80, 12, 5], [352, 80, 12, 5], [326, 66, 12, 5], [355, 92, 12, 5],
   [10, 130, 12, 10], [350, 130, 12, 10],
   [5, 153, 45, 36], [70, 153, 45, 36], [12, 204, 32, 24], [83, 208, 24, 20], [10, 234, 30, 10], [46, 232, 24, 16],
   [126, 196, 32, 22], [182, 196, 32, 22], [134, 224, 68, 18],
-  [228, 190, 26, 22], [235, 208, 12, 14], [228, 224, 26, 20], [282, 192, 20, 20],
+  [224, 190, 26, 22], [231, 208, 12, 14], [274, 190, 28, 22], [282, 208, 12, 14], [224, 226, 36, 18], [261, 228, 12, 14],
   [314, 186, 16, 16], [350, 186, 16, 24], [324, 224, 24, 20], [352, 232, 12, 14],
 ];
 
@@ -163,20 +174,5 @@ export function officeRoute(from: Point, to: Point): Point[] {
   return distinct.filter((point, index) => {
     const before = distinct[index - 1], after = distinct[index + 1];
     return !before || !after || !((before[0] === point[0] && point[0] === after[0]) || (before[1] === point[1] && point[1] === after[1]));
-  });
-}
-
-const PAGE_LIMIT = 165;
-const seen = (text: string) => text.replace(/\]\([^)]*\)/g, "]"); // Links count as the words you can see.
-/** A story split the way a game's text box would be: whole sentences, a few lines at a time. */
-export function officeStoryPages(paragraphs: readonly string[]) {
-  return paragraphs.flatMap(paragraph => {
-    const pages: string[] = [];
-    for (const sentence of paragraph.split(/(?<=[.!?])\s+(?=[A-Z[*])/)) {
-      const last = pages.at(-1);
-      if (last !== undefined && seen(last).length + seen(sentence).length + 1 <= PAGE_LIMIT) pages[pages.length - 1] = `${last} ${sentence}`;
-      else pages.push(sentence);
-    }
-    return pages;
   });
 }

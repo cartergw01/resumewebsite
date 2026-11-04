@@ -97,8 +97,9 @@ async function photo(file, width, height) {
 }
 const contraryMark = await mark("public/logos/contrary.svg", 12);
 const slugMark = await mark("public/logos/slug-fund.svg", 12);
-const korobraMark = await mark("public/logos/korobra-capital.png", 8);
+const korobraMark = await mark("public/logos/korobra-capital.png", 12);
 const batchPhoto = await photo("public/ikigai-batch.jpg", 15, 11);
+const logo886 = await mark("public/logos/886-studios.png", 32);
 
 // Floors
 const checker = (x, y, w, h, a, b, size = 8) => { for (let j = 0; j < h; j += size) for (let i = 0; i < w; i += size) rect(x + i, y + j, Math.min(size, w - i), Math.min(size, h - j), ((i + j) / size) % 2 ? a : b); };
@@ -222,6 +223,8 @@ const head = {
 head.leftBuzz = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...ksHHHHHHHk...", "...kssssSHHHk...", "...kssssSHHHk...", "...kesssSSHHk...", "...kssssssHHk...", "....kssssssk....", ".....kkkkkk....."];
 head.downLong = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHhHHhHHk...", "...kHhHkkHhHk...", "...kHHHssHHHk...", "...kHHssssHHk...", "...kHssssssHk...", "...kHseSSesHk...", "...kHssssssHk...", "...kHkssSskHk...", "....kkkkkkkk...."];
 head.upBuzz = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kssssssssk...", "....kssssssk....", ".....kkkkkk....."];
+head.upLong = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHhHHhHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "....kkkkkkkk...."];
+const tankTop = ["....kkkkkkkk....", "...ksTTTTTTsk...", "..kssTTTTTTssk..", "..kskTTTTTTksk..", "..ksskTTTTkssk..", "..kkkkTTTTkkkk.."];
 const seatedLegs = { down: ["....kPPPPPPk....", "....kkkkkkkk...."], left: ["..kPPPPPPPPk....", "..kkkkkkkkkk...."] };
 const body = {
   down: ["....kkkkkkkk....", "...kTTTTTTTTk...", "..kTtTTTTTTtTk..", "..kTkTTTTTTkTk..", "..ksskTTTTkssk..", "..kkkkTTTTkkkk.."],
@@ -241,10 +244,10 @@ const legs = {
   },
 };
 // ---- A person, standing or sitting, in any colours: the same sprite as the man's. ----
-const person = (x, y, view, colors, { mirror = false, seated = false } = {}) => {
+const person = (x, y, view, colors, { mirror = false, seated = false, tank = false } = {}) => {
   const base = view.startsWith("left") ? "left" : view.startsWith("up") ? "up" : "down";
   const lower = seated ? seatedLegs[base] ?? [] : legs[base === "left" ? "left" : "front"].stand;
-  const rows = [...head[view], ...body[base], ...lower];
+  const rows = [...head[view], ...(tank ? tankTop : body[base]), ...lower];
   const inks = { ...palette, ...colors };
   if (!seated) rect(x - 6, y - 1, 13, 3, "#2a223340");
   rows.forEach((line, j) => [...(mirror ? [...line].reverse().join("") : line)].forEach((c, i) => {
@@ -259,7 +262,8 @@ const PURPLE = "#6d35d8", CONTRARY = "#184df6";
 // A room's name is inlaid in its floor: a darker or lighter shade of the floor
 // itself with a lit lower edge, under the furniture and under the night.
 function inlay(lines, cx, y, base, roomWidth, lighter = false) {
-  const ink = shade(base, lighter ? 92 : -92), edge = shade(base, lighter ? -14 : 24);
+  // Still the floor's own lettering, but as close to black or white as it will go.
+  const ink = lighter ? "#fbf6e6" : "#15101a", edge = shade(base, lighter ? -24 : 34);
   lines.forEach((line, index) => {
     if (wide(line) > roomWidth - 6) throw new Error(`"${line}" (${wide(line)}) is too wide for a ${roomWidth} room`);
     const x = cx - Math.floor(wide(line) / 2), row = y + index * 10;
@@ -275,6 +279,7 @@ planks(4, FLOOR_TOP, 84, 80, FLOORS_886[0], "#c2a274");
 carpet(92, FLOOR_TOP, 100, 80, FLOORS_886[1], "#9a9eaa");
 checker(196, FLOOR_TOP, 84, 80, FLOORS_886[2], "#cda97e");
 planks(284, FLOOR_TOP, 84, 80, FLOORS_886[3], "#39262f", 6);
+logo886(12, 77, "#6d35d8d8"); // 886's mark, set into the floor.
 // The office: cream paneling. Demo day: a dark hall. The scouts: a neighbourhood cafe. Community: a dark brick bar.
 wallFace(4, 4, 84, 32, "#f4eddc", "#ebe2cd", PURPLE, "#4d22a0");
 wallFace(92, 4, 100, 32, "#2c3040", "#272b3a", PURPLE, "#4d22a0");
@@ -321,7 +326,6 @@ const SEAT = "#7c8796";
   box(58, 91, 20, 8, 6, ...WOOD);
   rect(61, 93, 4, 3, "#f4efe0"); rect(70, 92, 4, 4, LINE); rect(71, 93, 2, 2, "#f2ece0");
   chair(62, 101, SEAT);
-  plant(8, 86);
   box(8, 34, 16, 10, 22, "#d8dce2", "#a7aeb9");
   rect(10, 47, 12, 1, "#737b88"); rect(10, 54, 12, 1, "#737b88"); rect(14, 49, 4, 1, "#737b88"); rect(14, 56, 4, 1, "#737b88");
   desk(30, 48, 40, 14);
@@ -348,9 +352,15 @@ const SEAT = "#7c8796";
     person(chairX + 6, chairY + 7, view, colors, { seated: true });
     rect(chairX, chairY + 7, 12, 5, LINE); rect(chairX + 1, chairY + 8, 10, 3, "#3d4254"); rect(chairX + 1, chairY + 8, 10, 1, shade("#3d4254", 30));
   };
+  audience(97, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
   audience(111, 62, "up", { H: "#6b4a2e", h: "#8a6642", f: "#5c4028", s: "#f7dcc6", S: "#e4bda0", T: "#f4f4ef", t: "#ffffff" }); // Patryk
-  audience(157, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
+  audience(157, 62, "up", { H: "#1f1b22", h: "#3a3340", f: "#2a2630", s: "#e9c49c", S: "#cfa67c", T: "#5c6b7a", t: "#76879a" }); // Jameson
+  audience(171, 62, "up", { H: "#2b2230", h: "#4b3a44", f: "#6b6470", s: "#e9c49c", S: "#cfa67c", T: "#7a3b3b", t: "#955050" }); // Chris
   audience(157, 82, "upBuzz", { H: "#e6cd80", h: "#f2e2a6", f: "#e6cd80", s: "#f5d6bc", S: "#e0b698", T: "#4a5568", t: "#63708a" }); // Jimmy
+  audience(171, 82, "up", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#dcb190", S: "#c0926c", T: "#3e8f83", t: "#59ad9f" }); // Someone from the batch, next to him.
+  // Ginny and Freya, in the back row.
+  audience(97, 82, "upLong", { H: "#241c1a", h: "#42332e", s: "#ecc8a0", S: "#d2a97e", T: "#1f5a3a", t: "#2f7a50" });
+  audience(111, 82, "upLong", { H: "#2e2320", h: "#4c3a34", s: "#ecc8a0", S: "#d2a97e", T: "#1c1c22", t: "#35353e" });
 }
 
 // ---- Finding founders: a cafe, where most of it really happens. ----
@@ -362,8 +372,8 @@ const SEAT = "#7c8796";
     rect(x + Math.floor(w / 2) - 1, y + 9, 3, 9, "#3a3038");
     rect(x + Math.floor(w / 2) - 5, y + 17, 11, 2, "#3a3038");
     rect(x + 2, y, w - 4, 11, LINE); rect(x, y + 2, w, 7, LINE);
-    rect(x + 2, y + 1, w - 4, 9, "#dcb98a"); rect(x + 1, y + 3, w - 2, 5, "#dcb98a");
-    rect(x + 3, y + 1, w - 6, 1, "#f0d3a6");
+    rect(x + 2, y + 1, w - 4, 9, "#f6f2e8"); rect(x + 1, y + 3, w - 2, 5, "#f6f2e8");
+    rect(x + 3, y + 1, w - 6, 1, "#ffffff"); rect(x + 2, y + 9, w - 4, 1, "#d8d2c2");
   };
   // Big windows onto the night, with the pipeline board between them.
   windowPane(199, 7, 26, 21);
@@ -406,7 +416,8 @@ const SEAT = "#7c8796";
   const neonX = 304 - Math.floor(wide("886", 2) / 2);
   for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) text(scene, "886", neonX + dx, 6 + dy, "#c084fc66", 2);
   text(scene, "886", neonX, 6, "#f3e8ff", 2);
-  frame(324, 7, 32, 22, (x, y, w) => { rect(x + 2, y + 2, w - 4, 3, PURPLE); rect(x + 2, y + 7, w - 8, 1, "#7b8794"); rect(x + 2, y + 9, w - 5, 1, "#7b8794"); rect(x + 2, y + 11, w - 9, 1, "#7b8794"); rect(x + 2, y + 13, w - 6, 1, "#7b8794"); }, "#1c1118");
+  // The bartender, behind it, in a white tank top.
+  person(304, 46, "downLong", { H: "#2a1a18", h: "#4a2f28", s: "#f0caa4", S: "#d6a980", T: "#ffffff", P: "#1c1c22", p: "#2c2c34" }, { tank: true });
   // The bar itself: dark wood, a brass rail, a strip of light under the lip.
   box(286, 38, 38, 10, 12, "#6a4632", "#2a1a22");
   rect(287, 50, 36, 1, "#c084fc"); rect(287, 57, 36, 1, "#b08a4a");
@@ -437,6 +448,10 @@ const SEAT = "#7c8796";
     [294, 94, "up", { H: "#7a4a2a", h: "#9c6a42", f: "#7a4a2a", s: "#f4d4b4", S: "#dcb492", T: "#55703f", t: "#6f8f55", P: "#42485a", p: "#565d72" }, {}],
     [340, 84, "left", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#c9976f", S: "#ab7c56", T: "#26415f", t: "#3b5f86", P: "#3a3f4b", p: "#4d5362" }, { mirror: true }],
     [358, 84, "left", { H: "#141216", h: "#2e2a32", f: "#242026", T: "#a8506a", t: "#c56c86", P: "#2f3a4f", p: "#435069" }, {}],
+    [292, 65, "up", { H: "#2a1f1c", h: "#4a3a34", f: "#3a2c28", T: "#7a4f9a", t: "#9568b5" }, { seated: true }],
+    [320, 65, "upLong", { H: "#6b4a2e", h: "#8a6642", T: "#c9a23a", t: "#dfbb58" }, { seated: true }],
+    [332, 70, "left", { H: "#1f1b22", h: "#3a3340", f: "#1f1b22", s: "#e4bb92", S: "#c99e76", T: "#3f6f8f", t: "#5a8bab", P: "#2c303a", p: "#3f4452" }, { mirror: true }],
+    [361, 96, "left", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", T: "#b5573a", t: "#cf7458", P: "#42485a", p: "#565d72" }, {}],
   ]).forEach(([x, y, view, colors, options]) => person(x, y, view, colors, options));
   for (const [x, y, color] of [[303, 64, "#e7a35a"], [304, 72, "#d9536f"], [283 + 19, 84, "#8fd3c7"], [350, 74, "#e7a35a"], [351, 74, "#e7a35a"]]) { rect(x, y, 3, 4, LINE); rect(x + 1, y + 1, 1, 2, color); }
 }
@@ -499,17 +514,29 @@ const SEAT = "#7c8796";
   paperStack(160, 230, 3); paperStack(173, 230, 2);
 }
 
-// ---- Korobra Capital & side projects: the fund's chart, the code, the notebooks. ----
+// ---- Korobra Capital & side projects: a desk for each. Stocks, code, writing. ----
 {
-  frame(228, HALL_BOTTOM + 4, 22, 20, (x, y, w, h) => { rect(x, y, w, h, "#10202c"); climbing("#ffcf6e")(x + 1, y + 1, w - 2, h - 2); korobraMark(x + 1, y + 1, "#efe7d4"); });
+  frame(228, HALL_BOTTOM + 4, 22, 20, (x, y, w, h) => { rect(x, y, w, h, "#10202c"); climbing("#ffcf6e")(x + 1, y + 1, w - 2, h - 2); });
   frame(274, HALL_BOTTOM + 4, 28, 20, codeLines);
-  desk(228, 190, 26, 14);
-  monitor(230, 179, 11, 12, codeLines); monitor(242, 179, 11, 12, climbing("#4fd08a"));
-  rect(234, 196, 14, 4, LINE); rect(235, 197, 12, 2, "#d7dbe0");
-  chair(235, 208, SEAT);
-  bookcase(228, 224, 26, 20, 41);
-  box(282, 192, 20, 12, 8, ...WOOD);
-  rect(286, 194, 12, 7, LINE); rect(287, 195, 10, 5, "#f4efe0"); rect(288, 196, 8, 1, "#7b8794"); rect(288, 198, 6, 1, "#7b8794");
+  // The fund's desk, with the market up on the PC.
+  desk(224, 190, 26, 14);
+  // The fund's mark, and nothing else, on its monitor.
+  monitor(227, 177, 20, 14, (x, y, w, h) => { rect(x, y, w, h, "#0b1424"); korobraMark(x + 3, y, "#efe7d4"); });
+  rect(231, 196, 12, 4, LINE); rect(232, 197, 10, 2, "#d7dbe0");
+  chair(231, 208, SEAT);
+  // The coding desk.
+  desk(274, 190, 28, 14, DARKWOOD);
+  monitor(280, 179, 16, 12, codeLines);
+  rect(282, 196, 12, 4, LINE); rect(283, 197, 10, 2, "#d7dbe0");
+  rect(297, 196, 3, 4, LINE); rect(298, 197, 1, 2, "#f2ece0");
+  chair(282, 208, SEAT);
+  // The writing table: an open notebook, a pen, a lamp, and pages in a stack.
+  desk(224, 226, 36, 10, ["#e0c49a", "#a98a5e"]);
+  rect(234, 227, 15, 8, LINE); rect(235, 228, 6, 6, "#f8f1e0"); rect(242, 228, 6, 6, "#efe6cf"); rect(241, 228, 1, 6, "#b9ab8c");
+  for (const j of [229, 231, 233]) { rect(236, j, 4, 1, "#7b8794"); rect(243, j, 4, 1, "#7b8794"); }
+  rect(250, 229, 6, 1, "#26415f"); rect(255, 228, 1, 1, "#d9a441");
+  rect(226, 224, 7, 7, LINE); rect(227, 225, 5, 2, "#e7c693"); rect(229, 227, 1, 3, "#3a3f46");
+  chair(261, 228, SEAT);
 }
 
 // ---- About me: the game on TV, a shelf of books, and a coffee. ----
@@ -540,9 +567,8 @@ target = screens;
   // The right desk: headlines and the curve become the tape and a sector table.
   rect(185, 187, 12, 10, "#0b1424"); for (let j = 1; j < 10; j += 3) { rect(186, 187 + j, 4, 1, GREEN); rect(191, 187 + j, 5, 1, j === 4 ? RED : GREEN); }
   rect(199, 187, 12, 10, "#0b1424"); [[0, 0, 5, 4, GREEN], [6, 0, 6, 4, RED], [0, 5, 7, 5, RED], [8, 5, 4, 5, GREEN]].forEach(([a, b, c, d, color]) => rect(199 + a, 187 + b, c, d, color));
-  // The side desk: the code runs, the fund's chart fills out.
-  rect(231, 180, 9, 10, "#0d2a22"); for (let j = 1; j < 9; j += 2) rect(232, 180 + j, 6 - (j % 3), 1, "#7bffb0");
-  rect(243, 180, 9, 10, "#10202c"); climbing("#ffcf6e")(243, 181, 9, 8);
+  // The coding desk: the code runs.
+  rect(281, 180, 14, 10, "#0d2a22"); for (let j = 1; j < 9; j += 2) rect(282, 180 + j, 10 - (j % 4), 1, "#7bffb0");
 
   // The Contrary reports: walk up and the cover has the company's name on it.
   const report = (cx, y, name) => {

@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { Pixelify_Sans } from "next/font/google";
-import { officeCanStand, officeObjectAt, officeObjects, officeRoomAt, officeRoute, officeScreenAt, officeStops, officeView, type OfficeFacing, type OfficeStop, type OfficeStopId, type Point } from "@/lib/office-plan";
+import { officeCanStand, officeObjectAt, officeObjects, officeRoomAt, officeRoute, officeScreenAt, officeStart, officeStops, officeView, type OfficeFacing, type OfficeStop, type OfficeStopId, type Point } from "@/lib/office-plan";
 import OfficePlan, { workerFacing, workerPlace } from "./OfficePlan";
 import styles from "./OfficeExplorer.module.css";
 
@@ -14,8 +14,8 @@ type Props = {
   header: ReactNode;
   /** Who and when, for each room. */
   cards: Record<OfficeStopId, ReactNode>;
-  /** What happened there: the pages of each room's text box. */
-  stories: Record<OfficeStopId, ReactNode[]>;
+  /** What happened there, in the copy's own words, for each room's text box. */
+  stories: Record<OfficeStopId, ReactNode>;
   list: ReactNode;
   preview?: boolean;
 };
@@ -27,7 +27,7 @@ const ARROWS: Record<string, { facing: OfficeFacing; dx: number; dy: number }> =
 };
 const SPEED = 92; // Pixels of art a second, on foot under the player's control.
 const SLIDE = 9; // How far off a gap he can be and still be steered into it.
-const TYPE_RATE = 70; // Characters a second in the text box.
+const TYPE_RATE = 140; // Characters a second in the text box.
 const objectNear = ([x, y]: Point) => officeObjectAt(x, y)?.id ?? null;
 const screenNear = ([x, y]: Point) => officeScreenAt(x, y);
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -71,31 +71,26 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const [screen, setScreen] = useState<string | null>(null);
   const [walked, setWalked] = useState(false);
   const [zoomed, setZoomed] = useState(true);
-  const [page, setPage] = useState(0);
   const [typing, setTyping] = useState(false);
   const worker = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const plan = useRef<HTMLDivElement>(null);
   const storyEl = useRef<HTMLDivElement>(null);
   const legend = useRef<HTMLDivElement>(null);
-  const spot = useRef<Point>(officeStops[0].point);
+  const spot = useRef<Point>(officeStart);
   const trip = useRef<{ stop: () => void } | null>(null);
   const finishTyping = useRef<(() => void) | null>(null);
   const firstPage = useRef(true);
   const followRef = useRef<() => void>(() => {});
+  const lookAt = useRef<Point | null>(null);
   const keys = useRef<{ press: (key: string) => void; release: (key: string) => void }>({ press: () => {}, release: () => {} });
   const panelId = useId();
   const index = officeStops.findIndex(item => item.id === selected);
   const stop = officeStops[index];
-  const next = officeStops[(index + 1) % officeStops.length];
   const nearby = officeObjects.find(item => item.id === near);
-  const pages = stories[selected];
-  const currentPage = pages[Math.min(page, pages.length - 1)];
-  const morePages = page < pages.length - 1;
 
   const enter = useCallback((id: OfficeStopId) => {
     setSelected(id);
-    setPage(0);
   }, []);
 
   const sense = useCallback((point: Point) => {
@@ -116,6 +111,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const goTo = useCallback((target: OfficeStop, exact?: Point) => {
     const marker = worker.current;
     trip.current?.stop();
+    lookAt.current = null;
     setWalked(true);
     setNear(null);
     setScreen(null);
@@ -180,14 +176,13 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const actRef = useRef<() => void>(() => {});
   useEffect(() => {
     actRef.current = () => {
-      const link = plan.current?.querySelector<HTMLAnchorElement>("[data-object][data-near='true']");
+      const link = plan.current?.querySelector<HTMLAnchorElement>("a[data-object][data-near='true']");
       if (link) { link.click(); return; }
-      if (finishTyping.current) { finishTyping.current(); return; }
-      setPage(current => current < pages.length - 1 ? current + 1 : current);
+      finishTyping.current?.();
     };
   });
 
-  // Type the page out when it changes. The text is all there from the start, so the box
+  // Type the story out when the room changes. The text is all there from the start, so the box
   // doesn't jump and links stay real; only the characters' visibility moves.
   useEffect(() => {
     const box = storyEl.current;
@@ -227,7 +222,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
     frame = requestAnimationFrame(tick);
     const beginning = requestAnimationFrame(() => setTyping(true));
     return () => { cancelAnimationFrame(frame); cancelAnimationFrame(beginning); finishTyping.current = null; };
-  }, [selected, page, preview]);
+  }, [selected, preview]);
 
   // The camera keeps him in the middle of the frame, stopping at the walls.
   useEffect(() => {
@@ -237,9 +232,13 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
     const measure = () => {
       const matrix = new DOMMatrixReadOnly(getComputedStyle(marker).transform);
       const clamp = (value: number, low: number) => Math.min(0, Math.max(low, value));
+      const scale = sheet.offsetWidth / officeView.width;
+      const [lookX, lookY] = lookAt.current
+        ? [lookAt.current[0] * scale, lookAt.current[1] * scale]
+        : [matrix.e + marker.offsetWidth / 2, matrix.f + marker.offsetHeight / 2];
       return [
-        clamp(frameEl.clientWidth / 2 - (matrix.e + marker.offsetWidth / 2), frameEl.clientWidth - sheet.offsetWidth),
-        clamp(frameEl.clientHeight / 2 - (matrix.f + marker.offsetHeight / 2), frameEl.clientHeight - sheet.offsetHeight),
+        clamp(frameEl.clientWidth / 2 - lookX, frameEl.clientWidth - sheet.offsetWidth),
+        clamp(frameEl.clientHeight / 2 - lookY, frameEl.clientHeight - sheet.offsetHeight),
       ];
     };
     const paint = (now: number) => {
@@ -366,20 +365,10 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
 
   useEffect(() => () => trip.current?.stop(), []);
 
-  // Next sits with the details, so bring the walk back into view on small screens.
-  function walkOn() {
-    goTo(next);
-    const target = stage.current;
-    if (target && matchMedia("(max-width: 960px)").matches && target.getBoundingClientRect().top < 0) {
-      target.scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
-    }
-  }
-
   // Pressing a floor: another room sends him to its usual spot, his own lets him walk to that spot.
   function pressFloor(item: OfficeStop, event: React.MouseEvent<HTMLButtonElement>) {
     if (event.detail) event.currentTarget.blur();
     const bounds = plan.current?.getBoundingClientRect();
-    if (!zoomed) setZoomed(true);
     if (bounds && event.detail && item.id === officeRoomAt(...spot.current)) {
       const goal: Point = [(event.clientX - bounds.left) / bounds.width * officeView.width, (event.clientY - bounds.top) / bounds.height * officeView.height];
       if (officeCanStand(...goal)) { goTo(item, goal); return; }
@@ -399,12 +388,25 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       aria-controls={panelId}
       style={{ left: percent(x, officeView.width), top: percent(y, officeView.height), width: percent(width, officeView.width), height: percent(height, officeView.height) }}
       onClick={event => pressFloor(item, event)}
+      onFocus={event => {
+        if (!event.currentTarget.matches(":focus-visible")) return;
+        lookAt.current = [x + width / 2, y + height / 2];
+        followRef.current();
+      }}
+      onBlur={() => { lookAt.current = null; followRef.current(); }}
     />;
   };
 
   // Real links on the map: a pointer, a walk or the Tab key all reach them, and focus names them.
   const renderObject = (item: (typeof officeObjects)[number]) => {
     const [x, y, width, height] = item.box;
+    const place = { left: percent(x, officeView.width), top: percent(y, officeView.height), width: percent(width, officeView.width), height: percent(height, officeView.height) };
+    const pointer = {
+      onPointerEnter: (event: React.PointerEvent) => { if (event.pointerType === "mouse") setNear(item.id); },
+      onPointerLeave: (event: React.PointerEvent) => { if (event.pointerType === "mouse") setNear(objectNear(spot.current)); },
+    };
+    // Someone without a page of their own just says who they are.
+    if (!item.href) return <span key={item.id} className={styles.object} data-object={item.id} data-near={near === item.id} data-person style={{ ...place, cursor: "default" }} {...pointer} />;
     const external = item.href.startsWith("http");
     return <a
       key={item.id}
@@ -416,11 +418,10 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
       aria-label={item.label}
-      style={{ left: percent(x, officeView.width), top: percent(y, officeView.height), width: percent(width, officeView.width), height: percent(height, officeView.height) }}
+      style={place}
       onFocus={event => { if (event.currentTarget.matches(":focus-visible")) setNear(item.id); }}
       onBlur={() => setNear(objectNear(spot.current))}
-      onPointerEnter={event => { if (event.pointerType === "mouse") setNear(item.id); }}
-      onPointerLeave={event => { if (event.pointerType === "mouse") setNear(objectNear(spot.current)); }}
+      {...pointer}
     />;
   };
 
@@ -435,6 +436,9 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       // Keep walking if a thumb slides off the key. Some browsers refuse capture, and that's fine.
       try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
       keys.current.press(key);
+      // Keep the map and the pad on screen together on small phones.
+      const pad = event.currentTarget.getBoundingClientRect();
+      if (pad.bottom > innerHeight - 96) stage.current?.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
     }}
     onPointerUp={() => keys.current.release(key)}
     onPointerCancel={() => keys.current.release(key)}
@@ -443,29 +447,43 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
 
   return <div className={styles.explorer} data-office-explorer data-view={view} data-selected={selected}
     onClick={event => { if (event.target instanceof Element && event.target.closest("button, [data-office-map]")) event.stopPropagation(); }}>
+    <div className={styles.tourView}>
     <div className={styles.intro}>
       {header}
+    <div className={`${styles.toolbar} ${pixel.className}`}>
       {/* Say up front that this is a place you can walk, and offer the fast way past it. */}
-      <div className={`${styles.modes} ${pixel.className}`} role="group" aria-label="How to read this page">
-        <button type="button" aria-pressed={view === "office"} onClick={() => setView("office")}><TourIcon />Tour the office</button>
-        <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}><ListIcon />Read as a list</button>
+      <div className={styles.modes} role="group" aria-label="How to read this page">
+        <button type="button" aria-pressed={view === "office"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("office"); }}><TourIcon />Tour the office</button>
+        <button type="button" aria-pressed={view === "list"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("list"); }}><ListIcon />Read as a list</button>
       </div>
     </div>
+    </div>
     {view === "office" && <div className={styles.world}>
-      <div className={styles.stage} ref={stage} data-zoomed={zoomed} data-office-map>
+      <div className={styles.stage} ref={stage} data-zoomed={zoomed} data-office-map onScroll={event => {
+        // Tabbing to an off-camera room makes the browser scroll here. The camera does that job.
+        event.currentTarget.scrollTop = 0;
+        event.currentTarget.scrollLeft = 0;
+      }}>
         <div className={styles.plan} ref={plan} role="group" aria-label="Rooms in the office">
-          <OfficePlan workerRef={worker} lit={lit} screen={screen}>
+          <OfficePlan workerRef={worker} lit={lit} screen={screen} preview={preview} sign={!walked && <div className={`${styles.youAreHere} ${pixel.className}`}>You are here</div>}>
             {officeStops.map(renderRoom)}
             {!preview && officeObjects.filter(item => item.room === selected).map(renderObject)}
             {!preview && nearby && <div className={`${styles.prompt} ${pixel.className}`} data-under={nearby.box[1] < 24} aria-hidden="true" style={{
               left: percent(Math.min(officeView.width - 48, Math.max(48, nearby.box[0] + nearby.box[2] / 2)), officeView.width),
               top: percent(nearby.box[1] < 24 ? nearby.box[1] + nearby.box[3] : nearby.box[1], officeView.height),
             }}>
-              <span>{nearby.label}</span><kbd className={styles.key}>Enter</kbd>
+              <span>{nearby.label}</span>{nearby.href && <kbd className={styles.key}>Enter</kbd>}
             </div>}
           </OfficePlan>
         </div>
-        {!preview && <div className={styles.pad} aria-hidden="true">
+        {!preview && <button type="button" className={`${styles.mapToggle} ${pixel.className}`} onClick={event => {
+          if (event.detail) event.currentTarget.blur();
+          setZoomed(!zoomed);
+        }}>{zoomed ? "See whole office" : "Zoom in"}</button>}
+      </div>
+
+      <div className={styles.side}>
+      {!preview && <div className={styles.pad} aria-hidden="true">
           <div className={styles.padCross}>
             {padButton("ArrowUp", "up")}
             {padButton("ArrowLeft", "left")}
@@ -474,45 +492,33 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
           </div>
           <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} onClick={() => actRef.current()}>A</button>
         </div>}
-        {!preview && <button type="button" className={`${styles.mapToggle} ${pixel.className}`} onClick={() => setZoomed(!zoomed)}>{zoomed ? "See whole office" : "Zoom in"}</button>}
-      </div>
-
-      {/* The story, in the game: typed out, with Enter or a tap to read on. */}
+      {/* The story, in the game: typed out, with Enter or a tap to skip ahead. */}
       <div className={`${styles.textBox} ${pixel.className}`} data-typing={typing} onClick={event => {
         if (event.target instanceof Element && event.target.closest("a")) return;
-        actRefStory();
+        finishTyping.current?.();
       }}>
         <div className={styles.textBoxBody}>
           <p className={styles.textBoxName}>{stop.label}</p>
           <div className={styles.textBoxPage} ref={storyEl} role="region" aria-label={`The story of ${stop.label}`} aria-busy={typing}>
-            <StoryPage key={`${selected}-${page}`} node={currentPage} />
+            <StoryPage key={selected} node={stories[selected]} />
           </div>
-          {morePages && !typing && <span className={styles.more} role="img" aria-label="More to read"><Arrow direction="down" /></span>}
         </div>
       </div>
 
-      <div className={`${styles.controls} ${pixel.className}`}>
-        <div className={styles.legend} ref={legend} data-fresh={!walked && !preview}>
-          <span><ArrowKeys /> to walk</span>
-          <span><kbd className={styles.key}>Enter</kbd> to read on or open</span>
-        </div>
-        <button type="button" className={styles.nextRoom} onClick={event => { if (event.detail) event.currentTarget.blur(); walkOn(); }}>
-          <span>Next: {next.label}</span>
-          <Arrow direction="right" />
-        </button>
+      <div className={`${styles.legend} ${pixel.className}`} ref={legend} data-fresh={!walked && !preview}>
+        <span><ArrowKeys /> walk</span>
+        <span><kbd className={styles.key}>Enter</kbd> open</span>
       </div>
 
-      {cards[selected] && <div className={styles.detail} id={panelId} role="region" aria-label={stop.label} aria-live={preview ? "off" : "polite"} aria-atomic="true" tabIndex={0}>
+      </div>
+    </div>}
+    </div>
+    {view === "office" && cards[selected] && <div className={styles.detail} id={panelId} role="region" aria-label={stop.label} aria-live={preview ? "off" : "polite"} aria-atomic="true" tabIndex={0}>
         <div key={selected} className={styles.detailEnter}>
           <div className={styles.card}>{cards[selected]}</div>
         </div>
       </div>}
-    </div>}
     {view === "list" && <div className={styles.list}>{list}</div>}
   </div>;
 
-  function actRefStory() {
-    if (finishTyping.current) { finishTyping.current(); return; }
-    if (morePages) setPage(page + 1);
-  }
 }
