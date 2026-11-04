@@ -11,7 +11,7 @@ import slugFund from "@/public/logos/slug-fund.svg";
 import korobra from "@/public/logos/korobra-capital.png";
 import IslandLine from "./IslandLine";
 import OfficeExplorer from "./OfficeExplorer";
-import type { OfficeStopId } from "@/lib/office-plan";
+import { officeStoryPages, type OfficeStopId } from "@/lib/office-plan";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
@@ -174,35 +174,45 @@ function WorkHistory() {
   </div>;
 }
 
+// A card for each room says who and when. Its story goes in the office's text box.
+function JobCard({ company }: { company: string }) {
+  const job = workPageExperience.find(item => item.company === company);
+  return <header className={styles.experienceHeading}>
+    <h3><Logo company={company} size={26} />{company}</h3>
+    {job && <div className={styles.tenure}>
+      <p className={styles.role}>{shortTitles[job.company] ?? job.role}</p>
+      <p className={styles.date}>{job.dates}</p>
+    </div>}
+  </header>;
+}
+
 function OfficeContent({ preview = false }: { preview?: boolean }) {
   const copy = getWorkCopy();
-  const contribution = (index: number) => {
-    const item = copy.now.highlights[index];
-    return <article>
-      <header className={styles.experienceHeading}>
-        <h3><Logo company={current.company} size={26} />{item.title}</h3>
-        <p className={styles.date}>{current.company} · {current.dates}</p>
-      </header>
-      <div className={styles.story}>
-        {item.paragraphs.map((paragraph, i) => <p key={i}><Md text={paragraph} /></p>)}
-      </div>
-      {index === 0 && <figure className={styles.photo}>
-        <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 900px) 420px, calc(100vw - 40px)" quality={86} />
-        <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
-      </figure>}
-    </article>;
+  const pages = (paragraphs: string[]) => officeStoryPages(paragraphs).map((page, index) => <p key={index}><Md text={page} /></p>);
+  const cards: Record<OfficeStopId, ReactNode> = {
+    now: <CurrentRole />,
+    accelerator: preview ? null : <figure className={styles.photo}>
+      <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 900px) 640px, calc(100vw - 40px)" quality={86} />
+      <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
+    </figure>,
+    founders: null,
+    community: null,
+    research: preview ? null : <JobCard company={copy.previously[0].title} />,
+    slug: preview ? null : <JobCard company={copy.previously[1].title} />,
+    side: preview ? null : <><p className={styles.label}>Korobra Capital &amp; side projects</p><div className={styles.experiences}>{copy.onTheSide.map(item => <JobCard key={item.title} company={item.title} />)}</div></>,
+    about: preview ? null : <><p className={styles.label}>About me</p><dl className={styles.facts}>{copy.about.facts.map(fact => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}</dl></>,
   };
-  const panels: Record<OfficeStopId, ReactNode> = {
-    now: <><CurrentRole />{copy.now.intro.map((paragraph, index) => <p key={index} className={styles.mission}><Md text={paragraph} /></p>)}</>,
-    accelerator: preview ? null : contribution(0),
-    founders: preview ? null : contribution(1),
-    community: preview ? null : contribution(2),
-    research: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[0]} /></ul>,
-    slug: preview ? null : <ul className={styles.experiences}><Entry entry={copy.previously[1]} /></ul>,
-    side: preview ? null : <><p className={styles.label}>Korobra Capital &amp; side projects</p><ul className={styles.experiences}>{copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}</ul></>,
-    about: preview ? null : <><p className={styles.label}>About me</p><About /></>,
+  const stories: Record<OfficeStopId, ReactNode[]> = {
+    now: pages(copy.now.intro),
+    accelerator: preview ? [] : pages(copy.now.highlights[0].paragraphs),
+    founders: preview ? [] : pages(copy.now.highlights[1].paragraphs),
+    community: preview ? [] : pages(copy.now.highlights[2].paragraphs),
+    research: preview ? [] : pages(copy.previously[0].paragraphs),
+    slug: preview ? [] : pages(copy.previously[1].paragraphs),
+    side: preview ? [] : copy.onTheSide.flatMap(item => officeStoryPages(item.paragraphs).map((page, index, all) => <p key={`${item.title}${index}`}><strong>{item.title}. </strong><Md text={page} />{item.more && index === all.length - 1 && <> <Link href={item.more.href}>{item.more.label}</Link></>}</p>)),
+    about: preview ? [] : pages(copy.about.paragraphs),
   };
-  return <OfficeExplorer header={<WorkHeader preview={preview} />} panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
+  return <OfficeExplorer header={<WorkHeader preview={preview} />} cards={cards} stories={stories} list={preview ? null : <WorkHistory />} preview={preview} />;
 }
 
 // Inert source for the carried window. The opening is rendered from the same

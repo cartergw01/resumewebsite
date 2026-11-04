@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { OFFICE_PORTFOLIO, officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
+import { OFFICE_PORTFOLIO, officeCanStand, officeObjects, officeRoomAt, officeRoute, officeStops, officeStoryPages, officeView } from "../../lib/office-plan.ts";
 
 const inside = ([x, y], [left, top, width, height]) => x >= left && x <= left + width && y >= top && y <= top + height;
 const copy = readFileSync(new URL("../../content/work.md", import.meta.url), "utf8");
@@ -79,4 +79,15 @@ test("people open their own pages, and founders open the portfolio", () => {
 test("Contrary Research is bigger than Slug Fund Investment Group", () => {
   const area = id => { const [, , width, height] = officeStops.find(room => room.id === id).floor; return width * height; };
   assert(area("research") > area("slug"));
+});
+
+test("stories split into short pages without losing a word or breaking a link", () => {
+  const paragraphs = copy.split("\n").filter(line => line && /[.!?]$/.test(line) && !/^(#|-|<|[A-Z][a-z]+ the words)/.test(line));
+  assert(paragraphs.length > 5);
+  const pages = officeStoryPages(paragraphs);
+  assert.equal(pages.join(" ").replace(/\s+/g, " "), paragraphs.join(" ").replace(/\s+/g, " "));
+  for (const page of pages) {
+    assert.equal((page.match(/\[/g) ?? []).length, (page.match(/\]\(/g) ?? []).length, `a link was split: ${page}`);
+    assert(page.replace(/\]\([^)]*\)/g, "]").length <= 240, `too long for the text box: ${page}`);
+  }
 });

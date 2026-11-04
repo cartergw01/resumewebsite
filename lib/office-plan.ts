@@ -21,7 +21,7 @@ type Stop = {
 export const officeStops = [
   { id: "now", label: "886 Studios", box: [4, 4, 84, 112], floor: [4, 36, 84, 80], point: [44, 80], facing: "up" },
   { id: "accelerator", label: "Building ikigai Launchpad", box: [92, 4, 100, 112], floor: [92, 36, 100, 80], point: [140, 76], facing: "up" },
-  { id: "founders", label: "Finding founders", box: [196, 4, 84, 112], floor: [196, 36, 84, 80], point: [216, 88], facing: "up" },
+  { id: "founders", label: "Finding founders", box: [196, 4, 84, 112], floor: [196, 36, 84, 80], point: [216, 92], facing: "up" },
   { id: "community", label: "Community & content", box: [284, 4, 84, 112], floor: [284, 36, 84, 80], point: [328, 96], facing: "left" },
   { id: "research", label: "Contrary Research", box: [4, 152, 112, 112], floor: [4, 184, 112, 80], point: [56, 216], facing: "left" },
   { id: "slug", label: "Slug Fund Investment Group", box: [120, 152, 96, 112], floor: [120, 184, 96, 80], point: [172, 216], facing: "left" },
@@ -44,9 +44,9 @@ export const officeObjects: readonly OfficeObject[] = [
   { id: "kai", room: "accelerator", label: "Kai Huang, Guitar Hero", href: `${TEAM}/kai`, box: [128, 30, 16, 22], reach: [126, 54, 16, 24], person: true },
   { id: "kevin", room: "accelerator", label: "Kevin Lin, Twitch", href: `${TEAM}/kevin-lin`, box: [144, 30, 16, 22], reach: [142, 54, 16, 24], person: true },
   { id: "pitch", room: "accelerator", label: "ikigai Launchpad", href: "https://886studios.com/programs", box: [106, 6, 72, 26], reach: [160, 39, 12, 22] },
-  { id: "founder-chat", room: "founders", label: "Founders", href: OFFICE_PORTFOLIO, box: [263, 52, 16, 21], reach: [246, 83, 34, 13], person: true },
-  { id: "founder-1", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [336, 39, 16, 19], reach: [336, 61, 15, 12], person: true },
-  { id: "founder-2", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [350, 39, 16, 19], reach: [351, 61, 17, 12], person: true },
+  { id: "founder-chat", room: "founders", label: "Founders", href: OFFICE_PORTFOLIO, box: [263, 52, 16, 21], reach: [246, 80, 34, 16], person: true },
+  { id: "founder-1", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [336, 39, 16, 19], reach: [330, 70, 14, 10], person: true },
+  { id: "founder-2", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [350, 39, 16, 19], reach: [358, 61, 10, 14], person: true },
   { id: "founder-3", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [288, 52, 16, 22], reach: [286, 75, 20, 12], person: true },
   { id: "founder-4", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [304, 60, 16, 22], reach: [306, 83, 22, 14], person: true },
   { id: "founder-5", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [286, 72, 16, 22], reach: [284, 95, 20, 12], person: true },
@@ -63,6 +63,20 @@ export const officeObjects: readonly OfficeObject[] = [
   { id: "notebooks", room: "side", label: "Read my writing", href: "/writing", box: [228, 224, 26, 20], reach: [255, 222, 20, 22] },
 ];
 
+/** Pieces of the art with a second state, shown while he stands within `reach`. */
+export const officeScreens: readonly { id: string; box: Box; reach: Box }[] = [
+  { id: "desk", box: [43, 38, 14, 11], reach: [30, 70, 40, 16] },
+  { id: "scan", box: [211, 56, 10, 6], reach: [196, 80, 46, 14] },
+  { id: "book", box: [129, 187, 26, 10], reach: [158, 192, 14, 30] },
+  { id: "tape", box: [185, 187, 26, 10], reach: [172, 192, 12, 30] },
+  { id: "side", box: [231, 180, 21, 10], reach: [255, 186, 20, 30] },
+  { id: "shield", box: [4, 168, 52, 20], reach: [4, 189, 47, 12] },
+  { id: "spacex", box: [72, 168, 46, 20], reach: [73, 189, 43, 12] },
+  { id: "turo", box: [12, 186, 32, 20], reach: [45, 204, 18, 24] },
+  { id: "chime", box: [74, 190, 42, 20], reach: [76, 229, 38, 15] },
+  { id: "hive", box: [8, 220, 34, 20], reach: [4, 246, 44, 18] },
+];
+
 // Where a person can stand: floors, the corridor, and the doorways between them.
 export const officeFloors: readonly Box[] = [
   ...officeStops.map(stop => stop.floor),
@@ -72,16 +86,16 @@ export const officeFloors: readonly Box[] = [
 ];
 // The furniture's footprints and the people's feet, as drawn.
 export const officeFurniture: readonly Box[] = [
-  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [116, 40, 14, 18], [174, 46, 12, 10],
+  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [62, 78, 12, 14], [58, 91, 20, 14], [62, 101, 12, 12], [10, 98, 12, 10], [116, 40, 14, 18],
   [97, 62, 26, 14], [157, 62, 26, 14], [97, 82, 26, 14], [157, 82, 26, 14],
-  [200, 46, 30, 22], [209, 66, 12, 14], [235, 62, 12, 14], [248, 62, 16, 20], [265, 62, 12, 14],
+  [198, 38, 34, 22], [206, 62, 20, 14], [235, 62, 12, 14], [247, 62, 18, 16], [265, 62, 12, 14], [265, 46, 12, 10], [200, 104, 12, 10],
   [130, 48, 12, 5], [146, 48, 12, 5],
-  [286, 38, 38, 22], [336, 40, 30, 20],
+  [286, 38, 38, 22], [336, 40, 30, 20], [344, 60, 14, 9], [288, 60, 8, 10], [302, 60, 8, 10], [316, 60, 8, 10],
   [290, 70, 12, 5], [306, 78, 12, 5], [288, 90, 12, 5], [334, 80, 12, 5], [352, 80, 12, 5],
   [10, 130, 12, 10], [350, 130, 12, 10],
-  [5, 153, 45, 36], [70, 153, 45, 36], [12, 204, 32, 24], [83, 208, 24, 20], [10, 234, 30, 10],
+  [5, 153, 45, 36], [70, 153, 45, 36], [12, 204, 32, 24], [83, 208, 24, 20], [10, 234, 30, 10], [46, 232, 24, 16],
   [126, 196, 32, 22], [182, 196, 32, 22], [134, 224, 68, 18],
-  [228, 190, 26, 22], [235, 208, 12, 14], [228, 224, 26, 20], [282, 192, 20, 20], [286, 226, 12, 10],
+  [228, 190, 26, 22], [235, 208, 12, 14], [228, 224, 26, 20], [282, 192, 20, 20],
   [314, 186, 16, 16], [350, 186, 16, 24], [324, 224, 24, 20], [352, 232, 12, 14],
 ];
 
@@ -95,6 +109,7 @@ export function officeCanStand(x: number, y: number) {
 
 export const officeRoomAt = (x: number, y: number) => officeStops.find(stop => within(x, y, stop.floor))?.id ?? null;
 export const officeObjectAt = (x: number, y: number) => officeObjects.find(item => within(x, y, item.reach)) ?? null;
+export const officeScreenAt = (x: number, y: number) => officeScreens.find(item => within(x, y, item.reach))?.id ?? null;
 
 const CELL = 4, TURN = 6;
 const COLUMNS = Math.floor(officeView.width / CELL) + 1, ROWS = Math.floor(officeView.height / CELL) + 1;
@@ -148,5 +163,20 @@ export function officeRoute(from: Point, to: Point): Point[] {
   return distinct.filter((point, index) => {
     const before = distinct[index - 1], after = distinct[index + 1];
     return !before || !after || !((before[0] === point[0] && point[0] === after[0]) || (before[1] === point[1] && point[1] === after[1]));
+  });
+}
+
+const PAGE_LIMIT = 165;
+const seen = (text: string) => text.replace(/\]\([^)]*\)/g, "]"); // Links count as the words you can see.
+/** A story split the way a game's text box would be: whole sentences, a few lines at a time. */
+export function officeStoryPages(paragraphs: readonly string[]) {
+  return paragraphs.flatMap(paragraph => {
+    const pages: string[] = [];
+    for (const sentence of paragraph.split(/(?<=[.!?])\s+(?=[A-Z[*])/)) {
+      const last = pages.at(-1);
+      if (last !== undefined && seen(last).length + seen(sentence).length + 1 <= PAGE_LIMIT) pages[pages.length - 1] = `${last} ${sentence}`;
+      else pages.push(sentence);
+    }
+    return pages;
   });
 }

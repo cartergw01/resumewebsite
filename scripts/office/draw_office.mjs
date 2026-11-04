@@ -4,6 +4,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { deflateSync } from "node:zlib";
+import sharp from "sharp";
 
 const WIDTH = 372, HEIGHT = 272;
 // Saved larger than drawn: scaled down smoothly, every pixel stays the same size at any width.
@@ -46,6 +47,7 @@ function png({ width, height, data }) {
 
 const glyphs = {
   A: "01110 10001 10001 11111 10001 10001 10001", B: "11110 10001 10001 11110 10001 10001 11110", C: "01111 10000 10000 10000 10000 10000 01111",
+  H: "10001 10001 10001 11111 10001 10001 10001", X: "10001 10001 01010 00100 01010 10001 10001",
   K: "10001 10010 10100 11000 10100 10010 10001", F: "11111 10000 10000 11110 10000 10000 10000", G: "01111 10000 10000 10011 10001 10001 01111", I: "11111 00100 00100 00100 00100 00100 11111",
   L: "10000 10000 10000 10000 10000 10000 11111", O: "01110 10001 10001 10001 10001 10001 01110", R: "11110 10001 10001 11110 10100 10010 10001",
   S: "01111 10000 10000 01110 00001 00001 11110", T: "11111 00100 00100 00100 00100 00100 00100",
@@ -78,7 +80,25 @@ function text(c, words, x, y, color, scale = 1, space = 1) {
 const wide = (words, scale = 1, space = 1) => [...words].reduce((sum, letter) => sum + (letter === " " ? GAP : measure(letter).width + space) * scale, 0) - space * scale;
 
 const scene = canvas(WIDTH, HEIGHT);
-const { rect, dot } = scene;
+const screens = canvas(WIDTH, HEIGHT);
+let target = scene;
+const rect = (...args) => target.rect(...args);
+const dot = (...args) => target.dot(...args);
+
+// Real marks and the real batch photo, brought down to the art's own pixels.
+async function mark(file, size) {
+  const { data, info } = await sharp(file, { density: 400 }).resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  return (x, y, color) => { for (let j = 0; j < info.height; j++) for (let i = 0; i < info.width; i++) if (data[(j * info.width + i) * 4 + 3] > 70) dot(x + i, y + j, color); };
+}
+async function photo(file, width, height) {
+  const { data, info } = await sharp(file).resize(width, height, { fit: "cover" }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const hex = v => v.toString(16).padStart(2, "0");
+  return (x, y) => { for (let j = 0; j < height; j++) for (let i = 0; i < width; i++) { const at = (j * width + i) * info.channels; dot(x + i, y + j, `#${hex(data[at])}${hex(data[at + 1])}${hex(data[at + 2])}`); } };
+}
+const contraryMark = await mark("public/logos/contrary.svg", 12);
+const slugMark = await mark("public/logos/slug-fund.svg", 12);
+const korobraMark = await mark("public/logos/korobra-capital.png", 8);
+const batchPhoto = await photo("public/ikigai-batch.jpg", 15, 11);
 
 // Floors
 const checker = (x, y, w, h, a, b, size = 8) => { for (let j = 0; j < h; j += size) for (let i = 0; i < w; i += size) rect(x + i, y + j, Math.min(size, w - i), Math.min(size, h - j), ((i + j) / size) % 2 ? a : b); };
@@ -250,12 +270,20 @@ function inlay(lines, cx, y, base, roomWidth, lighter = false) {
 
 // 886 Studios: natural materials. Purple is kept for what carries the brand: the
 // sign, the trim along the wall, the pitch, one sofa and one of the people.
-const FLOORS_886 = ["#d8b98c", "#e9e5da", "#a9b0ba", "#cb9a6c"];
+const FLOORS_886 = ["#d8b98c", "#a7abb6", "#d9b78e", "#46303a"];
 planks(4, FLOOR_TOP, 84, 80, FLOORS_886[0], "#c2a274");
-checker(92, FLOOR_TOP, 100, 80, FLOORS_886[1], "#dcd7ca");
-carpet(196, FLOOR_TOP, 84, 80, FLOORS_886[2], "#9aa2ad");
-planks(284, FLOOR_TOP, 84, 80, FLOORS_886[3], "#b18355", 6);
-for (const [x, w] of [[4, 84], [92, 100], [196, 84], [284, 84]]) wallFace(x, 4, w, 32, "#f4eddc", "#ebe2cd", PURPLE, "#4d22a0");
+carpet(92, FLOOR_TOP, 100, 80, FLOORS_886[1], "#9a9eaa");
+checker(196, FLOOR_TOP, 84, 80, FLOORS_886[2], "#cda97e");
+planks(284, FLOOR_TOP, 84, 80, FLOORS_886[3], "#39262f", 6);
+// The office: cream paneling. Demo day: a dark hall. The scouts: a neighbourhood cafe. Community: a dark brick bar.
+wallFace(4, 4, 84, 32, "#f4eddc", "#ebe2cd", PURPLE, "#4d22a0");
+wallFace(92, 4, 100, 32, "#2c3040", "#272b3a", PURPLE, "#4d22a0");
+wallFace(196, 4, 84, 32, "#e6dcc4", "#dcd1b6", PURPLE, "#4d22a0");
+wallFace(284, 4, 84, 32, "#3c2530", "#3c2530", PURPLE, "#4d22a0");
+for (let j = 6; j < 28; j += 4) { rect(284, j + 3, 84, 1, "#2c1a24"); for (let i = (j % 8 ? 2 : 8); i < 84; i += 12) rect(284 + i, j, 1, 4, "#2c1a24"); }
+// The stage, raised along the front of the hall.
+rect(92, FLOOR_TOP, 100, 21, "#b78f63"); for (let j = 0; j < 21; j += 5) rect(92, FLOOR_TOP + j, 100, 1, "#a27c52"); for (let i = 8; i < 100; i += 16) rect(92 + i, FLOOR_TOP, 1, 21, "#a27c52");
+rect(92, FLOOR_TOP + 21, 100, 4, "#6f5236"); rect(92, FLOOR_TOP + 21, 100, 1, "#8d6c4b"); rect(92, FLOOR_TOP + 25, 100, 2, "#2a223340");
 
 checker(4, HALL_TOP, 364, 32, "#b0aab8", "#a39dac", 8);
 rect(4, HALL_TOP + 2, 364, 3, "#2a223320");
@@ -273,7 +301,7 @@ wallFace(312, HALL_BOTTOM, 56, 32, "#e9c9a0", "#e0bc90", "#b0683f", "#8a4f2e");
 
 inlay(["Building ikigai", "Launchpad"], 142, 97, FLOORS_886[1], 100);
 inlay(["Finding", "founders"], 238, 97, FLOORS_886[2], 84);
-inlay(["Community", "& content"], 326, 97, FLOORS_886[3], 84);
+inlay(["Community", "& content"], 326, 97, FLOORS_886[3], 84, true);
 inlay(["Contrary Research"], 60, 253, FLOORS_LOWER[0], 112);
 inlay(["Slug Fund", "Investment Group"], 168, 245, FLOORS_LOWER[1], 96, true);
 inlay(["Korobra Capital", "& side projects"], 264, 245, FLOORS_LOWER[2], 88);
@@ -286,8 +314,14 @@ const SEAT = "#7c8796";
   rect(22, 5, 44, 25, "#4d22a0"); rect(23, 6, 42, 23, PURPLE);
   text(scene, "886", 44 - Math.floor(wide("886", 2) / 2), 7, "#ffffff", 2);
   text(scene, "Studios", 44 - Math.floor(wide("Studios") / 2), 21, "#ffffff");
-  windowPane(6, 8, 13, 18); windowPane(69, 8, 13, 18);
-  rug(26, 74, 38, 22, "#b89a72", "#9c7f58");
+  windowPane(6, 8, 13, 18);
+  frame(68, 8, 19, 15, (x, y) => batchPhoto(x, y)); // The ikigai batch.
+  rug(50, 76, 36, 36, "#b89a72", "#9c7f58");
+  chair(62, 78, SEAT);
+  box(58, 91, 20, 8, 6, ...WOOD);
+  rect(61, 93, 4, 3, "#f4efe0"); rect(70, 92, 4, 4, LINE); rect(71, 93, 2, 2, "#f2ece0");
+  chair(62, 101, SEAT);
+  plant(8, 86);
   box(8, 34, 16, 10, 22, "#d8dce2", "#a7aeb9");
   rect(10, 47, 12, 1, "#737b88"); rect(10, 54, 12, 1, "#737b88"); rect(14, 49, 4, 1, "#737b88"); rect(14, 56, 4, 1, "#737b88");
   desk(30, 48, 40, 14);
@@ -309,46 +343,91 @@ const SEAT = "#7c8796";
   // Kai and Kevin at the front. Patryk, Max and Jimmy in the audience, turned to the stage.
   person(136, 52, "down", { H: "#1f1b22", h: "#3a3340", f: "#3a3340", T: "#b5433a", t: "#d3665c", P: "#2c303a", p: "#3f4452" });
   person(152, 52, "down", { H: "#191519", h: "#3a3340", f: "#3a3340", T: PURPLE, t: "#8b5cf6", P: "#2f3a4f", p: "#435069" });
-  for (const y of [62, 82]) for (const x of [97, 111, 157, 171]) chair(x, y, SEAT);
-  plant(172, 34);
+  for (const y of [62, 82]) for (const x of [97, 111, 157, 171]) chair(x, y, "#3d4254");
   const audience = (chairX, chairY, view, colors) => {
     person(chairX + 6, chairY + 7, view, colors, { seated: true });
-    rect(chairX, chairY + 7, 12, 5, LINE); rect(chairX + 1, chairY + 8, 10, 3, SEAT); rect(chairX + 1, chairY + 8, 10, 1, shade(SEAT, 30));
+    rect(chairX, chairY + 7, 12, 5, LINE); rect(chairX + 1, chairY + 8, 10, 3, "#3d4254"); rect(chairX + 1, chairY + 8, 10, 1, shade("#3d4254", 30));
   };
   audience(111, 62, "up", { H: "#6b4a2e", h: "#8a6642", f: "#5c4028", s: "#f7dcc6", S: "#e4bda0", T: "#f4f4ef", t: "#ffffff" }); // Patryk
   audience(157, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
   audience(157, 82, "upBuzz", { H: "#e6cd80", h: "#f2e2a6", f: "#e6cd80", s: "#f5d6bc", S: "#e0b698", T: "#4a5568", t: "#63708a" }); // Jimmy
 }
 
-// ---- Finding founders: the pipeline, and the agent scanning for builders. ----
+// ---- Finding founders: a cafe, where most of it really happens. ----
 {
-  rect(200, 7, 76, 25, LINE); rect(201, 8, 74, 23, "#f4f0e4");
-  [[5, "#d9d2bf"], [4, "#c9c0a6"], [2, "#b9a98a"], [1, PURPLE]].forEach(([count, color], column) => {
-    rect(205 + column * 18, 10, 14, 1, "#8a8f98");
-    for (let row = 0; row < count; row++) rect(206 + column * 18, 12 + row * 4, 12, 3, color);
+  const WOODEN = "#a9764a";
+  // A round table on one leg, with room for what's on it.
+  const cafeTable = (x, y, w = 20) => {
+    rect(x + 3, y + 19, w - 4, 2, "#2a223340");
+    rect(x + Math.floor(w / 2) - 1, y + 9, 3, 9, "#3a3038");
+    rect(x + Math.floor(w / 2) - 5, y + 17, 11, 2, "#3a3038");
+    rect(x + 2, y, w - 4, 11, LINE); rect(x, y + 2, w, 7, LINE);
+    rect(x + 2, y + 1, w - 4, 9, "#dcb98a"); rect(x + 1, y + 3, w - 2, 5, "#dcb98a");
+    rect(x + 3, y + 1, w - 6, 1, "#f0d3a6");
+  };
+  // Big windows onto the night, with the pipeline board between them.
+  windowPane(199, 7, 26, 21);
+  windowPane(251, 7, 26, 21);
+  rect(227, 7, 22, 21, LINE); rect(228, 8, 20, 19, "#2a3a33");
+  [[4, "#e9e4d4"], [3, "#c9d3c6"], [2, "#b8c4bc"], [1, "#e7c693"]].forEach(([count, color], column) => {
+    for (let row = 0; row < count; row++) rect(229 + column * 5, 10 + row * 4, 3, 2, color);
   });
-  desk(200, 46, 30, 14);
-  monitor(204, 35, 20, 13, (x, y, w, h) => { rect(x, y, w, h, "#0d2a22"); for (let j = 1; j < h; j += 3) rect(x + 1, y + j, w - 2, 1, "#1b4d3e"); rect(x + 3, y + 2, 6, 1, "#7bffb0"); rect(x + 3, y + 5, 11, 1, "#7bffb0"); rect(x + 3, y + 8, 8, 1, "#7bffb0"); });
-  rect(206, 52, 12, 4, LINE); rect(207, 53, 10, 2, "#d7dbe0");
-  chair(209, 66, SEAT);
+  // The counter, with an espresso machine, a grinder and a stack of cups.
+  box(198, 38, 34, 10, 12, "#e9dfc9", "#8a5f3c");
+  rect(201, 30, 14, 12, LINE); rect(202, 31, 12, 10, "#c9d0d6"); rect(202, 31, 12, 2, "#eef2f4"); rect(204, 36, 2, 3, LINE); rect(209, 36, 2, 3, LINE); rect(203, 34, 10, 1, "#7b8794");
+  rect(217, 29, 6, 13, LINE); rect(218, 30, 4, 4, "#6b4a33"); rect(218, 34, 4, 7, "#3a3f46");
+  for (const j of [0, 2, 4]) { rect(226, 40 - j, 4, 2, LINE); rect(227, 40 - j, 2, 1, "#f2ece0"); }
+  // The scout's table: a laptop with the agent running, and a coffee.
+  cafeTable(206, 62);
+  rect(210, 55, 12, 8, LINE); rect(211, 56, 10, 6, "#0d2a22"); rect(212, 57, 5, 1, "#7bffb0"); rect(212, 59, 7, 1, "#7bffb0");
+  rect(209, 63, 14, 3, LINE); rect(210, 64, 12, 1, "#d7dbe0");
+  rect(222, 66, 3, 3, LINE); rect(223, 67, 1, 1, "#f2ece0");
   // The coffee chat: an empty chair across the table from a founder.
-  rug(232, 56, 46, 32, "#c4b08e", "#a4906e");
-  chair(235, 62, SEAT);
-  chair(265, 62, SEAT);
+  chair(235, 62, WOODEN);
+  chair(265, 62, WOODEN);
   person(271, 71, "left", { H: "#2a1f1c", h: "#4a3a34", f: "#3a2c28", s: "#e4bb92", S: "#c99e76", T: "#3e8f83", t: "#59ad9f", P: "#42485a", p: "#565d72" }, { seated: true });
-  box(248, 62, 16, 12, 8, ...WOOD);
+  cafeTable(247, 62, 18);
   for (const x of [250, 258]) { rect(x, 64, 4, 4, LINE); rect(x + 1, 65, 2, 2, "#f2ece0"); rect(x + 1, 65, 2, 1, "#6b4a33"); }
+  // Plants: a tall one by the window, one in the corner, a trailing one on the counter.
+  plant(263, 26);
+  plant(198, 88);
+  for (const [x, y] of [[230, 34], [232, 36], [231, 38], [229, 36]]) rect(x, y, 3, 3, "#4fb56f");
 }
 
-// ---- Community & content: the coffee bar, the newsletter, and the people. ----
+// ---- Community & content: a good bar. Neon, bottles, stools, and a velvet booth. ----
 {
-  rect(288, 8, 22, 20, LINE); rect(289, 9, 20, 18, "#2a3a33");
-  rect(291, 11, 12, 1, "#e9e4d4"); rect(291, 14, 16, 1, "#b8c4bc"); rect(291, 17, 13, 1, "#b8c4bc"); rect(291, 20, 15, 1, "#b8c4bc");
-  frame(324, 7, 32, 22, (x, y, w) => { rect(x + 2, y + 2, w - 4, 3, PURPLE); rect(x + 2, y + 7, w - 8, 1, "#7b8794"); rect(x + 2, y + 9, w - 5, 1, "#7b8794"); rect(x + 2, y + 11, w - 9, 1, "#7b8794"); rect(x + 2, y + 13, w - 6, 1, "#7b8794"); });
-  box(286, 38, 38, 10, 12, "#efe7d4", "#8a5f3c");
-  rect(290, 31, 10, 10, LINE); rect(291, 32, 8, 8, "#aab2bb"); rect(293, 36, 4, 2, LINE); // Espresso machine.
-  for (const x of [304, 310, 316]) { rect(x, 41, 4, 4, LINE); rect(x + 1, 42, 2, 2, "#f2ece0"); }
+  // The back bar: lit shelves of bottles under a neon 886.
+  rect(286, 21, 36, 15, "#1c1118"); rect(286, 21, 36, 1, "#e7a35a"); rect(286, 28, 36, 1, "#7a4a2c");
+  const bottles = ["#3f9b5e", "#c9832f", "#d8d2bf", "#7a4f9a", "#b5473c", "#2f6f8f", "#c9a23a", "#3f9b5e"];
+  bottles.forEach((color, i) => {
+    rect(288 + i * 4, 23, 3, 5, color); rect(289 + i * 4, 22, 1, 1, color);
+    rect(288 + i * 4, 30, 3, 5, bottles[(i + 3) % 8]); rect(289 + i * 4, 29, 1, 1, bottles[(i + 3) % 8]);
+  });
+  const neonX = 304 - Math.floor(wide("886", 2) / 2);
+  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) text(scene, "886", neonX + dx, 6 + dy, "#c084fc66", 2);
+  text(scene, "886", neonX, 6, "#f3e8ff", 2);
+  frame(324, 7, 32, 22, (x, y, w) => { rect(x + 2, y + 2, w - 4, 3, PURPLE); rect(x + 2, y + 7, w - 8, 1, "#7b8794"); rect(x + 2, y + 9, w - 5, 1, "#7b8794"); rect(x + 2, y + 11, w - 9, 1, "#7b8794"); rect(x + 2, y + 13, w - 6, 1, "#7b8794"); }, "#1c1118");
+  // The bar itself: dark wood, a brass rail, a strip of light under the lip.
+  box(286, 38, 38, 10, 12, "#6a4632", "#2a1a22");
+  rect(287, 50, 36, 1, "#c084fc"); rect(287, 57, 36, 1, "#b08a4a");
+  rect(290, 34, 3, 7, LINE); rect(291, 35, 1, 5, "#c9d0d6"); // A shaker.
+  for (const [x, color] of [[298, "#e7a35a"], [305, "#d9536f"], [312, "#8fd3c7"]]) { rect(x, 41, 4, 5, LINE); rect(x + 1, 42, 2, 3, color); rect(x + 1, 42, 2, 1, "#ffffff55"); }
+  // Stools along the bar.
+  for (const x of [288, 302, 316]) {
+    rect(x + 1, 69, 7, 2, "#1c111840");
+    rect(x + 3, 64, 2, 6, "#b08a4a");
+    rect(x, 60, 8, 5, LINE); rect(x + 1, 61, 6, 3, "#8c2f3f"); rect(x + 1, 61, 6, 1, "#b84a5a");
+  }
+  // Pendant lights, warm pools on the bar and the floor.
+  for (const x of [297, 313]) {
+    rect(x, 21, 1, 9, "#14090f");
+    rect(x - 3, 30, 7, 4, LINE); rect(x - 2, 31, 5, 2, "#e7a35a"); rect(x - 1, 33, 3, 1, "#fff0c4");
+    for (const [w, h, y, alpha] of [[22, 9, 41, "22"], [14, 6, 43, "22"]]) rect(x - Math.floor(w / 2), y, w, h, `#ffd99a${alpha}`);
+  }
+  // The booth, in the brand's purple velvet, with its table.
   sofa(336, 40, 30, PURPLE);
+  box(344, 60, 14, 6, 3, "#1c1118", "#120a10");
+  rect(347, 58, 3, 4, "#e7a35a"); rect(353, 58, 3, 4, "#d9536f");
   // Founders: two on the sofa, the rest talking around the room.
   ([
     [344, 58, "down", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", T: "#3e8f83", t: "#59ad9f" }, { seated: true }],
@@ -359,6 +438,7 @@ const SEAT = "#7c8796";
     [340, 84, "left", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#c9976f", S: "#ab7c56", T: "#26415f", t: "#3b5f86", P: "#3a3f4b", p: "#4d5362" }, { mirror: true }],
     [358, 84, "left", { H: "#141216", h: "#2e2a32", f: "#242026", T: "#a8506a", t: "#c56c86", P: "#2f3a4f", p: "#435069" }, {}],
   ]).forEach(([x, y, view, colors, options]) => person(x, y, view, colors, options));
+  for (const [x, y, color] of [[303, 64, "#e7a35a"], [304, 72, "#d9536f"], [283 + 19, 84, "#8fd3c7"], [350, 74, "#e7a35a"], [351, 74, "#e7a35a"]]) { rect(x, y, 3, 4, LINE); rect(x + 1, y + 1, 1, 2, color); }
 }
 
 // ---- Contrary Research: reading and writing, under Contrary's blue. ----
@@ -377,6 +457,8 @@ const SEAT = "#7c8796";
   lamp(111, 212);
   rect(89, 232, 12, 6, LINE); rect(90, 233, 5, 4, "#f4efe0"); rect(95, 233, 5, 4, "#e8e0cc"); rect(95, 233, 1, 4, LINE);
   paperStack(12, 242, 5); paperStack(26, 243, 3);
+  box(46, 232, 24, 10, 6, ...DARKWOOD);
+  rect(49, 227, 16, 16, LINE); rect(50, 228, 14, 14, CONTRARY); contraryMark(51, 229, "#ffffff"); // A bound report.
 }
 
 // ---- Slug Fund Investment Group: every screen shows a different part of the market. ----
@@ -413,12 +495,13 @@ const SEAT = "#7c8796";
   tradingDesk(182, headlines, yields);
   // The memo table: the fund's 15+ investment memos, in stacks.
   desk(134, 224, 68, 10, WOOD);
-  paperStack(138, 230, 3); paperStack(152, 230, 4); paperStack(180, 230, 2); paperStack(192, 230, 3);
+  for (const x of [139, 186]) { rect(x, 220, 16, 16, LINE); rect(x + 1, 221, 14, 14, "#e7c693"); slugMark(x + 2, 222, "#1c2c50"); }
+  paperStack(160, 230, 3); paperStack(173, 230, 2);
 }
 
 // ---- Korobra Capital & side projects: the fund's chart, the code, the notebooks. ----
 {
-  frame(228, HALL_BOTTOM + 4, 22, 20, (x, y, w, h) => { rect(x, y, w, h, "#10202c"); climbing("#ffcf6e")(x + 1, y + 1, w - 2, h - 2); });
+  frame(228, HALL_BOTTOM + 4, 22, 20, (x, y, w, h) => { rect(x, y, w, h, "#10202c"); climbing("#ffcf6e")(x + 1, y + 1, w - 2, h - 2); korobraMark(x + 1, y + 1, "#efe7d4"); });
   frame(274, HALL_BOTTOM + 4, 28, 20, codeLines);
   desk(228, 190, 26, 14);
   monitor(230, 179, 11, 12, codeLines); monitor(242, 179, 11, 12, climbing("#4fd08a"));
@@ -427,7 +510,6 @@ const SEAT = "#7c8796";
   bookcase(228, 224, 26, 20, 41);
   box(282, 192, 20, 12, 8, ...WOOD);
   rect(286, 194, 12, 7, LINE); rect(287, 195, 10, 5, "#f4efe0"); rect(288, 196, 8, 1, "#7b8794"); rect(288, 198, 6, 1, "#7b8794");
-  plant(284, 214);
 }
 
 // ---- About me: the game on TV, a shelf of books, and a coffee. ----
@@ -443,6 +525,39 @@ const SEAT = "#7c8796";
   box(352, 232, 12, 8, 6, ...WOOD);
   rect(355, 233, 5, 5, LINE); rect(356, 234, 3, 3, "#f2ece0"); rect(356, 234, 3, 1, "#6b4a33");
 }
+
+// ---- What changes when he walks up: a second layer, shown one piece at a time. ----
+target = screens;
+{
+  const GREEN = "#4fd08a", RED = "#ef6461";
+  // 886's desk: the deck turns into a signed-off page.
+  rect(43, 38, 14, 11, "#ffffff"); rect(44, 39, 12, 2, PURPLE); rect(44, 42, 9, 1, "#7b8794"); rect(44, 44, 7, 1, "#7b8794"); rect(50, 46, 6, 2, "#e7c693");
+  // The scout: a match comes up on the terminal.
+  rect(211, 56, 10, 6, "#0d2a22"); rect(212, 56, 8, 2, "#7bffb0"); rect(212, 59, 8, 1, "#7bffb0"); rect(212, 61, 5, 1, "#3fae74");
+  // Slug Fund's left desk: the book and the mix become price and volume.
+  rect(129, 187, 12, 10, "#0b1424"); [[1, 5, 3, 1], [4, 3, 4, 0], [7, 2, 4, 1], [10, 1, 5, 1]].forEach(([i, y, h, up]) => rect(129 + i, 187 + y, 2, h, up ? GREEN : RED));
+  rect(143, 187, 12, 10, "#0b1424"); [2, 4, 3, 6, 5, 8].forEach((h, i) => rect(144 + i * 2, 197 - h, 1, h, "#6b97ff"));
+  // The right desk: headlines and the curve become the tape and a sector table.
+  rect(185, 187, 12, 10, "#0b1424"); for (let j = 1; j < 10; j += 3) { rect(186, 187 + j, 4, 1, GREEN); rect(191, 187 + j, 5, 1, j === 4 ? RED : GREEN); }
+  rect(199, 187, 12, 10, "#0b1424"); [[0, 0, 5, 4, GREEN], [6, 0, 6, 4, RED], [0, 5, 7, 5, RED], [8, 5, 4, 5, GREEN]].forEach(([a, b, c, d, color]) => rect(199 + a, 187 + b, c, d, color));
+  // The side desk: the code runs, the fund's chart fills out.
+  rect(231, 180, 9, 10, "#0d2a22"); for (let j = 1; j < 9; j += 2) rect(232, 180 + j, 6 - (j % 3), 1, "#7bffb0");
+  rect(243, 180, 9, 10, "#10202c"); climbing("#ffcf6e")(243, 181, 9, 8);
+
+  // The Contrary reports: walk up and the cover has the company's name on it.
+  const report = (cx, y, name) => {
+    const width = wide(name) + 8, x = cx - Math.floor(width / 2);
+    rect(x + 1, y + 16, width, 2, "#2a223340");
+    rect(x, y, width, 16, LINE); rect(x + 1, y + 1, width - 2, 14, "#fbf7ec"); rect(x + 1, y + 1, width - 2, 3, CONTRARY);
+    text(screens, name, x + 4, y + 6, "#14213d");
+  };
+  report(28, 170, "Shield AI");
+  report(95, 170, "SpaceX");
+  report(28, 188, "Turo");
+  report(95, 192, "Chime");
+  report(24, 222, "Hive");
+}
+target = scene;
 
 // ---- Wall tops and doorways, drawn last so they sit over everything. ----
 cap(0, 0, WIDTH, 4);
@@ -494,7 +609,7 @@ const out = "public/office";
 mkdirSync(out, { recursive: true });
 for (const file of readdirSync(out)) rmSync(`${out}/${file}`);
 const art = {};
-for (const [key, image] of Object.entries({ scene, worker: sheet })) {
+for (const [key, image] of Object.entries({ scene, screens, worker: sheet })) {
   const bytes = png(enlarge(image));
   const name = `${key}-${createHash("sha256").update(bytes).digest("hex").slice(0, 8)}.png`;
   writeFileSync(`${out}/${name}`, bytes);
