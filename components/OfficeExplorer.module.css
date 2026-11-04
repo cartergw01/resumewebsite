@@ -91,7 +91,7 @@
 .explorer[data-view="office"] .tourView { display: flex; flex-direction: column; height: calc(100svh - var(--map-top) - .75rem); min-height: 30rem; }
 .world { flex: 1 1 0; display: flex; gap: 1rem; min-height: 0; align-self: flex-start; container-type: size;
   /* Stays in the page column unless a tall screen has more office to show, then runs on into the margin. */
-  width: min(max(100%, calc((100svh - 19.5rem) * 372 / 272 + 21rem)), calc(100% + max(0px, (100vw - 1120px) / 2 - 2.5rem))); }
+  width: min(max(100%, calc((100svh - 20.5rem) * 372 / 272 + 21rem)), calc(100% + max(0px, (100vw - 1120px) / 2 - 2.5rem))); }
 .stage { position: relative; flex: none; align-self: flex-start; width: min(calc(100cqh * 372 / 272), calc(100cqw - 21rem)); min-height: 0; aspect-ratio: 372 / 272; overflow: hidden; contain: paint; }
 .plan { container-type: inline-size; position: relative; width: 100%; aspect-ratio: 372 / 272; isolation: isolate; will-change: transform; }
 .stage[data-zoomed="true"] .plan { width: 170%; }
