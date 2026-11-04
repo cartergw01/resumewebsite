@@ -89,7 +89,7 @@ export function createBirdFlight(parts: BirdParts) {
     const dx = to.x - from.x;
     const dy = to.y - from.y;
     const distance = Math.hypot(dx, dy);
-    const duration = clamp(480 + distance * .85, 760, 950);
+    const duration = clamp(640 + distance * 1.1, 1000, 1250);
     const arc = Math.min(distance * .2, 90);
     const bob = parts.flyer.clientWidth / 78 * 1.3;
     const startFacing = facing;
