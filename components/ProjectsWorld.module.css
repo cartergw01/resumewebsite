@@ -2,20 +2,22 @@
 .page.page::before, .page.page::after { content: none; }
 .page > [data-galaxy-background] { opacity: .4; }
 .main.main { width: var(--subpage-column); padding-top: var(--subpage-top); }
-.page :global(.project-list) { border-top-color: var(--subpage-rule); }
-.page :global(.project-row) { border-bottom-color: var(--subpage-rule); }
+/* The header's hairline is the list's top edge; each row brings its own padding. */
+.main.main > header { margin-bottom: 0; }
+.page :global(.project-list) { border-top: 0; }
+.page :global(.project-row) { border-bottom-color: #eddbbf24; }
 .page :global(.project-shot) { border-color: #eddbbf29; background: #030611; }
-.page :global(.project-row-copy > span) { color: var(--subpage-text); }
+.page :global(.project-row-copy > span) { color: #fff7ead1; }
 @media (max-width: 760px) {
   .page :global(.project-row) { grid-template-columns: minmax(0, 1fr) auto; gap: .875rem .75rem; }
   .page :global(.project-row-copy) { display: contents; }
-  .page :global(.project-row-copy strong) { grid-column: 1; grid-row: 1; text-wrap: pretty; }
+  .page :global(.project-row-copy strong) { grid-column: 1; grid-row: 1; text-wrap: wrap; }
   .page :global(.project-row > em) { grid-column: 2; grid-row: 1; align-self: center; }
   .page :global(.project-shot) { grid-column: 1 / -1; grid-row: 2; }
   .page :global(.project-row-copy > span) { grid-column: 1 / -1; grid-row: 3; }
 }
 /* Rows fade in where they are, so dealt cards stop exactly where they land. */
-.page [data-workshop-reveal] { animation: none; transition: opacity 180ms ease; }
+.page [data-workshop-reveal] { animation: none; transition: opacity 320ms ease; }
 :global(html[data-workshop-transition="entering"]) .page [data-workshop-reveal],
 :global(html[data-workshop-transition="arriving"]) .page [data-workshop-reveal] { opacity: 0; }
 :global(html[data-workshop-transition]:not([data-workshop-transition="landed"])) .page [data-project-shot] { visibility: hidden; }

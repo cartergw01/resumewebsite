@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Archivo } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
 import ClientChrome from "@/components/ClientChrome";
 import {
@@ -13,19 +13,32 @@ import "./globals.css";
 
 // One family at two widths: the headings use Archivo's expanded cut
 // (font-stretch 125% wherever --font-display is set), the text its normal one.
-const archivoDisplay = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
+// Self-hosted with only those widths and the weights in use (see app/fonts).
+const archivoDisplay = localFont({
+  src: "./fonts/archivo-latin-variable.woff2",
+  weight: "400 900",
+  declarations: [{ prop: "font-stretch", value: "100% 125%" }],
   variable: "--font-display",
   display: "swap",
 });
 
-const archivo = Archivo({
-  subsets: ["latin"],
-  axes: ["wdth"],
+const archivo = localFont({
+  src: "./fonts/archivo-latin-variable.woff2",
+  weight: "400 900",
+  declarations: [{ prop: "font-stretch", value: "100% 125%" }],
   variable: "--font-sans",
   display: "swap",
 });
+
+// The page runs edge to edge on notched phones, so the safe-area insets the
+// CSS already reads report real values; the browser bars take the space's colour.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#030611",
+  colorScheme: "dark",
+};
 
 export const metadata: Metadata = {
   ...buildMetadata("home"),

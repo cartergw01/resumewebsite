@@ -22,7 +22,7 @@
   margin: 0.75rem 0 0;
   color: var(--muted);
   font-size: 1.125rem;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 .collectionHeading .archiveLink {
   flex-shrink: 0;
@@ -78,7 +78,7 @@
   font-weight: 500;
   font-size: 1.375rem;
   line-height: 1.2;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 .bookDescription {
   margin: 0.5rem 0 0;

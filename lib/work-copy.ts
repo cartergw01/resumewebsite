@@ -3,7 +3,7 @@ import path from "node:path";
 
 // The words on /work live in content/work.md so they can be edited without
 // touching code. This reads that file into the page's sections; WorkRoom
-// renders the inline links and italics.
+// renders the inline links, italics, and bold text.
 
 export type WorkEntry = { title: string; paragraphs: string[]; more?: { href: string; label: string } };
 type Section = { paragraphs: string[]; entries: WorkEntry[]; list: string[] };

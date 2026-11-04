@@ -23,3 +23,18 @@ test("touch devices keep the plain still", async ({ page }, testInfo) => {
   await page.waitForTimeout(2500);
   await expect(page.locator("#work [data-island-visual]")).not.toHaveAttribute("data-parallax", "on");
 });
+
+// The sconce shines on the flat wall between the curtain and bookcase.
+// A volume-only light cone must not replace that wall in the depth export.
+test("study light stays on the wall instead of a solid haze cone", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Pointer parallax only.");
+  await page.goto("/#writing");
+  const visual = page.locator("#writing [data-island-visual]");
+  await expect(visual).toHaveAttribute("data-parallax", "on");
+  const [left, beam, right] = await visual.evaluate((node: HTMLElement & {
+    parallax?: { depth?: (x: number, y: number) => number };
+  }) => [525, 535, 545].map(x => node.parallax!.depth!(x, 270)));
+  // The lit wall remains behind its framing edges. Allow three encoded
+  // depth levels for WebP and sampling; the old cone exceeds this tolerance.
+  expect(beam).toBeLessThanOrEqual(Math.max(left, right) + 3 / 255);
+});

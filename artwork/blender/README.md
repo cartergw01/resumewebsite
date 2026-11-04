@@ -37,13 +37,16 @@ backplates are used.
   it, so the site's own galaxy shows through; lamps are never seen by the
   camera, so nothing behind the island shows in the glass), a modern bookshelf
   (walnut shelves on a slim black frame over a charcoal back panel, each shelf
-  washed by a warm LED strip) and Carter's UC Santa Cruz degree framed on the
+  washed by a warm LED strip, and a warm strip round the back of the case
+  that lights the wall around it in a soft halo) and Carter's UC Santa Cruz degree framed on the
   side wall. Slim walnut furniture, a usable upholstered chair, a madder wool
   rug, an open notebook, an iced latte from Verve (the Santa Cruz roaster)
   in a clear glass with ice, a straw and the VERVE mark, on a cork coaster,
   a capped fountain pen beside the notebook and a task lamp. A broad green
   Japanese maple shades the Eames lounge chair and ottoman on the right-hand
-  stone landing, with two warm uplights at its trunk. The reading garden
+  stone landing, with two warm uplights at its trunk. Two concealed warm lights
+  under the lounge seat wash the stone and follow the reading garden light
+  group, including the room switch and notebook-entry variants. The reading garden
   and trellis sit outside the side wall, with clusters of glossy red Taiwanese
   wax apples (蓮霧), bell-shaped fruit and broad oval leaves. Shelf books keep their covers,
   spines and page blocks aligned as single rigid bindings.
@@ -53,8 +56,10 @@ backplates are used.
   patched sheets above and open bays to the night, no side wall, a sloping
   corrugated roof on two posts and a bare bulb on its flex. Inside, a
   steel-framed bench, tool panel, labelled storage and a 27-inch monitor. The
-  workbench turns toward the visitor. Worn paving leads past reclaimed lumber
-  and offcuts. It uses the same furniture scale.
+  workbench turns toward the visitor. Worn paving leads up to the deck. The
+  lot is kept narrow (no timber stack beside the deck, a short yard past the
+  court) so this wide, low scene fills its frame as fully as the taller study
+  and city. It uses the same furniture scale.
 
 ### Night details
 
@@ -64,15 +69,17 @@ tail-light streaks; Xiangshan (Elephant Mountain) rises in the south-east
 corner with its lamplit stair trail; the rest of the district is built out to
 a green margin with mid-rise infill, a few residential towers and pocket
 parks (`densify_city`, which only builds where a ray finds bare ground). The
-study's window, between linen drapes, looks out on the site's own night sky,
-with an Omega Speedmaster-inspired wall clock above the shelves (steel case,
-black tachymeter bezel, white markers, three counters and Ω / OMEGA branding,
-with live pale-green luminous hands showing Taipei time)
-and a lava lamp on the top shelf; the
+study's window, between dark red drapes, looks out on the site's own night sky,
+with an Omega Seamaster Aqua Terra-inspired wall clock above the shelves
+(smooth steel bezel, navy horizontal teak dial, faceted silver hour indexes
+and Ω / OMEGA branding, with live pale-green luminous arrow hands showing
+Taipei time; twelve markers replace the watch's date aperture)
+and a lava lamp on the top shelf, just right of the clock and clear of the
+maple's branches; the
 study is kept calm, lit only by warm light. The shed has festoon bulbs swagged
 along its roof beam, Lakers-coloured LED strips (purple along the roof beam and
-up both posts, gold along the bench's front edge), and a telescope on a tripod
-in the yard; Carter's Ninebot scooter stands on its kickstand by the deck.
+up both posts, gold along the bench's front edge). Carter's Ninebot scooter
+stands on its kickstand by the deck.
 
 ### Depth parallax
 
@@ -94,7 +101,9 @@ lightweight flight model (`scripts/blender/export_flight.py`): the saved scene
 joined, its full Cycles lighting (moon or sun, lamps, emission, bounce) baked
 into vertex colours, then decimated to ~45k faces and meshopt-compressed
 (about 0.5–0.7 MB each as served; Taipei's daytime bake is a separate file
-loaded only when day is chosen). Taipei's traffic drives through the flights
+loaded only when day is chosen). Volume-only lamp haze remains in the lighting
+bake, but its boundary geometry is excluded from the flight mesh so it cannot
+become an opaque cone. Taipei's traffic drives through the flights
 too (`lib/island-traffic.ts`). The browser draws them unlit (`lib/island-flight.ts`): the islands
 sit apart in one space and the camera flies a curve from one island's render
 camera to the next, widening the lens mid-flight so both islands share the
@@ -104,6 +113,21 @@ the hand-off is seamless. The models load after the page settles and only on
 capable desktops (fine pointer, WebGL2, no data saver, ≥4 GB memory, 4G-class
 connection, motion allowed); phones, or any visit until they arrive, use the
 light 2D flight.
+
+### The basketball shot
+
+Tapping the workshop's basketball shoots it through the hoop from wherever it
+is, and it bounces to rest on a random spot on the court, where it stays until
+tapped again. The ball, net and court are baked into the still, so
+`scripts/blender/hoop_shot_layers.py` renders them apart from the same scene,
+lit and with the lights off: the court with no ball, and with only its shadow;
+the ball turning once (24 frames, the first being the still's own pose); the
+hoop with no net; the net's two halves; and the rim's front.
+`export_hoop_shot.mjs` packs each lighting into one image on the still's crop
+and records it in `lib/hoop-shot.json`. `lib/hoop-shot.ts` works out each shot in
+scene units and `components/HoopShot.tsx` draws it. Rendering the layers needs
+`artwork/blender/projects.blend`, and a change to the court or lighting needs
+them rendered again; the pipeline does both.
 
 ### Live details
 
@@ -123,8 +147,12 @@ surface.
 The Omega clock uses its own SVG hands (`components/StudyClock.tsx`), projected
 onto the dial plane exported as `life.clock`. `lib/study-clock.ts` reads the
 current wall clock in `Asia/Taipei`, with minutes and seconds included in the
-hour and minute angles. The hands retain their lume when the room is dark,
-update once a second even with reduced motion, and resync when the island or
+hour and minute angles. The hands and phosphorescent dial indexes retain their
+lume when the room is dark. The navy face, teak edges and printed lettering
+have a soft constant glow so they remain readable at the clock's small screen
+size; these materials are independent of the room's light switch.
+The hands update once a second even with reduced
+motion, and resync when the island or
 tab becomes visible. They follow the still's depth parallax. The 3D flight
 uses the same proportions and time through `lib/study-clock-3d.ts`, positioned
 from `lib/island-cameras.json`. No fixed main hands are baked into the stills
@@ -189,7 +217,8 @@ between the lit and dark stills at the pace of the sources lighting it, so
 both ends are exactly the renders. On phones it starts when someone settles on
 the room; without WebGL, or with reduced motion, the stills crossfade. The
 lamp's dust, the lava lamp's wax, the LED ball and strips follow their
-fixtures, the reading lamp's pool goes out and the desk's printed page dims.
+fixtures, and the reading lamp's pool goes out. The notebook's paper and ink
+receive their light directly from the scene, with no separately dimmed page overlay.
 Each room remembers its own switch per visitor. The camera flights keep their
 baked, lit models.
 
@@ -218,24 +247,26 @@ the stand), Lakers merch (he's a fan): Kobe Bryant's gold
 #24 home jersey framed in a shadow box above the bench (`kobe_jersey`: the
 2009–10 back, with BRYANT in purple edged in white, white angular varsity
 numbers outlined in purple, and purple side panels) and a small
-purple-and-gold felt pennant, a Wilson Evolution game basketball on the court
-with an orange pebbled composite cover, black panel channels, the official
-Wilson script outlined in ivory and EVOLUTION lettering wrapped to the sphere,
-a stainless Cybertruck model, and space things: a taped planet poster
+purple-and-gold felt pennant, an orange basketball with a real ball's seams on
+the court, a stainless Cybertruck model, and space things: a taped planet poster
 and a stainless SpaceX Starship / Super Heavy display stack with a black heat
 shield, ship flaps, vented hot-stage ring and booster grid fins. The navy JBL
 Charge 4 sits on the top shelf beside the BLACKPINK light stick, clear of the
 monitor. A pearl-white Lugia figurine stands on a navy plinth on the open
 middle shelf, to the monitor's right. Its raised hand-shaped wings, blue belly,
 pointed eye markings, back plates and curved tail are modelled geometry.
-A Captain America shield rests on the floor against the right front of the
-bench, tilted back 15 degrees with its rim on the boards. Its domed metal face
-has red and silver rings, a navy centre and a curved silver five-point star;
-the rings, star, rim and rear leather grips are geometry in the flight model.
-The two cardboard boxes behind the right side of the desk have been removed.
 The stool's seat is empty. The half-court is 2.1 by 4 scene units
 (previously 1 by 3.5), with a wider key, complete connected three-point markings
-and the same-sized hoop. The eastern terrain lobe supports the wider pad;
+and an arena-inspired hoop. Its 72:42 backboard silhouette has a low-iron
+clear pane, inset white perimeter and target markings, a satin aluminium
+strongback, graphite padding wrapped round the lower edge and corners, and
+an orange breakaway-style rim carrier. A compact central mount below the glass carries the rim load;
+a twelve-loop diamond-braided ivory net replaces the straight wire cage.
+The glass pane is omitted from the opaque vertex-colour flight mesh, while
+its frame, paint and hardware remain, preserving the see-through appearance.
+Reference: [Spalding Arena 72-inch system](https://www.spalding.com/p/arena-72-glass-basketball-hoop/401-990).
+This is a stylized miniature rather than a regulation-scale court.
+The eastern terrain lobe supports the wider pad;
 planting and ground heights keep the playing surface clear. The bench holds
 only what's his: the monitor, keyboard and trackpad, his iPad Pro on its Magic
 Keyboard (its wallpaper a launch photo, `ipad-wallpaper-launch.jpg`), the blue
@@ -249,9 +280,10 @@ journals and project prints below are his real covers and screenshots.
 
 Prop references:
 
-1. [OMEGA — Speedmaster Professional Moonwatch](https://www.omegawatches.com.hk/en-hk/watch-omega-speedmaster-moonwatch-professional-chronograph-42-mm-31133423001001):
-   the study's wall clock adapts the black dial, three counters, tachymeter
-   scale and Omega branding into modelled geometry, with live luminous hands.
+1. [OMEGA — Seamaster Aqua Terra 150M, blue dial](https://www.omegawatches.com.hk/en-hk/watch-omega-seamaster-aqua-terra-150m-co-axial-master-chronometer-41-mm-22010412103001):
+   the study's wall clock adapts the navy teak dial, smooth steel bezel,
+   tapered silver indexes and Omega branding into modelled geometry, with
+   live luminous hands and the Aqua Terra's broad-arrow minute hand.
 2. [NBA Store — Kobe Bryant 2009–10 gold authentic jersey](https://store.nba.com/los-angeles-lakers/mens-los-angeles-lakers-kobe-bryant-mitchell-and-ness-gold-2009-10-hardwood-classics-authentic-jersey/t-81690757%2Bp-042078540173%2Bz-8-3711585841):
    back lettering, number colours, shoulder shape and side panels. Modelled
    geometry and procedural fabric; product photography is not included.
@@ -268,11 +300,6 @@ Prop references:
 6. [The Pokémon Company — Lugia](https://in.portal-pokemon.com/pokedex/0249/):
    white body, blue belly and back plates, pointed eye markings, broad
    fingered wings and long tail, interpreted as a small resin shelf figure.
-7. [Wilson — Evolution Game Basketball](https://www.wilson.com/en-us/products/evolution-game-basketball-wz10012):
-   orange/black cover, pebbled channels and front lettering. The official
-   [Wilson logo SVG](https://www.wilson.com/cdn/shop/files/wilson-logo.svg?v=1780069513)
-   is stored as `wilson-logo.svg` and converted into curved model geometry;
-   the product photograph is used only as a reference.
 
 ### Night
 
@@ -309,9 +336,16 @@ uses actual clustered grass blades with bare earth between drifts. City paving,
 rocks, benches and planting have their own architectural scale; the Work scene
 also includes recessed upper storeys, balcony rails and grouped office lighting.
 
-The notebook has 22 curved sheets per side, uneven cut edges, a recessed cloth
-spine and a gently lifting corner. Its projected live content stays anchored to
-the fixed readable part of the page. The rug has a soft, irregular selvedge,
+The notebook has 26 thin sheets on the left and 17 on the right, gently rounded
+corners, a shallow gutter, an olive cloth binding and a flat ribbon bookmark.
+The paper settles into slightly different curves on each side, with a small
+curl at the front right corner. Its printed ink follows the actual curved
+paper mesh, so the stills, light masks, parallax and flight model share its
+lighting. `scripts/blender/notebook_page.mjs` reads the opening essay's title,
+date and subtitle from `content/portfolio.ts` when Blender builds the scene.
+There is no flat SVG page, page-sized hover fill or touch rectangle on the book;
+the invisible spread anchor still starts the Writing entry.
+The rug has a soft, irregular selvedge,
 visible warp, loose fringe and a crossing weave shader. Sawn board ends use ring
 grain. The bench's lower shelf holds a walnut six-watch box with its glass lid
 open, a cable coil and an open aluminium poker chip case (five rows of chips,
@@ -354,7 +388,7 @@ are not included or used as image textures.
 2. Use camera view for the website composition. Objects have descriptive names.
 3. Render with **Render → Render Image**. Transparent film is enabled.
 4. Writing has a four-second loop on frames 1–48 at 12 fps. Its lamp, loose
-   correspondence, page corner and plant leaves move subtly; the ground, camera
+   correspondence and plant leaves move subtly; the ground, camera
    and reading surface remain fixed. Frame 49 matches frame 1 for seamless
    repetition. Work adds an occasional pair of headlights along a projected
    foreground street. The workshop screen varies its light slightly while
@@ -450,3 +484,40 @@ stalled the page for about a quarter of a second as it built, a sideways
 swipe competed with scrolling on phones, the real-time lighting only
 approximated the Cycles stills, and every scene change had to be re-exported
 to match.
+
+## Playable workshop objects
+
+The workshop adds six project objects to the current scene using
+`scripts/blender/workshop_projects.py`. Its build preserves the current main
+branch's belongings and court details, with the placement changes below.
+`pipeline.sh projects` exports their hit regions and inspectable props from the
+same camera and crop. The homepage has no object-directory call to action;
+visitors pick up objects directly. “All objects” inside an inspector opens its
+searchable directory. The current scene has 30 inspectable groups and six
+project objects (five clickable, plus the 886 plaque). The TaipeiFlix wall
+prints and ikigai timer are omitted. Props removed on main are not reintroduced.
+Stocker is a green stock chart on the wall in place of the Taipei Run print;
+its chart vertices are exported with its hit region so the hover trace aligns
+with the Blender artwork. Its former desktop terminal is omitted.
+The original poker chip case opens Poker Odds directly from the lower shelf;
+its 3D model remains in the object directory. The case sits toward the shelf's
+front edge and the stool is pulled aside. A concealed warm-white LED strip
+lights both cases and follows the workshop's task-light switch group. The
+face-up desk cards remain, without the duplicate loose chip stack. Project
+objects have no dot markers; hover cues trace the artwork itself.
+Clicking the shield opens a readable parchment Declaration of Independence.
+Its complete text and signers come from the National Archives transcription
+in `content/declaration.json`. The reader and its locally hosted, OFL-licensed
+blackletter heading, readable IM Fell English italic body, and Pinyon Script
+signature fonts load on demand. The shield model remains in the object directory.
+
+The viewer loads on demand, shares one renderer across inspections, renders
+only after interaction, cancels obsolete downloads, and disposes GPU resources
+on close. Horizontal gestures rotate; vertical gestures scroll the dialog.
+Failed downloads and lost graphics contexts offer a retry and artwork fallback.
+The room-light rewards use the same state as main's existing pull chains.
+
+`node scripts/blender/bake_workshop_environment.mjs` precomputes lighting into
+`lib/workshop-environment.json` and its fingerprinted HDR asset. The bundled
+`lib/meshopt-worker.ts` provides a stable worker URL for Safari decoding, with
+main-thread fallback when workers are unavailable.

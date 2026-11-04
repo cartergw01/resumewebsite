@@ -9,18 +9,19 @@ const LOGO =
 export function SubstackSubscribe() {
   const id = useId();
   const [email, setEmail]   = useState("");
-  const [status, setStatus] = useState<"idle" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "handoff">("idle");
+  const subscribeUrl = `https://carterko.substack.com/subscribe?email=${encodeURIComponent(email.trim())}`;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
     if (!trimmed) return;
     window.open(
-      `https://carterko.substack.com/subscribe?email=${encodeURIComponent(trimmed)}`,
+      subscribeUrl,
       "_blank",
       "noopener,noreferrer",
     );
-    setStatus("sent");
+    setStatus("handoff");
   };
 
   return (
@@ -43,29 +44,29 @@ export function SubstackSubscribe() {
           <p className="fa-name">flying Arrows</p>
           <p className="fa-tagline">essays on tech, culture, and human nature.</p>
 
-          {status === "sent" ? (
+          <p className="fa-cta">Subscribe to keep up to date on new essays.</p>
+          <form className="fa-form" onSubmit={handleSubmit}>
+            <label className="sr-only" htmlFor={id}>Email address</label>
+            <input
+              id={id}
+              className="fa-input"
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setStatus("idle");
+              }}
+              required
+              autoComplete="email"
+              inputMode="email"
+            />
+            <button className="fa-btn" type="submit">Subscribe</button>
+          </form>
+          {status === "handoff" && (
             <p className="fa-thanks" role="status">
-              Continue on Substack to finish subscribing.
+              <a href={subscribeUrl} data-native-navigation>Continue on Substack</a> to finish subscribing.
             </p>
-          ) : (
-            <>
-              <p className="fa-cta">Subscribe to keep up to date on new essays.</p>
-              <form className="fa-form" onSubmit={handleSubmit}>
-                <label className="sr-only" htmlFor={id}>Email address</label>
-                <input
-                  id={id}
-                  className="fa-input"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  inputMode="email"
-                />
-                <button className="fa-btn" type="submit">Subscribe</button>
-              </form>
-            </>
           )}
         </div>
       </div>

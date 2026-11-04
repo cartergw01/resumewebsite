@@ -1,0 +1,37 @@
+{
+  "projects": {
+    "screen_focus": true,
+    "court": true,
+    "shield": true,
+    "collectibles": true,
+    "jersey": true,
+    "roof": true,
+    "scooter": true,
+    "deck_lighting": true,
+    "device_materials": true
+  },
+  "writing": {
+    "notebook_focus": true,
+    "desk_spacing": true,
+    "bookshelves": true,
+    "sconce": true,
+    "garden": true,
+    "rug": true,
+    "lounge": true
+  },
+  "work": {
+    "building_families": true,
+    "tower_plaza": true,
+    "glazing": true,
+    "street_connections": true,
+    "hill": true,
+    "day_materials": true,
+    "traffic_hierarchy": true
+  },
+  "shared": {
+    "geology": true,
+    "roots": true,
+    "planting": true,
+    "silhouette": true
+  }
+}

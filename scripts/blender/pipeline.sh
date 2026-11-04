@@ -101,8 +101,23 @@ for w in "${worlds[@]}"; do
   step "$w: live details"
   blender "$w-life" -b "artwork/blender/$w.blend" --python scripts/blender/export_life_anchors.py -- --world "$w"
   grep "LIFE" "$out/$w-life.log"
+  if [ "$w" = projects ]; then
+    step "projects: clickable object coordinates"
+    blender projects-objects -b artwork/blender/projects.blend --python scripts/blender/export_workshop_objects.py
+    step "projects: inspectable props"
+    blender projects-curios -b artwork/blender/projects.blend --python scripts/blender/export_workshop_curios.py
+    node scripts/blender/compress_workshop_curios.mjs
+    step "projects: basketball shot layers"
+    blender projects-hoop -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world projects --time hoop-shot --output "$out/hoop" --width "$width" --samples "$samples" --device "$device"
+    blender projects-hoop-dark -b --factory-startup --python scripts/blender/build_islands.py -- \
+      --world projects --time hoop-shot-dark --output "$out/hoop-dark" --width "$width" --samples "$samples" --device "$device"
+    node scripts/blender/export_hoop_shot.mjs "$out/hoop" "$out/hoop-dark"
+  fi
   step "$w: flight model"
-  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- --world "$w"
+  flight_args=(--world "$w")
+  if [ "$device" = CPU ]; then flight_args+=(--cpu); fi
+  blender "$w-flight" -b "artwork/blender/$w.blend" --python scripts/blender/export_flight.py -- "${flight_args[@]}"
   grep "FLIGHT.*MiB" "$out/$w-flight.log"
 done
 

@@ -30,7 +30,7 @@ function scenePainter(node: HTMLElement) {
 const FINAL_HOLD = 0.5;
 const arrivalLights: Record<string, readonly (readonly [string, number, number])[]> = {
   work: [["city-windows", 0.76, 0.86], ["city-tower", 0.86, 0.96]],
-  writing: [["reading-lamp", 0.77, 0.87], ["reading-paper", 0.87, 0.98]],
+  writing: [["reading-lamp", 0.77, 0.87]],
 };
 
 export default function IslandScrollTransport({ children, worlds }: { children: ReactNode; worlds: World[] }) {
@@ -54,7 +54,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const buttonScene = buttons.map((button) => Number(button.dataset.sceneIndex));
     const tabFor = (index: number) => buttons[buttonScene.indexOf(index)];
     const dots = Array.from(track.querySelectorAll<HTMLElement>("[data-scene-dot]"));
-    const snapStops = Array.from(track.querySelectorAll<HTMLElement>("[data-snap-stop]"));
     const sceneNav = track.querySelector<HTMLElement>("[data-scene-nav]")!;
     const galaxy = stage.querySelector<HTMLElement>("[data-galaxy-camera]")!;
     const middleStars = stage.querySelector<HTMLElement>('[data-depth-stars="middle"]')!;
@@ -123,13 +122,28 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       return new DOMRect(base.left + x, base.top + y, visual.offsetWidth, visual.offsetHeight);
     };
     const duration = scenes.length - 1 + FINAL_HOLD;
+    // These anchors are shared by snapping, navigation and the progress rail.
+    const stopProgress = (index: number) =>
+      (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
+    const stops = worlds.map((_, index) => stopProgress(index));
     let frame = 0;
     let activeIndex = -1;
     let travel = 1;
     let start = 0;
     let measuredHeight = 0;
+    let measuredWidth = 0;
+    let measuredSceneHeight = 0;
+    let measuredViewportWidth = 0;
+    let measuredViewportHeight = 0;
     let starStops: number[] = [];
     let cameraProgress: number | null = null;
+    let massPosition: number | null = null;
+    let massVelocity = 0;
+    // Browser pinch/pan changes scrollY too. Keep that separate from travel.
+    const viewport = window.visualViewport;
+    let zoomProgress: number | null = null;
+    let pinching = false;
+    let zoomRestoreFrame = 0;
     let previousFrame = 0;
     let entryPending = false;
     let entryRecovery = 0;
@@ -170,21 +184,54 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const render = (now: number, direct = false) => {
       frame = 0;
       if (stage.dataset.entering) return;
-      const progress = clamp((window.scrollY - start) / travel);
+      // Safari can clamp scrollY and draw a frame before delivering resize.
+      // Re-measure first so that clamp cannot overwrite the saved camera pose.
+      if (innerWidth !== measuredViewportWidth || innerHeight !== measuredViewportHeight) measure();
+      const progress = zoomProgress ?? clamp((window.scrollY - start) / travel);
       if (progress > 0) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
-      const smoothing = 1 - Math.exp(-Math.min(now - previousFrame, 64) / 32);
+      const elapsed = Math.max(0, Math.min(now - previousFrame, 64));
+      const smoothing = 1 - Math.exp(-elapsed / 32);
       // Touch momentum and our navigation glide already supply smooth positions.
       // Follow them in this frame instead of adding a second easing layer.
-      cameraProgress = cameraProgress === null || motion.matches || touchScroll.matches || direct
+      cameraProgress = cameraProgress === null || zoomProgress !== null || motion.matches || touchScroll.matches || direct
         ? progress
         : cameraProgress + (progress - cameraProgress) * smoothing;
       if (Math.abs(progress - cameraProgress) < 0.0001) cameraProgress = progress;
       previousFrame = now;
-      const position = cameraProgress * duration;
+      const stop = Math.max(0, stops.findIndex((position) => position > progress) - 1);
+      const segment = progress >= 1 ? stops.length - 2 : stop;
+      const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
+      // A thumb should see movement as soon as it drags in either direction.
+      // Map touch travel between the actual snap anchors, with only a small
+      // rest at either end. Desktop retains its longer cinematic holds.
+      const position = touchScroll.matches ? segment + fraction : cameraProgress * duration;
+      // The scroll and navigation stay attached to the finger. Only the art
+      // has mass: a bounded spring banks into travel, then settles on release.
+      // Small time steps keep the response stable on slow and 120Hz phones.
+      if (massPosition === null || motion.matches || zoomProgress !== null) {
+        massPosition = position;
+        massVelocity = 0;
+      } else {
+        massPosition = position - Math.max(-0.2, Math.min(0.2, position - massPosition));
+        for (let remaining = elapsed / 1000; remaining > 0;) {
+          const dt = Math.min(remaining, 1 / 120);
+          massVelocity += ((position - massPosition) * 260 - massVelocity * 24) * dt;
+          massPosition += massVelocity * dt;
+          remaining -= dt;
+        }
+        if (Math.abs(position - massPosition) < 0.0001 && Math.abs(massVelocity) < 0.001) {
+          massPosition = position;
+          massVelocity = 0;
+        }
+      }
+      const coasting = massPosition !== position;
+      if (stage.dataset.coasting !== String(coasting)) stage.dataset.coasting = String(coasting);
+      const weight = Math.max(-1, Math.min(1, (position - massPosition) / 0.14));
       const from = Math.min(scenes.length - 1, Math.floor(position));
-      const crossing = from < scenes.length - 1 ? clamp((position - from - 0.34) / 0.54) : 0;
+      const hold = touchScroll.matches ? .035 : .34;
+      const crossing = from < scenes.length - 1 ? clamp((position - from - hold) / (touchScroll.matches ? .93 : .54)) : 0;
       const mix = ease(crossing);
       const current = Math.min(scenes.length - 1, from + (mix >= 0.5 ? 1 : 0));
       const arc = from % 2 === 0 ? 1 : -1;
@@ -210,8 +257,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       const flightOn = Boolean(flightWorld && !motion.matches && crossing > 0 && crossing < 1 && flightIds.has(worlds[from]?.id) && flightIds.has(worlds[from + 1]?.id));
       let flightMix = flightOn ? Math.min(phase(crossing, 0, .1), 1 - phase(crossing, .9, 1)) : 0;
       if (flightOn) {
-        const fromRect = stillRect(from), toRect = stillRect(from + 1);
-        if (fromRect && toRect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, fromRect, toRect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
+        const rect = stillRect(from);
+        if (rect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, rect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
         else flightMix = 0;
       }
       if (!flightMix && flightShown) { flightCanvas.style.opacity = "0"; flightWorld?.clear(); flightShown = false; }
@@ -249,6 +296,12 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             opacity = phase(crossing, 0.3, 0.6).toFixed(4);
           }
         }
+        if (!motion.matches && !flightOn && weight) {
+          // Keep the bank continuous across stop boundaries; only reversing
+          // the scroll reverses the pull, not the next path's alternating arc.
+          const pull = weight * (0.35 + 0.65 * phase(position, 0.6, 1));
+          transform = `translate3d(${(pull * 18).toFixed(2)}px, ${(pull * 12).toFixed(2)}px, 0) rotate(${(-pull * 2.4).toFixed(3)}deg) ${transform}`;
+        }
         paintArt[index]("transform", transform);
         if (flightMix && (index === from || index === from + 1)) opacity = (Number(opacity) * (1 - flightMix)).toFixed(4);
         paintArt[index]("opacity", opacity);
@@ -260,7 +313,10 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         paintCopy[index]("opacity", copyOpacity.toFixed(4));
         paintRead(index, "cue-opacity", motion.matches ? 1 : outgoing ? 1 - phase(crossing, 0, 0.12) : arrivalCue);
         const arrivingLight = from === 0 ? 0.85 + 0.15 * arrivalLight : 0.34 + 0.16 * approach + 0.5 * arrivalLight;
-        paintRead(index, "island-light", motion.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight);
+        // Touch flights use transform and opacity; animating a full-island
+        // brightness filter adds large offscreen rendering work every frame.
+        // The small window/lamp overlays still supply the arrival lighting.
+        paintRead(index, "island-light", motion.matches || touchScroll.matches ? 1 : outgoing ? 1 - (from === 0 ? 0 : 0.45) * retreat : arrivingLight);
         paintRead(index, "island-lights", motion.matches ? 1 : outgoing ? 1 - retreat : arrivalLight);
         // Distinct, reversible welcomes: city blocks first, then the tower;
         // the reading lamp precedes warm paper; the workshop screen wakes last.
@@ -269,7 +325,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         }
         if (worlds[index].id === "projects") paintRead(index, "workshop-screen", motion.matches ? 1 : outgoing ? 1 - retreat : phase(crossing, 0.86, 0.97));
       });
-      stage.dataset.cameraProgress = String(cameraProgress);
+      if (stage.dataset.cameraProgress !== String(cameraProgress)) stage.dataset.cameraProgress = String(cameraProgress);
       // Animate the three camera layers directly. Inherited variables on the
       // entire stage forced style recalculation through every hidden island.
       const path = from + passage, bend = arc * Math.sin(mix * Math.PI);
@@ -283,10 +339,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       paintTrails("opacity", speed.toFixed(4));
       // Follow the full scroll distance, including the holds between crossings.
       // Reduced motion still shows accurate progress without the animated trail.
-      const stops = worlds.map((_, index) => stopProgress(index));
-      const stop = Math.max(0, stops.findIndex((position) => position > progress) - 1);
-      const segment = progress >= 1 ? stops.length - 2 : stop;
-      const fraction = clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
       const starX = starStops[segment] + (starStops[segment + 1] - starStops[segment]) * fraction;
       comet.place(starX, now);
       comet.arrive(Math.abs(starX - starStops[current]) < 1 ? tabFor(current) : undefined);
@@ -294,14 +346,17 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (sceneNav.dataset.boundary !== boundary) sceneNav.dataset.boundary = boundary;
 
       if (current !== activeIndex) {
+        const leavingChapters = current === 0 && sceneNav.contains(document.activeElement);
+        track.dataset.scene = worlds[current].id;
         // Move focus out of a departing scene before marking it inert.
         if (activeIndex >= 0 && scenes[activeIndex].contains(document.activeElement)) {
           (tabFor(current) ?? next).focus({ preventScroll: true });
         }
+        // Hidden opening chapters must never retain keyboard focus.
+        if (leavingChapters) next.focus({ preventScroll: true });
         activeIndex = current;
         stage.dataset.engaged = "false";
         syncQuiet();
-        track.dataset.scene = worlds[current].id;
         scenes.forEach((scene, index) => {
           scene.inert = index !== current;
           scene.setAttribute("aria-hidden", String(index !== current));
@@ -330,29 +385,41 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (!entryPending && !glideFrame && cameraProgress === progress && (motion.matches || crossing === 0 || crossing === 1)) {
         rememberIsland(worlds[current].id);
       }
-      if (cameraProgress !== progress) schedule();
+      if (cameraProgress !== progress || coasting) schedule();
     };
 
     const schedule = () => {
-      if (!frame && !glideFrame) frame = window.requestAnimationFrame(render);
+      if (zoomProgress === null && !frame && !glideFrame) frame = window.requestAnimationFrame(render);
     };
-    // Each stop rests just inside its hold, after its arrival has settled.
-    const stopProgress = (index: number) =>
-      (index === 0 ? 0 : index === scenes.length - 1 ? duration : index + 0.11) / duration;
     const measure = () => {
+      measuredViewportWidth = innerWidth;
+      measuredViewportHeight = innerHeight;
       const height = track.offsetHeight;
-      const resized = measuredHeight > 0 && measuredHeight !== height;
+      const width = stage.offsetWidth;
+      const sceneHeight = scenes[0].offsetHeight;
+      const nextTravel = Math.max(1, height - stage.offsetHeight);
+      // Toolbar movement changes the dynamic stage, not the stable artwork or
+      // scroll distance. Avoid restarting momentum and remeasuring every layer.
+      if (measuredHeight && measuredWidth === width && measuredSceneHeight === sceneHeight && Math.abs(nextTravel - travel) <= 1) {
+        schedule();
+        return;
+      }
+      const resized = measuredHeight > 0 && Math.abs(nextTravel - travel) > 1;
       // A shorter viewport can clamp scrollY before resize runs. Preserve the
       // last camera position instead of interpreting that clamp as travel.
       const progress = resized && cameraProgress !== null ? cameraProgress : clamp((window.scrollY - start) / travel);
       start = track.getBoundingClientRect().top + window.scrollY;
-      travel = Math.max(1, height - stage.offsetHeight);
-      // Keep the same shot when rotating a phone or resizing the window.
-      // Browser toolbar changes only resize the stage, leaving the svh track stable.
-      if (resized) {
-        window.scrollTo({ top: start + progress * travel, behavior: "instant" });
+      travel = nextTravel;
+      // Update native snap targets before restoring scroll. Otherwise the
+      // browser snaps the new pixel position to an old marker during rotation.
+      // A real viewport resize or phone rotation preserves the current shot.
+      if (resized && zoomProgress === null) {
+        massPosition = null;
+        window.scrollTo({ top: Math.round(start + progress * travel), behavior: "instant" });
       }
       measuredHeight = height;
+      measuredWidth = width;
+      measuredSceneHeight = sceneHeight;
       const focus = art[0].querySelector<HTMLElement>('[data-overview-island="work"]');
       const arrival = art[1]?.querySelector<HTMLElement>("[data-island-visual]");
       if (focus && arrival && focus.offsetWidth && arrival.offsetWidth) {
@@ -390,38 +457,41 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         const tab = buttonScene.indexOf(index);
         return tab >= 0 ? centers[tab] : index < buttonScene[0] ? trackStart : trackEnd;
       });
-      // Phones snap natively to each stop: one marker per stop, at the scroll
-      // offset where that stop's shot sits (relative to the track's top).
-      snapStops.forEach((marker, index) => { marker.style.top = `${stopProgress(index) * travel}px`; });
       schedule();
     };
     // Glides are driven here rather than by the browser's smooth scroll, so
     // every flight starts instantly and eases in over a consistent length.
     let glideFrame = 0;
+    // Where the current glide is headed, so a swipe that interrupts it
+    // counts from that island rather than from the one it is leaving.
+    let glideTarget = 0;
     // Set once the gesture-settling state below exists. A glide asked for by
     // a tab, the scroll button, a key or a link must cancel any pending
     // settle: on touch screens a tap is also a touch, and its settle check
     // would otherwise pull the camera back to the island it just left.
     let cancelSettle = () => {};
-    // Scripted glides (tabs, keys, the scroll cue) step the scroll every frame;
-    // native snapping would pull each step back to a stop, so it rests until
-    // the glide has landed on one.
-    const gliding = (on: boolean) => {
-      if (on) document.documentElement.dataset.islandGliding = "true";
-      else delete document.documentElement.dataset.islandGliding;
-    };
-    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; gliding(false); };
+    const stopGlide = () => { window.cancelAnimationFrame(glideFrame); glideFrame = 0; delete stage.dataset.navigating; };
     const jump = (index: number, instant = false) => {
+      glideTarget = index;
       cancelSettle();
       entryPending = false;
       window.clearTimeout(entryRecovery);
       if (index > 0) warm();
       stopGlide();
+      if (zoomProgress !== null) {
+        // Explicit navigation still works when magnified; only panning is held.
+        zoomProgress = stopProgress(index);
+        render(performance.now(), true);
+        return;
+      }
       // Safari can retain a pending smooth scroll when a quick second tap
       // targets the current position. Cancel that flight before starting one.
       window.scrollTo({ top: window.scrollY, behavior: "instant" });
       if (instant || motion.matches) {
-        window.scrollTo({ top: start + stopProgress(index) * travel, behavior: "instant" });
+        massPosition = null;
+        // Rounded: WebKit truncates a fractional scroll position, which would
+        // leave the camera a pixel short of its stop.
+        window.scrollTo({ top: Math.round(start + stopProgress(index) * travel), behavior: "instant" });
         schedule();
         return;
       }
@@ -429,26 +499,26 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // phone rotation mid-flight still lands exactly on the stop.
       const from = clamp((window.scrollY - start) / travel);
       const to = stopProgress(index);
-      // About two-thirds of a second per stop: long enough to read as one
-      // flight between islands, short enough that stepping through stays brisk.
-      const length = Math.min(900, 450 + Math.abs(to - from) * duration * 180);
+      const distance = Math.abs(to - from) * duration;
+      // Touch controls answer immediately and land in a fifth to a third of
+      // a second. Desktop keeps the longer flight; neither queues destinations.
+      const length = touchScroll.matches ? Math.min(340, 200 + distance * 70)
+        : Math.min(900, 450 + distance * 180);
       const began = performance.now();
       stage.dataset.navigating = "true";
-      gliding(true);
       const step = (now: number) => {
         // A frame's timestamp can precede the call that started the glide.
         const t = clamp((now - began) / length);
-        // Ease in and out around the middle, so the crossing between islands
-        // happens mid-glide rather than in a rush at the start followed by a
-        // long crawl into the stop.
-        const eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        window.scrollTo({ top: start + (from + (to - from) * eased) * travel, behavior: "instant" });
+        // Touch starts moving on the first frame; desktop eases both ends.
+        const eased = touchScroll.matches ? 1 - Math.pow(1 - t, 3)
+          : t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        window.scrollTo({ top: Math.round(start + (from + (to - from) * eased) * travel), behavior: "instant" });
         glideFrame = t < 1 ? window.requestAnimationFrame(step) : 0;
         // Scroll, island camera and comet share this display frame. Waiting for
         // the scroll event here left the art a frame behind the navigation.
         cancelAnimationFrame(frame);
         render(now, true);
-        if (t >= 1) { delete stage.dataset.navigating; gliding(false); window.dispatchEvent(new Event("scrollend")); }
+        if (t >= 1) { delete stage.dataset.navigating; window.dispatchEvent(new Event("scrollend")); }
       };
       glideFrame = window.requestAnimationFrame(step);
     };
@@ -463,7 +533,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // arrived, opens that island, exactly as tapping the island does.
     // Elsewhere scene controls only ever travel (a double click never enters).
     jumpRef.current = (index: number) => {
-      const island = scenes[index].querySelector<HTMLAnchorElement>("[data-island-link]");
+      const island = scenes[index].querySelector<HTMLAnchorElement>("a[data-island-link], [data-island-entry]");
       const phone = matchMedia("(max-width: 760px)").matches;
       if (phone && index === activeIndex && island && stage.dataset.travelling !== "true" && !glideFrame && Math.abs(place() - stopAt(index)) < .01) {
         island.click();
@@ -499,7 +569,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       }
       const heading = (event.target as Element | null)?.closest<HTMLAnchorElement>("[data-enter-island]");
       if (!heading || !stage.contains(heading) || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("[data-island-link]") ?? [])
+      const island = Array.from(heading.closest("[data-island-scene]")?.querySelectorAll<HTMLAnchorElement>("a[data-island-link], [data-island-entry]") ?? [])
         .find(candidate => candidate.pathname === heading.pathname);
       if (!island) return;
       event.preventDefault();
@@ -510,7 +580,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       entryPending = false;
       window.clearTimeout(entryRecovery);
       if (activeIndex >= 0) rememberIsland(worlds[activeIndex].id);
-      schedule();
+      if (zoomProgress !== null) render(performance.now(), true);
+      else schedule();
     };
     const engage = (event: Event) => {
       const pointer = event as PointerEvent;
@@ -592,6 +663,19 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         : null;
       if (!target) return hideTip();
       if (tipText.textContent !== target.dataset.tip) tipText.textContent = target.dataset.tip ?? "";
+      // The bird's label stays beside its perch, wrapping into the available sky.
+      if (target.dataset.tipSide === "e") {
+        const box = target.getBoundingClientRect();
+        const x = box.right + 14;
+        tip.dataset.side = "e";
+        tip.style.setProperty("--tip-room", `${Math.max(0, innerWidth - x - 10)}px`);
+        const left = Math.min(x, innerWidth - tipText.offsetWidth - 10);
+        const above = left < x - 1;
+        tip.dataset.edge = above ? "above" : "";
+        tip.style.transform = `translate3d(${left}px, ${above ? box.top - 10 : box.top + box.height / 2}px, 0)`;
+        tip.dataset.visible = "true";
+        return;
+      }
       // Anchor the annotation's star just off the rocket's right shoulder.
       // Open toward the island's own corner, flipping away from a screen edge.
       let side = target.dataset.tipSide ?? "ne";
@@ -631,17 +715,18 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // No gesture yet: page timers start at zero, so 0 would read as "just now".
     let intentAt = Number.NEGATIVE_INFINITY;
     const nativeScrollEnd = "onscrollend" in window;
-    // On touch screens the browser snaps each fling to the next stop itself
-    // (CSS scroll-snap, app/globals.css), with the phone's own momentum: one
-    // motion, rather than a scripted glide picking up where the finger left off.
-    const syncSnap = () => {
-      if (touchScroll.matches && !motion.matches) document.documentElement.dataset.islandSnap = "true";
-      else delete document.documentElement.dataset.islandSnap;
+    // On touch screens the finger drives the camera itself (onTouchMove
+    // below): the page does not scroll natively over the islands. Native
+    // scroll-snap left every hop to the browser's own deceleration, which
+    // kept coasting for 400-500ms after the finger lifted. Off while zoomed,
+    // so a magnified page still pans natively.
+    const swipeOn = () => zoomProgress === null && touchScroll.matches;
+    const syncSwipe = () => {
+      if (swipeOn()) document.documentElement.dataset.islandSwipe = "true";
+      else delete document.documentElement.dataset.islandSwipe;
     };
-    syncSnap();
-    touchScroll.addEventListener("change", syncSnap);
-    motion.addEventListener("change", syncSnap);
-    const snapping = () => document.documentElement.dataset.islandSnap === "true";
+    syncSwipe();
+    touchScroll.addEventListener("change", syncSwipe);
     // The position dots show while the page moves, and a moment after.
     let dotsTimer = 0;
     const showDots = () => {
@@ -657,7 +742,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let scrollIdleTimer = 0;
     let direction = 1;
     let lastScrollY = window.scrollY;
-    const place = () => clamp((window.scrollY - start) / travel) * duration;
+    const place = () => (zoomProgress ?? clamp((window.scrollY - start) / travel)) * duration;
     const stopAt = (index: number) => stopProgress(index) * duration;
     const nearestStop = () => {
       const here = place();
@@ -672,7 +757,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       jump(index);
     };
     const settle = () => {
-      if (touching || stage.dataset.entering || snapping()) return;
+      if (zoomProgress !== null || touching || stage.dataset.entering || document.querySelector("dialog[open]")) return;
       const here = place();
       const nearest = nearestStop();
       if (Math.abs(stopAt(nearest) - here) < 0.04) {
@@ -685,6 +770,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       glideTo(ahead < 0 ? scenes.length - 1 : ahead);
     };
     const onGestureScroll = () => {
+      if (zoomProgress !== null) return;
       if (!peeking) showDots();
       // Even a hold is still part of a scroll gesture. Keep optional model
       // decoding out of it, then let it resume once momentum is quiet.
@@ -708,15 +794,148 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       settleTimer = window.setTimeout(settle, 150);
     };
     // A new wheel or touch takes over from any glide in progress.
-    const markIntent = () => {
+    const dialogInput = (event?: Event) => !!document.querySelector("dialog[open]") || (event?.target instanceof Element && !!event.target.closest("dialog"));
+    const markIntent = (event?: Event) => {
+      if (dialogInput(event)) { cancelSettle(); return; }
+      if (zoomProgress !== null) return;
       intentAt = performance.now(); settling = false; stopGlide();
       if (!stage.dataset.entering && document.documentElement.dataset.rocketTransition === "idle") {
         entryPending = false; window.clearTimeout(entryRecovery);
       }
     };
-    const onTouchStart = () => { touching = true; markIntent(); };
-    const onTouchEnd = () => {
-      touching = false;
+    const syncZoom = () => {
+      cancelAnimationFrame(zoomRestoreFrame);
+      zoomRestoreFrame = 0;
+      if (pinching || (viewport?.scale ?? 1) > 1.01) {
+        if (zoomProgress !== null) return;
+        // If zoom interrupts a crossing, reveal its current island completely
+        // instead of holding the dim, off-centre frame between two islands.
+        zoomProgress = stopProgress(activeIndex >= 0 ? activeIndex : nearestStop());
+        cancelSettle();
+        stopGlide();
+        cancelAnimationFrame(frame);
+        frame = 0;
+        settling = false;
+        clearTimeout(settleRelease);
+        clearTimeout(scrollIdleTimer);
+        delete stage.dataset.scrolling;
+        stage.dataset.zoomed = "true";
+        syncSwipe();
+        render(performance.now(), true);
+      } else if (zoomProgress !== null) {
+        // Wait for the browser's final viewport update, then restore the shot
+        // before re-enabling swipes. No scroll writes while fingers pinch.
+        zoomRestoreFrame = requestAnimationFrame(() => {
+          zoomRestoreFrame = 0;
+          if (pinching || (viewport?.scale ?? 1) > 1.01 || zoomProgress === null) return;
+          measure();
+          window.scrollTo({ top: Math.round(start + zoomProgress * travel), behavior: "instant" });
+          cameraProgress = zoomProgress;
+          lastScrollY = window.scrollY;
+          zoomProgress = null;
+          delete stage.dataset.zoomed;
+          cancelSettle();
+          syncSwipe();
+          schedule();
+        });
+      }
+    };
+    // Swipes, in stop space: 0 is the opening view, 1 Work, and so on, the
+    // same segment-plus-fraction position the touch camera renders.
+    const stopSpace = () => {
+      const progress = clamp((window.scrollY - start) / travel);
+      const next = stops.findIndex((position) => position > progress);
+      const segment = next < 0 ? stops.length - 2 : Math.max(0, next - 1);
+      return segment + clamp((progress - stops[segment]) / (stops[segment + 1] - stops[segment]));
+    };
+    const showStopSpace = (value: number) => {
+      const segment = Math.min(stops.length - 2, Math.max(0, Math.floor(value)));
+      const progress = stops[segment] + (stops[segment + 1] - stops[segment]) * clamp(value - segment);
+      window.scrollTo({ top: Math.round(start + progress * travel), behavior: "instant" });
+      schedule();
+    };
+    // Half a screen of drag carries the camera one island, under the thumb
+    // the whole way. Letting go after a sixth of the way (or any quick flick)
+    // finishes the hop in a quarter second; less springs back. One island
+    // per swipe. A swipe that interrupts a glide counts from where it was
+    // headed, so quick repeated swipes keep going.
+    const SWIPE_SPAN = .5, SWIPE_SLOP = 6, SWIPE_COMMIT = .16, SWIPE_FLING = .3;
+    let swipe: { x: number; y: number; from: number; origin: number; chain: boolean; claimed: boolean; moved: boolean; pull: number; trail: [number, number][] } | null = null;
+    const onTouchMove = (event: TouchEvent) => {
+      if (!swipe) return;
+      if (event.touches.length !== 1 || !swipeOn() || stage.dataset.entering) { swipe = null; return; }
+      const y = event.touches[0].clientY;
+      const dy = y - swipe.y;
+      if (!swipe.claimed && swipe.chain) {
+        // From an island's pull chain, pulling down and swaying sideways are
+        // the chain's; only a clear push up the screen pages on. A push up
+        // never toggles the light (the chain only arms on a downward pull).
+        const dx = event.touches[0].clientX - swipe.x;
+        if (dy > 0 || Math.abs(dx) > Math.abs(dy)) { swipe = null; return; }
+        if (-dy <= SWIPE_SLOP) return;
+      }
+      if (!swipe.claimed) {
+        // Pull-to-refresh above the opening view and the rubber band past the
+        // closing one stay the browser's.
+        const last = scenes.length - 1;
+        if ((dy > 0 && swipe.from < .001) || (dy < 0 && swipe.from > last - .001)) { swipe = null; return; }
+        swipe.claimed = true;
+      }
+      if (event.cancelable) event.preventDefault();
+      swipe.trail.push([event.timeStamp, y]);
+      while (swipe.trail.length > 2 && event.timeStamp - swipe.trail[0][0] > 100) swipe.trail.shift();
+      if (!swipe.moved && Math.abs(dy) <= SWIPE_SLOP) return;
+      swipe.moved = true;
+      // Forward (up the screen) is positive, in islands.
+      swipe.pull = -(dy - Math.sign(dy) * SWIPE_SLOP) / (SWIPE_SPAN * window.innerHeight);
+      const last = scenes.length - 1;
+      showStopSpace(Math.min(swipe.origin + 1, last, Math.max(swipe.origin - 1, 0, swipe.from + swipe.pull)));
+    };
+    const releaseSwipe = (gesture: NonNullable<typeof swipe>, at: number) => {
+      const [t0, y0] = gesture.trail[0];
+      const [t1, y1] = gesture.trail[gesture.trail.length - 1];
+      // Forward is up the screen. A finger held still before lifting has no fling.
+      const velocity = t1 > t0 && at - t1 < 100 ? (y0 - y1) / (t1 - t0) : 0;
+      // Judged by the finger's own travel, not the camera's offset from the
+      // stop: a swipe that catches a glide short of its island still counts.
+      const { pull } = gesture;
+      const step = Math.abs(velocity) > SWIPE_FLING
+        ? (Math.sign(velocity) !== Math.sign(pull) ? 0 : Math.sign(velocity))
+        : Math.abs(pull) > SWIPE_COMMIT ? Math.sign(pull) : 0;
+      glideTo(Math.min(scenes.length - 1, Math.max(0, gesture.origin + step)));
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      if (dialogInput(event)) { swipe = null; cancelSettle(); return; }
+      touching = true;
+      if (event.touches.length > 1) pinching = true;
+      syncZoom();
+      const heading = glideFrame ? glideTarget : -1;
+      markIntent();
+      const y = event.touches[0]?.clientY;
+      if (event.touches.length !== 1 || typeof y !== "number" || !swipeOn() || stage.dataset.entering) { swipe = null; return; }
+      // A finger on an island's pull chain may be pulling it: onTouchMove
+      // waits to see which way it goes before paging.
+      const chain = event.target instanceof Element && Boolean(event.target.closest("[data-island-control]"));
+      const from = stopSpace();
+      swipe = { x: event.touches[0].clientX, y, from, origin: heading >= 0 ? heading : Math.round(from), chain, claimed: false, moved: false, pull: 0, trail: [[event.timeStamp, y]] };
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      touching = event.touches.length > 0;
+      if (dialogInput(event)) { swipe = null; cancelSettle(); return; }
+      if (zoomProgress !== null || pinching) {
+        // Keep the gesture owned by zoom even if one finger lifts first.
+        if (!touching) pinching = false;
+        syncZoom();
+        return;
+      }
+      if (touching) return;
+      const gesture = swipe;
+      swipe = null;
+      if (gesture?.moved) {
+        window.clearTimeout(settleTimer);
+        releaseSwipe(gesture, event.timeStamp);
+        return;
+      }
       markIntent();
       // A tap or a drag released at rest produces no scrollend. Check once it
       // is clear; any momentum that follows cancels this and settles at its end.
@@ -726,6 +945,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Each glide step ends a tiny native scroll; only the glide's own finish
     // (or a gesture's real end) releases the settle lock.
     const onScrollEnd = () => {
+      if (zoomProgress !== null) return;
       if (glideFrame) return;
       window.clearTimeout(settleRelease);
       settling = false;
@@ -737,9 +957,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // Keys move exactly one stop at a time.
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") { entryPending = false; window.clearTimeout(entryRecovery); schedule(); }
-      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering) return;
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey || stage.dataset.entering || zoomProgress !== null) return;
       const target0 = event.target as Element | null;
-      if (target0?.closest("input, textarea, select, [contenteditable]")) return;
+      if (target0?.closest("input, textarea, select, [contenteditable], dialog")) return;
       // Space still presses a focused button or link.
       if (event.key === " " && target0?.closest("button, a")) return;
       const current = nearestStop();
@@ -752,8 +972,11 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       event.preventDefault();
       glideTo(target);
     };
+    viewport?.addEventListener("resize", syncZoom);
+    syncZoom();
     window.addEventListener("wheel", markIntent, { passive: true });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     window.addEventListener("scroll", onGestureScroll, { passive: true });
@@ -765,16 +988,15 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     let peekTimer = 0;
     let peekFrame = 0;
     let interacted = false;
-    const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; gliding(false); } peeking = false; };
+    const stopPeek = () => { interacted = true; window.clearTimeout(peekTimer); if (peekFrame) { cancelAnimationFrame(peekFrame); peekFrame = 0; } peeking = false; };
     const peekSeen = () => { try { return sessionStorage.getItem("islands-peek") === "1"; } catch { return false; } };
     const peek = () => {
-      if (interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
+      if (zoomProgress !== null || interacted || motion.matches || activeIndex !== 0 || stage.dataset.entering || glideFrame || window.scrollY - start > 2 || peekSeen()) return;
       try { sessionStorage.setItem("islands-peek", "1"); } catch { /* Private mode: the peek may repeat. */ }
       // Far enough that Work starts to come forward, well short of a stop.
       const depth = travel * (0.46 / duration);
       const out = 750, hold = 180, back = 850, began = performance.now();
       peeking = true;
-      gliding(true);
       const step = (now: number) => {
         const t = now - began;
         const k = t < out ? 1 - Math.pow(1 - t / out, 3)
@@ -782,23 +1004,40 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           : t < out + hold + back ? 1 - ease((t - out - hold) / back) : 0;
         window.scrollTo({ top: start + depth * k, behavior: "instant" });
         if (t < out + hold + back) peekFrame = requestAnimationFrame(step);
-        else { peekFrame = 0; peeking = false; gliding(false); }
+        else { peekFrame = 0; peeking = false; }
       };
       peekFrame = requestAnimationFrame(step);
     };
     const peekIntents = ["touchstart", "wheel", "keydown", "pointerdown"] as const;
     peekIntents.forEach(type => window.addEventListener(type, stopPeek, { passive: true, capture: true }));
     if (touchScroll.matches && !motion.matches && !peekSeen()) peekTimer = window.setTimeout(peek, 3500);
+    // Phones: the first time each island comes to rest, it swells gently
+    // (tap-hint in IslandHome.module.css) to show it can be tapped. Once that
+    // has played through, the island only floats for the rest of the visit.
+    const hintKey = (scene: HTMLElement) => `islands-hint-${scene.id}`;
+    scenes.forEach(scene => {
+      try { if (sessionStorage.getItem(hintKey(scene)) === "1") scene.dataset.hinted = "true"; } catch { /* Storage blocked: the hint may repeat. */ }
+    });
+    const onHintEnd = (event: AnimationEvent) => {
+      // CSS Modules prefix the keyframes' name, so match on its stem.
+      const scene = event.animationName.includes("tap-hint") ? (event.target as HTMLElement).closest<HTMLElement>("[data-island-scene]") : null;
+      if (!scene) return;
+      scene.dataset.hinted = "true";
+      try { sessionStorage.setItem(hintKey(scene), "1"); } catch { /* Private mode: the hint may repeat. */ }
+    };
+    stage.addEventListener("animationend", onHintEnd);
     setReady(true);
 
     return () => {
       stopPeek();
+      viewport?.removeEventListener("resize", syncZoom);
+      cancelAnimationFrame(zoomRestoreFrame);
+      delete stage.dataset.zoomed;
       peekIntents.forEach(type => window.removeEventListener(type, stopPeek, { capture: true }));
       delete document.documentElement.dataset.islandsQuiet;
-      delete document.documentElement.dataset.islandSnap;
-      delete document.documentElement.dataset.islandGliding;
-      touchScroll.removeEventListener("change", syncSnap);
-      motion.removeEventListener("change", syncSnap);
+      delete document.documentElement.dataset.islandSwipe;
+      touchScroll.removeEventListener("change", syncSwipe);
+      window.removeEventListener("touchmove", onTouchMove);
       window.clearTimeout(dotsTimer);
       history.scrollRestoration = previousRestoration;
       window.removeEventListener("wheel", markIntent);
@@ -818,6 +1057,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       window.clearTimeout(prepareTimer);
       if (typeof cancelIdleCallback === "function") cancelIdleCallback(prepareIdle);
       sceneNav.removeEventListener("focusin", warm);
+      stage.removeEventListener("animationend", onHintEnd);
       observer.disconnect();
       readerWatch.disconnect();
       window.removeEventListener("scroll", schedule);
@@ -859,9 +1099,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         {children}
         <div className={styles.controls}>
           <button type="button" className={styles.scrollHint} disabled={!ready} data-next-scene aria-label={`Scroll down to the ${worlds[1].title} island`}>
-            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
+            <span className={styles.scrollArrow} aria-hidden="true"><svg viewBox="0 0 20 28" fill="none"><path d="M10 3v20m-6-6 6 6 6-6" /></svg></span>
             <span data-next-label>scroll down</span>
-            <span className={styles.scrollArrow} aria-hidden="true"><span className={styles.scrollStar} /></span>
+            <span className={styles.scrollArrow} aria-hidden="true"><svg viewBox="0 0 20 28" fill="none"><path d="M10 3v20m-6-6 6 6 6-6" /></svg></span>
           </button>
           <nav className={styles.chapters} aria-label="Island scenes" data-scene-nav>
             <svg className={styles.cometLight} data-comet-light viewBox="0 0 480 60" preserveAspectRatio="none" aria-hidden="true">
@@ -912,7 +1152,6 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
           {worlds.map((world) => <span key={world.id} data-scene-dot />)}
         </div>
       </div>
-      {worlds.map((world) => <span key={world.id} className={styles.snapStop} data-snap-stop aria-hidden="true" />)}
     </main>
   );
 }

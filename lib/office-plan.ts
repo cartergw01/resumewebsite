@@ -37,7 +37,7 @@ export const OFFICE_PORTFOLIO = "https://www.886studios.com/portfolio";
 const TEAM = "https://www.886studios.com/team";
 type OfficeObject = { id: string; room: OfficeStopId; label: string; href: string; box: Box; reach: Box; person?: boolean };
 export const officeObjects: readonly OfficeObject[] = [
-  { id: "desk", room: "now", label: "886 Studios", href: "https://886studios.com/", box: [30, 37, 40, 33], reach: [30, 70, 40, 16] },
+  { id: "desk", room: "now", label: "886 Studios", href: "https://www.886studios.com/", box: [30, 37, 40, 33], reach: [30, 70, 40, 16] },
   { id: "patryk", room: "accelerator", label: "Patryk Chojecki", href: `${TEAM}/patryk`, box: [109, 52, 16, 19], reach: [124, 62, 10, 16], person: true },
   { id: "max", room: "accelerator", label: "Max Hsieh", href: `${TEAM}/max`, box: [155, 52, 16, 19], reach: [148, 62, 10, 16], person: true },
   { id: "jimmy", room: "accelerator", label: "Jimmy Huang, PicPet", href: "https://www.886studios.com/portfolio/o3o-labs", box: [155, 72, 16, 19], reach: [148, 80, 10, 16], person: true },
@@ -45,7 +45,6 @@ export const officeObjects: readonly OfficeObject[] = [
   { id: "kevin", room: "accelerator", label: "Kevin Lin, Twitch", href: `${TEAM}/kevin-lin`, box: [144, 30, 16, 22], reach: [142, 54, 16, 24], person: true },
   { id: "pitch", room: "accelerator", label: "ikigai Launchpad", href: "https://886studios.com/programs", box: [106, 6, 72, 26], reach: [160, 39, 12, 22] },
   { id: "founder-chat", room: "founders", label: "Founders", href: OFFICE_PORTFOLIO, box: [263, 52, 16, 21], reach: [246, 83, 34, 13], person: true },
-  { id: "pipeline", room: "founders", label: "Our accelerator", href: "https://withikigai.com", box: [200, 7, 76, 25], reach: [196, 80, 50, 12] },
   { id: "founder-1", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [336, 39, 16, 19], reach: [336, 61, 15, 12], person: true },
   { id: "founder-2", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [350, 39, 16, 19], reach: [351, 61, 17, 12], person: true },
   { id: "founder-3", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [288, 52, 16, 22], reach: [286, 75, 20, 12], person: true },

@@ -8,7 +8,8 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: max(70vmax, 560px);
+  /* Sized by the short side, so a phone's tall screen isn't flooded. */
+  width: clamp(400px, 64vmin, 680px);
   aspect-ratio: 1;
   border-radius: 50%;
   /* Light, not haze: a near-white heart that falls off quickly to the

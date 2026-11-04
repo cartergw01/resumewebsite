@@ -1,11 +1,17 @@
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import OfficeExplorer from "./OfficeExplorer";
-import type { OfficeStopId } from "@/lib/office-plan";
+import GalaxyBackground from "@/components/GalaxyBackground";
 import { workPageExperience } from "@/content/portfolio";
 import { getWorkCopy, type WorkEntry } from "@/lib/work-copy";
 import batchPhoto from "@/public/ikigai-batch.jpg";
+import studios886 from "@/public/logos/886-studios.png";
+import contrary from "@/public/logos/contrary.svg";
+import slugFund from "@/public/logos/slug-fund.svg";
+import korobra from "@/public/logos/korobra-capital.png";
+import IslandLine from "./IslandLine";
+import OfficeExplorer from "./OfficeExplorer";
+import type { OfficeStopId } from "@/lib/office-plan";
 import WorkArrival from "./WorkArrival";
 import entry from "./WorkEntry.module.css";
 import heading from "./PageHeading.module.css";
@@ -15,35 +21,37 @@ const [current] = workPageExperience;
 
 // Company marks, shown beside each name. They're decorative (the name is right
 // there), and CSS tints them all the same cream so they read as one family.
-const logos: Record<string, string> = {
-  "886 Studios": "/logos/886-studios.png",
-  "Contrary Research": "/logos/contrary.svg",
-  "Slug Fund Investment Group": "/logos/slug-fund.svg",
-  "Korobra Capital": "/logos/korobra-capital.png",
+// Imported, so they get hashed URLs browsers can keep, and resized to fit.
+const logos: Record<string, StaticImageData> = {
+  "886 Studios": studios886,
+  "Contrary Research": contrary,
+  "Slug Fund Investment Group": slugFund,
+  "Korobra Capital": korobra,
 };
 
-function Logo({ company, size }: { company: string; size: number }) {
+function Logo({ company, size, eager = false }: { company: string; size: number; eager?: boolean }) {
   const src = logos[company];
   if (!src) return null;
-  return <Image className={styles.logo} src={src} alt="" aria-hidden="true" width={size} height={size} unoptimized />;
+  return <Image className={styles.logo} src={src} alt="" aria-hidden="true" width={size} height={size} loading={eager ? "eager" : "lazy"} />;
 }
 
 function Out({ href, children }: { href: string; children: ReactNode }) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
 
-// Inline markdown from content/work.md: [links](url) and *italics*. Links to
-// this site stay in the tab; the rest open in a new one.
+// Inline markdown from content/work.md: [links](url), *italics*, and **bold**.
+// Links to this site stay in the tab; the rest open in a new one.
 function Md({ text }: { text: string }): ReactNode {
   const parts: ReactNode[] = [];
-  const pattern = /\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
   let last = 0;
   for (const match of text.matchAll(pattern)) {
     if (match.index > last) parts.push(text.slice(last, match.index));
     const key = match.index;
-    if (match[1] !== undefined) parts.push(<em key={key}><Md text={match[1]} /></em>);
-    else if (match[3].startsWith("/")) parts.push(<Link key={key} href={match[3]}>{match[2]}</Link>);
-    else parts.push(<Out key={key} href={match[3]}>{match[2]}</Out>);
+    if (match[1] !== undefined) parts.push(<strong key={key}><Md text={match[1]} /></strong>);
+    else if (match[2] !== undefined) parts.push(<em key={key}><Md text={match[2]} /></em>);
+    else if (match[4].startsWith("/")) parts.push(<Link key={key} href={match[4]}>{match[3]}</Link>);
+    else parts.push(<Out key={key} href={match[4]}>{match[3]}</Out>);
     last = match.index + match[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));
@@ -76,14 +84,13 @@ function Entry({ entry }: { entry: WorkEntry }) {
 }
 
 function WorkHeader({ preview = false }: { preview?: boolean }) {
-  const { now } = getWorkCopy();
   return (
-    <header className={`${heading.header} ${styles.pageHeader}`}>
+    <header className={heading.header}>
       <div className={styles.title}>
         <h1 tabIndex={-1}>Work</h1>
         {!preview && <WorkArrival />}
       </div>
-      {now.intro.map((paragraph, index) => <p key={index}><Md text={paragraph} /></p>)}
+      <p><IslandLine id="work" /></p>
     </header>
   );
 }
@@ -92,7 +99,7 @@ function CurrentRole() {
   return (
     <header className={styles.experienceHeading}>
       <h3 className={styles.current}>
-        <Logo company={current.company} size={36} />
+        <Logo company={current.company} size={36} eager />
         <a href="https://886studios.com/" target="_blank" rel="noopener noreferrer">{current.company}</a>
       </h3>
       <div className={styles.tenure}>
@@ -107,13 +114,14 @@ function CurrentRole() {
   );
 }
 
-function CurrentWork({ preview = false }: { preview?: boolean }) {
+function CurrentWork() {
   const { now } = getWorkCopy();
   return (
-    <section className={styles.section} aria-labelledby={preview ? undefined : "now-title"}>
-      <h2 id={preview ? undefined : "now-title"} className={styles.label}>Now</h2>
+    <section className={styles.section} aria-labelledby="now-title">
+      <h2 id="now-title" className={styles.label}>Now</h2>
       <div className={styles.body}>
         <CurrentRole />
+        {now.intro.map((paragraph, index) => <p key={index} className={styles.mission}><Md text={paragraph} /></p>)}
         <div className={styles.contributions}>
           {now.highlights.map((item) => (
             <div key={item.title}>
@@ -125,7 +133,7 @@ function CurrentWork({ preview = false }: { preview?: boolean }) {
           ))}
         </div>
         <figure className={styles.photo}>
-          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={86} placeholder="blur" />
+          <Image src={batchPhoto} alt="The ikigai Launchpad Spring '25 batch gathered on the floor, smiling at the camera" sizes="(min-width: 720px) 640px, calc(100vw - 40px)" quality={90} placeholder="blur" />
           <figcaption>ikigai Launchpad Spring &apos;25 batch</figcaption>
         </figure>
       </div>
@@ -175,7 +183,7 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
         <h3><Logo company={current.company} size={26} />{item.title}</h3>
         <p className={styles.date}>{current.company} · {current.dates}</p>
       </header>
-      <div className={`${styles.story} ${styles.panelStory}`}>
+      <div className={styles.story}>
         {item.paragraphs.map((paragraph, i) => <p key={i}><Md text={paragraph} /></p>)}
       </div>
       {index === 0 && <figure className={styles.photo}>
@@ -185,7 +193,7 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
     </article>;
   };
   const panels: Record<OfficeStopId, ReactNode> = {
-    now: <CurrentRole />,
+    now: <><CurrentRole />{copy.now.intro.map((paragraph, index) => <p key={index} className={styles.mission}><Md text={paragraph} /></p>)}</>,
     accelerator: preview ? null : contribution(0),
     founders: preview ? null : contribution(1),
     community: preview ? null : contribution(2),
@@ -197,7 +205,8 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
   return <OfficeExplorer header={<WorkHeader preview={preview} />} panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
 }
 
-// Same opening composition for the island transition and its destination.
+// Inert source for the carried window. The opening is rendered from the same
+// components as /work, so the view through the glass matches its destination.
 export function WorkWindowPreview() {
   return <div data-work-window-content hidden inert aria-hidden="true">
     <div className={styles.page}>
@@ -212,12 +221,17 @@ export function WorkWindowPreview() {
 
 export default function WorkRoom() {
   const copy = getWorkCopy();
-  return <main className={styles.main} data-work-desk id="main-content" tabIndex={-1}>
-    <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
-      <OfficeContent />
-      <footer className={styles.contact}>
-        {copy.closing.map((paragraph, index) => <p key={index} className={styles.closing}><Md text={paragraph} /></p>)}
-      </footer>
-    </div>
-  </main>;
+  return (
+    <>
+      <GalaxyBackground page playbackRate={0.55} />
+      <main className={styles.main} data-work-desk>
+        <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
+          <OfficeContent />
+          <div className={styles.contact}>
+            {copy.closing.map((paragraph, index) => <p key={index} className={styles.closing}><Md text={paragraph} /></p>)}
+          </div>
+        </div>
+      </main>
+    </>
+  );
 }

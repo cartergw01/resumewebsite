@@ -15,23 +15,15 @@
   --cw-deep: #030611;
   --cw-panel: rgba(7, 12, 25, 0.62);
   --cw-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --page-x: clamp(1.25rem, 6vw, 7rem);
+  /* Phones held sideways put the notch inside the page; gutters clear it. */
+  --safe-x: max(env(safe-area-inset-left), env(safe-area-inset-right));
+  --page-x: max(clamp(1.25rem, 6vw, 7rem), var(--safe-x));
   --nav-top: clamp(0.9rem, 2vw, 1.4rem);
-  --nav-clearance: clamp(6.25rem, 9vw, 8rem);
+  --nav-clearance: calc(clamp(6.25rem, 9vw, 8rem) + env(safe-area-inset-top));
   /* Destination pages share one column, lined up with their nav. */
-  --subpage-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --subpage-gutter: max(clamp(1.25rem, 4vw, 2.5rem), var(--safe-x));
   --subpage-column: min(1120px, calc(100% - 2 * var(--subpage-gutter)));
-  --subpage-top: calc(var(--nav-clearance) + .25rem);
-  /* Work, Writing and Projects use the same type, spacing and rules. */
-  --subpage-content-width: 61.25rem;
-  --subpage-item-title: clamp(1.5rem, 2vw, 2rem);
-  --subpage-item-leading: 1.2;
-  --subpage-copy-gap: .5rem;
-  --subpage-row-space: clamp(1.25rem, 2vw, 1.5rem);
-  --subpage-section-space: clamp(2.5rem, 5vw, 3.5rem);
-  --subpage-rule: #eddbbf24;
-  --subpage-text: #fff7ead1;
-  --subpage-muted: #fff7eaad;
+  --subpage-top: calc(var(--nav-clearance) + clamp(0.75rem, 3svh, 2rem));
   --type-caption: 0.72rem;
   --type-small: 0.875rem;
   --type-body: 1rem;
@@ -39,6 +31,21 @@
   --leading-tight: 1.02;
   --leading-body: 1.68;
   --tracking-caps: 0.115em;
+  /* Work, Writing and Projects share one type scale below their headers:
+     a section label, an entry title, body copy and a date. */
+  --topic-label-size: 0.8125rem;
+  --topic-label-tracking: 0.12em;
+  --topic-label-color: #e6c794;
+  --topic-title-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  --topic-title-leading: 1.2;
+  --topic-body-size: 1.0625rem;
+  --topic-body-leading: 1.7;
+  --topic-body-color: #e9e3d8;
+  --topic-meta-size: 0.8125rem;
+  --topic-meta-color: #c7bdac;
+  --topic-section-gap: clamp(4rem, 9vw, 6rem);
+  /* What the phone bottom bar (MobileContact.module.css .dock) covers. */
+  --dock-space: calc(60px + max(1.25rem, env(safe-area-inset-bottom)));
 }
 
 * {
@@ -52,6 +59,9 @@
 html {
   scroll-behavior: smooth;
   background: var(--cw-deep);
+  /* Rotating a phone must not inflate the type. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html,
@@ -417,22 +427,22 @@ select {
   border-radius: 999px;
 }
 
-/* The islands snap natively on touch screens, one stop per fling (snap
-   points: .snapStop in IslandHome.module.css), except while a scripted glide
-   (a tab, a key, the scroll cue) is carrying the camera to a stop. */
-html[data-island-snap="true"] { scroll-snap-type: y mandatory; }
-html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: none; }
+/* Safari treats focus moved by script as focus-visible, so opening or closing a
+   dialog by touch would ring its target. Rings return as soon as Tab is pressed. */
+html[data-pointer-input] :where(a, button, [tabindex]):focus-visible {
+  outline: none;
+}
 
 /* Shared navigation */
 .site-nav {
   position: fixed;
-  top: var(--nav-top);
+  top: calc(var(--nav-top) + env(safe-area-inset-top));
   left: 50%;
   z-index: 50;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  width: min(1120px, calc(100% - clamp(1rem, 4vw, 3rem)));
+  width: min(1120px, calc(100% - max(clamp(1rem, 4vw, 3rem), 2 * var(--safe-x))));
   transform: translateX(-50%);
   pointer-events: none;
 }
@@ -442,7 +452,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 .site-nav::before {
   content: "";
   position: absolute;
-  top: calc(var(--nav-top) * -1);
+  top: calc(-1 * (var(--nav-top) + env(safe-area-inset-top)));
   left: 50%;
   z-index: -1;
   width: 100vw;
@@ -504,6 +514,9 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   transition: color 150ms var(--cw-ease), background 150ms var(--cw-ease), transform 200ms var(--cw-ease), text-shadow 200ms var(--cw-ease);
   white-space: nowrap;
 }
+
+.site-nav-primary a { font-weight: 400; }
+.site-nav-primary a[aria-current="page"] { font-weight: 600; }
 
 .site-nav-primary a:hover,
 .site-nav a.is-active {
@@ -931,7 +944,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   font-family: var(--font-display); font-stretch: 125%;
   font-weight: 700;
   letter-spacing: 0;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .hero-copy h1 {
@@ -974,7 +987,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   color: rgba(255, 247, 234, 0.74);
   font-size: var(--type-body);
   line-height: 1.56;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .hero-copy p {
@@ -1517,6 +1530,17 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   line-height: var(--leading-body);
 }
 
+.fa-thanks a {
+  color: var(--cw-paper);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.fa-thanks a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
 @media (max-width: 560px) {
   .fa-card {
     flex-direction: column;
@@ -1578,23 +1602,23 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 .projects-workshop {
   display: grid;
-  gap: var(--subpage-section-space);
-  max-width: var(--subpage-content-width);
+  gap: clamp(3.5rem, 8vw, 6rem);
+  max-width: 980px;
 }
 
 .project-list {
   display: grid;
   gap: 0;
-  border-top: 1px solid var(--subpage-rule);
+  border-top: 1px solid rgb(var(--topic-accent) / 0.16);
 }
 
 .subpage-projects .project-list {
-  border-top-color: var(--subpage-rule);
+  border-top-color: rgba(92, 154, 255, 0.24);
 }
 
 .writing-archive {
   position: relative;
-  max-width: var(--subpage-content-width);
+  max-width: 880px;
   margin-top: clamp(2.15rem, 4.4vw, 3.35rem);
   padding-top: 0;
   border-top: 0;
@@ -1605,26 +1629,26 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 .archive-group {
   display: grid;
-  gap: 1rem;
+  gap: clamp(0.8rem, 1.25vw, 1.05rem);
 }
 
 .archive-group + .archive-group {
-  margin-top: var(--subpage-section-space);
+  margin-top: clamp(1rem, 1.9vw, 1.45rem);
+  padding-top: clamp(0.7rem, 1vw, 0.85rem);
 }
 
 .archive-group-heading {
   margin: 0;
-  color: var(--subpage-muted);
-  font-size: var(--type-small);
-  font-weight: 600;
+  color: rgba(255, 247, 234, 0.68);
+  font-size: clamp(0.9rem, 1.05vw, 1.05rem);
+  font-weight: 700;
   letter-spacing: var(--tracking-caps);
-  line-height: 1.5;
+  line-height: 1;
   text-transform: uppercase;
 }
 
 .archive-list {
   display: grid;
-  border-top: 1px solid var(--subpage-rule);
 }
 
 .archive-empty,
@@ -1645,11 +1669,11 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   grid-template-columns: minmax(7.4rem, 7.4rem) minmax(0, 38rem) minmax(6.75rem, max-content);
   column-gap: clamp(1.25rem, 2.6vw, 2.6rem);
   align-items: start;
-  border-bottom: 1px solid var(--subpage-rule);
+  border-bottom: 1px solid rgba(244, 210, 163, 0.13);
   border-radius: 0;
   outline: 0;
   outline-offset: 0.35rem;
-  padding: var(--subpage-row-space) 0;
+  padding: clamp(1.15rem, 2vw, 1.5rem) 0;
   color: inherit;
   isolation: isolate;
   text-decoration: none;
@@ -1682,28 +1706,26 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 .archive-main {
   display: grid;
   grid-column: 2;
-  gap: var(--subpage-copy-gap);
-  max-width: 56ch;
+  gap: 0.42rem;
   min-width: 0;
 }
 
 .archive-main strong {
   color: var(--cw-paper);
   font-family: var(--font-display); font-stretch: 125%;
-  font-size: var(--subpage-item-title);
+  font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: 700;
-  line-height: var(--subpage-item-leading);
+  line-height: var(--leading-tight);
   overflow-wrap: break-word;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .archive-main span {
-  max-width: 58ch;
-  color: var(--subpage-text);
+  color: rgba(255, 247, 234, 0.66);
   font-size: var(--type-body);
   line-height: var(--leading-body);
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .archive-meta {
@@ -1712,12 +1734,14 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   grid-row: 1;
   justify-items: start;
   padding-top: 0.12rem;
-  color: var(--subpage-muted);
-  font-size: var(--type-small);
-  font-weight: 500;
+  color: rgba(255, 247, 234, 0.54);
+  font-size: var(--type-caption);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  line-height: var(--leading-body);
+  letter-spacing: 0.075em;
+  line-height: 1.35;
   text-align: left;
+  text-transform: uppercase;
 }
 
 .archive-meta time {
@@ -1755,8 +1779,8 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   grid-template-columns: minmax(280px, 0.62fr) minmax(0, 1fr) auto;
   gap: clamp(1rem, 3vw, 2.4rem);
   align-items: center;
-  border-bottom: 1px solid var(--subpage-rule);
-  padding: var(--subpage-row-space) 0;
+  border-bottom: 1px solid rgb(var(--topic-accent) / 0.14);
+  padding: clamp(1.15rem, 2.8vw, 2rem) 0;
   color: inherit;
   isolation: isolate;
   outline: 0;
@@ -1831,26 +1855,24 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 .project-row-copy {
   display: grid;
-  gap: var(--subpage-copy-gap);
+  gap: 0.6rem;
   min-width: 0;
 }
 
 .project-row-copy strong {
   color: var(--cw-paper);
   font-family: var(--font-display); font-stretch: 125%;
-  font-size: var(--subpage-item-title);
-  font-weight: 700;
-  line-height: var(--subpage-item-leading);
+  font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  line-height: 1.12;
   overflow-wrap: break-word;
-  text-wrap: balance;
+  text-wrap: wrap;
 }
 
 .project-row-copy > span {
-  max-width: 46rem;
-  color: var(--subpage-text);
+  color: rgba(255, 247, 234, 0.64);
   font-size: var(--type-body);
   line-height: var(--leading-body);
-  text-wrap: pretty;
+  text-wrap: wrap;
 }
 
 .project-row > em {
@@ -1864,7 +1886,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 }
 
 .subpage-projects .project-row {
-  border-bottom-color: var(--subpage-rule);
+  border-bottom-color: rgba(92, 154, 255, 0.16);
   column-gap: clamp(1rem, 3vw, 2.2rem);
 }
 
@@ -1900,7 +1922,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 @media (max-width: 980px) {
   :root {
-    --nav-clearance: clamp(5.5rem, 10vw, 7rem);
+    --nav-clearance: calc(clamp(5.5rem, 10vw, 7rem) + env(safe-area-inset-top));
   }
 
   .cosmic-home::before {
@@ -1987,9 +2009,8 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 @media (max-width: 760px) {
   :root {
-    --subpage-item-title: clamp(1.35rem, 5.7vw, 1.68rem);
     --nav-top: 0.55rem;
-    --nav-clearance: 4.8rem;
+    --nav-clearance: calc(4.8rem + env(safe-area-inset-top));
   }
 
   .cosmic-hero {
@@ -2017,7 +2038,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   .site-nav {
     grid-template-columns: auto 1fr auto;
     gap: 0;
-    width: calc(100% - 1.25rem);
+    width: calc(100% - max(1.25rem, 2 * var(--safe-x)));
   }
 
   .site-nav-primary {
@@ -2040,7 +2061,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   /* Reading down a page tucks the bar away; scrolling up (or focusing it)
      brings it straight back. */
   .site-nav[data-destination-nav] { transition: translate 280ms var(--cw-ease), opacity 220ms ease; }
-  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) { translate: 0 calc(-100% - var(--nav-top) - 1.5rem); opacity: 0; pointer-events: none; }
+  .site-nav[data-destination-nav][data-tucked]:not(:focus-within) { translate: 0 calc(-100% - var(--nav-top) - env(safe-area-inset-top) - 1.5rem); opacity: 0; pointer-events: none; }
   .site-nav[data-destination-nav][data-tucked]:not(:focus-within) :is(a, nav) { pointer-events: none; }
   /* The arrow already goes home, so phones drop Home to give the routes room. */
   .site-nav[data-destination-nav] .site-nav-home { display: none; }
@@ -2159,14 +2180,14 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   }
 
   .project-row-copy strong {
-    font-size: var(--subpage-item-title);
+    font-size: clamp(1.85rem, 8.5vw, 2.65rem);
   }
 
   /* Keep screenshots proportional and descriptions comfortable to read. */
   .subpage-projects .project-row {
     grid-template-columns: 1fr;
     gap: 1rem;
-    padding: var(--subpage-row-space) 0;
+    padding: 1.5rem 0;
   }
 
   .subpage-projects .project-shot {
@@ -2176,17 +2197,17 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   }
 
   .subpage-projects .project-row-copy {
-    gap: var(--subpage-copy-gap);
+    gap: 0.55rem;
   }
 
   .subpage-projects .project-row-copy strong {
-    font-size: var(--subpage-item-title);
-    line-height: var(--subpage-item-leading);
+    font-size: clamp(1.5rem, 6vw, 1.75rem);
+    line-height: 1.12;
   }
 
   .subpage-projects .project-row-copy > span {
-    font-size: var(--type-body);
-    line-height: var(--leading-body);
+    font-size: 1rem;
+    line-height: 1.6;
     max-width: none;
   }
 
@@ -2201,7 +2222,8 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
   }
 
   .archive-group + .archive-group {
-    margin-top: var(--subpage-section-space);
+    margin-top: clamp(0.95rem, 4vw, 1.25rem);
+    padding-top: clamp(0.65rem, 2.8vw, 0.85rem);
   }
 
   .archive-row {
@@ -2209,11 +2231,11 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
     grid-template-rows: auto auto;
     column-gap: 0.75rem;
     row-gap: 0.5rem;
-    padding: var(--subpage-row-space) 0;
+    padding: 1.4rem 0;
   }
 
   .archive-main strong {
-    font-size: var(--subpage-item-title);
+    font-size: clamp(1.35rem, 5.7vw, 1.68rem);
   }
 
   .archive-main {
@@ -2359,7 +2381,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 @media (max-width: 520px) {
   :root {
-    --nav-clearance: 4.2rem;
+    --nav-clearance: calc(4.2rem + env(safe-area-inset-top));
   }
 
   .site-nav a {
@@ -2500,7 +2522,7 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 
 @media (max-width: 760px) and (orientation: landscape), (max-height: 540px) {
   :root {
-    --nav-clearance: 5.35rem;
+    --nav-clearance: calc(5.35rem + env(safe-area-inset-top));
   }
 
   .cosmic-hero {
@@ -2846,6 +2868,20 @@ html[data-island-snap="true"][data-island-gliding="true"] { scroll-snap-type: no
 @media (hover: none) {
   /* ── Cancel all hover effects on touch devices ── */
 
+  /* A press answers the tap before the next page arrives. */
+  .site-nav a,
+  .archive-row,
+  .project-row {
+    -webkit-tap-highlight-color: transparent;
+  }
+  .site-nav a:active {
+    opacity: 0.6;
+  }
+  .archive-row:active,
+  .project-row:active {
+    opacity: 0.72;
+  }
+
   /* World links */
   .world-title-link:hover,
   .world-intro > a:hover,
@@ -3109,7 +3145,7 @@ html[data-island-entering] .site-nav {
    the lights-off still fades in over the lit one, which then steps aside so
    their soft edges never double; the room's lamp glows go out with it. Where
    WebGL stages the switch fixture by fixture (ParallaxStill), the canvas
-   replaces this crossfade; the glows and the page keep the lamp's timing
+   replaces this crossfade; the glows keep the lamp's timing
    (lib/light-switch.ts): it warms up coming on and goes out almost at once. */
 /* Match ROOM_LIGHTS_ON_DURATION for the fallback when the canvas is absent. */
 [data-lights-off] { opacity: 0; transition: opacity 120ms cubic-bezier(.45, 0, .25, 1); }
@@ -3121,15 +3157,46 @@ html[data-projects-lights="off"] [data-lights-on="projects"] { opacity: 0; trans
 [data-room-light] { transition: opacity var(--light-on, 100ms) cubic-bezier(.45, 0, .55, 1) var(--light-on-delay, 0ms); }
 html[data-writing-lights="off"] [data-room-light="writing"],
 html[data-projects-lights="off"] [data-room-light="projects"] { opacity: 0 !important; transition-duration: var(--light-off, 70ms); transition-delay: var(--light-off-delay, 0ms); }
-[data-room-dim] { transition: filter 100ms cubic-bezier(.45, 0, .55, 1); }
-html[data-writing-lights="off"] [data-room-dim="writing"] { filter: brightness(.4) saturate(.7); transition-duration: 70ms; transition-delay: 0ms; }
-@media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light], [data-room-dim] { transition: none; } }
+@media (prefers-reduced-motion: reduce) { [data-lights-off], [data-room-light] { transition: none; } }
 
 /* Writing's entry carries the island's notebook off its desk: under it the
    desk is shown without the notebook (lit or dark, with the room's switch),
-   and the notebook's drawn-on pages and edges step aside. */
+   including the notebook's paper and printed ink. */
 [data-book-lifted] { opacity: 0; }
 html[data-book-transition] [data-book-lifted="lit"] { opacity: 1; }
 html[data-book-transition][data-writing-lights="off"] [data-book-lifted="lit"] { opacity: 0; }
 html[data-book-transition][data-writing-lights="off"] [data-book-lifted="dark"] { opacity: 1; }
-html[data-book-transition] [data-book-surface] { opacity: 0 !important; }
+
+/* Writing and Projects on the shared topic scale (tokens in :root; Work's
+   own module uses the same ones). Doubled classes outrank the older
+   per-breakpoint rules above without touching them. */
+.topic-page.topic-page .archive-group-heading {
+  color: var(--topic-label-color);
+  font-size: var(--topic-label-size);
+  font-weight: 600;
+  letter-spacing: var(--topic-label-tracking);
+  line-height: 1.5;
+}
+.topic-page.topic-page .archive-group + .archive-group {
+  margin-top: var(--topic-section-gap);
+  padding-top: 0;
+}
+.topic-page.topic-page :is(.archive-main strong, .project-row-copy strong) {
+  font-size: var(--topic-title-size);
+  font-weight: 600;
+  line-height: var(--topic-title-leading);
+  letter-spacing: -0.01em;
+}
+.topic-page.topic-page :is(.archive-main span, .project-row-copy > span) {
+  color: var(--topic-body-color);
+  font-size: var(--topic-body-size);
+  line-height: var(--topic-body-leading);
+}
+.topic-page.topic-page .archive-meta {
+  color: var(--topic-meta-color);
+  font-size: var(--topic-meta-size);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.6;
+  text-transform: none;
+}

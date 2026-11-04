@@ -85,6 +85,8 @@ test("Work background pauses for reduced motion and resumes without losing the r
   await page.goto("/work");
   const video = page.locator("[data-background-video]");
   await expect.poll(() => video.evaluate((node: HTMLVideoElement) => !node.paused && node.currentTime > 0)).toBe(true);
+  // Wait for the deferred cursor before testing its reduced-motion lifecycle.
+  await expect(page.locator("body")).toHaveClass(/rocket-cursor-active/);
   await page.mouse.move(300, 200);
   await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -59,6 +59,9 @@ if opts.world == 'work':
             pts.append(project((x, y, .052)) + [seen((x, y, .075))])
         return pts
     roads = [((-3.3, -.95), (3.2, -.95), 'x'), ((-3.2, 1.35), (3.2, 1.35), 'x'), ((-1.05, -2.3), (-1.05, 2.15), 'y'), ((1.55, -2.3), (1.55, 2.15), 'y')]
+    refinements = json.loads((Path(__file__).with_name('island-refinements.json')).read_text())
+    if refinements['work']['traffic_hierarchy']:
+        roads = [roads[0], roads[3]]
     life['lanes'] = [lane(a, b, off, axis) for a, b, axis in roads for off in (-.05, .05)]
     # The same lanes in 3D, for traffic in the rotatable model and the camera
     # flights (lib/island-traffic.ts): each a straight run of road, in Three's

@@ -1,13 +1,28 @@
 import { expect, test } from "@playwright/test";
 import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
 
-test("the book opens the complete Writing archive without featuring an essay", async ({ page }) => {
+test("the book opens the complete Writing archive", async ({ page, isMobile }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/#writing");
-  await expect(page.locator("[data-book-page]")).toContainText("The Cost ofKeeping Up");
+  const spread = page.locator("#writing [data-book-spread]");
+  await expect(spread).toHaveAttribute("data-essays", /The Cost of Keeping Up/);
+  // The paper and ink are rendered together. Neither dimming the room nor
+  // hovering the book should bring back the old flat rectangular overlay.
+  const lightsOff = page.getByRole("switch", { name: "study lights" });
+  if (isMobile) await lightsOff.tap(); else await lightsOff.click();
+  await expect(page.locator("html")).toHaveAttribute("data-writing-lights", "off");
+  if (!isMobile) await page.locator("#writing [data-island-link]").hover();
+  await expect(page.locator("#writing [data-book-page], #writing [data-book-response]")).toHaveCount(0);
+  expect(await spread.evaluate(node => getComputedStyle(node).fill)).toBe("none");
+  // The spread's touch glow exists for press feedback, but stays unseen at rest.
+  await expect(page.locator("#writing svg:has([data-touch-surface='spread'])")).toHaveCSS("opacity", "0");
+  const lightsOn = page.getByRole("switch", { name: "study lights" });
+  if (isMobile) await lightsOn.tap(); else await lightsOn.click();
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
   await watchRocketLaunch(page);
-  await page.locator("#writing [data-island-link]").click();
+  const island = page.locator("#writing [data-island-link]");
+  if (isMobile) await island.tap(); else await island.click();
   await expectRocketLaunched(page);
   // The island's open notebook lifts off to face you and is thumbed through,
   // past Carter's printed essays.
@@ -73,6 +88,10 @@ test("the book opens the complete Writing archive without featuring an essay", a
 test("direct and reduced-motion Writing entry show every essay as a regular archive row", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/#writing");
+  // Let hash restoration finish before Playwright scrolls the link into view.
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-travelling", "false");
+  await expect(page.getByRole("button", { name: "Show Writing island" })).toBeEnabled();
   await page.locator("#writing [data-island-link]").click();
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(0);

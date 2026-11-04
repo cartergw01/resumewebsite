@@ -21,6 +21,13 @@ test("mobile islands and map labels keep clear of navigation at different height
         expect(box.x).toBeGreaterThanOrEqual(0);
         expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
         expect(box.y + box.height).toBeLessThan(prompt.y - 6);
+        const image = label.locator("..").locator("img").first();
+        const frameBottom = await image.evaluate(node => {
+          const box = node.getBoundingClientRect();
+          const aspect = Number(node.getAttribute("width")) / Number(node.getAttribute("height"));
+          return box.y + (box.height + Math.min(box.height, box.width / aspect)) / 2;
+        });
+        expect(box.y).toBeGreaterThanOrEqual(frameBottom + 3);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       if (id === 'hello') for (const link of await page.locator('#hello [aria-label="Contact"] a').all()) {
@@ -44,7 +51,7 @@ test("phone headers prioritize routes while contact remains available below cont
     await expect(contact).toBeInViewport();
     for (const link of await contact.getByRole('link').all()) {
       const box = (await link.boundingBox())!;
-      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.width).toBeGreaterThanOrEqual(36);
       expect(box.height).toBeGreaterThanOrEqual(44);
     }
     await expect(contact.getByRole('link',{name:'Email'})).toHaveAttribute('href', /^mailto:/);

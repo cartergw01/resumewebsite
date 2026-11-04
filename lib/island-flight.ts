@@ -114,12 +114,15 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       }
     },
     // Fly from one island's still to the next at progress t (0..1).
-    render(from: string, to: string, t: number, fromRect: DOMRect, toRect: DOMRect) {
+    render(from: string, to: string, t: number, rect: DOMRect) {
       const a = placed.get(from), b = placed.get(to);
       if (!a || !b) return false;
       const width = canvas.clientWidth, height = canvas.clientHeight;
       const ratio = Math.min(devicePixelRatio, 1.25);
-      if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) renderer.setPixelRatio(ratio), renderer.setSize(width, height, false);
+      if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
+        renderer.setPixelRatio(ratio);
+        renderer.setSize(width, height, false);
+      }
       const e = smooth(t);
       // Pull back and rise off the first island, cross, then settle onto the next.
       const lift = new Vector3(0, 6, 0);
@@ -128,9 +131,7 @@ export async function createFlightWorld(canvas: HTMLCanvasElement, islands: Flig
       camera.position.copy(bezier(a.position, p1, p2, b.position, e));
       camera.lookAt(a.target.clone().lerp(b.target, smooth((e - .12) / .76)));
       camera.updateMatrixWorld(true);
-      // Each stop can have its own framing: Projects lands closer and higher
-      // on phones. Match both endpoints so the still never jumps on arrival.
-      const pa = projection(a, fromRect, width, height), pb = projection(b, toRect, width, height);
+      const pa = projection(a, rect, width, height), pb = projection(b, rect, width, height);
       camera.projectionMatrix.fromArray(pa.elements.map((value, i) => value + (pb.elements[i] - value) * e));
       // Widen the lens through the middle so both islands share the frame,
       // zooming out about the island box (the projection's off-axis centre).

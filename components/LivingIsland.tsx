@@ -8,8 +8,6 @@ import { artworkOutline } from "@/lib/artwork-perspective";
 import { towerFloors, type IslandArtworks, type IslandLandmark } from "@/lib/island-artwork";
 import styles from "./IslandHome.module.css";
 import motionStyles from "./LivingIsland.module.css";
-import CityTimeToggle from "./CityTimeToggle";
-import RoomLightSwitch from "./RoomLightSwitch";
 import { ROOM_LIGHTS_INTENT, storedLightsOn } from "@/lib/room-lights";
 import { CITY_DAY_INTENT, currentCityTime, storedCityTime } from "@/lib/city-time";
 import { prepareWorkEntry } from "@/lib/work-entry";
@@ -17,6 +15,7 @@ import { TIMINGS } from "@/lib/light-switch";
 import CityFireworks from "./CityFireworks";
 import ParallaxStill, { type LightMasks } from "./ParallaxStill";
 import IslandLife, { type Life } from "./IslandLife";
+import WorkshopObjects from "./WorkshopObjects";
 
 // A festoon bulb's switch timing at `x` along the string.
 function festoonTiming(xs: number[], x: number) {
@@ -31,9 +30,6 @@ function festoonTiming(xs: number[], x: number) {
 export default function LivingIsland({ artwork, landmark, world, preview, posters }: { artwork: Pick<IslandArtworks, "work" | "projects">; landmark: IslandLandmark; world: "work" | "projects"; preview?: string; posters?: string[] }) {
   const visualRef = useRef<HTMLSpanElement>(null);
   const island = artwork[world];
-  const imageSizes = world === "projects"
-    ? "(max-width: 760px) 125vw, (max-width: 1100px) 100vw, 80vw"
-    : "(max-width: 760px) 115vw, 68vw";
   const city = artwork.work;
   const workshop = artwork.projects;
   const traffic = city.traffic;
@@ -118,14 +114,14 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
   return <>
     <IslandLink href={`/${world}`} title={island.title} prompt={island.prompt} landmark={landmark} workshop={world === "projects"}>
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
-        {/* Request enough pixels for the overhanging art and the workshop's
-            closer frame, including its matching lights-off image. */}
+        {/* On phones the island overhangs the screen by 3rem each side, so it
+            shows at ~115vw; asking for 90vw made phones upscale a smaller file. */}
         {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes={imageSizes} loading="eager"
+          sizes="(max-width: 760px) 115vw, 68vw" loading="eager"
           quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`}
           data-lights-on={world === "projects" ? "projects" : undefined} /> : null}
         {world === "projects" && warm && darkWanted && "darkSrc" in island && island.darkSrc ? <Image src={island.darkSrc as string} alt="" width={island.width} height={island.height}
-          sizes={imageSizes} loading="eager" data-lights-off="projects"
+          sizes="(max-width: 760px) 115vw, 68vw" loading="eager" data-lights-off="projects"
           quality={75} draggable={false} className={motionStyles.image} /> : null}
         {world === "work" && warm && dayWanted && "daySrc" in city && city.daySrc ? <Image src={city.daySrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="lazy" data-city-time="day"
@@ -185,8 +181,8 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
         <svg className={styles.touchSurface} viewBox="0 0 1200 800" aria-hidden="true">
           <path data-touch-surface={world === "work" ? "entryWindow" : "screen"} d={artworkOutline(world === "work" ? city.entryWindow : workshop.screen)} />
         </svg>
+        {world === "projects" && warm ? <WorkshopObjects /> : null}
       </span>
     </IslandLink>
-    {world === "work" ? <CityTimeToggle /> : <RoomLightSwitch world="projects" />}
   </>;
 }

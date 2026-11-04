@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type MouseEvent, type PointerEvent, type ReactNode } from "react";
 import styles from "./IslandHome.module.css";
 import { beginBookEntry, beginWorkshopEntry, bookOpened } from "@/lib/workshop-entry";
 import { beginWorkEntry, prepareWorkEntry, WORK_PUSH_EASING, workPushScale } from "@/lib/work-entry";
@@ -10,20 +10,6 @@ import { ENTRY_APPROACH_DURATION, ENTRY_LIFT_DELAY, entryPace } from "@/lib/isla
 import { beginEntryLight, cancelEntryLight, type EntryWorld } from "@/lib/entry-light";
 import { tipSide } from "@/lib/island-overview";
 import type { IslandLandmark } from "@/lib/island-artwork";
-
-// Phones draw Work's arrow from below the island, where its words move to
-// stay clear of the city (see .cityCue in IslandHome.module.css).
-export function landmarkArrow(title: string, focus: IslandLandmark, phone = false) {
-  const x = focus.x * 1200, y = focus.y * 800;
-  const [start, first, last] = title === "Work"
-    ? phone ? [[690, 800], [730, 700], [x + 120, y + 170]] : [[250, 665], [560, 755], [x + 140, y + 150]]
-    : title === "Writing"
-      ? [[945, 25], [855, -35], [x + 160, y - 160]]
-      : [[880, 675], [1140, 620], [x + 240, y + 100]];
-  const angle = Math.atan2(y - last[1], x - last[0]);
-  const wing = (side: number) => `${x - 13 * Math.cos(angle) + side * 6 * Math.sin(angle)} ${y - 13 * Math.sin(angle) - side * 6 * Math.cos(angle)}`;
-  return `M${start.join(" ")}C${first.join(" ")} ${last.join(" ")} ${x} ${y}M${wing(1)}L${x} ${y}L${wing(-1)}`;
-}
 
 function landmarkApproach(visual: HTMLElement, link: HTMLElement, focus: IslandLandmark, city = false) {
   const art = link.closest<HTMLElement>("[data-scene-art]")!;
@@ -70,12 +56,29 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
 
   useEffect(() => () => cleanupRef.current?.(), []);
 
-  const enter = (event: MouseEvent<HTMLAnchorElement>) => {
-    // Keep native new-tab, context-menu, and reduced-motion navigation.
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const touchFeedback = {
+    onPointerDown: (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType !== "touch" || !event.isPrimary || event.currentTarget.closest<HTMLElement>("[data-island-stage]")?.dataset.entering) return;
+      touch.current = { x: event.clientX, y: event.clientY };
+      event.currentTarget.dataset.touchPressed = "true";
+    },
+    onPointerMove: (event: PointerEvent<HTMLElement>) => {
+      if (touch.current && Math.hypot(event.clientX - touch.current.x, event.clientY - touch.current.y) > 7) {
+        touch.current = null;
+        delete event.currentTarget.dataset.touchPressed;
+      }
+    },
+    onPointerUp: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+    onPointerCancel: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+    onPointerLeave: (event: PointerEvent<HTMLElement>) => { touch.current = null; delete event.currentTarget.dataset.touchPressed; },
+  };
 
-    const link = event.currentTarget;
+  const enter = (event: MouseEvent<HTMLAnchorElement>) => {
+    // Keep native new-tab, context-menu, reduced-motion and magnified navigation.
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || (window.visualViewport?.scale ?? 1) > 1.01) return;
+
+    const link = event.currentTarget.closest<HTMLElement>("[data-island-link]") ?? event.currentTarget;
     const stage = link.closest<HTMLElement>("[data-island-stage]");
     const visual = link.querySelector<HTMLElement>("[data-island-visual]");
     if (!stage || !visual) return;
@@ -142,6 +145,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       if (!handedOff) cancelAnimationFrame(paceFrame);
       window.removeEventListener("keydown", escape);
       window.removeEventListener("resize", interrupted);
+      window.removeEventListener("touchstart", pinchEntry);
+      window.visualViewport?.removeEventListener("resize", zoomEntry);
       window.removeEventListener("popstate", interrupted);
       motion.removeEventListener("change", skipMotion);
       zoom.cancel();
@@ -168,6 +173,9 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       router.push(href);
     }
     function interrupted() { if (!handedOff) reset(); else cancelScreen?.(); }
+    // A pinch takes over from the cinematic approach without leaving its cover.
+    function pinchEntry(event: TouchEvent) { if (event.touches.length > 1 && !handedOff) reset(); }
+    function zoomEntry() { if ((window.visualViewport?.scale ?? 1) > 1.01 && !handedOff) reset(); }
     // Impatient? Another tap, click, Enter or Space plays the rest of the
     // journey at four times the speed, including animations it starts later.
     let hurryFrame = 0;
@@ -203,6 +211,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
     }
     window.addEventListener("keydown", escape);
     window.addEventListener("resize", interrupted);
+    window.addEventListener("touchstart", pinchEntry, { passive: true });
+    window.visualViewport?.addEventListener("resize", zoomEntry);
     window.addEventListener("popstate", interrupted);
     motion.addEventListener("change", skipMotion);
     // Recover the homepage if a destination fails to mount, allowing a retry.
@@ -214,6 +224,16 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       });
     }).catch(() => { /* Unmounting cancels the animation. */ });
   };
+
+  if ((workshop || book) && !overview) return (
+    <div className={styles.islandLink} data-island-link data-island-objects data-workshop={workshop || undefined} data-world={title.toLowerCase()} tabIndex={-1} {...touchFeedback}>
+      <Link href={href} className={styles.workshopEntryHit} data-island-entry data-workshop-entry={workshop || undefined} data-writing-entry={book || undefined} onClick={enter}
+        aria-label={`${title}, ${prompt}`} data-tip={prompt} data-tip-side="nw" draggable={false}>
+        <span className="sr-only">{book ? "Read my essays" : "View all projects"}</span>
+      </Link>
+      {children}
+    </div>
+  );
 
   return (
     <Link
@@ -247,15 +267,7 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
       onClick={enter}
     >
       {children}
-      {overview ? <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.8">{title}</span> : <span data-reads="cue-opacity:opacity:1:0:rest" className={`${styles.landmarkCue} ${workshop ? styles.workshopCue : book ? styles.bookCue : styles.cityCue}`} data-island-cue>
-        <span>
-          <span className={styles.entryPrompt}>{prompt}</span>
-        </span>
-        <svg viewBox="0 0 1200 800" fill="none" aria-hidden="true">
-          <path d={landmarkArrow(title, landmark)} data-arrow="wide" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-          <path d={landmarkArrow(title, landmark, true)} data-arrow="phone" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>}
+      {overview && <span className={styles.overviewLabel} data-reads="cue-opacity:opacity:.94">{title}</span>}
     </Link>
   );
 }

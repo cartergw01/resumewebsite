@@ -43,7 +43,7 @@ test("a route can start from anywhere he has walked to", () => {
 test("room names are the copy's own words, never shortened", () => {
   const titles = [...copy.matchAll(/^#{1,3}\s+(.+)$/gm)].map(match => match[1]);
   for (const { id, label } of officeStops) {
-    if (id === "now") { assert(copy.includes("[886 Studios]")); continue; } // The job's name.
+    if (id === "now") { assert(copy.includes("886 Studios")); continue; } // The job's name.
     if (id === "side") { assert(titles.includes("Korobra Capital")); continue; } // Names the section's fund.
     assert(titles.includes(label), `"${label}" is not a heading in content/work.md`);
   }
