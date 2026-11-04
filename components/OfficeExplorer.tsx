@@ -23,20 +23,15 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
   const [view, setView] = useState<"office" | "list">("office");
   const worker = useRef<SVGGElement>(null);
   const glow = useRef<SVGGElement>(null);
-  const detail = useRef<HTMLDivElement>(null);
+  const names = useRef<HTMLDivElement>(null);
+  const map = useRef<HTMLDivElement>(null);
   const previous = useRef<OfficeStopId>(selected);
   const panelId = useId();
   const index = officeStops.findIndex(item => item.id === selected);
   const stop = officeStops[index];
   const next = officeStops[(index + 1) % officeStops.length];
-  const before = officeStops[(index - 1 + officeStops.length) % officeStops.length];
 
-  function selectRelated(id: OfficeStopId) {
-    setSelected(id);
-    requestAnimationFrame(() => detail.current?.focus({ preventScroll: true }));
-  }
-
-  // Arrow keys walk the tour from anywhere on the plan.
+  // Arrow keys walk the rooms from anywhere in the directory.
   function walkWithKeys(event: KeyboardEvent<HTMLDivElement>) {
     const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
@@ -45,6 +40,25 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
     setSelected(target.id);
     event.currentTarget.querySelector<HTMLButtonElement>(`[data-stop="${target.id}"]`)?.focus();
   }
+
+  // Next sits at the end of the details, so bring the walk back into view.
+  function walkOn() {
+    setSelected(next.id);
+    const narrow = matchMedia("(max-width: 960px)").matches;
+    const target = narrow ? map.current : names.current;
+    if (target && target.getBoundingClientRect().top < 0) {
+      target.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+  }
+
+  // On phones the directory is a single scrolling row: keep the current room in it.
+  useEffect(() => {
+    const row = names.current;
+    const current = row?.querySelector<HTMLElement>('[aria-pressed="true"]');
+    if (!row || !current || row.scrollWidth <= row.clientWidth) return;
+    const bounds = row.getBoundingClientRect(), item = current.getBoundingClientRect();
+    row.scrollTo({ left: row.scrollLeft + item.left - bounds.left - (bounds.width - item.width) / 2, behavior: "auto" });
+  }, [selected]);
 
   useEffect(() => {
     const marker = worker.current;
@@ -105,67 +119,64 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
     };
   }, [selected, stop, preview, view]);
 
-  const renderRoom = (item: OfficeStop) => {
+  // A floor is a pointer shortcut. The directory carries the names and the keyboard.
+  const renderFloor = (item: OfficeStop) => {
     const area = officeHitArea(item);
-    const [tagX, tagY] = officeProject(item.tag);
     return <button
       key={item.id}
       type="button"
       className={styles.room}
       data-stop={item.id}
+      tabIndex={-1}
+      aria-hidden="true"
       style={{
         left: percent(area.left, officeView.width), top: percent(area.top, officeView.height),
         width: percent(area.width, officeView.width), height: percent(area.height, officeView.height),
         "--floor": `polygon(${area.polygon})`,
       } as React.CSSProperties}
-      aria-label={item.label}
-      aria-pressed={selected === item.id}
-      aria-controls={panelId}
       onClick={() => setSelected(item.id)}
-    >
-      <span className={styles.roomLabel} style={{ left: percent(tagX - area.left, area.width), top: percent(tagY - area.top, area.height) }}>
-        {item.id === "slug" ? <>Slug Fund<span className={styles.labelRest}><br />Investment Group</span></> : item.label}
-      </span>
-    </button>;
+    />;
   };
+
+  const renderName = (item: OfficeStop) => <button
+    key={item.id}
+    type="button"
+    className={styles.name}
+    data-stop={item.id}
+    aria-pressed={selected === item.id}
+    aria-controls={panelId}
+    onClick={() => setSelected(item.id)}
+  >
+    {item.id === "slug" ? <>Slug Fund<span className={styles.nameRest}> Investment Group</span></> : item.label}
+  </button>;
+
+  const viewSwitch = <button type="button" className={styles.viewSwitch} onClick={() => setView(view === "office" ? "list" : "office")}>
+    {view === "office" ? "View as list" : "Back to office"}
+  </button>;
 
   return <div className={styles.explorer} data-office-explorer data-view={view} data-selected={selected}>
     <div className={styles.intro}>{header}</div>
-    <div className={styles.tour}>
-      <h2 className={styles.visuallyHidden}>The Office</h2>
-      {view === "office" && <div className={styles.tourControls}>
-        <button type="button" className={styles.step} onClick={() => setSelected(before.id)} aria-label={`Previous: ${before.label}`}>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 10H4m5-5-5 5 5 5" /></svg>
-        </button>
-        <button type="button" className={styles.nextStop} onClick={() => setSelected(next.id)}>
-          <span>Next: {next.label}</span>
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" /></svg>
-        </button>
-      </div>}
-      <button type="button" className={styles.viewSwitch} onClick={() => setView(view === "office" ? "list" : "office")}>
-        {view === "office" ? "View as list" : "Back to office"}
-      </button>
-    </div>
-    {view === "office" && <ol className={styles.track} aria-hidden="true">
-      {officeStops.map(item => <li key={item.id} data-on={item.id === selected} />)}
-    </ol>}
-    <div className={styles.mapColumn} hidden={view !== "office"}>
-      <div className={styles.plan} role="group" aria-label="Explore the office" onKeyDown={walkWithKeys}>
+    <h2 className={styles.visuallyHidden}>The Office</h2>
+    {view === "office"
+      ? <div className={styles.directory} ref={names} role="group" aria-label="Rooms in the office" onKeyDown={walkWithKeys}>
+        <div className={styles.nameGroup} role="group" aria-label="886 Studios">{officeStops.slice(0, 4).map(renderName)}</div>
+        <div className={styles.nameGroup}>{officeStops.slice(4).map(renderName)}</div>
+      </div>
+      : viewSwitch}
+    <div className={styles.mapColumn} ref={map} hidden={view !== "office"}>
+      <div className={styles.plan}>
         <OfficePlan workerRef={worker} glowRef={glow} lit={lit} active={selected} />
-        <div role="group" aria-label="886 Studios">
-          {officeStops.slice(0, 4).map(renderRoom)}
-        </div>
-        {officeStops.slice(4).map(renderRoom)}
+        {officeStops.map(renderFloor)}
       </div>
     </div>
-    <div className={styles.detail} ref={detail} tabIndex={-1} id={panelId} role="region" aria-label={stop.label} aria-live={preview ? "off" : "polite"} aria-atomic="true" hidden={view !== "office"}>
-      <div key={selected} className={styles.detailEnter}>
-        {panels[selected]}
-        {selected === "now" && <div className={styles.workLinks}>
-          {officeStops.slice(1, 4).map(item => <button type="button" key={item.id} onClick={() => selectRelated(item.id)}>
-            <span>{item.label}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" /></svg>
-          </button>)}
-        </div>}
+    <div className={styles.detail} id={panelId} role="region" aria-label={stop.label} aria-live={preview ? "off" : "polite"} aria-atomic="true" hidden={view !== "office"}>
+      <div key={selected} className={styles.detailEnter}>{panels[selected]}</div>
+      <div className={styles.detailEnd}>
+        <button type="button" className={styles.nextRoom} onClick={walkOn}>
+          <span>Next: {next.id === "slug" ? "Slug Fund" : next.label}</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" /></svg>
+        </button>
+        {viewSwitch}
       </div>
     </div>
     <div hidden={view !== "list"} className={styles.list}>{list}</div>

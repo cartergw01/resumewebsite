@@ -1,7 +1,7 @@
 /** An imagined office. The four 886 stations share one open studio. */
 export const officeSize = { width: 720, height: 600 } as const;
 /** The drawing the plan is projected into: a cutaway seen from the south-east. */
-export const officeView = { width: 1040, height: 830 } as const;
+export const officeView = { width: 1040, height: 704 } as const;
 export type Point = readonly [number, number];
 type Stop = {
   id: string; label: string; box: readonly [number, number, number, number];
@@ -15,8 +15,8 @@ export const officeStops = [
   { id: "founders", label: "Finding founders", box: [246, 224, 162, 128], point: [304, 250], via: [[304, 274]], hall: [230, 274], away: true, tag: [326, 330], light: [336, 258], reach: 96 },
   { id: "community", label: "Community", box: [40, 224, 190, 128], point: [112, 262], via: [[112, 294]], hall: [230, 294], away: false, tag: [118, 322], light: [120, 272], reach: 104 },
   { id: "research", label: "Contrary", box: [478, 86, 204, 164], point: [552, 164], via: [], hall: [440, 164], away: true, tag: [590, 214], light: [572, 136], reach: 124 },
-  { id: "slug", label: "Slug Fund Investment Group", box: [478, 278, 204, 236], point: [552, 380], via: [[552, 396], [480, 396], [480, 346]], hall: [440, 346], away: true, tag: [600, 462], light: [580, 340], reach: 138 },
-  { id: "side", label: "Side work", box: [80, 414, 156, 146], point: [148, 468], via: [[224, 468]], hall: [224, 376], away: true, tag: [160, 530], light: [136, 462], reach: 104 },
+  { id: "slug", label: "Slug Fund Investment Group", box: [478, 278, 204, 236], point: [552, 380], via: [[552, 396], [480, 396], [480, 346]], hall: [440, 346], away: true, tag: [585, 452], light: [580, 340], reach: 138 },
+  { id: "side", label: "Side work", box: [80, 414, 156, 146], point: [148, 468], via: [[224, 468]], hall: [224, 376], away: true, tag: [130, 530], light: [136, 462], reach: 104 },
   { id: "about", label: "About me", box: [260, 414, 148, 146], point: [328, 468], via: [[328, 420]], hall: [328, 376], away: false, tag: [336, 534], light: [336, 474], reach: 100 },
 ] as const satisfies readonly Stop[];
 
@@ -25,7 +25,7 @@ export type OfficeStop = (typeof officeStops)[number];
 
 /** Plan coordinates and a height to their place in the drawing. */
 export function officeProject([x, y]: Point, z = 0): Point {
-  return [Math.round((470 + (x - y) * .866) * 10) / 10, Math.round((96 + (x + y) * .5 - z) * 10) / 10];
+  return [Math.round((470 + (x - y) * .866) * 10) / 10, Math.round((62 + (x + y) * .5 - z) * 10) / 10];
 }
 
 /** A station's floor in the drawing, as a box and the polygon inside it. */

@@ -114,65 +114,17 @@ function BackWindow({ x, y, w, z = 24, h = 38 }: { x: number; y: number; w: numb
   </g>;
 }
 
-// The island the office stands on, in the same green and stone as the homepage's.
+// Repeatable scatter for book heights and gaps: the same on the server and in the browser.
 const noise = (index: number) => ((index * 2654435761) >>> 0) % 1000 / 1000;
-const rim = [[-14, -14], [120, -22], [300, -14], [446, -20], [454, 36], [600, 32], [716, 60], [726, 130], [738, 220], [728, 330], [736, 430], [730, 546], [640, 552], [540, 560], [456, 556], [444, 600], [380, 608], [300, 604], [220, 606], [130, 600], [56, 592], [28, 440], [-20, 428], [-24, 220]] as const;
-const frontEdge = rim.slice(6, 21).reverse();
-// Stone tapers from the rim to a jagged keel, darkening as it falls away from the lights.
-const keelX = officeProject([520, 520])[0];
-const tier = ([x, y]: readonly [number, number], index: number, amount: number) => {
-  const reach = Math.pow(Math.sin(Math.PI * index / (frontEdge.length - 1)), .9);
-  const [sx, sy] = officeProject([x, y], -10);
-  const depth = (24 + 118 * reach * (.66 + .5 * noise(index + 3))) * amount;
-  const pull = amount * (.2 + .22 * noise(index + 11));
-  return `${Math.round(sx + (keelX - sx) * pull)},${Math.round(sy + depth)}`;
-};
-const stone = [["#4c4a48", "#43413f", "#3a3937"], ["#5c5954", "#524f4b", "#474542"]];
-const rockFacets = frontEdge.slice(1).map((point, index) => {
-  const previous = frontEdge[index];
-  const faces = stone[Math.abs(point[0] - previous[0]) > Math.abs(point[1] - previous[1]) ? 0 : 1];
-  const [a, b] = [at(previous[0], previous[1], -10), at(point[0], point[1], -10)];
-  const [c, d] = [tier(previous, index, .48), tier(point, index + 1, .48)];
-  const [e, f] = [tier(previous, index, 1), tier(point, index + 1, 1)];
-  const shade = (offset: number) => faces[(index + offset) % 3];
-  return {
-    soil: `${at(previous[0], previous[1])} ${at(point[0], point[1])} ${b} ${a}`,
-    facets: [
-      [`${e} ${f} ${d}`, "#1d1e22"], [`${e} ${d} ${c}`, "#26272b"],
-      [`${c} ${d} ${b}`, shade(1)], [`${c} ${b} ${a}`, shade(0)],
-    ],
-  };
-});
 
-function Island() {
+/** The floor plate's cut edge, under the walls nearest the viewer. */
+const plateEdge = [[58, 400], [58, 584], [432, 584], [432, 536], [704, 536], [704, 66]] as const;
+function Plate() {
   return <g>
-    {rockFacets.map((facet, index) => <g key={index}>
-      {facet.facets.map(([points, fill]) => <polygon key={points} fill={fill} stroke={fill} strokeWidth=".5" points={points} />)}
-      <polygon fill="#4a3f33" points={facet.soil} />
-    </g>)}
-    <polygon fill="#2f402c" points={rim.map(point => at(point[0], point[1])).join(" ")} />
-    <polyline fill="none" stroke="#475c3f" strokeWidth="2" points={frontEdge.map(point => at(point[0], point[1])).join(" ")} />
-    {([[706, 500, 1], [716, 300, .8], [690, 58, .9], [14, 410, 1], [480, 546, .7]] as const).map(([x, y, size]) => {
-      const [cx, cy] = officeProject([x, y]);
-      return <g key={`${x}-${y}`} transform={`translate(${cx} ${cy}) scale(${size})`}>
-        <ellipse cx="3" cy="1" rx="12" ry="5" fill="#16201488" />
-        <path fill="#3b5438" d="M-13-8 0-40 13-8Z" /><path fill="#4a6743" d="M-10-22 0-50 10-22Z" />
-      </g>;
+    {plateEdge.slice(1).map((point, index) => {
+      const from = plateEdge[index];
+      return <polygon key={index} fill={from[0] === point[0] ? "#2b3147" : "#1f2436"} points={`${at(from[0], from[1])} ${at(point[0], point[1])} ${at(point[0], point[1], -14)} ${at(from[0], from[1], -14)}`} />;
     })}
-  </g>;
-}
-
-/** Taipei 101 across the city, fading into the dark above the right wing. */
-function Tower({ fade }: { fade: string }) {
-  const floors = Array.from({ length: 7 }, (_, index) => 86 + index * 36);
-  return <g fill={`url(#${fade})`}>
-    <path d="M902 12v34M897 46h10l3 14h-16Z" stroke="#7fa5a4" strokeWidth="1" />
-    {floors.map(y => <g key={y}>
-      <path d={`M880 ${y - 26}h44l6 36h-56Z`} />
-      <path d={`M874 ${y + 10}h56`} stroke="#e6c79466" strokeWidth="1.5" />
-      {[886, 896, 906, 916].map((x, index) => <rect key={x} x={x} y={y - 16 + (index % 2) * 10} width="4" height="3" fill="#f4d9a0" opacity=".42" />)}
-    </g>)}
-    <path d="M870 338l-10 60h86l-10-60Z" />
   </g>;
 }
 
@@ -210,7 +162,7 @@ function Pipeline({ x, y, z }: { x: number; y: number; z: number }) {
 /** A small, directly drawn office: every station is backed by an HTML button. */
 export default function OfficePlan({ workerRef, glowRef, lit, active }: { workerRef: Ref<SVGGElement>; glowRef: Ref<SVGGElement>; lit: OfficeStopId | null; active: OfficeStopId }) {
   const id = useId();
-  const [night, hole, warm, halo, fade] = ["night", "hole", "warm", "halo", "fade"].map(name => `${id}${name}`);
+  const [night, hole, warm, halo] = ["night", "hole", "warm", "halo"].map(name => `${id}${name}`);
   const stop = officeStops.find(item => item.id === active)!;
   const [startX, startY] = officeProject(stop.point);
   const body = [
@@ -225,7 +177,6 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
       <radialGradient id={hole}><stop offset=".45" stopColor="#000" /><stop offset="1" stopColor="#000" stopOpacity="0" /></radialGradient>
       <radialGradient id={warm}><stop offset="0" stopColor="#ffd696" stopOpacity=".32" /><stop offset="1" stopColor="#ffc877" stopOpacity="0" /></radialGradient>
       <radialGradient id={halo}><stop offset="0" stopColor="#fff3cf" /><stop offset=".22" stopColor="#ffdf9e" stopOpacity=".8" /><stop offset="1" stopColor="#ffcf7a" stopOpacity="0" /></radialGradient>
-      <linearGradient id={fade} x1="0" y1="20" x2="0" y2="390" gradientUnits="userSpaceOnUse"><stop offset="0" stopColor="#4f7a7c" /><stop offset=".65" stopColor="#253d44" /><stop offset="1" stopColor="#101a22" /></linearGradient>
       <mask id={night} maskUnits="userSpaceOnUse" x="0" y="0" width={officeView.width} height={officeView.height}>
         {body.map(points => <polygon key={points} points={points} fill="#fff" />)}
         {officeStops.map(item => {
@@ -240,8 +191,7 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
       </mask>
     </defs>
 
-    <Tower fade={fade} />
-    <Island />
+    <Plate />
 
     <g>
       <polygon fill="#d9ceb6" points={`${at(24, 24)} ${at(424, 24)} ${at(424, 352)} ${at(24, 352)}`} />
@@ -254,6 +204,17 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
       <polygon fill="#cfc3ae" points={`${at(64, 400)} ${at(424, 400)} ${at(424, 576)} ${at(64, 576)}`} />
       <path stroke="#8a795c20" strokeWidth="1" d={Array.from({ length: 6 }, (_, index) => `M${at(64, 426 + index * 26)} L${at(424, 426 + index * 26)}`).join(" ")} />
     </g>
+
+    {/* A room's name is lettered on its floor, and shows when the room is lit. */}
+    {officeStops.map(item => {
+      const [cx, cy] = officeProject(item.tag);
+      const lines = item.id === "slug" ? ["Slug Fund", "Investment Group"] : [item.label];
+      return <g key={item.id} className={styles.station} data-station={item.id} data-active={lit === item.id}>
+        <text className={styles.floorName} transform={`matrix(.866 .5 -.866 .5 ${cx} ${cy})`} textAnchor="middle">
+          {lines.map((line, index) => <tspan key={line} x="0" y={index * 20}>{line}</tspan>)}
+        </text>
+      </g>;
+    })}
 
     {/* Tall back walls, then everything else from far to near. */}
     <Box x={18} y={18} w={406} d={6} h={74} tone={wall} />
@@ -301,8 +262,8 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
       {/* The mic for founder events, and string lights over the sofa. */}
       <path d={`M${at(214, 296)} L${at(214, 296, 40)}`} stroke="#39403a" strokeWidth="2.5" />
       <circle cx={officeProject([214, 296], 44)[0]} cy={officeProject([214, 296], 44)[1]} r="4" fill="#39403a" />
-      <path d={`M${at(40, 232, 72)} L${at(40, 232)} M${at(208, 232, 66)} L${at(208, 232)}`} stroke="#5b5a4c" strokeWidth="2" />
-      <path className={styles.festoonCord} d={`M${at(40, 232, 72)} Q${at(124, 232, 42)} ${at(208, 232, 66)}`} />
+      <path d={`M${at(40, 232, 54)} L${at(40, 232)} M${at(208, 232, 50)} L${at(208, 232)}`} stroke="#5b5a4c" strokeWidth="2" />
+      <path className={styles.festoonCord} d={`M${at(40, 232, 54)} Q${at(124, 232, 24)} ${at(208, 232, 50)}`} />
     </Station>
 
     <Station id="founders" active={lit}>
@@ -407,7 +368,7 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
       </g>; })()}
       <Chair x={654} y={332} back="x+" /><Chair x={552} y={380} back="y+" /><Chair x={606} y={380} back="y+" />
     </Station>
-    <Plant x={668} y={462} />
+    <Plant x={678} y={290} size={.85} />
 
     {/* Front walls, cut low to show the rooms. */}
     <Box x={696} y={72} w={8} d={460} h={22} tone={wall} />
@@ -434,7 +395,7 @@ export default function OfficePlan({ workerRef, glowRef, lit, active }: { worker
     })}
     <g className={styles.station} data-station="community" data-active={lit === "community"}>
       {[.12, .3, .5, .7, .88].map(t => {
-        const lift = 72 * (1 - t) * (1 - t) + 2 * 42 * (1 - t) * t + 66 * t * t;
+        const lift = 54 * (1 - t) * (1 - t) + 2 * 24 * (1 - t) * t + 50 * t * t;
         const [cx, cy] = officeProject([40 + t * 168, 232], lift);
         return <circle key={t} className={styles.bulb} fill={`url(#${halo})`} cx={cx} cy={cy} r="11" />;
       })}

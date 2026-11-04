@@ -1,11 +1,11 @@
-/* Story on the left, the office afloat on the right. Phones stack them. */
+/* Story on the left, the office on the right. Phones stack them. */
 .explorer {
   --map-top: var(--subpage-top);
-  --map-ratio: calc(1040 / 830);
+  --map-ratio: calc(1040 / 704);
   display: grid;
   grid-template-columns: minmax(21rem, 26rem) minmax(0, 1fr);
-  grid-template-rows: auto auto auto 1fr;
-  grid-template-areas: "intro map" "tour map" "track map" "detail map";
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas: "intro map" "directory map" "detail map";
   column-gap: clamp(.5rem, 2vw, 2rem);
   width: 100%;
 }
@@ -14,44 +14,42 @@
 .visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .explorer button:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; }
 
-.tour { grid-area: tour; display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; }
-.tourControls { display: flex; align-items: center; gap: .375rem; min-width: 0; }
-.step, .nextStop { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #e6c79459; border-radius: 22px; background: #0a0f18d9; color: var(--cw-paper); font: inherit; font-size: var(--type-small); font-weight: 500; cursor: pointer; transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease; }
-.step { flex: none; width: 44px; padding: 0; }
-.nextStop { gap: .5rem; min-width: 0; padding: 0 .875rem 0 1.125rem; }
-.nextStop span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.step:hover, .nextStop:hover { border-color: #e6c794; background: #e6c794; color: #111722; }
-.step svg, .nextStop svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.viewSwitch { flex: none; min-height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font: inherit; font-size: var(--type-small); text-decoration: underline; text-decoration-color: var(--subpage-rule); text-underline-offset: .25em; cursor: pointer; }
-.viewSwitch:hover { color: var(--cw-paper); text-decoration-color: currentColor; }
+/* The building directory: every room by name, on one rule-bound block of type. */
+.directory { grid-area: directory; display: grid; gap: .125rem; min-width: 0; padding-block: .5rem; border-block: 1px solid var(--subpage-rule); scroll-margin-top: var(--nav-clearance); }
+.nameGroup { display: flex; flex-wrap: wrap; column-gap: 1rem; }
+.name { min-height: 36px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font: inherit; font-size: var(--type-small); white-space: nowrap; cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: .4em; transition: color 180ms ease, text-decoration-color 180ms ease; }
+.name:hover, .name:focus-visible,
+.explorer:has(.room[data-stop="now"]:hover) .name[data-stop="now"],
+.explorer:has(.room[data-stop="accelerator"]:hover) .name[data-stop="accelerator"],
+.explorer:has(.room[data-stop="founders"]:hover) .name[data-stop="founders"],
+.explorer:has(.room[data-stop="community"]:hover) .name[data-stop="community"],
+.explorer:has(.room[data-stop="research"]:hover) .name[data-stop="research"],
+.explorer:has(.room[data-stop="slug"]:hover) .name[data-stop="slug"],
+.explorer:has(.room[data-stop="side"]:hover) .name[data-stop="side"],
+.explorer:has(.room[data-stop="about"]:hover) .name[data-stop="about"] { color: var(--cw-paper); text-decoration-color: #fff7ea66; }
+.name[aria-pressed="true"] { color: var(--cw-paper); font-weight: 500; text-decoration-color: #e6c794; }
 
-/* Where you are on the walk: four stops at 886, then the rest. */
-.track { grid-area: track; display: flex; gap: 4px; margin: .75rem 0 0; padding: 0; list-style: none; }
-.track li { flex: 1; height: 2px; background: #fff7ea2e; transition: background-color 240ms ease; }
-.track li:nth-child(4) { margin-right: 10px; }
-.track li[data-on="true"] { background: #e6c794; }
-
-.mapColumn { grid-area: map; position: sticky; top: var(--map-top); align-self: start; min-width: 0; margin-right: calc(-1 * max(0px, (100vw - 1120px) / 2 - 2rem)); margin-left: -1.5rem; }
+.mapColumn { grid-area: map; position: sticky; top: var(--map-top); align-self: start; display: flex; align-items: center; min-width: 0; min-height: calc(100svh - var(--map-top) - 1rem); margin-right: calc(-1 * max(0px, (100vw - 1120px) / 2 - 2rem)); margin-left: -1.5rem; scroll-margin-top: var(--nav-clearance); }
 .mapColumn[hidden], .detail[hidden], .list[hidden] { display: none; }
-.plan { position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * var(--map-ratio))); aspect-ratio: 1040 / 830; margin-inline: auto; isolation: isolate; animation: float 9s ease-in-out infinite alternate; }
-@keyframes float { from { transform: translateY(-5px); } to { transform: translateY(5px); } }
+.plan { position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * var(--map-ratio))); aspect-ratio: 1040 / 704; margin-inline: auto; isolation: isolate; }
 .drawing { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; user-select: none; }
 
 /* The building is dark but legible; a lit station is a soft hole in the dark. */
 .darkness { fill: #060b2a; opacity: .74; }
 .station { --engaged: 0; }
 .station[data-active="true"] { --engaged: 1; }
-.plan:has(.room[data-stop="now"]:is(:hover, :focus-visible)) .station[data-station="now"]:not([data-active="true"]),
-.plan:has(.room[data-stop="accelerator"]:is(:hover, :focus-visible)) .station[data-station="accelerator"]:not([data-active="true"]),
-.plan:has(.room[data-stop="founders"]:is(:hover, :focus-visible)) .station[data-station="founders"]:not([data-active="true"]),
-.plan:has(.room[data-stop="community"]:is(:hover, :focus-visible)) .station[data-station="community"]:not([data-active="true"]),
-.plan:has(.room[data-stop="research"]:is(:hover, :focus-visible)) .station[data-station="research"]:not([data-active="true"]),
-.plan:has(.room[data-stop="slug"]:is(:hover, :focus-visible)) .station[data-station="slug"]:not([data-active="true"]),
-.plan:has(.room[data-stop="side"]:is(:hover, :focus-visible)) .station[data-station="side"]:not([data-active="true"]),
-.plan:has(.room[data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"]:not([data-active="true"]) { --engaged: .5; }
+.explorer:has([data-stop="now"]:is(:hover, :focus-visible)) .station[data-station="now"]:not([data-active="true"]),
+.explorer:has([data-stop="accelerator"]:is(:hover, :focus-visible)) .station[data-station="accelerator"]:not([data-active="true"]),
+.explorer:has([data-stop="founders"]:is(:hover, :focus-visible)) .station[data-station="founders"]:not([data-active="true"]),
+.explorer:has([data-stop="community"]:is(:hover, :focus-visible)) .station[data-station="community"]:not([data-active="true"]),
+.explorer:has([data-stop="research"]:is(:hover, :focus-visible)) .station[data-station="research"]:not([data-active="true"]),
+.explorer:has([data-stop="slug"]:is(:hover, :focus-visible)) .station[data-station="slug"]:not([data-active="true"]),
+.explorer:has([data-stop="side"]:is(:hover, :focus-visible)) .station[data-station="side"]:not([data-active="true"]),
+.explorer:has([data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"]:not([data-active="true"]) { --engaged: .5; }
 .lightHole { opacity: var(--engaged); transition: opacity 420ms cubic-bezier(.16, 1, .3, 1); }
 .wash { opacity: var(--engaged); transition: opacity 420ms cubic-bezier(.16, 1, .3, 1); }
 .bulb { opacity: var(--engaged); transition: opacity 240ms ease-out; }
+.floorName { fill: #2b352f; font-family: var(--font-display); font-size: 17px; font-stretch: 125%; font-weight: 700; opacity: var(--engaged); transition: opacity 320ms ease; }
 .pendant { fill: #e1cb99; opacity: calc(.28 + var(--engaged) * .72); transition: opacity 240ms ease-out; }
 .pendantCord { stroke: #8b8f8a; stroke-width: 1; opacity: calc(.25 + var(--engaged) * .75); transition: opacity 240ms ease-out; }
 .festoonCord { fill: none; stroke: #4d4c40; stroke-width: 1.5; }
@@ -69,44 +67,40 @@
 @keyframes stride { from { transform: scaleY(1); } to { transform: scaleY(.62); } }
 @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
 
-/* Each button is the station's floor. Its box lets clicks through to its neighbours. */
-.room { position: absolute; z-index: 1; padding: 0; border: 0; background: none; color: var(--cw-paper); font-family: var(--font-sans); cursor: pointer; pointer-events: none; -webkit-tap-highlight-color: transparent; }
+/* Each button is a station's floor. Its box lets clicks through to its neighbours. */
+.room { position: absolute; z-index: 1; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: none; -webkit-tap-highlight-color: transparent; }
 .room::before { content: ""; position: absolute; inset: 0; clip-path: var(--floor); pointer-events: auto; }
-.explorer .room:focus-visible { outline: none; }
-.roomLabel { position: absolute; display: block; width: max-content; max-width: 11rem; padding: .25rem .5rem; border: 1px solid #fff7ea2e; border-radius: 3px; background: #0a0f18e0; color: var(--cw-paper); font-size: clamp(.75rem, .95vw, .875rem); font-weight: 500; line-height: 1.2; text-align: center; transform: translate(-50%, -50%); pointer-events: auto; transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease; }
-.room:hover .roomLabel { border-color: #e6c794; }
-.room[aria-pressed="true"] .roomLabel { border-color: #e6c794; background: #e6c794; color: #111722; font-weight: 600; }
-.room:focus-visible .roomLabel { outline: 2px solid #e6c794; outline-offset: 3px; }
+.explorer .room:focus { outline: none; }
 
-.detail { grid-area: detail; min-width: 0; padding: var(--subpage-section-space) 0 2rem; scroll-margin-top: var(--nav-clearance); }
-.detail:focus { outline: none; }
+.detail { grid-area: detail; min-width: 0; padding: var(--subpage-row-space) 0 2rem; }
 .detailEnter { animation: arrive 460ms cubic-bezier(.16, 1, .3, 1) both; }
 @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.workLinks { margin-top: var(--subpage-row-space); border-top: 1px solid var(--subpage-rule); }
-.workLinks button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; width: 100%; min-height: 52px; padding: .75rem 0; border: 0; border-bottom: 1px solid var(--subpage-rule); background: none; color: var(--subpage-text); text-align: left; font: inherit; font-size: var(--type-body); line-height: 1.5; cursor: pointer; transition: color 180ms ease; }
-.workLinks button:hover { color: #e6c794; }
-.workLinks svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.25; }
+.detailEnd { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: var(--subpage-row-space); }
+.nextRoom { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; min-width: 0; padding: 0; border: 0; background: none; color: var(--cw-paper); font: inherit; font-size: var(--type-body); font-weight: 500; text-align: left; cursor: pointer; transition: color 180ms ease; }
+.nextRoom svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; transition: transform 240ms cubic-bezier(.16, 1, .3, 1); }
+.nextRoom:hover { color: #e6c794; }
+.nextRoom:hover svg { transform: translateX(3px); }
+.viewSwitch { flex: none; min-height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font: inherit; font-size: var(--type-small); text-decoration: underline; text-decoration-color: var(--subpage-rule); text-underline-offset: .25em; cursor: pointer; }
+.viewSwitch:hover { color: var(--cw-paper); text-decoration-color: currentColor; }
 .list { padding-top: var(--subpage-section-space); }
 
 @media (max-width: 960px) {
-  .explorer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "intro" "map" "tour" "track" "detail"; }
-  .mapColumn { position: static; width: 100vw; margin: -.5rem 0 0 calc(50% - 50vw); }
-  .plan { width: 100%; max-width: 44rem; animation: none; }
-  .detail { padding-top: var(--subpage-row-space); }
-  .tour { margin-top: .25rem; }
+  .explorer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "intro" "map" "directory" "detail"; }
+  .mapColumn { position: static; display: block; min-height: 0; width: 100vw; margin: 0 0 var(--subpage-row-space) calc(50% - 50vw); }
+  .plan { width: 100%; max-width: 44rem; }
 }
-@media (max-width: 520px) {
-  .roomLabel { max-width: 5.5rem; padding: .1875rem .3125rem; font-size: .6875rem; }
-  .labelRest { display: none; }
-  .room[aria-pressed="false"] .roomLabel { background: #0a0f18c7; }
+@media (max-width: 700px) {
+  /* One scrolling row of names under the office, running edge to edge. */
+  .directory { display: flex; gap: 1.125rem; width: 100vw; margin-left: calc(50% - 50vw); padding: 0 var(--subpage-gutter); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+  .directory::-webkit-scrollbar { display: none; }
+  .nameGroup { flex: none; flex-wrap: nowrap; column-gap: 1.125rem; }
+  .name { min-height: 44px; }
+  .nameRest, .floorName { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .plan, .detailEnter, .worker[data-walking="true"] .workerBody, .worker[data-walking="true"] .leftLeg, .worker[data-walking="true"] .rightLeg { animation: none; }
-  .lightHole, .wash, .bulb, .pendant, .pendantCord, .screen, .steam, .workerBody, .leftLeg, .rightLeg, .track li, .step, .nextStop, .roomLabel, .workLinks button { transition: none; }
+  .detailEnter, .worker[data-walking="true"] .workerBody, .worker[data-walking="true"] .leftLeg, .worker[data-walking="true"] .rightLeg { animation: none; }
+  .lightHole, .wash, .bulb, .floorName, .pendant, .pendantCord, .screen, .steam, .workerBody, .leftLeg, .rightLeg, .name, .nextRoom, .nextRoom svg { transition: none; }
 }
 @media (forced-colors: active) {
-  .roomLabel { background: Canvas; color: CanvasText; border-color: CanvasText; }
-  .room[aria-pressed="true"] .roomLabel { outline: 2px solid Highlight; outline-offset: 2px; }
-  .step, .nextStop { border-color: ButtonText; }
-  .track { display: none; }
+  .name[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: 2px; }
 }
