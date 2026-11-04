@@ -1,18 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { officeHitArea, officeProject, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
+import { officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
 
 const inside = ([x, y], [left, top, width, height]) => x >= left && x <= left + width && y >= top && y <= top + height;
-const floors = [[24, 24, 400, 376], [424, 72, 272, 456], [64, 400, 360, 176]];
-// Independent collision bounds for tabletops, counters and partitions in the drawing.
-// Chairs and sofas are destinations: the worker must be able to sit in them.
+// Where a person can stand: floors, the corridor, and the doorways between them.
+const floors = [
+  [4, 36, 80, 80], [88, 36, 96, 80], [188, 36, 80, 80], [272, 36, 64, 80],
+  [4, 120, 332, 32],
+  [4, 184, 80, 80], [88, 184, 112, 80], [204, 184, 64, 80], [272, 184, 64, 80],
+  [36, 116, 16, 4], [128, 116, 16, 4], [220, 116, 16, 4], [296, 116, 16, 4],
+  [36, 152, 16, 32], [136, 152, 16, 32], [244, 152, 16, 32], [296, 152, 16, 32],
+];
+// Independent collision bounds for the furniture in the drawing.
 const solids = [
-  [64, 75, 116, 31], [284, 90, 90, 44], [285, 228, 38, 12], [349, 228, 38, 12],
-  [506, 108, 132, 36], [524, 296, 112, 65], [80, 416, 116, 28], [80, 444, 28, 56],
-  [177, 250, 26, 32], [278, 224, 4, 31],
-  [422, 72, 4, 116], [422, 228, 4, 100], [422, 400, 4, 128],
-  [462, 72, 4, 76], [462, 180, 4, 150], [462, 366, 4, 162],
-  [24, 350, 180, 4], [256, 350, 168, 4], [64, 398, 126, 4], [340, 398, 84, 4],
+  [8, 34, 16, 32], [28, 48, 40, 22], [112, 40, 14, 18],
+  [93, 66, 26, 14], [149, 66, 26, 14], [93, 88, 26, 14], [149, 88, 26, 14],
+  [192, 46, 30, 22], [234, 46, 30, 22], [200, 66, 12, 14], [243, 66, 12, 14],
+  [274, 38, 38, 22], [278, 62, 38, 22],
+  [5, 153, 30, 36], [53, 153, 30, 36], [8, 204, 28, 24], [56, 214, 20, 20],
+  [92, 196, 42, 22], [158, 196, 42, 22], [92, 222, 42, 22], [158, 222, 42, 22],
+  [208, 190, 34, 22], [219, 208, 12, 14], [208, 230, 28, 24],
+  [276, 186, 18, 16], [314, 186, 20, 24], [290, 228, 26, 20],
 ];
 
 for (const from of officeStops) {
@@ -29,19 +37,15 @@ for (const from of officeStops) {
         for (let part = 0; part <= 100; part++) {
           const p = [start[0] + (end[0] - start[0]) * part / 100, start[1] + (end[1] - start[1]) * part / 100];
           assert(floors.some(box => inside(p, box)), `route left the office at ${p}`);
-          assert(!solids.some(box => inside(p, box)), `route crossed furniture or a wall at ${p}`);
+          assert(!solids.some(box => inside(p, box)), `route crossed furniture at ${p}`);
         }
       }
     });
   }
 }
 
-test("every station's floor and label sit inside the drawing", () => {
-  for (const stop of officeStops) {
-    const area = officeHitArea(stop);
-    const [tagX, tagY] = officeProject(stop.tag);
-    assert(area.left >= 0 && area.left + area.width <= officeView.width, `${stop.id} floor runs off the sides`);
-    assert(area.top >= 0 && area.top + area.height <= officeView.height, `${stop.id} floor runs off the ends`);
-    assert(tagX > area.left && tagX < area.left + area.width && tagY > area.top && tagY < area.top + area.height, `${stop.id} label left its floor`);
+test("every room sits inside the drawing", () => {
+  for (const { id, box: [x, y, width, height] } of officeStops) {
+    assert(x >= 0 && x + width <= officeView.width && y >= 0 && y + height <= officeView.height, `${id} runs off the map`);
   }
 });
