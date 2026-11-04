@@ -22,12 +22,16 @@
 }
 .dialog::backdrop { background: #030611ad; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 .dismiss { display: flex; justify-content: flex-end; margin-bottom: 8px; }
-.close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: #000b; cursor: pointer; }
+.close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: transparent; cursor: pointer; }
 .stack { position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
 .sheet { position: absolute; inset: 0; pointer-events: none; border: 1px solid #343940; border-radius: 16px; background: #10141b; transform-origin: 50% 50%; }
 .sheet[data-note-sheet="back"] { transform: translate3d(0, 16px, 0) rotate(1deg) scaleX(.96); background: #141922; }
 .sheet[data-note-sheet="middle"] { transform: translate3d(0, 8px, 0) rotate(-.75deg) scaleX(.98); }
 .reader { position: relative; display: flex; flex-direction: column; max-height: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); border: 1px solid var(--post-line); border-radius: 16px; background: #000; box-shadow: 0 16px 60px #0006; overflow: hidden; }
+/* Sideways touch drags turn the page. .scroll needs its own rule because the
+   browser only reads touch-action up to the nearest scroll container. */
+.dialog:not([data-zoomed]) :is(.stack, .reader, .scroll) { touch-action: pan-y pinch-zoom; }
+.reader[data-note-leaving] .post { pointer-events: none; }
 .header { display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 12px 12px 16px; }
 .profile { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; border-radius: 4px; }
 .avatar { display: block; flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #16181c; }
@@ -50,11 +54,12 @@
 .browse button:first-child { justify-self: start; margin-left: -12px; }
 .browse button:last-child { justify-self: end; margin-right: -12px; }
 .browse button:disabled { opacity: .35; cursor: default; }
-.dialog :is(button,a):focus-visible { outline: 2px solid var(--post-blue); outline-offset: 2px; }
-.scroll:focus-visible { outline: 1px solid var(--post-blue); outline-offset: -3px; }
+:global(html:not([data-pointer-input])) .dialog :is(button,a):focus-visible { outline: 2px solid var(--post-blue); outline-offset: 2px; }
+:global(html:not([data-pointer-input])) .scroll:focus-visible { outline: 1px solid var(--post-blue); outline-offset: -3px; }
 @media (hover: hover) {
   .browse button:hover:not(:disabled) { background: #1d9bf01a; color: var(--post-blue); }
-  .close:hover, .xLink:hover { background: #e7e9ea1a; }
+  .close:hover { color: #fff; }
+  .xLink:hover { background: #e7e9ea1a; }
   .profile:hover strong { text-decoration: underline; }
 }
 @keyframes arrive { from { opacity: .65; } to { opacity: 1; } }

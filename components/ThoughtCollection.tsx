@@ -6,6 +6,7 @@ import Image from "next/image";
 import thoughts from "@/content/thoughts.json";
 import { useNoteStackMotion, type NoteOrigin } from "@/lib/use-note-stack-motion";
 import { useIslandDialog } from "@/lib/use-island-dialog";
+import { useNoteSwipe } from "@/lib/use-note-swipe";
 import styles from "./ThoughtCollection.module.css";
 
 const LAST_KEY = "carter-thoughts-last-v1";
@@ -21,6 +22,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
   const closeButton = useRef<HTMLButtonElement>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const stack = useRef<HTMLDivElement>(null);
+  const reader = useRef<HTMLDivElement>(null);
   const scroll = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(() =>
     initialId && ids.has(initialId) ? initialId : randomThought(readLast())
@@ -39,6 +41,8 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
     setSelected(id);
     if (scroll.current) scroll.current.scrollTop = 0;
   };
+  const step = (direction: 1 | -1) => choose(thoughts[(index + direction + thoughts.length) % thoughts.length].id);
+  useNoteSwipe(dialog, stack, reader, step, thoughts.length > 1);
 
   return createPortal(<dialog ref={dialog} className={styles.dialog} aria-label="Posts by Carter" data-direct-navigation data-thought-collection
     onCancel={event => { event.preventDefault(); dismiss(); }}
@@ -51,7 +55,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
     <div ref={stack} className={styles.stack} data-note-stack>
       <span className={styles.sheet} data-note-sheet="back" aria-hidden="true" />
       <span className={styles.sheet} data-note-sheet="middle" aria-hidden="true" />
-      <div className={styles.reader}>
+      <div ref={reader} className={styles.reader}>
         <header className={styles.header}>
           <a className={styles.profile} href="https://x.com/CarterKoWang" target="_blank" rel="noopener noreferrer" aria-label="Carter, verified account, @CarterKoWang on X">
             <span className={styles.avatar}><Image src="/x-profile.jpg" alt="" width={40} height={40} sizes="40px" /></span>
@@ -75,7 +79,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
           </article>
         </div>
         <footer className={styles.browse}>
-          <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index - 1 + thoughts.length) % thoughts.length].id)}>
+          <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => step(-1)}>
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
             Previous
           </button>
@@ -83,7 +87,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m18 3 3 3-3 3M18 15l3 3-3 3M3 6h2c5 0 9 12 14 12h2M3 18h2c2 0 4-2 6-5M14 9c2-2 3-3 5-3h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>
           <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{index + 1} of {thoughts.length}</span>
-          <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => choose(thoughts[(index + 1) % thoughts.length].id)}>
+          <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => step(1)}>
             Next
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
           </button>

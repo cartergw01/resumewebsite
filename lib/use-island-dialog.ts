@@ -10,17 +10,16 @@ export function useIslandDialog(dialog: RefObject<HTMLDialogElement | null>, ini
     if (!element) return;
     const root = document.documentElement;
     const stage = document.querySelector<HTMLElement>("[data-island-stage]");
-    const bodyOverflow = document.body.style.overflow;
     const rootOverflow = root.style.overflow;
     const previousOverlay = stage?.dataset.overlay;
-    document.body.style.overflow = "hidden";
+    // Only the root: hidden overflow on body would make it the sticky stage's
+    // scroller, and the scene would jump out of view behind the dialog.
     root.style.overflow = "hidden";
     if (stage) stage.dataset.overlay = "true";
     element.showModal();
     initialFocus.current?.focus({ preventScroll: true });
     return () => {
       element.close();
-      document.body.style.overflow = bodyOverflow;
       root.style.overflow = rootOverflow;
       if (stage) {
         if (previousOverlay === undefined) delete stage.dataset.overlay;

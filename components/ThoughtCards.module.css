@@ -10,10 +10,10 @@
 .layer[data-cue-state="playing"] .birdBody { animation: bird-hop 1600ms 100ms ease both; }
 .layer[data-cue-state="playing"] .birdWing { animation: wing-flutter 1600ms 100ms ease both; }
 .layer[data-cue-state="playing"] .noteTop { animation: note-lift 1600ms 800ms ease both; }
-.birdTarget:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
-.birdTarget:focus-visible .hint { opacity: 1; }
-.birdTarget:focus-visible .birdBody { transform: translateY(-2px) rotate(-4deg); }
-.layer:has(.target:focus-visible) .noteTop { transform: translateY(-4px) rotate(-2deg); }
+:global(html:not([data-pointer-input])) .birdTarget:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
+:global(html:not([data-pointer-input])) .birdTarget:focus-visible .hint { opacity: 1; }
+:global(html:not([data-pointer-input])) .birdTarget:focus-visible .birdBody { transform: translateY(-2px) rotate(-4deg); }
+:global(html:not([data-pointer-input])) .layer:has(.target:focus-visible) .noteTop { transform: translateY(-4px) rotate(-2deg); }
 .birdTarget:active .birdBody { transform: translateY(1px) scale(.96); }
 .target:active { scale: .96; }
 @media (hover: hover) and (pointer: fine) {
@@ -22,15 +22,18 @@
   .birdTarget:hover .birdArt { filter: drop-shadow(0 3px 2px #07101a66) brightness(1.12); }
   .layer:has(.target:hover, .birdTarget:hover) .noteTop { transform: translateY(-4px) rotate(-2deg); }
 }
+.birdFlyer { position: absolute; inset: 0; pointer-events: none; transform-origin: 51% 44%; }
+.birdTarget:not([data-flying]) .birdFarWing { visibility: hidden; }
+.birdTarget[data-flying] :is(.birdBody, .birdWing) { animation: none; transform: none; transition: none; }
 .target { position: absolute; translate: -50% -50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; border-radius: 8px; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 /* Keep the 44px tap area, with the same quiet pinpoint as the workshop. */
 .dot { width: 3px; height: 3px; background: #fff1cd; border-radius: 50%; box-shadow: 0 1px 2px #080b13; opacity: .65; transition: opacity 150ms ease, scale 150ms ease; }
-.target:focus-visible .dot { opacity: 1; scale: 1.3333; }
+:global(html:not([data-pointer-input])) .target:focus-visible .dot { opacity: 1; scale: 1.3333; }
 @media (hover: hover) and (pointer: fine) { .target:hover .dot { opacity: 1; scale: 1.3333; } }
 .hint { position: absolute; bottom: 40px; left: 50%; translate: -50% 0; white-space: nowrap; padding: 7px 10px; border-radius: 4px; color: #f5e8cd; background: #101721; font: 12px/1.3 var(--font-sans),sans-serif; opacity: 0; pointer-events: none; }
 .birdTarget .hint { left: auto; right: 0; bottom: calc(100% + 8px); translate: none; }
-.target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
-.target:focus-visible .hint { opacity: 1; }
+:global(html:not([data-pointer-input])) .target:focus-visible { outline: 1.5px solid #fff1cd; outline-offset: 2px; }
+:global(html:not([data-pointer-input])) .target:focus-visible .hint { opacity: 1; }
 :global(html[data-writing-lights="off"]) .art { filter: brightness(.34) saturate(.65); }
 :global(html[data-writing-lights="off"]) .birdArt { filter: brightness(.65) saturate(.8); }
 :global([data-island-stage][data-travelling="true"]) .layer,

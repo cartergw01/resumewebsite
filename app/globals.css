@@ -427,6 +427,12 @@ select {
   border-radius: 999px;
 }
 
+/* Safari treats focus moved by script as focus-visible, so opening or closing a
+   dialog by touch would ring its target. Rings return as soon as Tab is pressed. */
+html[data-pointer-input] :where(a, button, [tabindex]):focus-visible {
+  outline: none;
+}
+
 /* Shared navigation */
 .site-nav {
   position: fixed;

@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Locator, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 const thoughts = JSON.parse(readFileSync(new URL("../../content/thoughts.json", import.meta.url), "utf8")) as { id: string; text: string; source: string }[];
 
@@ -105,6 +105,226 @@ test("shared thoughts and shuffle work without storage, and removed promotional 
   await expect(dialog).toBeVisible();
   expect(await expectOriginalThought(dialog)).not.toBe("2104108558929502655");
   expect(errors).toEqual([]);
+});
+
+const longThought = "2037182514700185821";
+const longIndex = thoughts.findIndex(thought => thought.id === longThought);
+const articleId = (dialog: Locator) => dialog.locator("article").getAttribute("data-thought-id");
+
+// Real touches on Chromium. WebKit has no touch injection in Playwright, so it
+// gets the same pointer sequence as synthetic events.
+async function swiper(page: Page, context: BrowserContext, browserName: string) {
+  const session = browserName === "chromium" ? await context.newCDPSession(page) : null;
+  const pointer = (type: string, x: number, y: number) => page.evaluate(([type, x, y]) => {
+    const target = document.elementFromPoint(Number(x), Number(y)) ?? document.body;
+    (window as unknown as { swipeTarget?: Element }).swipeTarget ??= target;
+    (window as unknown as { swipeTarget: Element }).swipeTarget.dispatchEvent(new PointerEvent(String(type), { bubbles: true, cancelable: true, pointerId: 7, pointerType: "touch", isPrimary: true, clientX: Number(x), clientY: Number(y) }));
+    if (type === "pointerup") delete (window as unknown as { swipeTarget?: Element }).swipeTarget;
+  }, [type, x, y]);
+  const start = async (x: number, y: number) => session
+    ? session.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] })
+    : pointer("pointerdown", x, y);
+  const to = async (x: number, y: number) => session
+    ? session.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y }] })
+    : pointer("pointermove", x, y);
+  const end = async (x: number, y: number) => session
+    ? session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] })
+    : pointer("pointerup", x, y);
+  const swipe = async (x: number, y: number, dx: number, dy = 0) => {
+    await start(x, y);
+    for (let step = 1; step <= 8; step++) await to(x + dx * step / 8, y + dy * step / 8);
+    await end(x + dx, y + dy);
+  };
+  return { start, to, end, swipe };
+}
+
+test("swiping a tweet turns to the next or previous one on touch screens", async ({ page, context, browserName, isMobile }) => {
+  test.skip(!isMobile, "Touch only; the mouse case is covered separately.");
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto(`/?thought=${thoughts[0].id}#writing`);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  const reader = dialog.locator("[data-note-stack] > div");
+  const box = (await reader.boundingBox())!;
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const touch = await swiper(page, context, browserName);
+  const settled = () => expect.poll(() => reader.evaluate(node => node.getAnimations().length === 0 && node.style.transform === "")).toBe(true);
+
+  await touch.swipe(x + 80, y, -200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[1].id);
+  await expectOriginalThought(dialog);
+  await settled();
+  await touch.swipe(x - 80, y, 200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[0].id);
+  await settled();
+  // The collection is a loop, matching the Previous button.
+  await touch.swipe(x - 80, y, 200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[thoughts.length - 1].id);
+  await settled();
+  await touch.swipe(x + 80, y, -200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[0].id);
+  await settled();
+
+  // The card tracks the finger, and a slow short drag returns without paging.
+  await touch.start(x, y);
+  for (const dx of [-12, -24, -36]) await touch.to(x + dx, y);
+  await expect.poll(() => reader.evaluate(node => Math.round(new DOMMatrix(getComputedStyle(node).transform).m41))).toBe(-36);
+  await page.waitForTimeout(150);
+  await touch.end(x - 36, y);
+  await settled();
+  expect(await articleId(dialog)).toBe(thoughts[0].id);
+
+  // A second swipe during the first one's exit still counts.
+  await touch.swipe(x + 80, y, -200);
+  await touch.swipe(x + 80, y, -200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[2].id);
+  await settled();
+
+  // Starting on the X link drags the card rather than following the link.
+  const link = (await dialog.getByRole("link", { name: "View on X", exact: true }).boundingBox())!;
+  let opened = false;
+  context.once("page", () => { opened = true; });
+  await touch.swipe(link.x + link.width / 2, link.y + link.height / 2, -180);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[3].id);
+  await settled();
+  expect(opened).toBe(false);
+
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "writing");
+  expect(errors).toEqual([]);
+});
+
+test("a long tweet still scrolls vertically, and a pinch-zoomed reader pans instead of paging", async ({ page, context, browserName, isMobile }) => {
+  test.skip(!isMobile || browserName !== "chromium", "Native gestures require mobile Chromium CDP.");
+  await page.setViewportSize({ width: 390, height: 500 });
+  await page.goto(`/?thought=${longThought}#writing`);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  const scroller = dialog.getByLabel("Post content");
+  expect(await scroller.evaluate(node => node.scrollHeight > node.clientHeight)).toBe(true);
+  const box = (await scroller.boundingBox())!;
+  const touch = await swiper(page, context, browserName);
+  await touch.swipe(box.x + box.width / 2, box.y + box.height - 20, 0, -120);
+  await expect.poll(() => scroller.evaluate(node => node.scrollTop)).toBeGreaterThan(40);
+  expect(await articleId(dialog)).toBe(longThought);
+
+  // Sideways over the scrolling text pages too, and the next post starts at its top.
+  await touch.swipe(box.x + box.width - 40, box.y + box.height / 2, -200);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", thoughts[(longIndex + 1) % thoughts.length].id);
+  expect(await scroller.evaluate(node => node.scrollTop)).toBe(0);
+
+  const session = await context.newCDPSession(page);
+  const header = dialog.locator("header").first();
+  const atRest = (await header.boundingBox())!;
+  await session.send("Input.synthesizePinchGesture", { x: 195, y: atRest.y + atRest.height / 2, scaleFactor: 2, relativeSpeed: 800, gestureSourceType: "touch" });
+  await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeGreaterThan(1.9);
+  await expect(dialog).toHaveAttribute("data-zoomed", "");
+  const zoomedId = await articleId(dialog);
+  const panStart = await page.evaluate(() => visualViewport!.offsetLeft);
+  const zoomed = (await header.boundingBox())!;
+  await session.send("Input.synthesizeScrollGesture", { x: zoomed.x + zoomed.width / 2, y: zoomed.y + zoomed.height / 2, xDistance: -50, yDistance: 0, speed: 800, gestureSourceType: "touch" });
+  await expect.poll(() => page.evaluate(() => visualViewport!.offsetLeft)).toBeGreaterThan(panStart + 20);
+  expect(await articleId(dialog)).toBe(zoomedId);
+});
+
+test("dragging a tweet with a mouse selects text instead of paging", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Mouse input.");
+  await page.goto(`/?thought=${thoughts[0].id}#writing`);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  const box = (await dialog.locator("article").boundingBox())!;
+  await page.mouse.move(box.x + box.width - 40, box.y + 12);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 40, box.y + 12, { steps: 8 });
+  await page.mouse.up();
+  expect(await articleId(dialog)).toBe(thoughts[0].id);
+  expect(await dialog.locator("[data-note-stack] > div").evaluate(node => node.style.transform)).toBe("");
+  expect(await page.evaluate(() => getSelection()!.toString().length)).toBeGreaterThan(0);
+});
+
+test("the bird flies to the notes, the reader opens as it lands, and it flies home afterwards", async ({ page, isMobile }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/#writing");
+  await expect(page.locator('#writing [data-island-visual]')).toHaveAttribute("data-parallax", "on", { timeout: 30_000 });
+  const bird = page.locator("[data-thought-bird]");
+  const flyer = page.locator("[data-bird-flyer]");
+  const wing = flyer.locator("g > path").nth(5);
+  const resting = await wing.getAttribute("d");
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await page.evaluate(() => {
+    const samples: { d: string; transform: string }[] = [];
+    (window as unknown as { birdSamples: typeof samples }).birdSamples = samples;
+    const tick = () => {
+      const flyer = document.querySelector<SVGSVGElement>("[data-bird-flyer]");
+      if (flyer?.style.transform) samples.push({ d: flyer.querySelectorAll("g > path")[5].getAttribute("d")!, transform: flyer.style.transform });
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  const stage = page.locator("[data-island-stage]");
+  const stageY = await stage.evaluate(node => node.getBoundingClientRect().y);
+  const pageY = await page.evaluate(() => scrollY);
+  await openObject(page, "[data-thought-bird]", isMobile);
+  await expect(bird).toHaveAttribute("data-flying", "");
+  await expect(dialog).toBeVisible();
+  // The scene stays put behind the reader rather than jumping out of view.
+  expect(await stage.evaluate(node => node.getBoundingClientRect().y)).toBe(stageY);
+  expect(await page.evaluate(() => scrollY)).toBe(pageY);
+  // It really flew: many distinct wing shapes and positions on the way.
+  const samples = await page.evaluate(() => (window as unknown as { birdSamples: { d: string; transform: string }[] }).birdSamples);
+  expect(new Set(samples.map(sample => sample.d)).size).toBeGreaterThan(5);
+  expect(new Set(samples.map(sample => sample.transform)).size).toBeGreaterThan(5);
+  await dialog.getByRole("button", { name: "Close thoughts" }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(bird).toBeFocused();
+  await expect(bird).not.toHaveAttribute("data-flying", "", { timeout: 4000 });
+  await expect(wing).toHaveAttribute("d", resting!);
+  expect(await flyer.evaluate((node: SVGSVGElement) => node.style.transform)).toBe("");
+  expect(errors).toEqual([]);
+});
+
+test("reduced motion opens the reader from the bird without a flight", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#writing");
+  await expect(page.locator("[data-thought-bird]")).toBeVisible();
+  await openObject(page, "[data-thought-bird]", isMobile);
+  await expect(page.getByRole("dialog", { name: "Posts by Carter" })).toBeVisible();
+  await expect(page.locator("[data-thought-bird]")).not.toHaveAttribute("data-flying", "");
+  expect(await page.locator("[data-bird-flyer]").evaluate((node: SVGSVGElement) => node.style.transform)).toBe("");
+});
+
+test("focus rings show for keyboard users but not after tapping or clicking", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#writing");
+  const bird = page.locator("[data-thought-bird]");
+  await expect(bird).toBeVisible();
+  const outline = (locator: Locator) => locator.evaluate(node => getComputedStyle(node).outlineStyle);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  const closeButton = dialog.getByRole("button", { name: "Close thoughts" });
+  if (isMobile) await bird.tap(); else await bird.click();
+  await expect(closeButton).toBeFocused();
+  expect(await outline(closeButton)).toBe("none");
+  expect(await closeButton.evaluate(node => getComputedStyle(node).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  if (isMobile) await closeButton.tap(); else await closeButton.click();
+  await expect(dialog).toHaveCount(0);
+  await expect(bird).toBeFocused();
+  expect(await outline(bird)).toBe("none");
+  await expect(bird.locator("span")).toHaveCSS("opacity", "0");
+  if (isMobile) return;
+  // Tabbing brings the rings back.
+  await page.keyboard.press("Enter");
+  await expect(closeButton).toBeFocused();
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  await expect(closeButton).toBeFocused();
+  expect(await outline(closeButton)).toBe("solid");
+  await page.keyboard.press("Escape");
+  await expect(bird).toBeFocused();
+  expect(await outline(bird)).toBe("solid");
 });
 
 test("the note stack handles interrupted lifts and reduced motion", async ({ page, isMobile }) => {
