@@ -199,6 +199,10 @@ const head = {
   up: [".....kkkkkk.....", "....kHHHHHHk....", "...kHHhHHhHHk...", "...kHHHkkHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kfHHHHHHfk...", "...kffHHHHffk...", "...kffffffffk...", "....kssssssk....", ".....kkkkkk....."],
   left: [".....kkkkkk.....", "....kHHHHHHk....", "...kHhhHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...ksHHHHfffk...", "...kssssSfffk...", "...kesssSSffk...", "...kssssssffk...", "....kssssssk....", ".....kkkkkk....."],
 };
+head.leftBuzz = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...ksHHHHHHHk...", "...kssssSHHHk...", "...kssssSHHHk...", "...kesssSSHHk...", "...kssssssHHk...", "....kssssssk....", ".....kkkkkk....."];
+head.downLong = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHhHHhHHk...", "...kHhHkkHhHk...", "...kHHHssHHHk...", "...kHHssssHHk...", "...kHssssssHk...", "...kHseSSesHk...", "...kHssssssHk...", "...kHkssSskHk...", "....kkkkkkkk...."];
+head.upBuzz = [".....kkkkkk.....", "....kHHHHHHk....", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kHHHHHHHHk...", "...kssssssssk...", "....kssssssk....", ".....kkkkkk....."];
+const seatedLegs = { down: ["....kPPPPPPk....", "....kkkkkkkk...."], left: ["..kPPPPPPPPk....", "..kkkkkkkkkk...."] };
 const body = {
   down: ["....kkkkkkkk....", "...kTTTTTTTTk...", "..kTtTTTTTTtTk..", "..kTkTTTTTTkTk..", "..ksskTTTTkssk..", "..kkkkTTTTkkkk.."],
   up: ["....kkkkkkkk....", "...kTTTTTTTTk...", "..kTtTTTTTTtTk..", "..kTkTTTTTTkTk..", "..ksskTTTTkssk..", "..kkkkTTTTkkkk.."],
@@ -216,14 +220,15 @@ const legs = {
     b: ["....kPPPPPPk....", "....kPpPPPPk....", ".....kPPPPk.....", ".....kPPPPk.....", "....kBBBBk......", "....kkkkkk......"],
   },
 };
-// ---- A person, standing, in any colours: the same sprite as the man's. ----
-const person = (x, y, view, colors, mirror = false) => {
-  const stride = view === "left" ? "left" : "front";
-  const rows = [...head[view], ...body[view], ...legs[stride].stand];
+// ---- A person, standing or sitting, in any colours: the same sprite as the man's. ----
+const person = (x, y, view, colors, { mirror = false, seated = false } = {}) => {
+  const base = view.startsWith("left") ? "left" : view.startsWith("up") ? "up" : "down";
+  const lower = seated ? seatedLegs[base] ?? [] : legs[base === "left" ? "left" : "front"].stand;
+  const rows = [...head[view], ...body[base], ...lower];
   const inks = { ...palette, ...colors };
-  rect(x - 6, y - 1, 13, 3, "#2a223340");
+  if (!seated) rect(x - 6, y - 1, 13, 3, "#2a223340");
   rows.forEach((line, j) => [...(mirror ? [...line].reverse().join("") : line)].forEach((c, i) => {
-    if (c !== ".") dot(x - 8 + i, y - 22 + j, inks[c]);
+    if (c !== ".") dot(x - 8 + i, y - rows.length + 1 + j, inks[c]);
   }));
 };
 
@@ -301,8 +306,18 @@ const SEAT = "#7c8796";
   rect(143, 28, 32, 1, "#55606c");
   box(116, 40, 14, 6, 12, ...DARKWOOD);
   rect(120, 37, 6, 3, LINE); rect(121, 38, 4, 1, "#d7dbe0");
+  // Kai and Kevin at the front. Patryk, Max and Jimmy in the audience, turned to the stage.
+  person(136, 52, "down", { H: "#1f1b22", h: "#3a3340", f: "#3a3340", T: "#b5433a", t: "#d3665c", P: "#2c303a", p: "#3f4452" });
+  person(152, 52, "down", { H: "#191519", h: "#3a3340", f: "#3a3340", T: PURPLE, t: "#8b5cf6", P: "#2f3a4f", p: "#435069" });
   for (const y of [62, 82]) for (const x of [97, 111, 157, 171]) chair(x, y, SEAT);
   plant(172, 34);
+  const audience = (chairX, chairY, view, colors) => {
+    person(chairX + 6, chairY + 7, view, colors, { seated: true });
+    rect(chairX, chairY + 7, 12, 5, LINE); rect(chairX + 1, chairY + 8, 10, 3, SEAT); rect(chairX + 1, chairY + 8, 10, 1, shade(SEAT, 30));
+  };
+  audience(111, 62, "up", { H: "#6b4a2e", h: "#8a6642", f: "#5c4028", s: "#f7dcc6", S: "#e4bda0", T: "#f4f4ef", t: "#ffffff" }); // Patryk
+  audience(157, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
+  audience(157, 82, "upBuzz", { H: "#e6cd80", h: "#f2e2a6", f: "#e6cd80", s: "#f5d6bc", S: "#e0b698", T: "#4a5568", t: "#63708a" }); // Jimmy
 }
 
 // ---- Finding founders: the pipeline, and the agent scanning for builders. ----
@@ -314,11 +329,15 @@ const SEAT = "#7c8796";
   });
   desk(200, 46, 30, 14);
   monitor(204, 35, 20, 13, (x, y, w, h) => { rect(x, y, w, h, "#0d2a22"); for (let j = 1; j < h; j += 3) rect(x + 1, y + j, w - 2, 1, "#1b4d3e"); rect(x + 3, y + 2, 6, 1, "#7bffb0"); rect(x + 3, y + 5, 11, 1, "#7bffb0"); rect(x + 3, y + 8, 8, 1, "#7bffb0"); });
-  desk(246, 46, 30, 14);
-  monitor(251, 35, 20, 13, codeLines);
   rect(206, 52, 12, 4, LINE); rect(207, 53, 10, 2, "#d7dbe0");
-  rect(253, 52, 12, 4, LINE); rect(254, 53, 10, 2, "#d7dbe0");
-  chair(209, 66, SEAT); chair(255, 66, SEAT);
+  chair(209, 66, SEAT);
+  // The coffee chat: an empty chair across the table from a founder.
+  rug(232, 56, 46, 32, "#c4b08e", "#a4906e");
+  chair(235, 62, SEAT);
+  chair(265, 62, SEAT);
+  person(271, 71, "left", { H: "#2a1f1c", h: "#4a3a34", f: "#3a2c28", s: "#e4bb92", S: "#c99e76", T: "#3e8f83", t: "#59ad9f", P: "#42485a", p: "#565d72" }, { seated: true });
+  box(248, 62, 16, 12, 8, ...WOOD);
+  for (const x of [250, 258]) { rect(x, 64, 4, 4, LINE); rect(x + 1, 65, 2, 2, "#f2ece0"); rect(x + 1, 65, 2, 1, "#6b4a33"); }
 }
 
 // ---- Community & content: the coffee bar, the newsletter, and the people. ----
@@ -330,15 +349,16 @@ const SEAT = "#7c8796";
   rect(290, 31, 10, 10, LINE); rect(291, 32, 8, 8, "#aab2bb"); rect(293, 36, 4, 2, LINE); // Espresso machine.
   for (const x of [304, 310, 316]) { rect(x, 41, 4, 4, LINE); rect(x + 1, 42, 2, 2, "#f2ece0"); }
   sofa(336, 40, 30, PURPLE);
-  // Kai and Kevin talking by the bar, and founders in the room with them.
-  const founder = { H: "#3a2a22", h: "#5c4436", f: "#3a2a22" };
-  [
-    [344, 72, "down", false, { ...founder, T: "#3e8f83", t: "#59ad9f", P: "#3a3f4b", p: "#4d5362" }],
-    [360, 80, "left", false, { H: "#1f1b22", h: "#3a3340", f: "#1f1b22", s: "#d8a884", S: "#b98a68", T: "#d9a441", t: "#efc56c", P: "#42485a", p: "#565d72" }],
-    [296, 84, "left", true, { f: "#3a3340", T: "#b5433a", t: "#d3665c", P: "#2c303a", p: "#3f4452" }], // Kai
-    [316, 84, "left", false, { H: "#191519", h: "#3a3340", f: "#3a3340", T: PURPLE, t: "#8b5cf6", P: "#2f3a4f", p: "#435069" }], // Kevin
-    [346, 92, "up", false, { H: "#7a4a2a", h: "#9c6a42", f: "#7a4a2a", s: "#f4d4b4", S: "#dcb492", T: "#e8e2d2", t: "#ffffff", P: "#51607a", p: "#687994" }],
-  ].forEach(([x, y, view, mirror, colors]) => person(x, y, view, colors, mirror));
+  // Founders: two on the sofa, the rest talking around the room.
+  ([
+    [344, 58, "down", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", T: "#3e8f83", t: "#59ad9f" }, { seated: true }],
+    [358, 58, "downLong", { H: "#2a1f1c", h: "#4a3a34", s: "#e9c49c", S: "#cfa67c", T: "#d9a441", t: "#efc56c", P: "#42485a", p: "#565d72" }, { seated: true }],
+    [296, 74, "down", { H: "#1f1b22", h: "#3a3340", f: "#1f1b22", s: "#d8a884", S: "#b98a68", T: "#c9683e", t: "#e0875e", P: "#2c303a", p: "#3f4452" }, {}],
+    [312, 82, "left", { H: "#141216", h: "#2e2a32", f: "#242026", T: "#e8e2d2", t: "#ffffff", P: "#51607a", p: "#687994" }, {}],
+    [294, 94, "up", { H: "#7a4a2a", h: "#9c6a42", f: "#7a4a2a", s: "#f4d4b4", S: "#dcb492", T: "#55703f", t: "#6f8f55", P: "#42485a", p: "#565d72" }, {}],
+    [340, 84, "left", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#c9976f", S: "#ab7c56", T: "#26415f", t: "#3b5f86", P: "#3a3f4b", p: "#4d5362" }, { mirror: true }],
+    [358, 84, "left", { H: "#141216", h: "#2e2a32", f: "#242026", T: "#a8506a", t: "#c56c86", P: "#2f3a4f", p: "#435069" }, {}],
+  ]).forEach(([x, y, view, colors, options]) => person(x, y, view, colors, options));
 }
 
 // ---- Contrary Research: reading and writing, under Contrary's blue. ----

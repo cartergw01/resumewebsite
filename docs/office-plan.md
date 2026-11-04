@@ -7,9 +7,9 @@ The office is drawn like a room in a Pokémon game: a top-down tile map with chu
 Every room shows the work it stands for, using only facts already on the page. No toys or clutter. Color is used sparingly. The 886 Studios wing is natural materials with the brand's purple, `#6d35d8` from 886studios.com, kept for what carries the brand: the sign, the wall trim, the pitch, one sofa. Contrary Research uses Contrary's blue, `#184df6`, on its walls, and is the biggest room on the floor.
 
 - 886 Studios: the sign, the desk, and a filing cabinet. Its name is on the wall, so it isn't repeated on the floor.
-- Building ikigai Launchpad: demo day, with a pitch on the screen, a podium, and rows of founders' chairs.
-- Finding founders: the pipeline board with fewer notes in each column, and the agent scanning on a green terminal.
-- Community & content: the coffee bar, the sofa, the newsletter, and people. Kai and Kevin, of Guitar Hero and Twitch, are talking by the bar with founders around them; talking to any of them opens 886's portfolio.
+- Building ikigai Launchpad: demo day, with a pitch on the screen and a podium. Kai Huang and Kevin Lin stand at the front. Patryk Chojecki (always in white), Max Hsieh (always in blue) and Jimmy Huang of PicPet (blonde buzz cut) sit in the audience, facing the front. Talking to any of them opens their page on 886studios.com.
+- Finding founders: the pipeline board with fewer notes in each column, the agent scanning on a green terminal, and a coffee chat table with a founder in one chair.
+- Community & content: the coffee bar, the sofa, the newsletter, and seven founders, labelled Founders. Talking to them opens 886's portfolio.
 - Contrary Research: reading and writing, in a green library with a typewriter, manuscripts, and a reading chair.
 - Slug Fund Investment Group: stocks. A sector heatmap and candlesticks on the wall, the tape along it, an order book, an allocation, headlines and a yield curve on the desks, and the memo table. No two screens show the same thing.
 - Korobra Capital & side projects: the fund's chart, code on screen, and shelves of notebooks.

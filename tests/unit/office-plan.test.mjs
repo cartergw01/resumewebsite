@@ -51,7 +51,7 @@ test("room names are the copy's own words, never shortened", () => {
 
 test("objects in a room are real links, and he can reach them", () => {
   for (const item of officeObjects) {
-    if (item.person) assert.equal(item.href, OFFICE_PORTFOLIO, `${item.id} should send you to the portfolio`);
+    if (item.person) assert(item.href.startsWith("https://www.886studios.com/"), `${item.id} should open a page on 886's site`);
     else assert(copy.includes(`(${item.href})`), `${item.id} links to ${item.href}, which content/work.md does not`);
     const stop = officeStops.find(room => room.id === item.room);
     const [x, y, width, height] = item.reach;
@@ -60,6 +60,20 @@ test("objects in a room are real links, and he can reach them", () => {
     assert(reachable, `nowhere to stand for ${item.id}`);
     assert(inside([x + width / 2, y + height / 2], stop.box), `${item.id} is outside its room`);
   }
+});
+
+test("people open their own pages, and founders open the portfolio", () => {
+  const person = id => officeObjects.find(item => item.id === id);
+  assert.equal(person("kai").href, "https://www.886studios.com/team/kai");
+  assert.equal(person("kevin").href, "https://www.886studios.com/team/kevin-lin");
+  assert.equal(person("patryk").href, "https://www.886studios.com/team/patryk");
+  assert.equal(person("max").href, "https://www.886studios.com/team/max");
+  for (const id of ["kai", "kevin", "patryk", "max", "jimmy"]) assert.equal(person(id).room, "accelerator");
+  const founders = officeObjects.filter(item => item.label === "Founders");
+  const inCommunity = founders.filter(item => item.room === "community");
+  assert(inCommunity.length >= 6 && inCommunity.length <= 7, `${inCommunity.length} founders in Community & content`);
+  assert(founders.some(item => item.room === "founders"), "the coffee chat needs its founder");
+  for (const founder of founders) assert.equal(founder.href, OFFICE_PORTFOLIO);
 });
 
 test("Contrary Research is bigger than Slug Fund Investment Group", () => {
