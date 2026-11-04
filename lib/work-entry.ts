@@ -73,7 +73,18 @@ export function beginWorkEntry(visual: HTMLElement, camera?: Animation) {
   // camera's glide runs on the compositor, so this work never stalls it.
   // The letters' flight is measured against it then, well before they leave.
   const source = document.querySelector("[data-work-window-content]");
-  const layIn = () => { if (source && !page.childElementCount) page.append(...Array.from(source.children, child => child.cloneNode(true))); };
+  const layIn = () => {
+    if (!source || page.childElementCount) return;
+    page.append(...Array.from(source.children, child => child.cloneNode(true)));
+    // The office's gradients and mask would resolve to the hidden source, which paints nothing.
+    page.querySelectorAll("svg [id]").forEach(paint => {
+      const reference = `url(#${paint.id})`;
+      paint.id += "-carried";
+      page.querySelectorAll(`[fill="${reference}"], [mask="${reference}"]`).forEach(user => {
+        for (const name of ["fill", "mask"]) if (user.getAttribute(name) === reference) user.setAttribute(name, `url(#${paint.id})`);
+      });
+    });
+  };
   let laidIn = () => {};
   const settle = () => { layIn(); laidIn(); };
   const layInLater = typeof requestIdleCallback === "function" ? requestIdleCallback(settle, { timeout: 400 }) : window.setTimeout(settle, 60);

@@ -194,7 +194,7 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
     side: preview ? null : <ul className={styles.experiences}>{copy.onTheSide.map(entry => <Entry key={entry.title} entry={entry} />)}</ul>,
     about: preview ? null : <About />,
   };
-  return <OfficeExplorer panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
+  return <OfficeExplorer header={<WorkHeader preview={preview} />} panels={panels} list={preview ? null : <WorkHistory />} preview={preview} />;
 }
 
 // Same opening composition for the island transition and its destination.
@@ -203,7 +203,6 @@ export function WorkWindowPreview() {
     <div className={styles.page}>
       <div className={styles.main}>
         <div className={styles.desk}>
-          <WorkHeader preview />
           <OfficeContent preview />
         </div>
       </div>
@@ -215,7 +214,6 @@ export default function WorkRoom() {
   const copy = getWorkCopy();
   return <main className={styles.main} data-work-desk id="main-content" tabIndex={-1}>
     <div className={`${styles.desk} ${entry.arrival}`} data-work-arrival>
-      <WorkHeader />
       <OfficeContent />
       <footer className={styles.contact}>
         {copy.closing.map((paragraph, index) => <p key={index} className={styles.closing}><Md text={paragraph} /></p>)}

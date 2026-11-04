@@ -1,104 +1,112 @@
-.explorer { width: 100%; }
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-block: .125rem; border-block: 1px solid var(--subpage-rule); color: var(--subpage-muted); font-size: var(--type-small); }
-.toolbar h2 { margin: 0; font: inherit; }
-.viewSwitch { min-height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font: inherit; text-decoration: underline; text-decoration-color: var(--subpage-rule); text-underline-offset: .25em; cursor: pointer; }
+/* Story on the left, the office afloat on the right. Phones stack them. */
+.explorer {
+  --map-top: var(--subpage-top);
+  --map-ratio: calc(1040 / 830);
+  display: grid;
+  grid-template-columns: minmax(21rem, 26rem) minmax(0, 1fr);
+  grid-template-rows: auto auto auto 1fr;
+  grid-template-areas: "intro map" "tour map" "track map" "detail map";
+  column-gap: clamp(.5rem, 2vw, 2rem);
+  width: 100%;
+}
+.explorer[data-view="list"] { display: block; }
+.intro { grid-area: intro; min-width: 0; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.explorer button:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; }
+
+.tour { grid-area: tour; display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; }
+.tourControls { display: flex; align-items: center; gap: .375rem; min-width: 0; }
+.step, .nextStop { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; border: 1px solid #e6c79459; border-radius: 22px; background: #0a0f18d9; color: var(--cw-paper); font: inherit; font-size: var(--type-small); font-weight: 500; cursor: pointer; transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease; }
+.step { flex: none; width: 44px; padding: 0; }
+.nextStop { gap: .5rem; min-width: 0; padding: 0 .875rem 0 1.125rem; }
+.nextStop span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.step:hover, .nextStop:hover { border-color: #e6c794; background: #e6c794; color: #111722; }
+.step svg, .nextStop svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.viewSwitch { flex: none; min-height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); font: inherit; font-size: var(--type-small); text-decoration: underline; text-decoration-color: var(--subpage-rule); text-underline-offset: .25em; cursor: pointer; }
 .viewSwitch:hover { color: var(--cw-paper); text-decoration-color: currentColor; }
-.explorer button:focus-visible { outline: 2px solid #e6c794; outline-offset: 4px; }
-.office { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 2rem); padding-top: var(--subpage-row-space); align-items: start; }
-.office[hidden], .list[hidden] { display: none; }
-.mapColumn { min-width: 0; width: 100%; max-width: 40rem; scroll-margin-top: var(--nav-clearance); }
-.plan { position: relative; aspect-ratio: 720 / 600; isolation: isolate; }
-.groupTitle { position: absolute; top: 6%; left: 6.1%; margin: 0; color: #343c32; font-size: clamp(.875rem, 1.2vw, 1.125rem); font-weight: 600; line-height: 1.2; }
-.drawing { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.buildingShadow { fill: #69695d; }
-.studioFloor { fill: #dcd2bd; }
-.floorDetails { fill: none; stroke: #858b7d25; stroke-width: 1; }
-.wallShadow { fill: none; stroke: #77786a; stroke-width: 11; stroke-linejoin: round; }
-.walls { fill: none; stroke: #f0e8d7; stroke-width: 8; stroke-linejoin: round; stroke-linecap: square; }
-.windows { fill: none; stroke: #a1b7b2; stroke-width: 3; }
-.doors { fill: none; stroke: #a38a66; stroke-width: 3; stroke-linecap: round; }
-.doorSwing { stroke: #6d726944; stroke-width: 1; }
-.objectShadow { fill: #31392f26; }
-.wood { fill: #b58f66; stroke: #967959; stroke-width: 1; }
-.furnitureLine { fill: none; stroke: #566056; stroke-width: 2; stroke-linecap: round; }
-.monitor { fill: #394a47; stroke: #69776b; stroke-width: 2; }
-.keyboard { fill: #e3ddcb; }
-.chair { fill: #657565; }
-.chairBack { fill: none; stroke: #465849; stroke-width: 5; stroke-linecap: round; }
-.rug { fill: #b9bea440; stroke: #939b7e40; stroke-width: 1; }
-.sofa { fill: #77846c; stroke: #66725a; stroke-width: 1; }
-.sofaSeam { fill: none; stroke: #a4b095; stroke-width: 2; stroke-linecap: round; }
-.leaves { fill: #5e7654; stroke: #536a49; stroke-width: .7; }
-.boothWall { fill: none; stroke: #879584; stroke-width: 5; stroke-linejoin: round; }
-.paper { fill: #f4ecd9; }
-.paperLine { fill: none; stroke: #9c9c86; stroke-width: 1; }
+
+/* Where you are on the walk: four stops at 886, then the rest. */
+.track { grid-area: track; display: flex; gap: 4px; margin: .75rem 0 0; padding: 0; list-style: none; }
+.track li { flex: 1; height: 2px; background: #fff7ea2e; transition: background-color 240ms ease; }
+.track li:nth-child(4) { margin-right: 10px; }
+.track li[data-on="true"] { background: #e6c794; }
+
+.mapColumn { grid-area: map; position: sticky; top: var(--map-top); align-self: start; min-width: 0; margin-right: calc(-1 * max(0px, (100vw - 1120px) / 2 - 2rem)); margin-left: -1.5rem; }
+.mapColumn[hidden], .detail[hidden], .list[hidden] { display: none; }
+.plan { position: relative; width: min(100%, calc((100svh - var(--map-top) - 1rem) * var(--map-ratio))); aspect-ratio: 1040 / 830; margin-inline: auto; isolation: isolate; animation: float 9s ease-in-out infinite alternate; }
+@keyframes float { from { transform: translateY(-5px); } to { transform: translateY(5px); } }
+.drawing { display: block; width: 100%; height: 100%; overflow: visible; pointer-events: none; user-select: none; }
+
+/* The building is dark but legible; a lit station is a soft hole in the dark. */
+.darkness { fill: #060b2a; opacity: .74; }
 .station { --engaged: 0; }
-.station[data-active="true"],
-.plan:has(.room[data-stop="now"]:is(:hover, :focus-visible)) .station[data-station="now"],
-.plan:has(.room[data-stop="accelerator"]:is(:hover, :focus-visible)) .station[data-station="accelerator"],
-.plan:has(.room[data-stop="founders"]:is(:hover, :focus-visible)) .station[data-station="founders"],
-.plan:has(.room[data-stop="community"]:is(:hover, :focus-visible)) .station[data-station="community"],
-.plan:has(.room[data-stop="research"]:is(:hover, :focus-visible)) .station[data-station="research"],
-.plan:has(.room[data-stop="slug"]:is(:hover, :focus-visible)) .station[data-station="slug"],
-.plan:has(.room[data-stop="side"]:is(:hover, :focus-visible)) .station[data-station="side"],
-.plan:has(.room[data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"] { --engaged: 1; }
-.lampGlow { fill: #ffe7a1; opacity: calc(var(--engaged) * .65); transition: opacity 180ms ease; }
-.lampShade { fill: #d8c391; }
-.boothScreen { fill: color-mix(in srgb, #34463e, #c0d3a1 calc(var(--engaged) * 100%)); transition: fill 180ms ease; }
-.tablePapers { transform: translateY(calc(var(--engaged) * -2px)); transition: transform 180ms ease; }
-.steam { fill: none; stroke: #f5f0dd; stroke-width: 1.5; stroke-linecap: round; opacity: var(--engaged); transform: translateY(calc(var(--engaged) * -3px)); transition: opacity 200ms ease, transform 250ms ease; }
-.workerShadow { fill: #20261e28; }
-.workerShirt { fill: #af6f4f; }
-.leftFoot, .rightFoot { fill: none; stroke: #3e463e; stroke-width: 4; stroke-linecap: round; }
-.workerBody { transform: scale(.9); transition: transform 150ms ease; }
-.worker[data-walking="true"] .workerBody { transform: scale(1); }
-.worker[data-walking="true"] .leftFoot { animation: walking 180ms ease-in-out infinite alternate; }
-.worker[data-walking="true"] .rightFoot { animation: walking 180ms ease-in-out infinite alternate-reverse; }
-@keyframes walking { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
-.room { position: absolute; z-index: 1; padding: 0; border: 0; border-radius: 4px; background: none; color: #3b4238; text-align: left; font-family: var(--font-sans); cursor: pointer; }
-.room[aria-pressed="true"] { color: #252d23; }
-.room:is(:hover, [aria-pressed="true"]) .roomLabel strong { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: .25em; }
-.room[aria-pressed="true"] .roomLabel strong { font-weight: 650; }
-.room[aria-pressed="true"] .roomLabel::before { content: ""; position: absolute; left: -7px; top: .6em; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
-.explorer .room:focus-visible { outline: 2px solid #536043; outline-offset: -2px; }
-.roomLabel { position: absolute; bottom: clamp(8px, 1vw, 12px); left: 8px; right: 5px; width: fit-content; max-width: calc(100% - 13px); display: grid; }
-.roomLabel strong { font-size: clamp(.8125rem, 1.1vw, .9375rem); font-weight: 500; line-height: 1.25; }
-.detail { min-width: 0; padding: clamp(1rem, 2vw, 1.75rem) 0 2rem clamp(1.25rem, 2.5vw, 2rem); border-left: 1px solid var(--subpage-rule); scroll-margin-top: var(--nav-clearance); }
+.station[data-active="true"] { --engaged: 1; }
+.plan:has(.room[data-stop="now"]:is(:hover, :focus-visible)) .station[data-station="now"]:not([data-active="true"]),
+.plan:has(.room[data-stop="accelerator"]:is(:hover, :focus-visible)) .station[data-station="accelerator"]:not([data-active="true"]),
+.plan:has(.room[data-stop="founders"]:is(:hover, :focus-visible)) .station[data-station="founders"]:not([data-active="true"]),
+.plan:has(.room[data-stop="community"]:is(:hover, :focus-visible)) .station[data-station="community"]:not([data-active="true"]),
+.plan:has(.room[data-stop="research"]:is(:hover, :focus-visible)) .station[data-station="research"]:not([data-active="true"]),
+.plan:has(.room[data-stop="slug"]:is(:hover, :focus-visible)) .station[data-station="slug"]:not([data-active="true"]),
+.plan:has(.room[data-stop="side"]:is(:hover, :focus-visible)) .station[data-station="side"]:not([data-active="true"]),
+.plan:has(.room[data-stop="about"]:is(:hover, :focus-visible)) .station[data-station="about"]:not([data-active="true"]) { --engaged: .5; }
+.lightHole { opacity: var(--engaged); transition: opacity 420ms cubic-bezier(.16, 1, .3, 1); }
+.wash { opacity: var(--engaged); transition: opacity 420ms cubic-bezier(.16, 1, .3, 1); }
+.bulb { opacity: var(--engaged); transition: opacity 240ms ease-out; }
+.pendant { fill: #e1cb99; opacity: calc(.28 + var(--engaged) * .72); transition: opacity 240ms ease-out; }
+.pendantCord { stroke: #8b8f8a; stroke-width: 1; opacity: calc(.25 + var(--engaged) * .75); transition: opacity 240ms ease-out; }
+.festoonCord { fill: none; stroke: #4d4c40; stroke-width: 1.5; }
+.screen { fill: color-mix(in srgb, #2f3e39, #cfe3c6 calc(var(--engaged) * 100%)); transition: fill 300ms ease; }
+.chart { fill: none; stroke: #4f8a5b; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.paperLine { fill: none; stroke: #a5a48d; stroke-width: 1; }
+.steam { fill: none; stroke: #fbf5e4; stroke-width: 1.5; stroke-linecap: round; opacity: var(--engaged); transition: opacity 300ms ease; }
+.wallSign { fill: #2c3a35; font-family: var(--font-display); font-size: 15px; font-stretch: 125%; font-weight: 700; letter-spacing: .04em; }
+
+.workerBody { transform: translateY(6px) scale(.96); transition: transform 180ms ease; }
+.leftLeg, .rightLeg { fill: none; stroke: #27303a; stroke-width: 4; stroke-linecap: round; transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(.45); transition: transform 180ms ease; }
+.worker[data-walking="true"] .workerBody { transform: none; animation: bob 180ms ease-in-out infinite alternate; }
+.worker[data-walking="true"] .leftLeg { transform: none; animation: stride 180ms ease-in-out infinite alternate; }
+.worker[data-walking="true"] .rightLeg { transform: none; animation: stride 180ms ease-in-out infinite alternate-reverse; }
+@keyframes stride { from { transform: scaleY(1); } to { transform: scaleY(.62); } }
+@keyframes bob { from { transform: translateY(0); } to { transform: translateY(-1.5px); } }
+
+/* Each button is the station's floor. Its box lets clicks through to its neighbours. */
+.room { position: absolute; z-index: 1; padding: 0; border: 0; background: none; color: var(--cw-paper); font-family: var(--font-sans); cursor: pointer; pointer-events: none; -webkit-tap-highlight-color: transparent; }
+.room::before { content: ""; position: absolute; inset: 0; clip-path: var(--floor); pointer-events: auto; }
+.explorer .room:focus-visible { outline: none; }
+.roomLabel { position: absolute; display: block; width: max-content; max-width: 11rem; padding: .25rem .5rem; border: 1px solid #fff7ea2e; border-radius: 3px; background: #0a0f18e0; color: var(--cw-paper); font-size: clamp(.75rem, .95vw, .875rem); font-weight: 500; line-height: 1.2; text-align: center; transform: translate(-50%, -50%); pointer-events: auto; transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease; }
+.room:hover .roomLabel { border-color: #e6c794; }
+.room[aria-pressed="true"] .roomLabel { border-color: #e6c794; background: #e6c794; color: #111722; font-weight: 600; }
+.room:focus-visible .roomLabel { outline: 2px solid #e6c794; outline-offset: 3px; }
+
+.detail { grid-area: detail; min-width: 0; padding: var(--subpage-section-space) 0 2rem; scroll-margin-top: var(--nav-clearance); }
 .detail:focus { outline: none; }
-.sheet { position: fixed; inset: auto 0 0; width: 100%; max-width: none; max-height: min(56dvh, 34rem); margin: 0; padding: 0; overflow: hidden; border: 0; border-top: 1px solid var(--subpage-rule); border-radius: 12px 12px 0 0; background: var(--ink, #070b10); color: var(--cw-paper); font: inherit; }
-.sheet[open] { display: flex; flex-direction: column; animation: sheetIn 160ms ease-out; }
-.sheet::backdrop { background: #0005; }
-.sheetBar { display: flex; flex: none; justify-content: flex-end; padding: .25rem max(.75rem, calc(var(--subpage-gutter) - .75rem)) 0; }
-.close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--subpage-muted); cursor: pointer; }
-.close:hover { color: var(--cw-paper); }
-.close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.sheetContent { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #b8c3bd60 transparent; padding: 0 var(--subpage-gutter) max(1.5rem, env(safe-area-inset-bottom)); }
-.sheetContent:focus { outline: none; }
-@keyframes sheetIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.workLinks { display: none; margin-top: var(--subpage-section-space); border-top: 1px solid var(--subpage-rule); }
-.workLinks button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; width: 100%; min-height: 52px; padding: 1rem 0; border: 0; border-bottom: 1px solid var(--subpage-rule); background: none; color: var(--subpage-text); text-align: left; font: inherit; font-size: var(--type-body); line-height: 1.5; cursor: pointer; }
-.workLinks button:hover { color: var(--cw-paper); }
+.detailEnter { animation: arrive 460ms cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.workLinks { margin-top: var(--subpage-row-space); border-top: 1px solid var(--subpage-rule); }
+.workLinks button { display: flex; justify-content: space-between; align-items: center; gap: 1rem; width: 100%; min-height: 52px; padding: .75rem 0; border: 0; border-bottom: 1px solid var(--subpage-rule); background: none; color: var(--subpage-text); text-align: left; font: inherit; font-size: var(--type-body); line-height: 1.5; cursor: pointer; transition: color 180ms ease; }
+.workLinks button:hover { color: #e6c794; }
 .workLinks svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.25; }
 .list { padding-top: var(--subpage-section-space); }
-@media (max-width: 700px) {
-  .office { grid-template-columns: 1fr; gap: var(--subpage-section-space); }
-  .mapColumn { width: min(100%, 36rem); margin-inline: auto; }
-  .detail { display: none; }
-  .workLinks { display: grid; }
-  .groupTitle { font-size: .8125rem; }
-  .roomLabel strong { font-size: clamp(.8125rem, 2.6vw, 1rem); }
+
+@media (max-width: 960px) {
+  .explorer { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "intro" "map" "tour" "track" "detail"; }
+  .mapColumn { position: static; width: 100vw; margin: -.5rem 0 0 calc(50% - 50vw); }
+  .plan { width: 100%; max-width: 44rem; animation: none; }
+  .detail { padding-top: var(--subpage-row-space); }
+  .tour { margin-top: .25rem; }
 }
-@media (max-width: 400px) {
-  .mapColumn { width: calc(100% + 2 * var(--subpage-gutter)); max-width: none; margin-inline: calc(-1 * var(--subpage-gutter)); }
-  .roomLabel { left: 5px; right: 3px; max-width: calc(100% - 8px); bottom: 6px; }
-  .roomLabel strong { font-size: .75rem; }
+@media (max-width: 520px) {
+  .roomLabel { max-width: 5.5rem; padding: .1875rem .3125rem; font-size: .6875rem; }
+  .labelRest { display: none; }
+  .room[aria-pressed="false"] .roomLabel { background: #0a0f18c7; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .sheet[open], .worker[data-walking="true"] .leftFoot, .worker[data-walking="true"] .rightFoot { animation: none; }
-  .lampGlow, .boothScreen, .tablePapers, .steam, .workerBody { transition: none; }
+  .plan, .detailEnter, .worker[data-walking="true"] .workerBody, .worker[data-walking="true"] .leftLeg, .worker[data-walking="true"] .rightLeg { animation: none; }
+  .lightHole, .wash, .bulb, .pendant, .pendantCord, .screen, .steam, .workerBody, .leftLeg, .rightLeg, .track li, .step, .nextStop, .roomLabel, .workLinks button { transition: none; }
 }
 @media (forced-colors: active) {
-  .walls, .windows, .doors { stroke: CanvasText; }
-  .roomLabel, .groupTitle { background: Canvas; color: CanvasText; }
-  .room[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -4px; }
+  .roomLabel { background: Canvas; color: CanvasText; border-color: CanvasText; }
+  .room[aria-pressed="true"] .roomLabel { outline: 2px solid Highlight; outline-offset: 2px; }
+  .step, .nextStop { border-color: ButtonText; }
+  .track { display: none; }
 }

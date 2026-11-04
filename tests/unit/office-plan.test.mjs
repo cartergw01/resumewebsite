@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { officeRoute, officeStops } from "../../lib/office-plan.ts";
+import { officeHitArea, officeProject, officeRoute, officeStops, officeView } from "../../lib/office-plan.ts";
 
 const inside = ([x, y], [left, top, width, height]) => x >= left && x <= left + width && y >= top && y <= top + height;
 const floors = [[24, 24, 400, 376], [424, 72, 272, 456], [64, 400, 360, 176]];
@@ -35,3 +35,13 @@ for (const from of officeStops) {
     });
   }
 }
+
+test("every station's floor and label sit inside the drawing", () => {
+  for (const stop of officeStops) {
+    const area = officeHitArea(stop);
+    const [tagX, tagY] = officeProject(stop.tag);
+    assert(area.left >= 0 && area.left + area.width <= officeView.width, `${stop.id} floor runs off the sides`);
+    assert(area.top >= 0 && area.top + area.height <= officeView.height, `${stop.id} floor runs off the ends`);
+    assert(tagX > area.left && tagX < area.left + area.width && tagY > area.top && tagY < area.top + area.height, `${stop.id} label left its floor`);
+  }
+});

@@ -1,4 +1,4 @@
-/* Work: an office plan with the same reading styles as the other pages. */
+/* Work: a floating office with the same reading styles as the other pages. */
 .page {
   --ink: #070b10;
   --paper: var(--cw-paper);
@@ -12,7 +12,7 @@
   color: var(--paper);
   background: var(--ink);
 }
-.page > [data-galaxy-background] { opacity: .1; }
+.page { overflow-x: clip; }
 .main {
   position: relative;
   z-index: 1;
