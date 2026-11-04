@@ -3,7 +3,8 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import { createPortal } from "react-dom";
 import { ARTWORK_PARALLAX_EVENT } from "@/lib/artwork-perspective";
-import { chooseLanding, distanceFromRim, hoopShot, insideNet, NET_SETTLE, netAt, planShot, project, REST, shadowOf, SHOOTS_FROM, type Ball, type BallPose, type Shot } from "@/lib/hoop-shot";
+import { chooseLanding, distanceFromRim, hoopShot, insideNet, NET_SETTLE, netAt, planShot, project, REST, shadowOf, SHOOTS_FROM, type BallPose, type Shot } from "@/lib/hoop-shot";
+import { flipState, level } from "@/lib/light-switch";
 import { lightsOn, ROOM_LIGHTS_EVENT, ROOM_LIGHTS_INTENT } from "@/lib/room-lights";
 import type { ParallaxState } from "./IslandLife";
 import styles from "./WorkshopObjects.module.css";
@@ -30,6 +31,29 @@ const BLUR_ABOVE = 2.5;
 const BLUR_SAMPLES = 4;
 const frameName = (i: number) => `ball-${String(i).padStart(2, "0")}` as keyof typeof atlas;
 type Sheet = ImageBitmap | HTMLImageElement;
+const FLIP_LENGTH = 320;
+
+// There's one ball, and it stays where it landed until it's tapped: through a
+// resize, a visit to another page, and back. Only a full reload resets it.
+const state = {
+  ball: REST, moved: false, clock: 0, netEnter: -1, netLeave: -1,
+  shot: null as (Shot & { startedAt: number }) | null,
+  sheets: {} as Partial<Record<"lit" | "dark", Promise<Sheet>>>,
+  loaded: {} as Partial<Record<"lit" | "dark", Sheet>>,
+};
+const load = (which: "lit" | "dark") => state.sheets[which] ??= new Promise<Sheet>((resolve, reject) => {
+  const image = new Image();
+  image.onload = async () => {
+    // Decode now, off the main thread where possible, so a tap can't stall on it.
+    let sheet: Sheet = image;
+    try { sheet = await createImageBitmap(image); } catch { await image.decode().catch(() => {}); }
+    state.loaded[which] = sheet;
+    resolve(sheet);
+  };
+  image.onerror = () => { delete state.sheets[which]; reject(new Error("Hoop shot layers failed to load")); };
+  image.src = hoopShot[which];
+});
+const land = () => { if (state.shot) { state.ball = state.shot.final; state.shot = null; } };
 
 // Tapping the workshop's basketball shoots it. It's baked into the still, so
 // from its first shot this canvas covers that with the bare court, and draws the
@@ -44,9 +68,8 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
   const handlers = useRef({ onUnavailable, onBall });
   useEffect(() => { handlers.current = { onUnavailable, onBall }; }, [onUnavailable, onBall]);
   useImperativeHandle(ref, () => ({ shoot: () => shootRef.current() }), []);
-  // The ball outlives a resize, which starts the drawing below afresh.
-  const resting = useRef<Ball>(REST);
-  const moved = useRef(false);
+  // Leaving the page mid-shot, it has landed by the time anyone's back.
+  useEffect(() => land, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -57,10 +80,8 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
     if (!canvas || !context || !scene || !stage || !scale) return;
     const motion = matchMedia("(prefers-reduced-motion: reduce)");
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    const sheets: Partial<Record<"lit" | "dark", Promise<Sheet>>> = {};
-    const loaded: Partial<Record<"lit" | "dark", Sheet>> = {};
     const variant = () => lightsOn("projects") ? "lit" as const : "dark" as const;
-    const sheetNow = () => loaded[variant()] ?? loaded.lit ?? loaded.dark;
+    let disposed = false;
     const settled = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !document.hidden;
 
     const ratio = Math.min(devicePixelRatio, 2.5);
@@ -83,9 +104,11 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       visual.dataset.netCut = "true";
     };
 
+    // How much of this lighting is showing, while the room's switch plays out.
+    let pass = 1;
     const sprite = (sheet: Sheet, name: keyof typeof atlas, x: number, y: number, alpha = 1) => {
       const [ax, ay, aw, ah] = rect(name);
-      context.globalAlpha = alpha;
+      context.globalAlpha = alpha * pass;
       context.drawImage(sheet, ax, ay, aw, ah, x, y, aw / density, ah / density);
       context.globalAlpha = 1;
     };
@@ -100,6 +123,7 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       const [ax, ay, aw] = rect(name);
       const [rx, ry, rw, rh] = regions.net;
       let y = ry;
+      context.globalAlpha = pass;
       for (let row = 0; row < rh; row += SLICE) {
         const source = ry + row;
         const u = Math.max(0, Math.min(1.1, (source - rimAt.y) / (netEnd.y - rimAt.y)));
@@ -111,6 +135,7 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
           centre + whip + (rx - centre) * widen + offset[0], y + offset[1], rw * widen, height + .25);
         y += height;
       }
+      context.globalAlpha = 1;
     };
     const drawBall = (sheet: Sheet, pose: BallPose, alpha: number, blend: boolean) => {
       const at = project([pose.x, pose.y, pose.z]);
@@ -131,16 +156,24 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       return at;
     };
 
-    let frame = 0, last = 0, clock = 0, dt = 1 / 60;
-    let shot: (Shot & { startedAt: number }) | null = null;
-    let netEnter = -1, netLeave = -1;
-    const poseNow = (): BallPose => shot ? shot.pose(clock - shot.startedAt) : { ...resting.current, squash: 0 };
+    let frame = 0, last = 0, dt = 1 / 60;
+    const poseNow = (): BallPose => state.shot ? state.shot.pose(state.clock - state.shot.startedAt) : { ...state.ball, squash: 0 };
+    const ringing = () => state.netEnter >= 0 && state.clock < state.netLeave + NET_SETTLE;
+    const flipping = () => { const flip = flipState("projects"); return !!flip && performance.now() - flip.at < FLIP_LENGTH; };
 
     const paint = () => {
       context.clearRect(AREA[0], AREA[1], AREA[2], AREA[3]);
-      if (!moved.current) return;
-      const sheet = sheetNow();
-      if (!sheet) return;
+      if (!state.moved) return;
+      const { lit, dark } = state.loaded;
+      // Through a flip of the switch the two lightings dissolve, in step with
+      // the still; the spotlight is the last of its fixtures to settle.
+      const on = level("projects", "spot", lightsOn("projects"));
+      if (lit && (on >= 1 || !dark)) drawScene(lit);
+      else if (dark && (on <= 0 || !lit)) drawScene(dark);
+      else if (lit && dark) { drawScene(lit); pass = 1 - on; drawScene(dark); pass = 1; }
+    };
+    const drawScene = (sheet: Sheet) => {
+      const { clock, shot, netEnter, netLeave } = state;
       const pose = poseNow();
 
       // The bare court where the still's ball sits, and the shadow on the
@@ -175,7 +208,7 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
 
       // The ball. Moving fast it's a few moments averaged together; slow, its
       // turning frames blend into one another.
-      let at;
+      let at = project([pose.x, pose.y, pose.z]);
       const before = shot ? shot.pose(clock - shot.startedAt - dt * SHUTTER) : pose;
       const a = project([pose.x, pose.y, pose.z]), b = project([before.x, before.y, before.z]);
       const travel = Math.hypot(a.x - b.x, a.y - b.y);
@@ -186,7 +219,7 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
           at = drawBall(sheet, moment, 1 / (i + 1), false);
         }
       } else at = drawBall(sheet, pose, 1, !!shot);
-      handlers.current.onBall(at!.x, at!.y);
+      handlers.current.onBall(at.x, at.y);
 
       // Inside the rim, its front and the near cords pass over the ball.
       if (inside) {
@@ -197,8 +230,8 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
 
     const stop = () => {
       cancelAnimationFrame(frame); frame = 0; last = 0;
-      if (shot) { resting.current = shot.final; shot = null; }
-      netEnter = netLeave = -1;
+      land();
+      state.netEnter = state.netLeave = -1;
       cutNet(false);
       canvas.dataset.hoopShot = "idle";
       paint();
@@ -208,65 +241,59 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       if (!settled()) { stop(); return; }
       // Keep to real time through a dropped frame; only a long stall pauses it.
       dt = Math.min(now - (last || now - 1000 / 60), 100) / 1000;
-      clock += dt;
+      state.clock += dt;
       last = now;
-      if (shot && clock >= shot.startedAt + shot.entersRim && netEnter < shot.startedAt) {
-        netEnter = shot.startedAt + shot.entersRim;
-        netLeave = shot.startedAt + shot.leavesNet;
+      const { shot, clock } = state;
+      if (shot && clock >= shot.startedAt + shot.entersRim && state.netEnter < shot.startedAt) {
+        state.netEnter = shot.startedAt + shot.entersRim;
+        state.netLeave = shot.startedAt + shot.leavesNet;
       }
-      if (shot && clock >= shot.startedAt + shot.duration) { resting.current = shot.final; shot = null; canvas.dataset.hoopShot = "idle"; }
-      if (!shot && !(netEnter >= 0 && clock < netLeave + NET_SETTLE)) { stop(); return; }
+      if (shot && clock >= shot.startedAt + shot.duration) { land(); canvas.dataset.hoopShot = "idle"; }
+      if (!state.shot && !ringing() && !flipping()) { stop(); return; }
       paint();
       frame = requestAnimationFrame(tick);
     };
-
-    const load = (which: "lit" | "dark") => sheets[which] ??= new Promise<Sheet>((resolve, reject) => {
-      const image = new Image();
-      image.onload = async () => {
-        // Decode now, off the main thread where possible, and put it on the
-        // canvas once, so the first tap can't stall on either.
-        let sheet: Sheet = image;
-        try { sheet = await createImageBitmap(image); } catch { await image.decode().catch(() => {}); }
-        loaded[which] = sheet;
-        context.drawImage(sheet, AREA[0], AREA[1], 1, 1);
-        if (!frame) paint();
-        resolve(sheet);
-      };
-      image.onerror = () => { delete sheets[which]; reject(new Error("Hoop shot layers failed to load")); };
-      image.src = hoopShot[which];
+    const wake = () => { if (!frame) { last = 0; frame = requestAnimationFrame(tick); } };
+    // Put a new sheet on the canvas once, so the first tap can't stall on it.
+    const ready = (which: "lit" | "dark") => load(which).then(sheet => {
+      if (disposed) return sheet;
+      context.drawImage(sheet, AREA[0], AREA[1], 1, 1);
+      if (!frame) paint();
+      return sheet;
     });
 
     const launch = () => {
       const pose = poseNow();
-      moved.current = true;
-      shot = { ...planShot(pose, chooseLanding(pose)), startedAt: clock };
+      state.moved = true;
+      state.shot = { ...planShot(pose, chooseLanding(pose)), startedAt: state.clock };
       canvas.dataset.hoopShot = "flying";
       // Paint now, in the tap's own frame: the response is immediate.
       dt = 1 / 60;
       paint();
-      if (!frame) { last = 0; frame = requestAnimationFrame(tick); }
+      wake();
     };
     shootRef.current = () => {
       if (motion.matches) { handlers.current.onUnavailable(); return; }
       if (!settled()) return;
       // Once it's out of the net it can be shot again, even mid-bounce, as
       // soon as it's far enough out from under the rim to arc back up.
+      const { shot, clock } = state;
       if (shot && (clock < shot.startedAt + shot.leavesNet || distanceFromRim(poseNow()) < SHOOTS_FROM)) return;
-      if (loaded[variant()]) launch();
-      else load(variant()).then(() => { if (settled() && !shot) launch(); }, () => handlers.current.onUnavailable());
+      if (state.loaded[variant()]) launch();
+      else ready(variant()).then(() => { if (!disposed && settled() && !state.shot) launch(); }, () => handlers.current.onUnavailable());
     };
 
     // Fetch the layers as soon as someone settles on the island, so a tap is instant.
     let idle: ReturnType<typeof setTimeout> | undefined;
     const prepare = () => {
       clearTimeout(idle);
-      if (!settled()) { if (shot || frame) stop(); return; }
+      if (!settled()) { if (state.shot || frame) stop(); return; }
       if (connection?.saveData || motion.matches) return;
-      idle = setTimeout(() => { if (settled()) void load(variant()).catch(() => {}); }, 300);
+      idle = setTimeout(() => { if (settled()) void ready(variant()).catch(() => {}); }, 300);
     };
-    const reach = (event: Event) => { if ((event as CustomEvent).detail === "projects") void load("dark").catch(() => {}); };
-    const flip = () => { void load(variant()).catch(() => {}); if (!frame) paint(); };
-    const parallax = () => { if (moved.current && !frame) paint(); };
+    const reach = (event: Event) => { if ((event as CustomEvent).detail === "projects") void ready(lightsOn("projects") ? "dark" : "lit").catch(() => {}); };
+    const flip = () => { void ready(variant()).catch(() => {}); if (state.moved) wake(); };
+    const parallax = () => { if (state.moved && !frame) paint(); };
     const observer = new MutationObserver(prepare);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
     observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
@@ -275,8 +302,11 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
     window.addEventListener(ROOM_LIGHTS_EVENT, flip);
     visual.addEventListener(ARTWORK_PARALLAX_EVENT, parallax);
     prepare();
-    if (moved.current) void load(variant()).catch(() => {});
+    // Back on the page or resized: the ball's where it was, and a shot carries on.
+    if (state.moved) void ready(variant()).catch(() => {});
+    if (state.shot || ringing()) wake(); else paint();
     return () => {
+      disposed = true;
       clearTimeout(idle);
       observer.disconnect();
       document.removeEventListener("visibilitychange", prepare);
@@ -284,7 +314,8 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       window.removeEventListener(ROOM_LIGHTS_EVENT, flip);
       visual.removeEventListener(ARTWORK_PARALLAX_EVENT, parallax);
       shootRef.current = () => {};
-      stop();
+      cancelAnimationFrame(frame);
+      cutNet(false);
     };
   }, [scale, visual]);
 
