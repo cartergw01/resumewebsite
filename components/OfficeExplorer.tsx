@@ -22,6 +22,7 @@ const ARROWS: Record<string, { facing: OfficeFacing; dx: number; dy: number }> =
   ArrowLeft: { facing: "left", dx: -1, dy: 0 }, ArrowRight: { facing: "right", dx: 1, dy: 0 },
 };
 const SPEED = 92; // Pixels of art a second, on foot under the player's control.
+const SLIDE = 9; // How far off a gap he can be and still be steered into it.
 const objectNear = ([x, y]: Point) => officeObjectAt(x, y)?.id ?? null;
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -134,8 +135,16 @@ export default function OfficeExplorer({ header, panels, list, preview = false }
       last = now;
       marker.style.backgroundPositionY = workerFacing(facing);
       const [x, y] = spot.current;
-      const moved: Point = [x + dx * distance, y + dy * distance];
-      const free = officeCanStand(...moved);
+      let moved: Point = [x + dx * distance, y + dy * distance];
+      let free = officeCanStand(...moved);
+      // Clipping a corner slides him round it, so doors don't need lining up exactly.
+      for (let slide = 1; !free && slide <= SLIDE; slide++) {
+        for (const side of [1, -1]) {
+          if (free || !officeCanStand(moved[0] + dy * side * slide, moved[1] + dx * side * slide)) continue;
+          moved = [x + dy * side * distance, y + dx * side * distance];
+          free = officeCanStand(...moved);
+        }
+      }
       marker.dataset.walking = free ? "true" : "false";
       if (free) {
         stand(moved);

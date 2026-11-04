@@ -19,7 +19,7 @@ The man has a black shirt, dark blue pants, and an undercut with a middle part. 
 
 Room names are the copy's own words, never shortened, and a unit test holds them to `content/work.md`. They are lettered on every floor, lit or not, so the names belong to the building and there is no separate menu.
 
-The office and the story move together. With the arrow keys you walk him yourself, and he collides with walls and furniture. Walk through a door and that room lights while its story takes over the details beside it; step back into the corridor and the lights go out. Pressing an arrow key scrolls nothing while the office is on screen. Clicking or tapping a room, or the Next link after its details, sends him there by the doors.
+The office and the story move together. With the arrow keys you walk him yourself, and he collides with walls and furniture. Clipping a corner slides him round it, so doorways don't need lining up exactly. Walk through a door and that room lights while its story takes over the details beside it; step back into the corridor and the lights go out. Pressing an arrow key scrolls nothing while the office is on screen. Clicking or tapping a room, or the Next link after its details, sends him there by the doors.
 
 Objects in a room are the same links as the words beside it: the shelves, typewriter, reading chair and stacks at Contrary Research are the five company profiles, the screen is ikigai Launchpad, the poster is the newsletter. Stand near one, or point at it, and a text box names it; Enter or a click opens it. A unit test fails if an object links anywhere the copy does not. Touch screens leave these out, since the same links are in the story below the office.
 
