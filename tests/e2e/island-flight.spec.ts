@@ -95,6 +95,38 @@ test("island settles before its lights, heading, and switch arrive", async ({ pa
   }
 });
 
+test("an island lands still: the scroll weight has gone before it arrives", async ({ page }) => {
+  await page.goto("/#work");
+  await hydrated(page);
+  await expect(page.locator("#work[data-active='true']")).toBeVisible();
+  const samples = page.evaluate(() => new Promise<{ rot: number; x: number; y: number }[]>(resolve => {
+    const stage = document.querySelector<HTMLElement>("[data-island-stage]")!;
+    const art = document.querySelector<HTMLElement>("#writing [data-scene-art]")!;
+    const frames: { rot: number; x: number; y: number }[] = [];
+    let moved = false;
+    const began = performance.now();
+    const tick = (now: number) => {
+      moved ||= stage.dataset.travelling === "true";
+      // Every frame from the moment the crossing ends, spring still running or not.
+      if (moved && stage.dataset.travelling === "false") {
+        const matrix = new DOMMatrixReadOnly(getComputedStyle(art).transform);
+        const rot = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
+        frames.push({ rot, x: matrix.m41, y: matrix.m42 });
+      }
+      if (now - began < 2500) requestAnimationFrame(tick); else resolve(frames);
+    };
+    requestAnimationFrame(tick);
+  }));
+  await page.keyboard.press("ArrowDown");
+  const frames = await samples;
+  expect(frames.length).toBeGreaterThan(0);
+  for (const frame of frames) {
+    expect(Math.abs(frame.rot)).toBeLessThan(0.01);
+    expect(Math.abs(frame.x)).toBeLessThan(0.5);
+    expect(Math.abs(frame.y)).toBeLessThan(0.5);
+  }
+});
+
 test("book and workshop entry centers their landmarks", async ({ page }) => {
   // The dev server compiles a route on its first visit and Next then reloads
   // it, which would cut across the next journey (production never reloads).

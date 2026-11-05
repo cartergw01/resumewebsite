@@ -208,7 +208,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // rest at either end. Desktop retains its longer cinematic holds.
       const position = touchScroll.matches ? segment + fraction : cameraProgress * duration;
       // The scroll and navigation stay attached to the finger. Only the art
-      // has mass: a bounded spring banks into travel, then settles on release.
+      // has mass: a bounded spring banks it into travel. Critically damped, so
+      // the pull never swings past zero and back.
       // Small time steps keep the response stable on slow and 120Hz phones.
       if (massPosition === null || motion.matches || zoomProgress !== null) {
         massPosition = position;
@@ -217,7 +218,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         massPosition = position - Math.max(-0.2, Math.min(0.2, position - massPosition));
         for (let remaining = elapsed / 1000; remaining > 0;) {
           const dt = Math.min(remaining, 1 / 120);
-          massVelocity += ((position - massPosition) * 260 - massVelocity * 24) * dt;
+          massVelocity += ((position - massPosition) * 260 - massVelocity * 32) * dt;
           massPosition += massVelocity * dt;
           remaining -= dt;
         }
@@ -296,10 +297,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
             opacity = phase(crossing, 0.3, 0.6).toFixed(4);
           }
         }
-        if (!motion.matches && !flightOn && weight) {
-          // Keep the bank continuous across stop boundaries; only reversing
-          // the scroll reverses the pull, not the next path's alternating arc.
-          const pull = weight * (0.35 + 0.65 * phase(position, 0.6, 1));
+        // Mid-flight only: the bank is gone by the time an island reaches a
+        // stop, in either direction, so it lands still instead of arriving
+        // tilted and rocking back level.
+        const inFlight = phase(crossing, 0, 0.2) * (1 - phase(crossing, 0.6, 0.95));
+        if (!motion.matches && !flightOn && weight && inFlight) {
+          // Only reversing the scroll reverses the pull, not the next path's
+          // alternating arc.
+          const pull = weight * inFlight * (0.35 + 0.65 * phase(position, 0.6, 1));
           transform = `translate3d(${(pull * 18).toFixed(2)}px, ${(pull * 12).toFixed(2)}px, 0) rotate(${(-pull * 2.4).toFixed(3)}deg) ${transform}`;
         }
         paintArt[index]("transform", transform);
