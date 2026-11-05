@@ -108,9 +108,16 @@
 .prompt .key { background: #e7c693; color: #120e18; box-shadow: inset 0 -3px 0 0 #b08f5c; }
 
 /* The game's text box. */
-.textBox { flex: 0 1 auto; display: flex; min-height: 0; padding: 5px; background: var(--ink); clip-path: var(--stepped); cursor: pointer; }
+.textBox { position: relative; flex: 0 1 auto; display: flex; min-height: 0; padding: 5px; background: var(--ink); clip-path: var(--stepped); cursor: pointer; }
 .textBoxBody { flex: 1; min-width: 0; min-height: 0; padding: .625rem .875rem .75rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: var(--menu-paper); color: var(--ink); clip-path: var(--stepped); font-size: 1.125rem; font-weight: 500; line-height: 1.35; letter-spacing: .01em; font-variant-numeric: lining-nums; }
 .textBoxName { margin: 0 0 .25rem; color: var(--brand-886); font-size: .9375rem; font-weight: 600; line-height: 1.2; }
+.textBoxRole { display: none; margin: 0; color: #5f5568; font-size: .875rem; font-weight: 500; line-height: 1.3; }
+.textBoxRole + .textBoxPage { margin-top: .375rem; }
+/* More below: the last line fades in the console's own steps, and an arrow bobs, as in the games. */
+.textBox[data-more="true"]::after { content: ""; position: absolute; inset: auto 5px 5px; height: 1.75rem; background: linear-gradient(#f8f4e600 0 34%, #f8f4e699 34% 67%, #f8f4e6 67%); pointer-events: none; }
+.textBoxMore { position: absolute; right: .75rem; bottom: .5rem; z-index: 1; display: block; width: 14px; height: 10px; color: var(--brand-886); pointer-events: none; animation: bob .8s steps(2) infinite alternate; }
+.textBoxMore svg { display: block; width: 10px; height: 14px; margin: -2px 0 0 2px; fill: currentColor; }
+@keyframes bob { from { translate: 0 -2px; } to { translate: 0 1px; } }
 .textBoxPage p { margin: 0; }
 .textBoxPage p + p { margin-top: .625rem; }
 .textBoxPage strong { font-weight: 600; }
@@ -126,14 +133,17 @@
 
 /* On a touch screen, a controller: keys that stay put and never scroll the page. */
 .pad { flex: none; display: none; grid-template-columns: 1fr auto 1fr; align-items: center; padding-inline: var(--subpage-gutter, 1rem); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.padCross { grid-column: 2; display: grid; grid-template: repeat(3, 38px) / repeat(3, 38px); }
+.padCross { grid-column: 2; display: grid; grid-template: repeat(2, 38px) / repeat(3, 38px); }
 .padKey, .padAction { display: grid; place-items: center; padding: 0; border: 2px solid var(--ink); background: var(--menu-paper); color: var(--ink); touch-action: none; -webkit-tap-highlight-color: transparent; }
 .padKey:active, .padAction:active { background: #e7c693; }
+.padKey { position: relative; }
+/* Small to look at, a full thumb's worth to hit. */
+.padKey::after { content: ""; position: absolute; inset: -5px; }
 .padKey svg { width: 10px; height: 14px; fill: currentColor; }
 .padKey[data-key="up"] { grid-area: 1 / 2; }
 .padKey[data-key="left"] { grid-area: 2 / 1; }
+.padKey[data-key="down"] { grid-area: 2 / 2; }
 .padKey[data-key="right"] { grid-area: 2 / 3; }
-.padKey[data-key="down"] { grid-area: 3 / 2; }
 .padAction { grid-column: 3; justify-self: start; width: 52px; height: 52px; margin-left: 1rem; border-radius: 50%; font-size: .9375rem; font-weight: 600; transition: opacity .12s; }
 .padAction[data-ready="false"] { opacity: .55; }
 
@@ -158,39 +168,84 @@
 }
 /* Sized so one short scroll brings the office, the story and the keys above the site nav together. */
 @media (hover: none) and (max-width: 960px) {
-  .textBox { height: clamp(9rem, calc(100svh - min(100vw, 44rem) * 272 / 372 - 114px - 7.25rem), 12rem); }
+  .textBox { height: clamp(9rem, calc(100svh - min(100vw, 44rem) * 272 / 372 - 76px - 7.25rem), 12rem); }
   .textBoxBody { overscroll-behavior: auto; }
 }
-@media (max-width: 700px) {
+/* Phones, either way up: the title shares a row with the back arrow, so the office, the story and
+   the keys all fit between it and the site nav. The one view button holds the same corner in both views. */
+@media (max-width: 700px), (hover: none) and (max-height: 500px) {
   /* Close enough to see the room he is in; the camera follows him. */
   .stage[data-zoomed="true"] { aspect-ratio: 3 / 2; }
   .stage[data-zoomed="true"] .plan { width: 230%; }
   .mapToggle { display: block; }
-  /* Everything clears the way for the office and its story: a tighter heading, and the view buttons after the keys. */
+  /* In the whole office, it waits in the corridor rather than over a room's sign. */
+  .stage[data-zoomed="false"] .mapToggle { top: calc(134 / 272 * 100%); transform: translateY(-50%); }
+  .explorer { position: relative; --compact-top: calc(var(--subpage-top) * -1 + 1rem); }
+  /* The title now sits where the nav's top shade falls, and it shouldn't read as dimmed. */
+  :global(body):has(.explorer[data-view="office"]) :global(.site-nav)::before { display: none; }
+  .intro { position: static; }
+  .toolbar, .explorer[data-view="office"] .toolbar { position: absolute; right: 0; top: var(--compact-top); bottom: auto; z-index: 2; margin: 0; }
+  .modes { flex: none; }
+  .modes button { position: relative; min-height: 36px; padding: 0 .625rem 3px; font-size: .9375rem; }
+  .modes button::after { content: ""; position: absolute; inset: -4px 0; }
+  .modes button[aria-pressed="true"] { display: none; }
   .explorer[data-view="office"] .tourView { display: flex; flex-direction: column; }
-  .explorer[data-view="office"] .intro { display: contents; }
+  .explorer[data-view="office"] .intro, .explorer[data-view="office"] .intro > header { display: contents; }
+  .explorer[data-view="office"] .intro > header > div { order: -1; height: 2.5rem; margin: var(--compact-top) 0 .25rem 2.25rem; }
+  .explorer[data-view="office"] .intro h1 { font-size: 1.75rem; line-height: 2.25rem; }
+  .explorer[data-view="office"] .intro > header > p { order: 1; min-height: 0; margin: 1.25rem 0 0; }
   .explorer[data-view="office"] .world { flex: none; }
-  .explorer[data-view="office"] .intro > header { margin: -2.25rem 0 .625rem; padding-bottom: 1rem; }
-  .explorer[data-view="office"] .toolbar { order: 1; margin: 1.25rem 0 0; }
-  .modes { flex: 1; min-width: 0; }
-  .modes button { flex: 1; min-width: 0; padding-inline: .375rem; font-size: 1rem; }
-  .textBoxBody { font-size: 1.0625rem; padding-inline: .625rem; }
+  .textBoxBody { font-size: 1.0625rem; padding: .5rem .625rem; }
+  .prompt { gap: .375rem; padding: .25rem .5rem; font-size: .875rem; }
   /* He starts near the left wall, so the whole-office sign leans right to stay on the map. */
   .stage[data-zoomed="false"] .youAreHere { transform: translateX(-30%); }
   .stage[data-zoomed="false"] .youAreHere::after { left: 30%; }
   .detailEnter { grid-template-columns: minmax(0, 1fr); }
 }
+/* On a touch phone the text box carries who and when, so nothing waits below the keys, and rooms flicker
+   once to say they can be tapped. The fuller details stay for screen readers. */
+@media (hover: none) and (max-width: 700px), (hover: none) and (max-height: 500px) {
+  .textBoxRole { display: block; }
+  /* The nav's shade stops at its own top edge, so the keys above it stay bright. */
+  :global(body):has(.explorer[data-view="office"]) :global(nav[data-reading-mode])::before { height: calc(100% + max(1.25rem, env(safe-area-inset-bottom))); background: linear-gradient(0deg, #030611 0 85%, #03061100); }
+  .detail { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); }
+  .stage[data-fresh="true"] .station[data-active="false"] .roomDark { animation: beckon 700ms steps(4) 1 both; animation-delay: calc(900ms + var(--beckon, 0) * 90ms); }
+  .station[data-station="accelerator"] { --beckon: 0; }
+  .station[data-station="founders"] { --beckon: 1; }
+  .station[data-station="community"] { --beckon: 2; }
+  .station[data-station="about"] { --beckon: 3; }
+  .station[data-station="side"] { --beckon: 4; }
+  .station[data-station="slug"] { --beckon: 5; }
+  .station[data-station="research"] { --beckon: 6; }
+}
+@keyframes beckon { 0%, 100% { opacity: .4; } 50% { opacity: 0; } }
+@media (hover: none) and (max-width: 700px) {
+  /* Whatever the map leaves, under the 60px title row, with two 10px gaps and clear of the 84px site nav. */
+  .textBox { height: clamp(6.5rem, calc(100svh - 100vw * 272 / 372 - 76px - 60px - 20px - 84px), 16rem); }
+}
+/* A phone on its side: the office on the left, the story and the keys beside it. */
+@media (hover: none) and (max-height: 500px) and (orientation: landscape) {
+  .explorer[data-view="office"] .world { flex-direction: row; gap: .75rem; align-items: flex-start; width: calc(100vw - 2 * max(.5rem, var(--safe-x, 0px))); margin-left: calc(50% - 50vw + max(.5rem, var(--safe-x, 0px))); }
+  .stage { flex: none; align-self: flex-start; width: min(58vw, calc((100svh - 8.75rem) * 372 / 272)); }
+  .side { display: flex; flex: 1 1 0; height: min(calc(58vw * 272 / 372), calc(100svh - 8.75rem)); gap: .5rem; }
+  .textBoxRole + .textBoxRole { display: none; }
+  .textBox { order: 0; flex: 1 1 0; height: auto; margin-inline: 0; }
+  .pad { order: 1; padding-inline: 0; }
+}
 @media (max-width: 360px) {
+  .textBoxRole { font-size: .75rem; }
   .modeIcon, .eyes { display: none; }
   .modes button { font-size: .9375rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .detailEnter, .worker[data-walking="true"], .youAreHere { animation: none; }
+  .detailEnter, .worker[data-walking="true"], .youAreHere, .textBoxMore, .stage[data-fresh="true"] .station .roomDark { animation: none !important; }
   .roomDark, .screen, .modes button { transition: none; }
   .modes button:active, .mapToggle:active { translate: none; }
 }
 @media (forced-colors: active) {
   .prompt, .textBox, .textBoxBody { clip-path: none; border: 1px solid CanvasText; }
+  .textBox[data-more="true"]::after { display: none; }
+  .textBoxMore svg { fill: CanvasText; }
   .padKey svg { fill: CanvasText; }
   .modes button[aria-pressed="true"] { outline: 2px solid Highlight; }
 }

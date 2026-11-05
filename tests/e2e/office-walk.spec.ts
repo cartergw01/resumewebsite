@@ -208,6 +208,69 @@ test("on a phone the Open button says what it does, and opens what he is standin
   await profile.close();
 });
 
+test("on a phone a long story shows there is more, and a tap reads on", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "The fixed text box is for touch screens.");
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto("/work");
+  await page.getByRole("button", { name: "Korobra Capital & side projects", exact: true }).tap();
+  const box = page.locator('[class*="OfficeExplorer_textBox_"]');
+  const body = page.locator('[class*="OfficeExplorer_textBoxBody"]');
+  await expect(box).toHaveAttribute("data-typing", "false", { timeout: 5000 });
+  const arrow = page.locator('[class*="OfficeExplorer_textBoxMore"]');
+  await expect(arrow).toBeVisible();
+  // The whole story is there to scroll to, with nothing left blank below the fold.
+  await expect(page.locator('[class*="textBoxPage"] span[style*="hidden"]')).toHaveCount(0);
+  // Tapping pages down until the end, where the arrow goes.
+  await expect(async () => {
+    await body.tap({ position: { x: 300, y: 20 } });
+    await page.waitForTimeout(350);
+    await expect(arrow).toBeHidden({ timeout: 100 });
+  }).toPass({ timeout: 15_000 });
+  expect(await body.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+  expect(await body.evaluate(node => node.scrollTop + node.clientHeight >= node.scrollHeight - 6)).toBe(true);
+  // The next room starts from its top, and says who and when.
+  await page.getByRole("button", { name: "Contrary Research", exact: true }).tap();
+  await expect(box).toHaveAttribute("data-typing", "false", { timeout: 5000 });
+  expect(await body.evaluate(node => node.scrollTop)).toBe(0);
+  await expect(page.locator('[class*="OfficeExplorer_textBoxRole"]')).toContainText("Research Fellow · March 2023 - March 2024");
+});
+
+test("on a phone the view button holds its corner, and the page stops changing height between rooms", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "The compact heading is for phones.");
+  await page.setViewportSize({ width: 390, height: 664 });
+  await page.goto("/work");
+  const toList = page.getByRole("button", { name: "Read as a list" });
+  await expect(toList).toBeInViewport({ ratio: 1 });
+  const corner = (await toList.boundingBox())!;
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  await page.getByRole("button", { name: "Finding founders", exact: true }).tap();
+  await expect(page.locator("[data-office-explorer]")).toHaveAttribute("data-selected", "founders");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(height);
+  await toList.tap();
+  const toOffice = page.getByRole("button", { name: "Tour the office" });
+  await expect(toOffice).toBeVisible();
+  const after = (await toOffice.boundingBox())!;
+  expect(Math.abs(after.y - corner.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(after.x + after.width - corner.x - corner.width)).toBeLessThanOrEqual(1);
+  await toOffice.tap();
+  await expect(page.locator('[data-key="up"]')).toBeVisible();
+});
+
+test("a phone on its side has the office and the story side by side", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "For touch screens.");
+  await page.setViewportSize({ width: 664, height: 390 });
+  await page.goto("/work");
+  const map = (await page.locator("[data-office-map]").boundingBox())!;
+  const story = (await page.locator('[class*="OfficeExplorer_textBox_"]').boundingBox())!;
+  const pad = (await page.locator('[class*="OfficeExplorer_pad_"]').boundingBox())!;
+  expect(story.x).toBeGreaterThanOrEqual(map.x + map.width);
+  expect(pad.y).toBeGreaterThanOrEqual(story.y + story.height);
+  expect(map.y + map.height).toBeLessThanOrEqual(390);
+  expect(pad.y + pad.height).toBeLessThanOrEqual(390);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+});
+
 for (const [width, height] of [[390, 844], [390, 664], [375, 667], [320, 640]]) {
   test(`the site nav never sits on the walking controls at ${width}x${height}`, async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.startsWith("mobile"), "The pad is for touch screens.");
@@ -221,6 +284,8 @@ for (const [width, height] of [[390, 844], [390, 664], [375, 667], [320, 640]]) 
     const opening = (await story.boundingBox())!;
     expect(opening.y).toBeLessThan((await dock.boundingBox())!.y - 64);
     expect((await pad.boundingBox())!.y).toBeGreaterThanOrEqual(opening.y + opening.height);
+    // On anything from 640 tall, office, story and keys all fit above the nav before any scrolling.
+    if (height >= 660) expect((await pad.boundingBox())!.y + 76).toBeLessThanOrEqual((await dock.boundingBox())!.y);
     // The arrows sit in the middle of the screen, whatever its width.
     const cross = (await page.locator('[class*="OfficeExplorer_padCross"]').boundingBox())!;
     expect(Math.abs(cross.x + cross.width / 2 - width / 2)).toBeLessThanOrEqual(1);

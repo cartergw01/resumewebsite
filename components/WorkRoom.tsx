@@ -210,7 +210,17 @@ function OfficeContent({ preview = false }: { preview?: boolean }) {
     side: preview ? null : copy.onTheSide.map(item => <p key={item.title}>{item.paragraphs.map((line, index) => <Md key={index} text={line} />)}{item.more && <> <Link href={item.more.href}>{item.more.label}</Link></>}</p>),
     about: preview ? null : <><p>{copy.about.facts.map(fact => `${fact.label}: ${fact.value}`).join(" · ")}</p>{story(copy.about.paragraphs)}</>,
   };
-  return <OfficeExplorer header={<WorkHeader preview={preview} />} cards={cards} stories={stories} list={preview ? null : <WorkHistory />} preview={preview} />;
+  const jobOf = (company: string) => {
+    const job = workPageExperience.find(item => item.company === company);
+    return job ? [{ role: shortTitles[job.company] ?? job.role, dates: job.dates }] : [];
+  };
+  const roles = {
+    now: [{ role: current.role, dates: current.dates }, { role: "Venture Fellow", dates: "June 2024 - September 2024" }],
+    research: jobOf(copy.previously[0].title),
+    slug: jobOf(copy.previously[1].title),
+    side: copy.onTheSide.flatMap(item => jobOf(item.title)),
+  };
+  return <OfficeExplorer header={<WorkHeader preview={preview} />} cards={cards} stories={stories} roles={roles} list={preview ? null : <WorkHistory />} preview={preview} />;
 }
 
 // Inert source for the carried window. The opening is rendered from the same

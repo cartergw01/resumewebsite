@@ -16,6 +16,8 @@ type Props = {
   cards: Record<OfficeStopId, ReactNode>;
   /** What happened there, in the copy's own words, for each room's text box. */
   stories: Record<OfficeStopId, ReactNode>;
+  /** The job and its dates, at the top of the text box on a phone. */
+  roles?: Partial<Record<OfficeStopId, { role: string; dates: string }[]>>;
   list: ReactNode;
   preview?: boolean;
 };
@@ -63,7 +65,7 @@ function ListIcon() {
   return <svg className={styles.modeIcon} viewBox="0 0 16 16" aria-hidden="true" shapeRendering="crispEdges"><path d="M1 3h3v3H1Zm5 0h9v3H6ZM1 10h3v3H1Zm5 0h9v3H6Z" /></svg>;
 }
 
-export default function OfficeExplorer({ header, cards, stories, list, preview = false }: Props) {
+export default function OfficeExplorer({ header, cards, stories, roles, list, preview = false }: Props) {
   const [selected, setSelected] = useState<OfficeStopId>("now");
   const [lit, setLit] = useState<OfficeStopId | null>("now");
   const [view, setView] = useState<"office" | "list">("office");
@@ -72,10 +74,12 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const [walked, setWalked] = useState(false);
   const [zoomed, setZoomed] = useState(false);
   const [typing, setTyping] = useState(false);
+  const [more, setMore] = useState(false);
   const worker = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const plan = useRef<HTMLDivElement>(null);
   const storyEl = useRef<HTMLDivElement>(null);
+  const storyBody = useRef<HTMLDivElement>(null);
   const legend = useRef<HTMLDivElement>(null);
   const spot = useRef<Point>(officeStart);
   const trip = useRef<{ stop: () => void } | null>(null);
@@ -185,15 +189,49 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
     };
   }, [preview, stand, sense, enter, selected]);
 
+  // Is there more of the story below the fold of the text box?
+  const measureMore = useCallback(() => {
+    const body = storyBody.current;
+    setMore(Boolean(body && body.scrollTop + body.clientHeight < body.scrollHeight - 6));
+  }, []);
+
+  // A long story reads like the games': finish this page, then on to the next.
+  const readOn = useCallback(() => {
+    if (finishTyping.current) { finishTyping.current(); return; }
+    const body = storyBody.current;
+    if (!body || body.scrollTop + body.clientHeight >= body.scrollHeight - 6) return;
+    // The next page starts on the line the fold cut, so it never opens on half a line.
+    const box = body.getBoundingClientRect();
+    const words = document.createRange();
+    words.selectNodeContents(body);
+    const cut = [...words.getClientRects()].find(line => line.height > 0 && line.height < 48 && line.top > box.top + 8 && line.bottom > box.bottom - 30);
+    words.detach();
+    body.scrollBy({ top: cut ? cut.top - box.top - 8 : Math.max(body.clientHeight - 48, 48), behavior: reducedMotion() ? "auto" : "smooth" });
+  }, []);
+
   // The one action, for Enter and the Open button: open what he is standing at, or read on.
   const actRef = useRef<() => void>(() => {});
   useEffect(() => {
     actRef.current = () => {
       const link = plan.current?.querySelector<HTMLAnchorElement>("a[data-object][data-near='true']");
       if (link) { link.click(); return; }
-      finishTyping.current?.();
+      readOn();
     };
   });
+
+  // Every room's story starts from its top.
+  useLayoutEffect(() => {
+    if (storyBody.current) storyBody.current.scrollTop = 0;
+    measureMore();
+  }, [selected, view, measureMore]);
+
+  useEffect(() => {
+    const body = storyBody.current;
+    if (!body || typeof ResizeObserver === "undefined") return;
+    const watch = new ResizeObserver(measureMore);
+    watch.observe(body);
+    return () => watch.disconnect();
+  }, [view, measureMore]);
 
   // Type the story out when the room changes. The text is all there from the start, so the box
   // doesn't jump and links stay real; only the characters' visibility moves.
@@ -216,6 +254,15 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       }
       node.replaceWith(fragment);
     }
+    // Only this page of the box types out. What's below the fold is simply there when you get to it,
+    // so scrolling never finds a blank, and screen readers and Tab always have all of it.
+    const fold = (storyBody.current?.getBoundingClientRect().bottom ?? Infinity) - 14;
+    let low = 0, high = letters.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (letters[middle].getBoundingClientRect().bottom > fold) high = middle; else low = middle + 1;
+    }
+    const end = low;
     let frame = 0, shown = 0;
     const started = performance.now();
     const finish = () => {
@@ -226,9 +273,9 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       setTyping(false);
     };
     const tick = (now: number) => {
-      const target = Math.min(letters.length, Math.floor((now - started) / 1000 * TYPE_RATE));
+      const target = Math.min(end, Math.floor((now - started) / 1000 * TYPE_RATE));
       while (shown < target) letters[shown++].style.visibility = "";
-      if (shown >= letters.length) { finish(); return; }
+      if (shown >= end) { finish(); return; }
       frame = requestAnimationFrame(tick);
     };
     finishTyping.current = finish;
@@ -451,7 +498,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       keys.current.press(key);
       // Keep the map and the pad on screen together on small phones.
       const pad = event.currentTarget.parentElement!.getBoundingClientRect();
-      if (pad.bottom > innerHeight - 96) stage.current?.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
+      if (pad.bottom > innerHeight - 80) stage.current?.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
     }}
     onPointerUp={() => keys.current.release(key)}
     onPointerCancel={() => keys.current.release(key)}
@@ -470,14 +517,12 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
         <button type="button" aria-pressed={view === "list"} onClick={event => {
           if (event.detail) event.currentTarget.blur();
           setView("list");
-          // On a phone this button sits below the keys, so begin the list from its top.
-          if (view !== "list" && innerWidth <= 700) window.scrollTo({ top: 0, behavior: "instant" });
         }}><ListIcon />Read as a list</button>
       </div>
     </div>
     </div>
     {view === "office" && <div className={styles.world}>
-      <div className={styles.stage} ref={stage} data-zoomed={zoomed} data-office-map onScroll={event => {
+      <div className={styles.stage} ref={stage} data-zoomed={zoomed} data-fresh={!walked && !preview} data-office-map onScroll={event => {
         // Tabbing to an off-camera room makes the browser scroll here. The camera does that job.
         event.currentTarget.scrollTop = 0;
         event.currentTarget.scrollLeft = 0;
@@ -510,17 +555,19 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
           </div>
           <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} data-ready={Boolean(nearby?.href)} onClick={() => actRef.current()}>Open</button>
         </div>}
-      {/* The story, in the game: typed out, with Enter or a tap to skip ahead. */}
-      <div className={`${styles.textBox} ${pixel.className}`} data-typing={typing} onClick={event => {
+      {/* The story, in the game: typed out, with Enter or a tap to skip ahead and read on. */}
+      <div className={`${styles.textBox} ${pixel.className}`} data-typing={typing} data-more={more} onClick={event => {
         if (event.target instanceof Element && event.target.closest("a")) return;
-        finishTyping.current?.();
+        readOn();
       }}>
-        <div className={styles.textBoxBody}>
+        <div className={styles.textBoxBody} ref={storyBody} onScroll={measureMore}>
           <p className={styles.textBoxName}>{stop.label}</p>
+          {roles?.[selected]?.map(item => <p key={item.role} className={styles.textBoxRole}>{item.role} · {item.dates}</p>)}
           <div className={styles.textBoxPage} ref={storyEl} role="region" aria-label={`The story of ${stop.label}`} aria-busy={typing}>
             <StoryPage key={selected} node={stories[selected]} />
           </div>
         </div>
+        {more && !typing && <span className={styles.textBoxMore} aria-hidden="true"><Arrow direction="down" /></span>}
       </div>
 
       <div className={`${styles.legend} ${pixel.className}`} ref={legend} data-fresh={!walked && !preview}>
