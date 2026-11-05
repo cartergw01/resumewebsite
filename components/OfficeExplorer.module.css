@@ -111,9 +111,12 @@
 .textBox { position: relative; flex: 0 1 auto; display: flex; min-height: 0; padding: 5px; background: var(--ink); clip-path: var(--stepped); cursor: pointer; }
 .textBoxBody { flex: 1; min-width: 0; min-height: 0; padding: .625rem .875rem .75rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: var(--menu-paper); color: var(--ink); clip-path: var(--stepped); font-size: 1.125rem; font-weight: 500; line-height: 1.35; letter-spacing: .01em; font-variant-numeric: lining-nums; }
 .textBoxName { margin: 0 0 .25rem; color: var(--brand-886); font-size: .9375rem; font-weight: 600; line-height: 1.2; }
-.textBoxRole { display: none; margin: 0; color: #5f5568; font-size: .875rem; font-weight: 500; line-height: 1.3; }
-.textBoxRole + .textBoxRole { margin-top: .25rem; }
-.textBoxRole + .textBoxPage { margin-top: .375rem; }
+/* Three steps of space: tight inside a job, wider between jobs, widest before the story. */
+.textBoxRole { display: none; margin: 0; color: var(--ink); font-size: .875rem; font-weight: 500; line-height: 1.3; }
+.textBoxRole span + span { color: #5f5568; }
+.textBoxName + .textBoxRole { margin-top: .5rem; }
+.textBoxRole + .textBoxRole { margin-top: .625rem; }
+.textBoxRole + .textBoxPage { margin-top: .875rem; }
 .textBoxRole span + span::before { content: "· "; }
 /* More below: the last line fades in the console's own steps, and an arrow bobs, as in the games. */
 .textBox[data-more="true"]::after { content: ""; position: absolute; inset: auto 5px 5px; height: 1.75rem; background: linear-gradient(#f8f4e600 0 34%, #f8f4e699 34% 67%, #f8f4e6 67%); pointer-events: none; }
@@ -199,7 +202,8 @@
   .explorer[data-view="office"] .intro h1 { font-size: 1.75rem; line-height: 2.25rem; }
   .explorer[data-view="office"] .intro > header > p { order: 1; min-height: 0; margin: 1.25rem 0 0; }
   .explorer[data-view="office"] .world { flex: none; }
-  .textBoxBody { font-size: 1.0625rem; padding: .5rem .625rem; }
+  .textBoxBody { font-size: 1.0625rem; padding: .75rem .75rem .875rem; }
+  .textBoxPage p + p { margin-top: .75rem; }
   .prompt { gap: .375rem; padding: .25rem .5rem; font-size: .875rem; }
   /* He starts near the left wall, so the whole-office sign leans right to stay on the map. */
   .stage[data-zoomed="false"] .youAreHere { transform: translateX(-30%); }
@@ -229,7 +233,7 @@
   .explorer[data-view="office"] .world { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .625rem .5rem; align-items: center; }
   .stage { grid-area: 1 / 1 / 2 / -1; }
   .textBox { grid-area: 2 / 1; height: clamp(114px, calc(100svh - 100vw * 272 / 372 - 60px - 10px - 84px), 20rem); margin-inline: 4px 0; }
-  .textBoxBody { font-size: 1rem; }
+  .textBoxBody { font-size: 1rem; line-height: 1.4; }
   /* Too narrow for both on a line, so the job, then its dates, rather than wherever it wraps. */
   .textBoxRole span { display: block; }
   .textBoxRole span + span::before { content: none; }
