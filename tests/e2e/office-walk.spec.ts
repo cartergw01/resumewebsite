@@ -268,7 +268,7 @@ test("a phone on its side has the office and the story side by side", async ({ p
   const story = (await page.locator('[class*="OfficeExplorer_textBox_"]').boundingBox())!;
   const pad = (await page.locator('[class*="OfficeExplorer_pad_"]').boundingBox())!;
   expect(story.x).toBeGreaterThanOrEqual(map.x + map.width);
-  expect(pad.y).toBeGreaterThanOrEqual(story.y + story.height);
+  expect(pad.x).toBeGreaterThanOrEqual(story.x + story.width);
   // The D-pad holds the right edge either way up.
   const cross = (await page.locator('[class*="OfficeExplorer_padCross"]').boundingBox())!;
   expect(cross.x + cross.width).toBeGreaterThan(664 - 24);
