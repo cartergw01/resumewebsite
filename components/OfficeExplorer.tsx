@@ -552,8 +552,8 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
             {padButton("ArrowLeft", "left")}
             {padButton("ArrowRight", "right")}
             {padButton("ArrowDown", "down")}
+            <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} data-ready={Boolean(nearby?.href)} onClick={() => actRef.current()}>Open</button>
           </div>
-          <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} data-ready={Boolean(nearby?.href)} onClick={() => actRef.current()}>Open</button>
         </div>}
       {/* The story, in the game: typed out, with Enter or a tap to skip ahead and read on. */}
       <div className={`${styles.textBox} ${pixel.className}`} data-typing={typing} data-more={more} onClick={event => {
@@ -562,7 +562,7 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
       }}>
         <div className={styles.textBoxBody} ref={storyBody} onScroll={measureMore}>
           <p className={styles.textBoxName}>{stop.label}</p>
-          {roles?.[selected]?.map(item => <p key={item.role} className={styles.textBoxRole}>{item.role} · {item.dates}</p>)}
+          {roles?.[selected]?.map(item => <p key={item.role} className={styles.textBoxRole}><span>{item.role}</span> <span>{item.dates}</span></p>)}
           <div className={styles.textBoxPage} ref={storyEl} role="region" aria-label={`The story of ${stop.label}`} aria-busy={typing}>
             <StoryPage key={selected} node={stories[selected]} />
           </div>

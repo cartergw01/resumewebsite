@@ -112,7 +112,9 @@
 .textBoxBody { flex: 1; min-width: 0; min-height: 0; padding: .625rem .875rem .75rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; background: var(--menu-paper); color: var(--ink); clip-path: var(--stepped); font-size: 1.125rem; font-weight: 500; line-height: 1.35; letter-spacing: .01em; font-variant-numeric: lining-nums; }
 .textBoxName { margin: 0 0 .25rem; color: var(--brand-886); font-size: .9375rem; font-weight: 600; line-height: 1.2; }
 .textBoxRole { display: none; margin: 0; color: #5f5568; font-size: .875rem; font-weight: 500; line-height: 1.3; }
+.textBoxRole + .textBoxRole { margin-top: .25rem; }
 .textBoxRole + .textBoxPage { margin-top: .375rem; }
+.textBoxRole span + span::before { content: "· "; }
 /* More below: the last line fades in the console's own steps, and an arrow bobs, as in the games. */
 .textBox[data-more="true"]::after { content: ""; position: absolute; inset: auto 5px 5px; height: 1.75rem; background: linear-gradient(#f8f4e600 0 34%, #f8f4e699 34% 67%, #f8f4e6 67%); pointer-events: none; }
 .textBoxMore { position: absolute; right: .75rem; bottom: .5rem; z-index: 1; display: block; width: 14px; height: 10px; color: var(--brand-886); pointer-events: none; animation: bob .8s steps(2) infinite alternate; }
@@ -131,9 +133,10 @@
 .legend[data-fresh="true"] .key { background: #e7c693; color: var(--ink); box-shadow: inset 0 0 0 1px #f6e3bd, inset 0 -3px 0 0 #b08f5c; }
 .key svg { width: 7px; height: 10px; fill: currentColor; }
 
-/* On a touch screen, a controller: keys that stay put and never scroll the page. */
-.pad { flex: none; display: none; grid-template-columns: 1fr auto 1fr; align-items: center; padding-inline: var(--subpage-gutter, 1rem); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.padCross { grid-column: 2; display: grid; grid-template: repeat(2, 38px) / repeat(3, 38px); }
+/* On a touch screen, a controller: a D-pad with its button in the middle, on the right for the thumb.
+   The keys stay put and never scroll the page. */
+.pad { flex: none; display: none; justify-content: flex-end; align-items: center; padding-right: .75rem; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.padCross { position: relative; display: grid; grid-template: repeat(3, 38px) / repeat(3, 38px); }
 .padKey, .padAction { display: grid; place-items: center; padding: 0; border: 2px solid var(--ink); background: var(--menu-paper); color: var(--ink); touch-action: none; -webkit-tap-highlight-color: transparent; }
 .padKey:active, .padAction:active { background: #e7c693; }
 .padKey { position: relative; }
@@ -142,14 +145,15 @@
 .padKey svg { width: 10px; height: 14px; fill: currentColor; }
 .padKey[data-key="up"] { grid-area: 1 / 2; }
 .padKey[data-key="left"] { grid-area: 2 / 1; }
-.padKey[data-key="down"] { grid-area: 2 / 2; }
 .padKey[data-key="right"] { grid-area: 2 / 3; }
-.padAction { grid-column: 3; justify-self: start; width: 52px; height: 52px; margin-left: 1rem; border-radius: 50%; font-size: .9375rem; font-weight: 600; transition: opacity .12s; }
-.padAction[data-ready="false"] { opacity: .55; }
+.padKey[data-key="down"] { grid-area: 3 / 2; }
+/* The hub sits over the keys' inner corners, and on top of their wider hit areas. */
+.padAction { position: relative; z-index: 1; grid-area: 2 / 2; place-self: center; width: 46px; height: 46px; border-radius: 50%; font-size: .75rem; font-weight: 600; line-height: 1; transition: background-color 120ms steps(2), color 120ms steps(2); }
+.padAction[data-ready="false"] { background: #a29f96; }
 
 @media (hover: none) {
   .legend { display: none; }
-  .pad { display: grid; }
+  .pad { display: flex; }
   .prompt .key { font-size: 0; padding: 0 .3125rem 2px; }
   .prompt .key::after { content: "Open"; font-size: .875rem; }
 }
@@ -168,7 +172,7 @@
 }
 /* Sized so one short scroll brings the office, the story and the keys above the site nav together. */
 @media (hover: none) and (max-width: 960px) {
-  .textBox { height: clamp(9rem, calc(100svh - min(100vw, 44rem) * 272 / 372 - 76px - 7.25rem), 12rem); }
+  .textBox { height: clamp(9rem, calc(100svh - min(100vw, 44rem) * 272 / 372 - 114px - 7.25rem), 12rem); }
   .textBoxBody { overscroll-behavior: auto; }
 }
 /* Phones, either way up: the title shares a row with the back arrow, so the office, the story and
@@ -220,20 +224,31 @@
 }
 @keyframes beckon { 0%, 100% { opacity: .4; } 50% { opacity: 0; } }
 @media (hover: none) and (max-width: 700px) {
-  /* Whatever the map leaves, under the 60px title row, with two 10px gaps and clear of the 84px site nav. */
-  .textBox { height: clamp(6.5rem, calc(100svh - 100vw * 272 / 372 - 76px - 60px - 20px - 84px), 16rem); }
+  /* The story and the D-pad share the row under the office. The story takes whatever height the map
+     leaves, under the 60px title row, a 10px gap, and clear of the 84px site nav. */
+  .explorer[data-view="office"] .world { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .625rem .5rem; align-items: center; }
+  .stage { grid-area: 1 / 1 / 2 / -1; }
+  .textBox { grid-area: 2 / 1; height: clamp(114px, calc(100svh - 100vw * 272 / 372 - 60px - 10px - 84px), 20rem); margin-inline: 4px 0; }
+  .textBoxBody { font-size: 1rem; }
+  /* Too narrow for both on a line, so the job, then its dates, rather than wherever it wraps. */
+  .textBoxRole span { display: block; }
+  .textBoxRole span + span::before { content: none; }
+  .pad { grid-area: 2 / 2; padding-right: .5rem; }
 }
 /* A phone on its side: the office on the left, the story and the keys beside it. */
 @media (hover: none) and (max-height: 500px) and (orientation: landscape) {
-  .explorer[data-view="office"] .world { flex-direction: row; gap: .75rem; align-items: flex-start; width: calc(100vw - 2 * max(.5rem, var(--safe-x, 0px))); margin-left: calc(50% - 50vw + max(.5rem, var(--safe-x, 0px))); }
+  .explorer[data-view="office"] .world { display: flex; flex-direction: row; gap: .75rem; align-items: flex-start; width: calc(100vw - 2 * max(.5rem, var(--safe-x, 0px))); margin-left: calc(50% - 50vw + max(.5rem, var(--safe-x, 0px))); }
   .stage { flex: none; align-self: flex-start; width: min(58vw, calc((100svh - 8.75rem) * 372 / 272)); }
   .side { display: flex; flex: 1 1 0; height: min(calc(58vw * 272 / 372), calc(100svh - 8.75rem)); gap: .5rem; }
   .textBoxRole + .textBoxRole { display: none; }
+  .textBoxRole span { display: inline; }
+  .textBoxRole span + span::before { content: "· "; }
   .textBox { order: 0; flex: 1 1 0; height: auto; margin-inline: 0; }
-  .pad { order: 1; padding-inline: 0; }
+  .pad { order: 1; padding-right: 0; }
 }
 @media (max-width: 360px) {
   .textBoxRole { font-size: .75rem; }
+  .textBoxBody { font-size: .9375rem; }
   .modeIcon, .eyes { display: none; }
   .modes button { font-size: .9375rem; }
 }

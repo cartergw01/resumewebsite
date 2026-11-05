@@ -223,7 +223,8 @@ test("on a phone a long story shows there is more, and a tap reads on", async ({
   await expect(page.locator('[class*="textBoxPage"] span[style*="hidden"]')).toHaveCount(0);
   // Tapping pages down until the end, where the arrow goes.
   await expect(async () => {
-    await body.tap({ position: { x: 300, y: 20 } });
+    // In the box's top padding, so the tap can't land on one of the story's links.
+    await body.tap({ position: { x: 100, y: 3 } });
     await page.waitForTimeout(350);
     await expect(arrow).toBeHidden({ timeout: 100 });
   }).toPass({ timeout: 15_000 });
@@ -233,7 +234,9 @@ test("on a phone a long story shows there is more, and a tap reads on", async ({
   await page.getByRole("button", { name: "Contrary Research", exact: true }).tap();
   await expect(box).toHaveAttribute("data-typing", "false", { timeout: 5000 });
   expect(await body.evaluate(node => node.scrollTop)).toBe(0);
-  await expect(page.locator('[class*="OfficeExplorer_textBoxRole"]')).toContainText("Research Fellow · March 2023 - March 2024");
+  const role = page.locator('[class*="OfficeExplorer_textBoxRole"]');
+  await expect(role).toContainText("Research Fellow");
+  await expect(role).toContainText("March 2023 - March 2024");
 });
 
 test("on a phone the view button holds its corner, and the page stops changing height between rooms", async ({ page }, testInfo) => {
@@ -266,6 +269,9 @@ test("a phone on its side has the office and the story side by side", async ({ p
   const pad = (await page.locator('[class*="OfficeExplorer_pad_"]').boundingBox())!;
   expect(story.x).toBeGreaterThanOrEqual(map.x + map.width);
   expect(pad.y).toBeGreaterThanOrEqual(story.y + story.height);
+  // The D-pad holds the right edge either way up.
+  const cross = (await page.locator('[class*="OfficeExplorer_padCross"]').boundingBox())!;
+  expect(cross.x + cross.width).toBeGreaterThan(664 - 24);
   expect(map.y + map.height).toBeLessThanOrEqual(390);
   expect(pad.y + pad.height).toBeLessThanOrEqual(390);
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
@@ -283,12 +289,15 @@ for (const [width, height] of [[390, 844], [390, 664], [375, 667], [320, 640]]) 
     const story = page.locator('[class*="OfficeExplorer_textBox_"]');
     const opening = (await story.boundingBox())!;
     expect(opening.y).toBeLessThan((await dock.boundingBox())!.y - 64);
-    expect((await pad.boundingBox())!.y).toBeGreaterThanOrEqual(opening.y + opening.height);
-    // On anything from 640 tall, office, story and keys all fit above the nav before any scrolling.
-    if (height >= 660) expect((await pad.boundingBox())!.y + 76).toBeLessThanOrEqual((await dock.boundingBox())!.y);
-    // The arrows sit in the middle of the screen, whatever its width.
+    // The D-pad sits beside it on the right, with its button in the very middle.
     const cross = (await page.locator('[class*="OfficeExplorer_padCross"]').boundingBox())!;
-    expect(Math.abs(cross.x + cross.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+    expect(cross.x).toBeGreaterThanOrEqual(opening.x + opening.width);
+    expect(cross.x + cross.width).toBeLessThanOrEqual(width);
+    const hub = (await page.locator('[class*="OfficeExplorer_padAction"]').boundingBox())!;
+    expect(Math.abs(hub.x + hub.width / 2 - cross.x - cross.width / 2)).toBeLessThanOrEqual(1);
+    expect(Math.abs(hub.y + hub.height / 2 - cross.y - cross.height / 2)).toBeLessThanOrEqual(1);
+    // On anything from 640 tall, office, story and keys all fit above the nav before any scrolling.
+    if (height >= 660) expect(cross.y + cross.height).toBeLessThanOrEqual((await dock.boundingBox())!.y);
     const covered = async () => {
       const keys = (await pad.boundingBox())!;
       const nav = await dock.evaluate(node => { const box = node.getBoundingClientRect(); return { top: box.top, shown: getComputedStyle(node).opacity !== "0" && box.top < innerHeight }; });
