@@ -180,6 +180,34 @@ test("tapping around the Office on a phone never launches the rocket", async ({ 
   expect(await page.evaluate(() => (window as Window & { launches?: number }).launches)).toBe(0);
 });
 
+test("on a phone the Open button says what it does, and opens what he is standing at", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "The pad is for touch screens.");
+  test.setTimeout(90_000);
+  await page.setViewportSize({ width: 320, height: 640 });
+  await page.goto("/work");
+  const open = page.locator('[class*="OfficeExplorer_padAction"]');
+  await expect(open).toHaveText("Open");
+  // The word has to fit inside the round button, even on the narrowest phone.
+  expect(await open.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+
+  const explorer = page.locator("[data-office-explorer]");
+  await page.getByRole("button", { name: "Contrary Research", exact: true }).tap();
+  await expect(explorer).toHaveAttribute("data-selected", "research");
+  await expect(page.locator(worker)).toHaveAttribute("data-walking", "false", { timeout: 8000 });
+  await expect(open).toHaveAttribute("data-ready", "true");
+
+  // The name bubble says Open too, not a letter, and stays on the map.
+  const bubble = page.locator('[class*="OfficeExplorer_prompt"]');
+  expect(await bubble.locator("kbd").evaluate(node => getComputedStyle(node, "::after").content)).toBe('"Open"');
+  const [inBubble, onStage] = await Promise.all([bubble.boundingBox(), page.locator("[data-office-map]").boundingBox()]);
+  expect(inBubble!.x).toBeGreaterThanOrEqual(onStage!.x);
+  expect(inBubble!.x + inBubble!.width).toBeLessThanOrEqual(onStage!.x + onStage!.width);
+
+  const [profile] = await Promise.all([page.context().waitForEvent("page"), open.tap()]);
+  expect(profile.url()).toContain("research.contrary.com/company/");
+  await profile.close();
+});
+
 for (const [width, height] of [[390, 844], [390, 664], [375, 667], [320, 640]]) {
   test(`the site nav never sits on the walking controls at ${width}x${height}`, async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.startsWith("mobile"), "The pad is for touch screens.");

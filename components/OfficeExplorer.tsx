@@ -185,7 +185,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
     };
   }, [preview, stand, sense, enter, selected]);
 
-  // The one action, for Enter and the A button: open what he is standing at, or read on.
+  // The one action, for Enter and the Open button: open what he is standing at, or read on.
   const actRef = useRef<() => void>(() => {});
   useEffect(() => {
     actRef.current = () => {
@@ -508,7 +508,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
             {padButton("ArrowRight", "right")}
             {padButton("ArrowDown", "down")}
           </div>
-          <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} onClick={() => actRef.current()}>A</button>
+          <button type="button" tabIndex={-1} className={`${styles.padAction} ${pixel.className}`} data-ready={Boolean(nearby?.href)} onClick={() => actRef.current()}>Open</button>
         </div>}
       {/* The story, in the game: typed out, with Enter or a tap to skip ahead. */}
       <div className={`${styles.textBox} ${pixel.className}`} data-typing={typing} onClick={event => {

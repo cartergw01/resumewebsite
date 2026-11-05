@@ -134,13 +134,14 @@
 .padKey[data-key="left"] { grid-area: 2 / 1; }
 .padKey[data-key="right"] { grid-area: 2 / 3; }
 .padKey[data-key="down"] { grid-area: 3 / 2; }
-.padAction { grid-column: 3; justify-self: start; width: 52px; height: 52px; margin-left: 1rem; border-radius: 50%; font-size: 1.25rem; font-weight: 600; }
+.padAction { grid-column: 3; justify-self: start; width: 52px; height: 52px; margin-left: 1rem; border-radius: 50%; font-size: .9375rem; font-weight: 600; transition: opacity .12s; }
+.padAction[data-ready="false"] { opacity: .55; }
 
 @media (hover: none) {
   .legend { display: none; }
   .pad { display: grid; }
-  .prompt .key { font-size: 0; min-width: 1.375rem; padding: 0; }
-  .prompt .key::after { content: "A"; font-size: .875rem; }
+  .prompt .key { font-size: 0; padding: 0 .3125rem 2px; }
+  .prompt .key::after { content: "Open"; font-size: .875rem; }
 }
 /* Narrower screens stack it: office, story, then the controller. */
 @media (max-width: 960px) {
