@@ -140,6 +140,9 @@ test("on a phone the pad walks him and the camera follows", async ({ page }, tes
   const key = page.locator('[data-key="down"]');
   await expect(key).toBeVisible();
   const plan = page.locator('[class*="OfficeExplorer_plan"]');
+  // A phone opens on the whole office, and zooming in lets the camera follow him.
+  await expect(page.locator("[data-office-map]")).toHaveAttribute("data-zoomed", "false");
+  await page.getByRole("button", { name: "Zoom in" }).tap();
   const start = await feet(page);
   await expect(async () => {
     await key.dispatchEvent("pointerdown", { pointerId: 1, pointerType: "touch", bubbles: true });
@@ -159,14 +162,40 @@ test("on a phone the pad walks him and the camera follows", async ({ page }, tes
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
 });
 
-for (const [width, height] of [[390, 844], [375, 667], [320, 640]]) {
+test("tapping around the Office on a phone never launches the rocket", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Tap mode is for touch screens.");
+  await page.goto("/work");
+  await expect(page.locator('[data-key="up"]')).toBeVisible();
+  await page.evaluate(() => {
+    (window as Window & { launches?: number }).launches = 0;
+    document.addEventListener("rocket-transition-change", event => {
+      if ((event as CustomEvent<{ phase: string }>).detail.phase === "launching") (window as Window & { launches?: number }).launches! += 1;
+    });
+  });
+  await page.locator('[class*="OfficeExplorer_textBoxBody"]').click();
+  await page.locator('[class*="OfficeExplorer_pad_"]').click({ position: { x: 4, y: 4 } });
+  await page.locator('[data-key="up"]').tap();
+  await page.getByRole("heading", { name: "Work", exact: true }).first().click();
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => (window as Window & { launches?: number }).launches)).toBe(0);
+});
+
+for (const [width, height] of [[390, 844], [390, 664], [375, 667], [320, 640]]) {
   test(`the site nav never sits on the walking controls at ${width}x${height}`, async ({ page }, testInfo) => {
     test.skip(!testInfo.project.name.startsWith("mobile"), "The pad is for touch screens.");
     await page.setViewportSize({ width, height });
     await page.goto("/work");
     const pad = page.locator('[class*="OfficeExplorer_pad_"]');
     const dock = page.getByRole("navigation", { name: "Primary navigation" });
-    await expect(pad).toBeVisible();
+    await expect(pad).toBeAttached();
+    // The story opens in view, above the site nav and with the keys beneath it.
+    const story = page.locator('[class*="OfficeExplorer_textBox_"]');
+    const opening = (await story.boundingBox())!;
+    expect(opening.y).toBeLessThan((await dock.boundingBox())!.y - 64);
+    expect((await pad.boundingBox())!.y).toBeGreaterThanOrEqual(opening.y + opening.height);
+    // The arrows sit in the middle of the screen, whatever its width.
+    const cross = (await page.locator('[class*="OfficeExplorer_padCross"]').boundingBox())!;
+    expect(Math.abs(cross.x + cross.width / 2 - width / 2)).toBeLessThanOrEqual(1);
     const covered = async () => {
       const keys = (await pad.boundingBox())!;
       const nav = await dock.evaluate(node => { const box = node.getBoundingClientRect(); return { top: box.top, shown: getComputedStyle(node).opacity !== "0" && box.top < innerHeight }; });
@@ -184,8 +213,8 @@ for (const [width, height] of [[390, 844], [375, 667], [320, 640]]) {
     // And the bottom of the page is reachable, with the nav clear of the story.
     await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
     await expect(dock).toBeInViewport({ ratio: 1 });
-    const box = (await page.locator('[class*="textBoxBody"]').boundingBox())!;
-    expect(box.y + box.height).toBeLessThanOrEqual((await dock.boundingBox())!.y);
+    const keys = (await pad.boundingBox())!;
+    expect(keys.y + keys.height).toBeLessThanOrEqual((await dock.boundingBox())!.y);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
   });
 }

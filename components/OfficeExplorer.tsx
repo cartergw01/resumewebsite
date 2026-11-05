@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Pixelify_Sans } from "next/font/google";
 import { officeCanStand, officeObjectAt, officeObjects, officeRoomAt, officeRoute, officeScreenAt, officeStart, officeStops, officeView, type OfficeFacing, type OfficeStop, type OfficeStopId, type Point } from "@/lib/office-plan";
 import OfficePlan, { workerFacing, workerPlace } from "./OfficePlan";
@@ -70,7 +70,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const [near, setNear] = useState<string | null>(null);
   const [screen, setScreen] = useState<string | null>(null);
   const [walked, setWalked] = useState(false);
-  const [zoomed, setZoomed] = useState(true);
+  const [zoomed, setZoomed] = useState(false);
   const [typing, setTyping] = useState(false);
   const worker = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -88,6 +88,19 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
   const index = officeStops.findIndex(item => item.id === selected);
   const stop = officeStops[index];
   const nearby = officeObjects.find(item => item.id === near);
+
+  // With the whole office on a phone, a long name near a wall would run off the map. Slide it back in.
+  const bubble = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = bubble.current;
+    const frame = stage.current;
+    if (!el || !frame) return;
+    el.style.translate = "";
+    if (zoomed) return;
+    const box = el.getBoundingClientRect();
+    const edge = frame.getBoundingClientRect();
+    el.style.translate = `${Math.max(edge.left + 4 - box.left, 0) + Math.min(edge.right - 4 - box.right, 0)}px`;
+  }, [near, zoomed]);
 
   const enter = useCallback((id: OfficeStopId) => {
     setSelected(id);
@@ -437,7 +450,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       try { event.currentTarget.setPointerCapture(event.pointerId); } catch {}
       keys.current.press(key);
       // Keep the map and the pad on screen together on small phones.
-      const pad = event.currentTarget.getBoundingClientRect();
+      const pad = event.currentTarget.parentElement!.getBoundingClientRect();
       if (pad.bottom > innerHeight - 96) stage.current?.scrollIntoView({ block: "start", behavior: reducedMotion() ? "auto" : "smooth" });
     }}
     onPointerUp={() => keys.current.release(key)}
@@ -454,7 +467,12 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
       {/* Say up front that this is a place you can walk, and offer the fast way past it. */}
       <div className={styles.modes} role="group" aria-label="How to read this page">
         <button type="button" aria-pressed={view === "office"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("office"); }}><TourIcon />Tour the office</button>
-        <button type="button" aria-pressed={view === "list"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("list"); }}><ListIcon />Read as a list</button>
+        <button type="button" aria-pressed={view === "list"} onClick={event => {
+          if (event.detail) event.currentTarget.blur();
+          setView("list");
+          // On a phone this button sits below the keys, so begin the list from its top.
+          if (view !== "list" && innerWidth <= 700) window.scrollTo({ top: 0, behavior: "instant" });
+        }}><ListIcon />Read as a list</button>
       </div>
     </div>
     </div>
@@ -468,7 +486,7 @@ export default function OfficeExplorer({ header, cards, stories, list, preview =
           <OfficePlan workerRef={worker} lit={lit} screen={screen} preview={preview} sign={!walked && <div className={`${styles.youAreHere} ${pixel.className}`}>You are here</div>}>
             {officeStops.map(renderRoom)}
             {!preview && officeObjects.filter(item => item.room === selected).map(renderObject)}
-            {!preview && nearby && <div className={`${styles.prompt} ${pixel.className}`} data-under={nearby.box[1] < 24} aria-hidden="true" style={{
+            {!preview && nearby && <div ref={bubble} className={`${styles.prompt} ${pixel.className}`} data-under={nearby.box[1] < 24} aria-hidden="true" style={{
               left: percent(Math.min(officeView.width - 48, Math.max(48, nearby.box[0] + nearby.box[2] / 2)), officeView.width),
               top: percent(nearby.box[1] < 24 ? nearby.box[1] + nearby.box[3] : nearby.box[1], officeView.height),
             }}>

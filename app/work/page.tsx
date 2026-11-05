@@ -16,7 +16,7 @@ export default function WorkPage() {
           ]),
         ])}
       />
-      <div className={styles.page} data-rocket-launch-zone data-island-page>
+      <div className={styles.page} data-rocket-launch-zone data-rocket-quiet-taps data-island-page>
         <SiteNav active="work" readingMode />
         <WorkRoom />
         <MobileContact />

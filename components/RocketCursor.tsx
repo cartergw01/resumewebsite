@@ -941,6 +941,8 @@ export function RocketCursor() {
       const target = e.target instanceof Element ? e.target : null;
       if (!target || !target.closest("[data-rocket-launch-zone]")) return;
       if (target.closest("input, textarea, select, [contenteditable='true']")) return;
+      // Some pages are tapped constantly, so a burst on every tap would get in the way.
+      if (!cursorEnabled && target.closest("[data-rocket-quiet-taps]")) return;
 
       const link = target.closest("a[href]") as HTMLAnchorElement | null;
       const href = link?.getAttribute("href") ?? "";

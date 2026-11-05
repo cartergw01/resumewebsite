@@ -125,24 +125,24 @@
 .key svg { width: 7px; height: 10px; fill: currentColor; }
 
 /* On a touch screen, a controller: keys that stay put and never scroll the page. */
-.pad { flex: none; display: none; align-items: center; justify-content: space-between; padding-inline: var(--subpage-gutter, 1rem); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
-.padCross { display: grid; grid-template: repeat(3, 44px) / repeat(3, 44px); }
+.pad { flex: none; display: none; grid-template-columns: 1fr auto 1fr; align-items: center; padding-inline: var(--subpage-gutter, 1rem); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.padCross { grid-column: 2; display: grid; grid-template: repeat(3, 38px) / repeat(3, 38px); }
 .padKey, .padAction { display: grid; place-items: center; padding: 0; border: 2px solid var(--ink); background: var(--menu-paper); color: var(--ink); touch-action: none; -webkit-tap-highlight-color: transparent; }
 .padKey:active, .padAction:active { background: #e7c693; }
-.padKey svg { width: 12px; height: 16px; fill: currentColor; }
+.padKey svg { width: 10px; height: 14px; fill: currentColor; }
 .padKey[data-key="up"] { grid-area: 1 / 2; }
 .padKey[data-key="left"] { grid-area: 2 / 1; }
 .padKey[data-key="right"] { grid-area: 2 / 3; }
 .padKey[data-key="down"] { grid-area: 3 / 2; }
-.padAction { width: 68px; height: 68px; border-radius: 50%; font-size: 1.5rem; font-weight: 600; }
+.padAction { grid-column: 3; justify-self: start; width: 52px; height: 52px; margin-left: 1rem; border-radius: 50%; font-size: 1.25rem; font-weight: 600; }
 
 @media (hover: none) {
   .legend { display: none; }
-  .pad { display: flex; }
+  .pad { display: grid; }
   .prompt .key { font-size: 0; min-width: 1.375rem; padding: 0; }
   .prompt .key::after { content: "A"; font-size: .875rem; }
 }
-/* Narrower screens stack it: office, controller, then the story. */
+/* Narrower screens stack it: office, story, then the controller. */
 @media (max-width: 960px) {
   .explorer[data-view="office"] .tourView { display: block; height: auto; min-height: 0; }
   .toolbar { position: static; margin-bottom: .75rem; }
@@ -151,19 +151,32 @@
   .stage[data-zoomed="true"] .plan { width: 100%; }
   .mapToggle { display: none; }
   .side { display: contents; }
-  .pad { order: 2; }
-  .textBox { order: 3; margin-inline: 4px; }
+  .textBox { order: 2; margin-inline: 4px; }
+  .pad { order: 3; }
   .legend { order: 4; }
+}
+/* Sized so one short scroll brings the office, the story and the keys above the site nav together. */
+@media (hover: none) and (max-width: 960px) {
+  .textBox { height: clamp(9rem, calc(100svh - min(100vw, 44rem) * 272 / 372 - 114px - 7.25rem), 12rem); }
+  .textBoxBody { overscroll-behavior: auto; }
 }
 @media (max-width: 700px) {
   /* Close enough to see the room he is in; the camera follows him. */
   .stage[data-zoomed="true"] { aspect-ratio: 3 / 2; }
   .stage[data-zoomed="true"] .plan { width: 230%; }
   .mapToggle { display: block; }
+  /* Everything clears the way for the office and its story: a tighter heading, and the view buttons after the keys. */
+  .explorer[data-view="office"] .tourView { display: flex; flex-direction: column; }
+  .explorer[data-view="office"] .intro { display: contents; }
+  .explorer[data-view="office"] .world { flex: none; }
+  .explorer[data-view="office"] .intro > header { margin: -2.25rem 0 .625rem; padding-bottom: 1rem; }
+  .explorer[data-view="office"] .toolbar { order: 1; margin: 1.25rem 0 0; }
   .modes { flex: 1; min-width: 0; }
   .modes button { flex: 1; min-width: 0; padding-inline: .375rem; font-size: 1rem; }
   .textBoxBody { font-size: 1.0625rem; padding-inline: .625rem; }
-  .stage[data-zoomed="false"] .prompt { display: none; }
+  /* He starts near the left wall, so the whole-office sign leans right to stay on the map. */
+  .stage[data-zoomed="false"] .youAreHere { transform: translateX(-30%); }
+  .stage[data-zoomed="false"] .youAreHere::after { left: 30%; }
   .detailEnter { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 360px) {
