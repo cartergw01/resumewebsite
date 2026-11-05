@@ -41,7 +41,7 @@ test("desk thoughts open randomly, shuffle without immediate repeats, and leave 
   const firstId = await expectOriginalThought(dialog);
   expect(firstId).not.toBe(thoughts[0].id);
   await expect(dialog.getByRole("button", { name: /save|saved|copy link/i })).toHaveCount(0);
-  const avatar = dialog.locator('img');
+  const avatar = dialog.locator('[data-note-stack] > div:not([data-note-sheet]) img');
   await expect(avatar).toHaveAttribute("src", /x-profile\.jpg/);
   await expect.poll(() => avatar.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
   await expect(dialog).toHaveAttribute("data-note-motion", "idle");
@@ -145,7 +145,7 @@ test("swiping a tweet turns to the next or previous one on touch screens", async
   await page.goto(`/?thought=${thoughts[0].id}#writing`);
   const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
   await expect(dialog).toHaveAttribute("data-note-motion", "idle");
-  const reader = dialog.locator("[data-note-stack] > div");
+  const reader = dialog.locator("[data-note-stack] > div:not([data-note-sheet])");
   const box = (await reader.boundingBox())!;
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
@@ -216,7 +216,7 @@ test("a long tweet still scrolls vertically, and a pinch-zoomed reader pans inst
   expect(await scroller.evaluate(node => node.scrollTop)).toBe(0);
 
   const session = await context.newCDPSession(page);
-  const header = dialog.locator("header").first();
+  const header = dialog.locator("[data-note-stack] > div:not([data-note-sheet]) header");
   const atRest = (await header.boundingBox())!;
   await session.send("Input.synthesizePinchGesture", { x: 195, y: atRest.y + atRest.height / 2, scaleFactor: 2, relativeSpeed: 800, gestureSourceType: "touch" });
   await expect.poll(() => page.evaluate(() => visualViewport!.scale)).toBeGreaterThan(1.9);
@@ -240,8 +240,52 @@ test("dragging a tweet with a mouse selects text instead of paging", async ({ pa
   await page.mouse.move(box.x + 40, box.y + 12, { steps: 8 });
   await page.mouse.up();
   expect(await articleId(dialog)).toBe(thoughts[0].id);
-  expect(await dialog.locator("[data-note-stack] > div").evaluate(node => node.style.transform)).toBe("");
+  expect(await dialog.locator("[data-note-stack] > div:not([data-note-sheet])").evaluate(node => node.style.transform)).toBe("");
   expect(await page.evaluate(() => getSelection()!.toString().length)).toBeGreaterThan(0);
+});
+
+test("the card behind a swipe is the real post being turned to", async ({ page, context, browserName, isMobile }) => {
+  test.skip(!isMobile, "Swiping is touch only.");
+  // A short post with a long one after it, so the page turn also changes the card's height.
+  const start = thoughts.findIndex((thought, i) => thought.text.length < 300 && thoughts[i + 1]?.text.length > 900);
+  const [current, next, previous] = [thoughts[start], thoughts[start + 1], thoughts[(start - 1 + thoughts.length) % thoughts.length]];
+  await page.goto(`/?thought=${current.id}#writing`);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await expect(dialog).toHaveAttribute("data-note-motion", "idle");
+  const reader = dialog.locator("[data-note-stack] > div:not([data-note-sheet])");
+  const under = dialog.locator('[data-note-sheet="middle"]');
+  const firstParagraph = (thought: { text: string }) => thought.text.split(/\n\s*\n/)[0];
+  const box = (await reader.boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  const touch = await swiper(page, context, browserName);
+
+  // It's hidden from assistive tech and can't take focus: only the top card is live.
+  await expect(under).toHaveAttribute("aria-hidden", "true");
+  await expect(under.locator("article")).toHaveCount(0);
+
+  // Dragging left shows the next post underneath, dragging right the previous one.
+  await touch.start(x, y);
+  await touch.to(x - 40, y);
+  await expect(under.locator("p").first()).toHaveText(firstParagraph(next));
+  await touch.to(x + 40, y);
+  await expect(under.locator("p").first()).toHaveText(firstParagraph(previous));
+  await touch.to(x - 400, y);
+  await expect(under.locator("p").first()).toHaveText(firstParagraph(next));
+
+  // Fully dragged, the card underneath already sits exactly where the top card will land.
+  const beneath = (await under.boundingBox())!;
+  const closeBefore = (await dialog.getByRole("button", { name: "Close thoughts" }).boundingBox())!;
+  await touch.end(x - 400, y);
+  await expect(dialog.locator("article")).toHaveAttribute("data-thought-id", next.id);
+  await expect.poll(() => reader.evaluate(node => node.getAnimations().length)).toBe(0);
+  const landed = (await reader.boundingBox())!;
+  for (const side of ["x", "y", "width", "height"] as const) expect(Math.abs(landed[side] - beneath[side])).toBeLessThan(1);
+  const closeAfter = (await dialog.getByRole("button", { name: "Close thoughts" }).boundingBox())!;
+  expect(Math.abs(closeAfter.y - closeBefore.y)).toBeLessThan(1);
+  // The post has been on screen all along, so it doesn't fade in again.
+  expect(await dialog.locator("article").evaluate(node => getComputedStyle(node).opacity)).toBe("1");
+  await expect.poll(() => under.evaluate(node => node.getAnimations().length)).toBe(0);
+  expect(await under.evaluate(node => node.style.top + node.style.bottom)).toBe("");
 });
 
 test("the bird flies to the notes, the reader opens as it lands, and it flies home afterwards", async ({ page, isMobile }) => {

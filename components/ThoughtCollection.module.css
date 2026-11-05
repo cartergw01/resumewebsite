@@ -21,13 +21,14 @@
   overscroll-behavior: contain;
 }
 .dialog::backdrop { background: #030611ad; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.dismiss { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.dismiss { position: relative; z-index: 1; display: flex; justify-content: flex-end; margin-bottom: 8px; }
 .close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: transparent; cursor: pointer; }
-.stack { position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
+.stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
 .sheet { position: absolute; inset: 0; pointer-events: none; border: 1px solid #343940; border-radius: 16px; background: #10141b; transform-origin: 50% 50%; }
 .sheet[data-note-sheet="back"] { transform: translate3d(0, 16px, 0) rotate(1deg) scaleX(.96); background: #141922; }
-.sheet[data-note-sheet="middle"] { transform: translate3d(0, 8px, 0) rotate(-.75deg) scaleX(.98); }
-.reader { position: relative; display: flex; flex-direction: column; max-height: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); border: 1px solid var(--post-line); border-radius: 16px; background: #000; box-shadow: 0 16px 60px #0006; overflow: hidden; }
+/* Laid out like .reader, so the post underneath is exactly what the top card becomes. */
+.sheet[data-note-sheet="middle"] { display: flex; flex-direction: column; max-height: var(--card-max); overflow: hidden; transform: translate3d(0, 8px, 0) rotate(-.75deg) scaleX(.98); }
+.reader { position: relative; display: flex; flex-direction: column; max-height: var(--card-max); border: 1px solid var(--post-line); border-radius: 16px; background: #000; box-shadow: 0 16px 60px #0006; overflow: hidden; }
 /* Sideways touch drags turn the page. .scroll needs its own rule because the
    browser only reads touch-action up to the nearest scroll container. */
 .dialog:not([data-zoomed]) :is(.stack, .reader, .scroll) { touch-action: pan-y pinch-zoom; }

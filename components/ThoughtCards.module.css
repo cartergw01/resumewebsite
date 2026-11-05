@@ -22,7 +22,9 @@
   .birdTarget:hover .birdArt { filter: drop-shadow(0 3px 2px #07101a66) brightness(1.12); }
   .layer:has(.target:hover, .birdTarget:hover) .noteTop { transform: translateY(-4px) rotate(-2deg); }
 }
-.birdFlyer { position: absolute; inset: 0; pointer-events: none; transform-origin: 51% 44%; }
+/* The bird is 85% of its tap area and the branch art, inset so its feet stay on
+   the branch (they sit at 40,58 in the 78x68 art). */
+.birdFlyer { position: absolute; left: 7.7%; top: 12.8%; width: 85%; height: 85%; pointer-events: none; transform-origin: 51% 44%; }
 .birdTarget:not([data-flying]) .birdFarWing { visibility: hidden; }
 .birdTarget[data-flying] :is(.birdBody, .birdWing) { animation: none; transform: none; transition: none; }
 .target { position: absolute; translate: -50% -50%; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; background: transparent; border: 0; border-radius: 8px; pointer-events: auto; cursor: pointer; -webkit-tap-highlight-color: transparent; }
