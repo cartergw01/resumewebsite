@@ -385,6 +385,30 @@ test("a shared link opens the reader with no focus ring until Tab is pressed", a
   expect(await outline()).toBe("solid");
 });
 
+test("the rocket cursor stays above the tweet reader, and hands back once it closes", async ({ page, isMobile }) => {
+  test.skip(isMobile, "The rocket follows a mouse.");
+  await page.goto(`/?thought=${thoughts[0].id}#writing`);
+  const dialog = page.getByRole("dialog", { name: "Posts by Carter" });
+  await expect(dialog.locator("article")).toBeVisible();
+  const box = (await dialog.locator("article").boundingBox())!;
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  await page.mouse.move(x, y);
+  const rocket = page.getByTestId("rocket-cursor");
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+  const rect = await rocket.evaluate(node => { const { x, y } = node.getBoundingClientRect(); return { x, y }; });
+  expect(Math.abs(rect.x - x)).toBeLessThan(2);
+  expect(Math.abs(rect.y - y)).toBeLessThan(2);
+  // In the top layer, entered after the dialog, and still not in the pointer's way.
+  await expect(rocket).toHaveJSProperty("popover", "manual");
+  expect(await rocket.evaluate(node => node.matches(":popover-open"))).toBe(true);
+  expect(await page.evaluate(([x, y]) => document.elementFromPoint(x, y)?.closest('[data-testid="rocket-cursor"]') ?? null, [x, y])).toBeNull();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  expect(await rocket.getAttribute("popover")).toBeNull();
+  await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+  expect(await rocket.evaluate(node => getComputedStyle(node).display)).toBe("block");
+});
+
 test("the note stack handles interrupted lifts and reduced motion", async ({ page, isMobile }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -449,6 +473,15 @@ test("the cabinet loads the game on demand, reloads it, and releases it on close
   await expect(arcade.getByText("Arcade session", { exact: true })).toHaveCount(0);
   const frame = arcade.locator("iframe");
   const screen = (await frame.boundingBox())!;
+  if (!isMobile) {
+    // The system cursor takes over inside the game, so the rocket mustn't wait at its edge.
+    await page.mouse.move(screen.x - 12, screen.y + 40);
+    await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+    await page.mouse.move(screen.x + screen.width / 2, screen.y + screen.height / 2, { steps: 4 });
+    await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "0");
+    await page.mouse.move(screen.x - 12, screen.y + 40);
+    await expect(page.getByTestId("rocket-ship")).toHaveCSS("opacity", "1");
+  }
   expect(screen.width).toBeGreaterThan(280);
   expect(screen.height).toBeGreaterThan(420);
   for (const control of await arcade.locator("button, a").all()) {

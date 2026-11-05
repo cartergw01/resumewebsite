@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ISLAND_DIALOG_CHANGE } from "@/lib/use-island-dialog";
 import { usePathname, useRouter } from "next/navigation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -262,6 +263,9 @@ function isOpaqueWorldOrbClick(link: HTMLAnchorElement, clientX: number, clientY
   return alpha > 24;
 }
 
+// Undoes the browser's popover box (see liftAboveDialogs); no effect otherwise.
+const POPOVER_RESET = { margin: 0, padding: 0, border: 0, background: "none", overflow: "visible" } as const;
+
 export function RocketCursor() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const posRef    = useRef<HTMLDivElement>(null);   // position — updated in pointer events (zero lag)
@@ -319,6 +323,20 @@ export function RocketCursor() {
     let activePointerType = "mouse";
     let cursorEnabled: boolean = !prefersReduced && cursorQuery.matches;
 
+    // A modal dialog sits in the browser's top layer, above every z-index, so the
+    // rocket would fly behind it. While one is open the rocket joins that layer too,
+    // entering after the dialog so it lands on top. The attribute comes off afterwards
+    // because a popover that isn't showing is display: none.
+    const liftAboveDialogs = () => {
+      const lift = cursorEnabled && document.querySelector("dialog:modal") !== null;
+      for (const layer of [canvas, pos]) {
+        layer.removeAttribute("popover");
+        if (!lift || !layer.showPopover) continue;
+        layer.setAttribute("popover", "manual");
+        layer.showPopover();
+      }
+    };
+
     const syncCursorCapability = () => {
       const wasCursorEnabled = cursorEnabled;
       cursorEnabled = !prefersReduced && cursorQuery.matches && activePointerType !== "touch";
@@ -328,6 +346,7 @@ export function RocketCursor() {
         pos.style.transform = "translate3d(-200px,-200px,0)";
       }
       if (cursorEnabled && !wasCursorEnabled) wakeAnimationLoop();
+      if (cursorEnabled !== wasCursorEnabled) liftAboveDialogs();
     };
 
     syncCursorCapability();
@@ -793,6 +812,12 @@ export function RocketCursor() {
       }
     };
 
+    // Inside an iframe the page stops getting pointer events and the system cursor
+    // comes back, so the rocket leaves rather than freezing at the frame's edge.
+    const onPointerOver = (e: PointerEvent) => {
+      if (e.target instanceof HTMLIFrameElement) onMouseLeave();
+    };
+
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
       if (e.isPrimary === false) return;
@@ -835,6 +860,7 @@ export function RocketCursor() {
       document.addEventListener("pointerrawupdate", onPointerPosition as EventListener, { passive: true });
     }
     document.addEventListener("mouseleave", onMouseLeave, { passive: true });
+    document.addEventListener("pointerover", onPointerOver, { passive: true });
     document.addEventListener("pointerdown", onPointerDown, { capture: true, passive: true });
 
     // ── Jetpack fire on click ─────────────────────────────────────────────────
@@ -1423,6 +1449,8 @@ export function RocketCursor() {
     // launch, so an immediate second click can start a fresh journey.
     const cancelIslandLaunch = () => { if (transitionPhase === "launching") finishActiveLaunch(); };
     document.addEventListener("island-entry-cancel", cancelIslandLaunch);
+    document.addEventListener(ISLAND_DIALOG_CHANGE, liftAboveDialogs);
+    liftAboveDialogs();
 
     return () => {
       cancelAnimationFrame(animId);
@@ -1443,12 +1471,14 @@ export function RocketCursor() {
         document.removeEventListener("pointerrawupdate", onPointerPosition as EventListener);
       }
       document.removeEventListener("mouseleave",    onMouseLeave);
+      document.removeEventListener("pointerover",   onPointerOver);
       document.removeEventListener("pointerdown",   onPointerDown, true);
       document.removeEventListener("mousedown",     onJetpackFire);
       document.removeEventListener("click",         onNavClick, true);
       document.removeEventListener("click",         onSubpageClick);
       document.removeEventListener("visibilitychange", onVisibility);
       document.removeEventListener("island-entry-cancel", cancelIslandLaunch);
+      document.removeEventListener(ISLAND_DIALOG_CHANGE, liftAboveDialogs);
       if (routeCommitHandlerRef.current === onRouteCommit) {
         routeCommitHandlerRef.current = null;
       }
@@ -1471,6 +1501,7 @@ export function RocketCursor() {
           height: "100%",
           zIndex: 9998,
           pointerEvents: "none",
+          ...POPOVER_RESET,
         }}
       />
 
@@ -1485,8 +1516,11 @@ export function RocketCursor() {
           position: "fixed",
           top: 0,
           left: 0,
+          right: "auto",
+          bottom: "auto",
           zIndex: 9999,
           pointerEvents: "none",
+          ...POPOVER_RESET,
           willChange: "transform",
           backfaceVisibility: "hidden",
           transform: "translate3d(-200px,-200px,0)",
