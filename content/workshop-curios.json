@@ -1,13 +1,5 @@
 [
   {
-    "id": "basketball",
-    "name": "Wilson basketball",
-    "prefixes": [
-      "Basketball ·"
-    ],
-    "reward": "hoops"
-  },
-  {
     "id": "hoop",
     "name": "Basketball hoop",
     "prefixes": [
@@ -260,14 +252,6 @@
     ],
     "reward": "inspect",
     "hint": "Look along the edge to see the individual beech strips."
-  },
-  {
-    "id": "court",
-    "name": "Maple half-court",
-    "prefixes": [
-      "Court ·"
-    ],
-    "reward": "hoops"
   },
   {
     "id": "floor",

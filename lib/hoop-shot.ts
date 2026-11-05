@@ -27,7 +27,8 @@ const FRAME = TURN / data.frames;
 
 // Where the ball may come to rest: on the boards, clear of the lines round the
 // edge, and not so close under the hoop that it couldn't arc up into it.
-const COURT = { left: 3.8, right: 5.4, near: -1.1, far: 1.2 };
+const [courtLeft, courtRight, courtNear] = world.court;
+const COURT = { left: courtLeft + .45, right: courtRight - .45, near: courtNear + .45, far: rimY - .79 };
 const FROM_RIM = 1;
 export const SHOOTS_FROM = .8;
 
@@ -43,7 +44,8 @@ export function chooseLanding(from: { x: number; y: number }, random = Math.rand
   let spot = { x: COURT.left, y: COURT.near };
   for (let tries = 0; tries < 24; tries++) {
     spot = { x: COURT.left + (COURT.right - COURT.left) * random(), y: COURT.near + (COURT.far - COURT.near) * random() };
-    if (distanceFromRim(spot) >= FROM_RIM && Math.hypot(spot.x - from.x, spot.y - from.y) >= .7) break;
+    // A clear move each time: it shouldn't look as if it barely went anywhere.
+    if (distanceFromRim(spot) >= FROM_RIM && Math.hypot(spot.x - from.x, spot.y - from.y) >= 1.1) break;
   }
   return spot;
 }

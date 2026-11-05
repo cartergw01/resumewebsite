@@ -57,9 +57,11 @@ backplates are used.
   corrugated roof on two posts and a bare bulb on its flex. Inside, a
   steel-framed bench, tool panel, labelled storage and a 27-inch monitor. The
   workbench turns toward the visitor. Worn paving leads up to the deck. The
-  lot is kept narrow (no timber stack beside the deck, a short yard past the
-  court) so this wide, low scene fills its frame as fully as the taller study
-  and city. It uses the same furniture scale.
+  lot's left shoulder is kept narrow (no timber stack beside the deck) so this
+  wide, low scene gives up as little of its frame as it can, with a yard lobe
+  on the right for a half-court with a real court's markings and close to its
+  proportions, trimmed a little narrow to sit with the workshop. The hoop keeps
+  the island's bolder scale. It uses the same furniture scale.
 
 ### Night details
 

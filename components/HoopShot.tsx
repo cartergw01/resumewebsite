@@ -11,10 +11,9 @@ import styles from "./WorkshopObjects.module.css";
 
 export type HoopShotHandle = { shoot: () => void };
 
-const { atlas, density, frames, regions, world } = hoopShot;
+const { area: AREA, atlas, density, frames, regions, world } = hoopShot;
 // The canvas covers the court and the air above it, and draws only when
 // something changes: a shot, a flip of the lights, the pointer's parallax.
-const AREA = [730, 60, 370, 640];
 const rect = (name: keyof typeof atlas) => atlas[name] as number[];
 const rimAt = project(world.rim);
 const netEnd = project([world.rim[0], world.rim[1], world.rim[2] - world.netDepth]);
@@ -60,13 +59,13 @@ const land = () => { if (state.shot) { state.ball = state.shot.final; state.shot
 // ball wherever it is: flying its rendered frames along lib/hoop-shot.ts, behind
 // the rim's front and through a net that gives way, then at rest on its new spot
 // until it's tapped again. Until that first tap the canvas is empty and costs nothing.
-export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: {
-  scale: number; visual: HTMLElement; onUnavailable: () => void; onBall: (x: number, y: number) => void; ref?: Ref<HoopShotHandle>;
+export default function HoopShot({ scale, visual, onBall, ref }: {
+  scale: number; visual: HTMLElement; onBall: (x: number, y: number) => void; ref?: Ref<HoopShotHandle>;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const shootRef = useRef<() => void>(() => {});
-  const handlers = useRef({ onUnavailable, onBall });
-  useEffect(() => { handlers.current = { onUnavailable, onBall }; }, [onUnavailable, onBall]);
+  const handlers = useRef({ onBall });
+  useEffect(() => { handlers.current = { onBall }; }, [onBall]);
   useImperativeHandle(ref, () => ({ shoot: () => shootRef.current() }), []);
   // Leaving the page mid-shot, it has landed by the time anyone's back.
   useEffect(() => land, []);
@@ -273,14 +272,21 @@ export default function HoopShot({ scale, visual, onUnavailable, onBall, ref }: 
       wake();
     };
     shootRef.current = () => {
-      if (motion.matches) { handlers.current.onUnavailable(); return; }
       if (!settled()) return;
       // Once it's out of the net it can be shot again, even mid-bounce, as
       // soon as it's far enough out from under the rim to arc back up.
       const { shot, clock } = state;
       if (shot && (clock < shot.startedAt + shot.leavesNet || distanceFromRim(poseNow()) < SHOOTS_FROM)) return;
-      if (state.loaded[variant()]) launch();
-      else ready(variant()).then(() => { if (!disposed && settled() && !state.shot) launch(); }, () => handlers.current.onUnavailable());
+      // With reduced motion it simply goes to its next spot, with no flight. If
+      // its layers can't load, the tap does nothing: the still's ball stays put.
+      const go = () => {
+        if (!motion.matches) { launch(); return; }
+        state.ball = planShot(state.ball, chooseLanding(state.ball)).final;
+        state.moved = true;
+        paint();
+      };
+      if (state.loaded[variant()]) go();
+      else ready(variant()).then(() => { if (!disposed && settled() && !state.shot) go(); }, () => {});
     };
 
     // Fetch the layers as soon as someone settles on the island, so a tap is instant.

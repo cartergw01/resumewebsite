@@ -5,8 +5,6 @@ const specs = JSON.parse(readFileSync(new URL("../../content/workshop-curios.jso
 
 async function pick(page: Page, id: string) {
   const dialog=page.getByRole("dialog");
-  // Tapping the ball on the court shoots it; picking it up is in the directory.
-  if (id==="basketball" && !await dialog.count()) await pickUp(page,"hoop");
   if (await dialog.count()) await dialog.getByRole("button",{name:"All objects",exact:true}).click();
   else {
     await pickUp(page,id);
@@ -65,9 +63,9 @@ test("all exported props can be picked up and inspected",async({page},testInfo)=
   expect(errors).toEqual([]);
 });
 
-test("basketball, synth, clocks, lights, and hidden poker set give real rewards",async({page},testInfo)=>{
+test("hoop, synth, clocks, lights, and hidden poker set give real rewards",async({page},testInfo)=>{
   await page.goto("/#projects");
-  await pick(page,"basketball");
+  await pick(page,"hoop");
   const power=page.getByRole("slider",{name:"Shot power",exact:true});
   await power.focus();for(let i=0;i<14;i++)await page.keyboard.press("ArrowRight");
   await page.getByRole("button",{name:"Shoot",exact:true}).click();

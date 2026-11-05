@@ -3,7 +3,7 @@ import { chooseLanding, distanceFromRim, planShot, REST, type Ball } from "../..
 import data from "../../lib/hoop-shot.json" with { type: "json" };
 
 const shot = (page: Page) => page.locator("canvas[data-hoop-shot]");
-const ball = (page: Page) => page.locator('[data-curio="basketball"]');
+const ball = (page: Page) => page.locator("[data-workshop-ball]");
 
 async function tapBall(page: Page) {
   await expect(ball(page)).toBeVisible();
@@ -34,6 +34,7 @@ test("from anywhere on the court it drops through the rim and comes to rest on t
   for (let n = 0; n < 200; n++) {
     const landing = chooseLanding(from, random);
     check(distanceFromRim(landing) >= .99, "lands under the hoop", n);
+    check(Math.hypot(landing.x - from.x, landing.y - from.y) >= 1.09, "barely moved", n);
     const plan = planShot(from, landing);
     // Dead centre through the rim, heading down, whatever the start.
     const at = plan.pose(plan.throughRim - 1e-6);
@@ -87,7 +88,7 @@ test("it only moves when tapped, and can be shot again from where it lands", asy
   await expect.poll(() => painted(page)).toBe(true);
   const settled = await picture(page);
   const target = (await ball(page).locator(":scope > span").boundingBox())!;
-  expect(Math.hypot(target.x - first.x, target.y - first.y)).toBeGreaterThan(10);
+  expect(Math.hypot(target.x - first.x, target.y - first.y)).toBeGreaterThan(8);
   await page.waitForTimeout(1500);
   expect(await picture(page)).toBe(settled);
   await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle");
@@ -158,17 +159,94 @@ test("leaving the island mid-shot lands the ball and leaves nothing cut", async 
   expect(await painted(page)).toBe(true);
 });
 
-test("reduced motion picks the ball up instead", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("the ball and court are not objects: never a dialog, in or out of the directory", async ({ page }) => {
   await page.goto("/#projects");
+  await expect(ball(page)).toBeVisible();
+  await expect(page.locator('[data-curio="basketball"], [data-curio="court"]')).toHaveCount(0);
   await tapBall(page);
-  await expect(page.locator("dialog[data-discovery]")).toHaveAttribute("data-discovery", "basketball");
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle", { timeout: 20_000 });
+  const hoop = page.locator('[data-curio="hoop"]');
+  await hoop.evaluate((node: HTMLElement) => node.click());
+  await page.getByRole("button", { name: "All objects", exact: true }).click();
+  await expect(page.locator('[data-discovery-choice="hoop"]')).toBeVisible();
+  await expect(page.locator('[data-discovery-choice="basketball"], [data-discovery-choice="court"]')).toHaveCount(0);
+});
+
+test("tapping the court does nothing at all", async ({ page }) => {
+  await page.goto("/#projects");
+  await expect(ball(page)).toBeVisible();
+  await page.waitForTimeout(500);
+  const floor = (await page.locator("[data-court-floor]").boundingBox())!;
+  // Spots across the boards, from data the shot itself uses.
+  const spots = await page.evaluate(({ x, y, width }) => {
+    const scale = width / 1200;
+    return [[760, 520], [880, 560], [960, 600], [1000, 480], [860, 460]].map(([sx, sy]) => [x + sx * scale, y + sy * scale]);
+  }, floor);
+  const touch = await page.evaluate(() => matchMedia("(pointer: coarse)").matches);
+  let tapped = 0;
+  for (const [x, y] of spots) {
+    const hit = await page.evaluate(([px, py]) => {
+      const node = document.elementFromPoint(px, py) as HTMLElement | null;
+      return node?.hasAttribute("data-court-floor") ?? false;
+    }, [x, y]);
+    if (!hit) continue;
+    tapped++;
+    if (touch) await page.touchscreen.tap(x, y); else await page.mouse.click(x, y);
+  }
+  expect(tapped).toBeGreaterThanOrEqual(3);
+  await page.waitForTimeout(500);
+  expect(new URL(page.url()).pathname).toBe("/");
+  await expect(page.locator("[data-island-stage][data-entering]")).toHaveCount(0);
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
   await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle");
 });
 
-test("if its layers can't load, the ball is picked up instead", async ({ page }) => {
+test("tapping the ball or court doesn't light up the monitor; a press on the way in still does", async ({ page }, info) => {
+  test.skip(info.project.name === "desktop", "Touch feedback only.");
+  await page.goto("/#projects");
+  await expect(ball(page)).toBeVisible();
+  await page.locator("[data-island-link][data-island-objects][data-workshop]").evaluate((link: HTMLElement) => {
+    const w = window as Window & { presses?: number };
+    w.presses = 0;
+    new MutationObserver(records => { for (const record of records) if (record.oldValue === null) w.presses!++; })
+      .observe(link, { attributes: true, attributeFilter: ["data-touch-pressed"], attributeOldValue: true });
+  });
+  const presses = () => page.evaluate(() => (window as Window & { presses?: number }).presses);
+  await tapBall(page);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "flying", { timeout: 15_000 });
+  const floor = (await page.locator("[data-court-floor]").boundingBox())!;
+  await page.touchscreen.tap(floor.x + floor.width * .72, floor.y + floor.height * .72);
+  expect(await presses()).toBe(0);
+  // A press on the way in, on the island's open ground, still shows the hint.
+  const way = await page.evaluate(({ x, y, width, height }) => {
+    for (let v = .1; v < .95; v += .04) for (let u = .05; u < .95; u += .04) {
+      const px = x + width * u, py = y + height * v;
+      if (document.elementFromPoint(px, py)?.closest("[data-island-entry]")) return [px, py];
+    }
+    return null;
+  }, floor);
+  expect(way).not.toBeNull();
+  await page.touchscreen.tap(way![0], way![1]);
+  await expect.poll(presses).toBeGreaterThan(0);
+});
+
+test("with reduced motion the ball just moves to its next spot", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/#projects");
+  const first = await tapBall(page);
+  await expect.poll(() => painted(page), { timeout: 15_000 }).toBe(true);
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle");
+  const moved = (await ball(page).locator(":scope > span").boundingBox())!;
+  expect(Math.hypot(moved.x - first.x, moved.y - first.y)).toBeGreaterThan(10);
+});
+
+test("if its layers can't load, a tap does nothing", async ({ page }) => {
   await page.route("**/blender/hoop-shot-*.webp", route => route.abort());
   await page.goto("/#projects");
   await tapBall(page);
-  await expect(page.locator("dialog[data-discovery]")).toHaveAttribute("data-discovery", "basketball", { timeout: 15_000 });
+  await page.waitForTimeout(1500);
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
+  await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle");
 });

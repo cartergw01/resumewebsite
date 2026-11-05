@@ -393,11 +393,10 @@ PLANS={
     'district':(3.4,(.95,1.02),[(math.radians(35),.5,.06),(math.radians(215),.5,.05)]),
     # A soft, rounded garden plot with a bulge where the reading garden sits.
     'garden':(2.0,(.94,1.02),[(math.radians(170),.55,.10),(math.radians(-60),.6,.05)]),
-    # A rough, broken lot: a jagged edge and a yard lobe past the court. Kept
-    # narrow (a short yard lobe, the left shoulder drawn in where the timber
-    # stack stood) so the wide, low shed fills as much of its frame as the
-    # taller study and city do on a phone.
-    'lot':(2.3,(.80,1.07),[(math.radians(12),.75,.18),(math.radians(-150),.35,.08),(math.radians(180),.6,-.15)]),
+    # A rough, broken lot: a jagged edge and a yard lobe that carries the
+    # half-court. The left shoulder stays drawn in where the timber stack stood,
+    # so the island gives up as little of its frame as a full court allows.
+    'lot':(2.3,(.80,1.07),[(math.radians(-2),.60,.36),(math.radians(33),.34,.26),(math.radians(-150),.35,.08),(math.radians(180),.6,-.15)]),
 }
 
 
@@ -553,7 +552,7 @@ def terrain_path(name,points,width,seed,mat='stone',step=.28):
 
 # The workshop's half-court: a poured pad in the yard lobe right of the shed,
 # (x0, x1, y0, y1) in island units. Nothing else is planted or stacked on it.
-COURT=(3.35,5.85,-1.65,2.35) if refined('projects','court') else (3.35,5.45,-1.65,2.35)
+COURT=(3.35,6.85,-1.55,2.35) if refined('projects','court') else (3.35,5.45,-1.65,2.35)
 
 
 def on_court(world,x,y,margin=.12):
@@ -3119,7 +3118,7 @@ def arena_backboard_glass():
 
 def half_court():
     """Carter's a Lakers fan, and the workshop's yard is a half-court: a
-    poured concrete pad painted Lakers purple with a gold key and white
+    poured concrete pad painted Lakers purple with a dark blue key and black
     lines, a hoop on a black steel pole at its far end, and cool overhead
     court lighting. The hoop stands about as tall as the shed's roof,
     so the island reads as the workshop with the court from far away. The
@@ -3128,8 +3127,9 @@ def half_court():
     P['maple']=textured('Court · varnished maple strip',(.20,.10,.035),(.38,.21,.08),'wood',rough=.72,grain=(40,1.2,6))
     P['maple2']=textured('Court · varnished maple strip, darker',(.16,.08,.03),(.31,.17,.065),'wood',rough=.72,grain=(40,1.2,6))
     P['court']=material('Court · Lakers purple border',(.09,.025,.22),rough=.7)
-    P['key']=material('Court · Lakers gold key',(.62,.36,.02),rough=.7)
-    P['line']=material('Court · white line paint',(.80,.80,.78),rough=.4)
+    P['key']=material('Court · dark blue key',(.006,.018,.075),rough=.7)
+    P['line']=material('Court · black line paint',(.006,.006,.007),rough=.7)
+    P['line_on_paint']=material('Court · white line on the paint',(.58,.58,.54),rough=.75)
     P['rim']=material('Hoop · orange rim',(.85,.22,.02),metal=.4,rough=.35)
     # Arena-style glass and hardware: separate paint, metal, rubber and net
     # materials keep the board from reading as one plastic slab at web scale.
@@ -3150,26 +3150,46 @@ def half_court():
             length=min(rng.uniform(.55,1.05),y1-.07-y)
             box('Court · maple strip',(sx,y+length/2,top+.0022),(w-.004,length-.004,.002),'maple' if rng.random()<.6 else 'maple2',0)
             y+=length
-    # Baseline under the hoop, sidelines, the key and the free-throw circle.
-    base=y1-.10;ft=base-1.35;lz=top+.004;key_width=.86
-    def line(a,b,w=.024):
+    # A real half-court's markings at about .075 units to the foot (its width
+    # trimmed a little to sit with the workshop): baseline, sidelines and
+    # half-court line; the 16ft key to the free-throw line 19ft
+    # out, with its circle; the three-point arc around the rim, a few feet deeper
+    # than a real 23ft 9in so it reads against the big hoop, on to straight corner
+    # lines 3ft inside each sideline; and the restricted arc. The hoop itself keeps
+    # the island's bolder scale.
+    foot=.075
+    base=y1-.10;front=y0+.05;left,right=x0+.05,x1-.05;lz=top+.004
+    key_width=16*foot;ft=base-19*foot;ring=6*foot
+    def line(a,b,w=.032):
         (ax,ay),(bx,by)=a,b
         box('Court · painted line',((ax+bx)/2,(ay+by)/2,lz),(abs(bx-ax)+w,abs(by-ay)+w,.002),'line',0)
+    # Black lines on the boards. On the dark paint black would vanish, so what
+    # falls wholly inside the key is white.
+    def arc_line(name,x,y,radius,start,end,steps=48,mat='line'):
+        curve(name,[(x+radius*math.cos(start+(end-start)*i/steps),y+radius*math.sin(start+(end-start)*i/steps),lz) for i in range(steps+1)],.012,mat)
     box('Court · painted key',(cx,(base+ft)/2,top+.003),(key_width,base-ft,.002),'key',0)
-    line((x0+.05,base),(x1-.05,base))
-    for x in [x0+.05,x1-.05]:line((x,y0+.05),(x,base))
-    line((x0+.05,y0+.05),(x1-.05,y0+.05))
+    line((left,base),(right,base))
+    line((left,front),(right,front))
+    for x in [left,right]:line((x,front),(x,base))
     for x in [cx-key_width/2,cx+key_width/2]:line((x,ft),(x,base))
     line((cx-key_width/2,ft),(cx+key_width/2,ft))
-    curve('Court · free-throw circle',[(cx+key_width/2*math.cos(a*math.tau/48),ft+key_width/2*math.sin(a*math.tau/48),lz) for a in range(48)],.009,'line',cyclic=True)
-    # The three-point arc around the hoop, where it fits on the pad.
-    hx,hy=cx,base-.30;radius=1.70;half_width=(x1-x0)/2-.16
-    angle=math.acos(half_width/radius)
-    arc=[(hx+radius*math.cos(a),hy+radius*math.sin(a),lz)
-         for a in [math.pi+angle+i*(math.pi-2*angle)/60 for i in range(61)]]
-    curve('Court · three-point arc',arc,.009,'line')
-    for x in [cx-half_width,cx+half_width]:
+    # The free-throw circle: solid outside the key, dashed within it.
+    arc_line('Court · free-throw circle',cx,ft,ring,math.pi,math.tau)
+    for k in range(6):
+        start=k*math.pi/6+.07
+        arc_line('Court · free-throw circle',cx,ft,ring,start,start+math.pi/6-.14,6,'line_on_paint')
+    # Lane marks up each side of the key.
+    for dy in [7*foot,8*foot+.06,11*foot,14*foot]:
+        for side in [-1,1]:
+            x=cx+side*key_width/2
+            line((x,base-dy),(x+side*.07,base-dy))
+    # The rim's centre on the floor: the three-point and restricted arcs turn on it.
+    hx,hy=cx,base-.26;radius=27.5*foot;corner=(x1-x0)/2-.05-3*foot
+    angle=math.acos(corner/radius)
+    arc_line('Court · three-point arc',hx,hy,radius,math.pi+angle,math.tau-angle,72)
+    for x in [cx-corner,cx+corner]:
         line((x,hy-radius*math.sin(angle)),(x,base))
+    arc_line('Court · restricted arc',hx,hy,4*foot,math.pi,math.tau,24,'line_on_paint')
     # Keep the small yard's footprint, but give its hoop an arena-quality
     # 72:42 glass silhouette, white target, padded edge and real load path.
     # The rim bolts into a steel carrier behind the pane, not the glass.
@@ -3485,7 +3505,7 @@ def workshop():
         for side in [-1,1]:
             cylinder('Cybertruck model · wheel',(cx+u,cy+side*.08,cz+.035),.034,.026,'ink',16,bevel=.002).rotation_euler.x=math.pi/2
     # A Wilson Evolution game ball rests on the court with its print visible.
-    wilson_evolution(COURT[0]+.42 if refined('projects','court') else COURT[0]+.32,.62,(.202 if refined('projects','court') else .262)+.24)
+    wilson_evolution(COURT[0]+.55 if refined('projects','court') else COURT[0]+.32,-.25 if refined('projects','court') else .62,(.202 if refined('projects','court') else .262)+.24)
     # A low stool with metal legs and a modest padded seat.
     # Pulled forward and right, clear of the original poker chip case.
     stx,sty=STOOL
@@ -3892,7 +3912,7 @@ def main():
                 sys.path.insert(0,str(Path(__file__).parent))
                 from hoop_shot_layers import render_layers
                 unseen_lights(scene)
-                render_layers(scene,args.output,ROOT)
+                render_layers(scene,args.output,ROOT,COURT)
                 continue
             scene.render.filepath=str(args.output/f'{world}.png')
             unseen_lights(scene)

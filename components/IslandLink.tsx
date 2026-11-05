@@ -59,6 +59,8 @@ export default function IslandLink({ href, title, prompt, landmark, children, wo
   const touchFeedback = {
     onPointerDown: (event: PointerEvent<HTMLElement>) => {
       if (event.pointerType !== "touch" || !event.isPrimary || event.currentTarget.closest<HTMLElement>("[data-island-stage]")?.dataset.entering) return;
+      // This lights the way in: nothing to do with a press on a thing on the island.
+      if ((event.target as Element).closest("[data-direct-navigation]")) return;
       touch.current = { x: event.clientX, y: event.clientY };
       event.currentTarget.dataset.touchPressed = "true";
     },

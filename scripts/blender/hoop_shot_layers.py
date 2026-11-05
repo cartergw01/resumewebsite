@@ -17,19 +17,14 @@ import math
 from pathlib import Path
 
 import bpy
+from bpy_extras.object_utils import world_to_camera_view
 from mathutils import Matrix, Vector
 
 FRAMES = 24
 BALL = 'Basketball ·'
 NET = ('Hoop · diamond net braid', 'Hoop · net attachment', 'Hoop · net bottom binding')
 RIM = 'Hoop · orange rim'
-# Regions in the published still's 1200×800 coordinates.
-COURT_REGION = (795, 455, 120, 110)
-BALL_REGION = (820, 468, 58, 58)
-NET_REGION = (925, 222, 75, 68)
-
-
-def render_layers(scene, output, root):
+def render_layers(scene, output, root, court):
     crop = json.loads((root/'lib/island-cameras.json').read_text())['projects']['crop']
     scene.render.use_persistent_data = True
     scene.render.use_border = True
@@ -44,6 +39,25 @@ def render_layers(scene, output, root):
     # it goes with the front: a hairline, and the ball is past it in a blink.
     front = [o for o in net if o.name.startswith(NET[2]) or o.matrix_world.translation.y <= rim_at.y]
     back = [o for o in net if o not in front]
+
+    def project(point):
+        p = world_to_camera_view(scene, scene.camera, Vector(point))
+        return Vector(((p.x*1200-crop[0])/crop[2]*1200, ((1-p.y)*800-crop[1])/crop[3]*800))
+
+    # Everything's placed from the scene through the camera, in the published
+    # still's 1200×800 coordinates, so a change of court or crop just carries.
+    at_ball = project(centre)
+    r = (project(centre+Vector((.24, 0, 0)))-at_ball).length
+    at_rim = project(rim_at)
+    rr = (project(rim_at+Vector((.28, 0, 0)))-at_rim).length
+
+    def around(point, radius, left, up, right, down):
+        x, y = round(point.x-left*radius), round(point.y-up*radius)
+        return (x, y, round((left+right)*radius), round((up+down)*radius))
+    COURT_REGION = around(at_ball, r, 2.6, 2.0, 3.2, 3.2)
+    BALL_REGION = around(at_ball, r, 1.35, 1.35, 1.35, 1.35)
+    SHADOW_REGION = around(at_ball, r, 2.4, .2, 2.7, 3.4)
+    NET_REGION = around(at_rim, rr, 1.45, .7, 1.5, 2.0)
 
     def region(x, y, width, height):
         # The still is a crop of the render; Blender's border runs bottom-up.
@@ -80,6 +94,16 @@ def render_layers(scene, output, root):
             if obj.type != 'LIGHT':
                 obj.visible_camera = True
                 obj.is_holdout = False
+
+    # What the shot's canvas must cover: the whole court, and the top of the
+    # highest arc, from the court's far corner.
+    x0, x1, y0, y1 = court
+    corners = [project((x, y, centre.z-.24)) for x in (x0, x1) for y in (y0, y1)]
+    reach = max(math.hypot(x-rim_at.x, y-rim_at.y) for x in (x0, x1) for y in (y0, y1))
+    apex = project((rim_at.x, rim_at.y, rim_at.z+.75+.18*reach))
+    left, right = min(c.x for c in corners)-r*2, max(c.x for c in corners)+r*2
+    top, bottom = apex.y-r*2, max(c.y for c in corners)+r*3
+    area = [round(left), round(max(0, top)), round(right-left), round(bottom-max(0, top))]
 
     # The court.
     region(*COURT_REGION)
@@ -133,5 +157,6 @@ def render_layers(scene, output, root):
     (output/'layers.json').write_text(json.dumps({
         'ball': list(centre), 'ballRadius': .24, 'rim': list(rim_at), 'rimRadius': .28,
         'netDepth': .416, 'floor': round(centre.z-.24, 4),
-        'frames': FRAMES, 'court': COURT_REGION, 'ballRegion': BALL_REGION, 'net': NET_REGION,
+        'frames': FRAMES, 'court': COURT_REGION, 'ballRegion': BALL_REGION, 'net': NET_REGION, 'shadow': SHADOW_REGION,
+        'bounds': court, 'area': area,
     }, indent=2)+'\n')

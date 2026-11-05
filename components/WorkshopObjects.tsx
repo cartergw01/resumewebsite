@@ -12,6 +12,7 @@ import { curios, curiosityClip } from "@/lib/workshop-discoveries";
 import { useIslandCue } from "@/lib/use-island-cue";
 import ProjectCue from "./ProjectCue";
 import HoopShot, { type HoopShotHandle } from "./HoopShot";
+import { hoopShot as shotData, project } from "@/lib/hoop-shot";
 
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
@@ -19,7 +20,16 @@ const DeclarationScroll = dynamic(() => import("./DeclarationScroll"), { ssr: fa
 // The chip case opens Poker Odds directly. Its inspectable model remains in
 // the object directory, without a second target sitting over the project.
 const islandCurios = curios.filter(object => object.id !== "poker-set");
-const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...islandCurios].map(object => object.point);
+// Where the still shows the basketball. It isn't an object to inspect: tapping it
+// only ever shoots it.
+const ballHome = (({ x, y }) => [x, y])(project(shotData.world.ball));
+const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...islandCurios].map(object => object.point).concat([ballHome]);
+// The court's outline, with its slab's near faces. It answers to nothing but the
+// ball: this keeps a tap on the boards from falling through to the island's link.
+const courtOutline = (() => {
+  const [left, right, near, far] = shotData.world.court, top = shotData.world.floor, base = -.06;
+  return [[left, far, top], [right, far, top], [right, far, base], [right, near, base], [left, near, base], [left, near, top]].map(point => project(point));
+})();
 const known = new Set([...projects, ...curios].map(object => object.id));
 const FOUND_KEY = "carter-workshop-discoveries-v1";
 
@@ -29,7 +39,7 @@ const labels: Record<string, string> = {
 };
 
 const curioLabel = ({ id, name }: { id: string; name: string }) =>
-  id === "shield" ? "Read the Declaration of Independence" : id === "basketball" ? "Shoot the basketball" : `Pick up ${name}`;
+  id === "shield" ? "Read the Declaration of Independence" : `Pick up ${name}`;
 
 export default function WorkshopObjects() {
   const layerRef = useRef<HTMLSpanElement>(null);
@@ -66,10 +76,7 @@ export default function WorkshopObjects() {
   const select = (id: string) => { if (id !== "directory") discover(id); setSelected(id); };
   const inspect = (id: string, source: HTMLElement) => {
     opener.current = source;
-    // The ball on the court goes up at the hoop. Picking it up stays in the
-    // objects directory, and is what reduced motion gets instead.
-    if (id === "basketball") { discover(id); hoopShot.current?.shoot(); }
-    else if (id === "shield") { discover(id); setDeclaration(true); }
+    if (id === "shield") { discover(id); setDeclaration(true); }
     else select(id);
   };
 
@@ -89,11 +96,11 @@ export default function WorkshopObjects() {
       const p = visual.parallax;
       for (const group of layer.querySelectorAll<HTMLElement>("[data-object-position]")) {
         const id = group.dataset.objectPosition;
-        const object = objects[id as keyof typeof objects] ?? curios.find(object => object.id === id);
-        if (!object) continue;
-        const [x, y] = id === "basketball" && ballPoint.current ? ballPoint.current : object.point;
+        const home = id === "basketball" ? ballHome : (objects[id as keyof typeof objects] ?? curios.find(object => object.id === id))?.point;
+        if (!home) continue;
+        const [x, y] = id === "basketball" && ballPoint.current ? ballPoint.current : home;
         const depth = p?.depth ? p.depth(x, y) - p.focus : 0;
-        group.style.transform = `translate(${(x - object.point[0] - 1200 * (p?.x ?? 0) * depth) * scale}px, ${(y - object.point[1] - 800 * (p?.y ?? 0) * depth) * scale}px)`;
+        group.style.transform = `translate(${(x - home[0] - 1200 * (p?.x ?? 0) * depth) * scale}px, ${(y - home[1] - 800 * (p?.y ?? 0) * depth) * scale}px)`;
       }
     };
     reposition.current = move;
@@ -131,8 +138,10 @@ export default function WorkshopObjects() {
       {/* A contained HTML frame matches the image's 3:2 projection. Native
           HTML also avoids WebKit's transformed foreignObject hit-test bug. */}
       <span className={styles.frame} style={{ width: scale * 1200, height: scale * 800 }}>
-      {scale > 0 && visual && <HoopShot ref={hoopShot} scale={scale} visual={visual} onUnavailable={() => select("basketball")}
+      {scale > 0 && visual && <HoopShot ref={hoopShot} scale={scale} visual={visual}
         onBall={(x, y) => { ballPoint.current = [x, y]; setBallMoved(true); reposition.current(); }} />}
+      {scale > 0 && <span className={styles.courtFloor} data-court-floor
+        style={{ clipPath: `polygon(${courtOutline.map(({ x, y }) => `${x * scale}px ${y * scale}px`).join(",")})` }} />}
       {scale > 0 && projects.map((project, index) => {
         const object = objects[project.id as keyof typeof objects];
         if (!object) return null;
@@ -153,18 +162,28 @@ export default function WorkshopObjects() {
                 aria-label={`${label} (opens in a new tab)`} data-tip={label} onClick={() => discover(project.id)}>{contents}</a>}
         </span>;
       })}
+      {scale > 0 && (() => {
+        // Out on the open court, with nothing near it, the ball can take a full-size target.
+        const size=Math.max(ballMoved?44:28,Math.min(shotData.regions.ball[2]*scale,64));
+        const x=ballHome[0]*scale-size/2,y=ballHome[1]*scale-size/2;
+        const clip=curiosityClip(ballHome,[x/scale,y/scale,size/scale,size/scale],allPoints);
+        return <span className={`${styles.position} ${styles.curio}`} data-object-position="basketball" style={{left:x,top:y,width:size,height:size,zIndex:ballMoved?2:undefined}}>
+          <button type="button" className={styles.target} data-workshop-ball aria-label="Shoot the basketball"
+            style={{clipPath:ballMoved?undefined:clip}} onClick={()=>hoopShot.current?.shoot()}>
+            <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
+          </button>
+          <span className={styles.curioLabel} aria-hidden="true">Basketball</span>
+        </span>;
+      })()}
       {scale > 0 && islandCurios.map(object => {
         const [px,py]=object.point;
-        // Out on the open court the ball can take a full-size target, above the court's own.
-        const loose=object.id==="basketball"&&ballMoved;
-        const least=loose?44:28;
-        const width=Math.max(least,Math.min(object.bounds[2]*scale,64)), height=Math.max(least,Math.min(object.bounds[3]*scale,64));
+        const width=Math.max(28,Math.min(object.bounds[2]*scale,64)), height=Math.max(28,Math.min(object.bounds[3]*scale,64));
         const x=px*scale-width/2,y=py*scale-height/2;
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
-          style={{left:x,top:y,width,height,zIndex:loose?2:undefined}}>
-          <button type="button" className={styles.target} data-curio={object.id} aria-label={curioLabel(object)} aria-haspopup={object.id === "basketball" ? undefined : "dialog"}
-            style={{clipPath:loose?undefined:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
+          style={{left:x,top:y,width,height}}>
+          <button type="button" className={styles.target} data-curio={object.id} aria-label={curioLabel(object)} aria-haspopup="dialog"
+            style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
           <span className={styles.curioLabel} aria-hidden="true">{object.name}</span>

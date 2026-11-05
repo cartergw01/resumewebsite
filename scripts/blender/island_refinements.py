@@ -120,8 +120,8 @@ def apply(world, api):
             keys = material('Workstation · satin keycaps', (.024, .030, .035), rough=.62)
             assign('Workstation · key', keys)
         if on('court'):
-            tune('Court · Lakers gold key', **{'Base Color': (.37, .19, .018, 1), 'Roughness': .83})
-            tune('Court · white line paint', **{'Base Color': (.58, .58, .54, 1), 'Roughness': .75})
+            tune('Court · dark blue key', **{'Base Color': (.0008, .0035, .022, 1), 'Roughness': .9, 'Specular IOR Level': .15})
+            tune('Court · black line paint', **{'Base Color': (.006, .006, .007, 1), 'Roughness': .7})
     elif world == 'writing':
         if on('notebook_focus'):
             # A broad reflected component from the same lamp group; all light

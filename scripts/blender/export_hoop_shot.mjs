@@ -37,7 +37,7 @@ async function layer(directory, name, region, feather = 0) {
 
 // The ball's shadow on its own, as darkness over the bare court, so it can
 // follow the ball anywhere on the court.
-const SHADOW_REGION = [800, 495, 105, 72];
+const SHADOW_REGION = meta.shadow;
 const SHADOW_INK = 10;
 async function shadowLayer(directory) {
   const { width, height } = pixels(SHADOW_REGION);
@@ -104,6 +104,6 @@ await writeFile(path.join(root, "lib/hoop-shot.json"), JSON.stringify({
   lit: await pack(lit, "lit"), dark: await pack(dark, "dark"),
   atlas,
   regions: { court: meta.court, ball: meta.ballRegion, net: meta.net, shadow: SHADOW_REGION },
-  frames: meta.frames, density: DENSITY,
-  world: { ball: round(meta.ball), ballRadius: meta.ballRadius, rim: round(meta.rim), rimRadius: meta.rimRadius, netDepth: meta.netDepth, floor: meta.floor },
+  frames: meta.frames, density: DENSITY, area: meta.area,
+  world: { ball: round(meta.ball), ballRadius: meta.ballRadius, rim: round(meta.rim), rimRadius: meta.rimRadius, netDepth: meta.netDepth, floor: meta.floor, court: meta.bounds },
 }, null, 2) + "\n");
