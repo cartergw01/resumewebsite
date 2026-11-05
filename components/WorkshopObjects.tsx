@@ -24,12 +24,20 @@ const islandCurios = curios.filter(object => object.id !== "poker-set");
 // only ever shoots it.
 const ballHome = (({ x, y }) => [x, y])(project(shotData.world.ball));
 const allPoints = [...projects.map(project => objects[project.id as keyof typeof objects]), ...islandCurios].map(object => object.point).concat([ballHome]);
-// The court's outline, with its slab's near faces. It answers to nothing but the
-// ball: this keeps a tap on the boards from falling through to the island's link.
+// The court and hoop answer to nothing but the ball: these outlines keep a tap on
+// them from falling through to the island's link. The court, with its slab's near
+// faces; then the hoop's board, net and pole.
+const outline = (points: number[][]) => points.map(point => project(point));
 const courtOutline = (() => {
   const [left, right, near, far] = shotData.world.court, top = shotData.world.floor, base = -.06;
-  return [[left, far, top], [right, far, top], [right, far, base], [right, near, base], [left, near, base], [left, near, top]].map(point => project(point));
+  return outline([[left, far, top], [right, far, top], [right, far, base], [right, near, base], [left, near, base], [left, near, top]]);
 })();
+// Generous around the pole, which is only a few pixels wide on a phone.
+const hoopOutline = (() => {
+  const [x, rim, z] = shotData.world.rim, board = rim + .3, pole = rim + .68, net = z - shotData.world.netDepth;
+  return outline([[x - .84, board, z + .86], [x + .84, board, z + .86], [x + .84, board, z - .13], [x + .42, rim, net], [x + .34, pole, 0], [x - .34, pole, 0], [x - .42, rim, net], [x - .84, board, z - .13]]);
+})();
+const clipTo = (points: { x: number; y: number }[], scale: number) => `polygon(${points.map(({ x, y }) => `${x * scale}px ${y * scale}px`).join(",")})`;
 const known = new Set([...projects, ...curios].map(object => object.id));
 const FOUND_KEY = "carter-workshop-discoveries-v1";
 
@@ -140,8 +148,8 @@ export default function WorkshopObjects() {
       <span className={styles.frame} style={{ width: scale * 1200, height: scale * 800 }}>
       {scale > 0 && visual && <HoopShot ref={hoopShot} scale={scale} visual={visual}
         onBall={(x, y) => { ballPoint.current = [x, y]; setBallMoved(true); reposition.current(); }} />}
-      {scale > 0 && <span className={styles.courtFloor} data-court-floor
-        style={{ clipPath: `polygon(${courtOutline.map(({ x, y }) => `${x * scale}px ${y * scale}px`).join(",")})` }} />}
+      {scale > 0 && <span className={styles.inert} data-court-floor style={{ clipPath: clipTo(courtOutline, scale) }} />}
+      {scale > 0 && <span className={styles.inert} data-hoop-inert style={{ clipPath: clipTo(hoopOutline, scale) }} />}
       {scale > 0 && projects.map((project, index) => {
         const object = objects[project.id as keyof typeof objects];
         if (!object) return null;
