@@ -63,9 +63,9 @@ test("all exported props can be picked up and inspected",async({page},testInfo)=
   expect(errors).toEqual([]);
 });
 
-test("hoop, synth, clocks, lights, and hidden poker set give real rewards",async({page},testInfo)=>{
+test("free throws, synth, clocks, lights, and hidden poker set give real rewards",async({page},testInfo)=>{
   await page.goto("/#projects");
-  await pick(page,"hoop");
+  await pick(page,"jersey");
   const power=page.getByRole("slider",{name:"Shot power",exact:true});
   await power.focus();for(let i=0;i<14;i++)await page.keyboard.press("ArrowRight");
   await page.getByRole("button",{name:"Shoot",exact:true}).click();
@@ -93,7 +93,7 @@ test("hoop, synth, clocks, lights, and hidden poker set give real rewards",async
   await expect(page.getByRole("button",{name:"20%",exact:true})).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  await expect(page.locator('[data-curio="hoop"]')).toBeFocused();
+  await expect(page.locator('[data-curio="jersey"]')).toBeFocused();
   expect(await page.evaluate(()=>document.body.style.overflow)).not.toBe("hidden");
 });
 

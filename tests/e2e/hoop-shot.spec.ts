@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { chooseLanding, distanceFromRim, planShot, REST, type Ball } from "../../lib/hoop-shot";
+import { chooseLanding, distanceFromRim, planShot, project, REST, type Ball } from "../../lib/hoop-shot";
 import data from "../../lib/hoop-shot.json" with { type: "json" };
 
 const shot = (page: Page) => page.locator("canvas[data-hoop-shot]");
@@ -159,18 +159,17 @@ test("leaving the island mid-shot lands the ball and leaves nothing cut", async 
   expect(await painted(page)).toBe(true);
 });
 
-test("the ball and court are not objects: never a dialog, in or out of the directory", async ({ page }) => {
+test("the ball, court and hoop are not objects: never a dialog, in or out of the directory", async ({ page }) => {
   await page.goto("/#projects");
   await expect(ball(page)).toBeVisible();
-  await expect(page.locator('[data-curio="basketball"], [data-curio="court"]')).toHaveCount(0);
+  await expect(page.locator('[data-curio="basketball"], [data-curio="court"], [data-curio="hoop"]')).toHaveCount(0);
   await tapBall(page);
   await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
   await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle", { timeout: 20_000 });
-  const hoop = page.locator('[data-curio="hoop"]');
-  await hoop.evaluate((node: HTMLElement) => node.click());
+  await page.locator('[data-curio="jersey"]').evaluate((node: HTMLElement) => node.click());
   await page.getByRole("button", { name: "All objects", exact: true }).click();
-  await expect(page.locator('[data-discovery-choice="hoop"]')).toBeVisible();
-  await expect(page.locator('[data-discovery-choice="basketball"], [data-discovery-choice="court"]')).toHaveCount(0);
+  await expect(page.locator('[data-discovery-choice="jersey"]')).toBeVisible();
+  await expect(page.locator('[data-discovery-choice="basketball"], [data-discovery-choice="court"], [data-discovery-choice="hoop"]')).toHaveCount(0);
 });
 
 test("tapping the court does nothing at all", async ({ page }) => {
@@ -200,6 +199,27 @@ test("tapping the court does nothing at all", async ({ page }) => {
   await expect(page.locator("[data-island-stage][data-entering]")).toHaveCount(0);
   await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
   await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle");
+});
+
+test("tapping the hoop does nothing at all", async ({ page }) => {
+  await page.goto("/#projects");
+  await expect(ball(page)).toBeVisible();
+  await page.waitForTimeout(500);
+  const box = (await page.locator("[data-hoop-inert]").boundingBox())!;
+  const scale = box.width / 1200;
+  const [x, y, z] = data.world.rim;
+  // The board above the rim, the net, and the middle of the pole.
+  const touch = await page.evaluate(() => matchMedia("(pointer: coarse)").matches);
+  for (const point of [[x, y + .3, z + .5], [x, y, z - .2], [x, y + .68, 1.4]]) {
+    const at = project(point);
+    const px = box.x + at.x * scale, py = box.y + at.y * scale;
+    expect(await page.evaluate(([a, b]) => document.elementFromPoint(a, b)?.hasAttribute("data-hoop-inert"), [px, py])).toBe(true);
+    if (touch) await page.touchscreen.tap(px, py); else await page.mouse.click(px, py);
+  }
+  await page.waitForTimeout(500);
+  expect(new URL(page.url()).pathname).toBe("/");
+  await expect(page.locator("[data-island-stage][data-entering]")).toHaveCount(0);
+  await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
 });
 
 test("tapping the ball or court doesn't light up the monitor; a press on the way in still does", async ({ page }, info) => {

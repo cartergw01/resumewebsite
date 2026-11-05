@@ -1,13 +1,5 @@
 [
   {
-    "id": "hoop",
-    "name": "Basketball hoop",
-    "prefixes": [
-      "Hoop ·"
-    ],
-    "reward": "hoops"
-  },
-  {
     "id": "jersey",
     "name": "Kobe’s number 24",
     "prefixes": [
