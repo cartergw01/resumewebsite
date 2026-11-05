@@ -61,7 +61,13 @@ export default function ThoughtCards() {
   useEffect(() => () => { clearTimeout(returnTimer.current); flight.current?.dispose(); }, []);
   useEffect(() => {
     const id = new URL(location.href).searchParams.get("thought");
-    if (id && /^\d{19}$/.test(id)) { setInitialId(id); setOpen(true); }
+    if (id && /^\d{19}$/.test(id)) {
+      // Nobody has touched the page yet, but the reader opening by itself isn't
+      // keyboard use: no ring on the close button until a Tab says otherwise.
+      document.documentElement.dataset.pointerInput = "";
+      setInitialId(id);
+      setOpen(true);
+    }
   }, []);
   useEffect(() => {
     const visual = layer.current?.closest<HTMLElement>("[data-island-visual]") as (HTMLElement & { parallax?: ParallaxState }) | null;

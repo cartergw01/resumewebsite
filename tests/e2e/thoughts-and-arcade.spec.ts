@@ -371,6 +371,20 @@ test("focus rings show for keyboard users but not after tapping or clicking", as
   expect(await outline(bird)).toBe("solid");
 });
 
+test("a shared link opens the reader with no focus ring until Tab is pressed", async ({ page, isMobile }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(`/?thought=${thoughts[0].id}#writing`);
+  const closeButton = page.getByRole("dialog", { name: "Posts by Carter" }).getByRole("button", { name: "Close thoughts" });
+  await expect(closeButton).toBeFocused();
+  const outline = () => closeButton.evaluate(node => getComputedStyle(node).outlineStyle);
+  expect(await outline()).toBe("none");
+  if (isMobile) return;
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Shift+Tab");
+  await expect(closeButton).toBeFocused();
+  expect(await outline()).toBe("solid");
+});
+
 test("the note stack handles interrupted lifts and reduced motion", async ({ page, isMobile }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
