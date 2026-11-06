@@ -3044,14 +3044,15 @@ def jbl_charge4(x,y,z,angle):
     place(set(bpy.context.scene.objects)-before,x,y,z,angle)
 
 
-def blackpink_lightstick(x,y,z,angle,k=1.3):
-    """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2), lying on its
-    side: a toy-hammer shape, a black cylindrical handle with a pink button
-    and a pink band near the top, and a head of two pink silicone hearts, one
-    at each end. Lit, the hearts and the band glow pink. Catalogue size is
-    155 x 87 x 253mm; it's drawn `k` times life size so it reads at the
-    island's scale. Built upright, then laid down resting on a heart's edge
-    and the end of the handle."""
+def blackpink_lightstick(x,y,z,angle,k=1.3,upright=False):
+    """BLACKPINK's official light stick (Bl-ping-bong, Ver. 2): a toy-hammer
+    shape, a black cylindrical handle with a pink button and a pink band near
+    the top, and a head of two pink silicone hearts, one at each end. Lit,
+    the hearts and the band glow pink. Catalogue size is 155 x 87 x 253mm;
+    it's drawn `k` times life size so it reads at the island's scale. Built
+    upright; `upright` stands it on a small display base, hearts on top, so
+    its hammer shape reads, otherwise it's laid down resting on a heart's
+    edge and the end of the handle."""
     before=set(bpy.context.scene.objects)
     u=.002*k  # one millimetre
     P.setdefault('bp_black',material('Lightstick · black handle',(.012,.012,.014),rough=.35))
@@ -3085,6 +3086,14 @@ def blackpink_lightstick(x,y,z,angle,k=1.3):
         for f in heart.data.polygons:f.use_smooth=True
     # Its own pink glow on the shelf around it.
     light('Lightstick · pink glow',(0,-.12*k,hz),(1,.32,.66),5*k,.08*k)
+    if upright:
+        # A low round display base, so it stands as it's shown off.
+        base=8*u
+        cylinder('Lightstick · display base',(0,0,-base/2),34*u,base,'bp_black',40,bevel=2*u)
+        built=set(bpy.context.scene.objects)-before
+        for obj in built:obj.location.z+=base
+        place(built,x,y,z,angle)
+        return
     built=set(bpy.context.scene.objects)-before
     # The head (about 87mm) is thicker than the handle (30mm), so lying down
     # the stick tips a few degrees: heart edge and handle end both touch.
@@ -3488,7 +3497,10 @@ def workshop():
     # with the navy JBL: the speaker now sits at the left end, clear of the
     # upright (it is longer than the light stick is wide), and the light
     # stick between it and the Cybertruck.
-    blackpink_lightstick(1.40,1.31,shelf,math.radians(90),k=1.2)
+    # Later he found it hard to tell what it was, lying down among the other
+    # displays: it now stands upright, hearts on top, turned so the hammer
+    # shape faces the camera, set back clear of the festoon bulbs.
+    blackpink_lightstick(1.40,1.50,shelf,math.radians(80),k=1.4,upright=True)
     jbl_charge4(.83,1.48,shelf,0)
     # Lugia sits on the open middle shelf, clear of the monitor's screen.
     middle_shelf=.16+(2.98-.16)*.72+.015
