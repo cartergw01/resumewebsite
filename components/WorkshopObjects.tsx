@@ -17,9 +17,13 @@ import { hoopShot as shotData, project } from "@/lib/hoop-shot";
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
 const DeclarationScroll = dynamic(() => import("./DeclarationScroll"), { ssr: false });
 // Only things that open something real are clickable on the island: the
-// project links, the chip case (Poker Odds), the arcade, and the shield (the
-// Declaration). Every other prop is scenery, so a tap on it reads as the island.
-const islandCurios = curios.filter(object => object.id === "shield");
+// project links, the chip case (Poker Odds), the arcade, the shield (the
+// Declaration) and the BLACKPINK light stick (the Pink Venom music video).
+// Every other prop is scenery, so a tap on it reads as the island.
+const curioLinks: Record<string, { href: string; label: string }> = {
+  lightstick: { href: "https://www.youtube.com/watch?v=gQlMMD8auMs", label: "Watch BLACKPINK’s Pink Venom music video (opens in a new tab)" },
+};
+const islandCurios = curios.filter(object => object.id === "shield" || object.id in curioLinks);
 // Where the still shows the basketball. It isn't an object to inspect: tapping it
 // only ever shoots it.
 const ballHome = (({ x, y }) => [x, y])(project(shotData.world.ball));
@@ -174,12 +178,15 @@ export default function WorkshopObjects() {
         const width=Math.max(28,Math.min(object.bounds[2]*scale,64)), height=Math.max(28,Math.min(object.bounds[3]*scale,64));
         const x=px*scale-width/2,y=py*scale-height/2;
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
+        const pin=<span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>;
+        const link=curioLinks[object.id];
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>
-          <button type="button" className={styles.target} data-curio={object.id} aria-label="Read the Declaration of Independence" aria-haspopup="dialog"
-            style={{clipPath:clip}} onClick={event=>readDeclaration(event.currentTarget)}>
-            <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
-          </button>
+          {link ?
+            <a className={styles.target} data-curio={object.id} href={link.href} target="_blank" rel="noopener noreferrer" aria-label={link.label}
+              style={{clipPath:clip}} onClick={()=>discover(object.id)}>{pin}</a> :
+            <button type="button" className={styles.target} data-curio={object.id} aria-label="Read the Declaration of Independence" aria-haspopup="dialog"
+              style={{clipPath:clip}} onClick={event=>readDeclaration(event.currentTarget)}>{pin}</button>}
         </span>;
       })}
       </span>
