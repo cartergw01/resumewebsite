@@ -15,11 +15,11 @@ import HoopShot, { type HoopShotHandle } from "./HoopShot";
 import { hoopShot as shotData, project } from "@/lib/hoop-shot";
 
 const TaipeiArcade = dynamic(() => import("./TaipeiArcade"), { ssr: false });
-const WorkshopDiscovery = dynamic(() => import("./WorkshopDiscovery"), { ssr: false });
 const DeclarationScroll = dynamic(() => import("./DeclarationScroll"), { ssr: false });
-// The chip case opens Poker Odds directly. Its inspectable model remains in
-// the object directory, without a second target sitting over the project.
-const islandCurios = curios.filter(object => object.id !== "poker-set");
+// Only things that open something real are clickable on the island: the
+// project links, the chip case (Poker Odds), the arcade, and the shield (the
+// Declaration). Every other prop is scenery, so a tap on it reads as the island.
+const islandCurios = curios.filter(object => object.id === "shield");
 // Where the still shows the basketball. It isn't an object to inspect: tapping it
 // only ever shoots it.
 const ballHome = (({ x, y }) => [x, y])(project(shotData.world.ball));
@@ -46,21 +46,16 @@ const labels: Record<string, string> = {
   "taipei-guide": "Taipei Guide",
 };
 
-const curioLabel = ({ id, name }: { id: string; name: string }) =>
-  id === "shield" ? "Read the Declaration of Independence" : `Pick up ${name}`;
 
 export default function WorkshopObjects() {
   const layerRef = useRef<HTMLSpanElement>(null);
   useIslandCue(layerRef);
   const arcadeButton = useRef<HTMLButtonElement>(null);
-  const arcadeOrigin = useRef<HTMLElement | null>(null);
   const [arcade, setArcade] = useState(false);
   const pokerButton = useRef<HTMLButtonElement>(null);
-  const pokerOrigin = useRef<HTMLElement | null>(null);
   const restorePokerFocus = useRef(false);
   const [scale, setScale] = useState(0);
   const [challenge, setChallenge] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
   const [declaration, setDeclaration] = useState(false);
   const opener = useRef<HTMLElement | null>(null);
   const hoopShot = useRef<HoopShotHandle>(null);
@@ -81,12 +76,7 @@ export default function WorkshopObjects() {
     try { sessionStorage.setItem(FOUND_KEY, JSON.stringify(next)); } catch { /* Discovery still works without storage. */ }
     return next;
   });
-  const select = (id: string) => { if (id !== "directory") discover(id); setSelected(id); };
-  const inspect = (id: string, source: HTMLElement) => {
-    opener.current = source;
-    if (id === "shield") { discover(id); setDeclaration(true); }
-    else select(id);
-  };
+  const readDeclaration = (source: HTMLElement) => { opener.current = source; discover("shield"); setDeclaration(true); };
 
   useEffect(() => {
     if (new URL(location.href).searchParams.get("play") === "taipei-run") setArcade(true);
@@ -123,22 +113,21 @@ export default function WorkshopObjects() {
     setArcade(false);
     const url = new URL(location.href);
     if (url.searchParams.get("play") === "taipei-run") { url.searchParams.delete("play"); history.replaceState(history.state, "", url); }
-    requestAnimationFrame(() => (arcadeOrigin.current ?? arcadeButton.current)?.focus({ preventScroll: true }));
+    requestAnimationFrame(() => arcadeButton.current?.focus({ preventScroll: true }));
   };
-  const playArcade = () => { arcadeOrigin.current = selected ? opener.current : arcadeButton.current; discover("taipei-run"); setSelected(null); setArcade(true); };
+  const playArcade = () => { discover("taipei-run"); setArcade(true); };
   useLayoutEffect(() => {
     if (!challenge && restorePokerFocus.current) {
       restorePokerFocus.current = false;
-      (pokerOrigin.current ?? pokerButton.current)?.focus({ preventScroll: true });
+      pokerButton.current?.focus({ preventScroll: true });
     }
   }, [challenge]);
   const close = () => {
     restorePokerFocus.current = true;
     setChallenge(false);
   };
-  const closeDiscovery = () => { setSelected(null); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
   const closeDeclaration = () => { setDeclaration(false); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
-  const playPoker = () => { pokerOrigin.current = selected ? opener.current : pokerButton.current; discover("poker-odds"); setSelected(null); setChallenge(true); };
+  const playPoker = () => { discover("poker-odds"); setChallenge(true); };
 
   return <>
     <span ref={layerRef} className={styles.objects} data-workshop-objects data-direct-navigation
@@ -190,8 +179,8 @@ export default function WorkshopObjects() {
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>
-          <button type="button" className={styles.target} data-curio={object.id} aria-label={curioLabel(object)} aria-haspopup="dialog"
-            style={{clipPath:clip}} onClick={event=>inspect(object.id,event.currentTarget)}>
+          <button type="button" className={styles.target} data-curio={object.id} aria-label="Read the Declaration of Independence" aria-haspopup="dialog"
+            style={{clipPath:clip}} onClick={event=>readDeclaration(event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
           <span className={styles.curioLabel} aria-hidden="true">{object.name}</span>
@@ -199,7 +188,6 @@ export default function WorkshopObjects() {
       })}
       </span>
     </span>
-    {selected && <WorkshopDiscovery selected={selected} onSelect={select} onFound={discover} onClose={closeDiscovery} onPoker={playPoker} onArcade={playArcade} />}
     {arcade && <TaipeiArcade onClose={closeArcade} />}
     {challenge && <PokerChallenge onClose={close} />}
     {declaration && <DeclarationScroll onClose={closeDeclaration} />}

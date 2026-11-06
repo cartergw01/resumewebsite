@@ -159,17 +159,13 @@ test("leaving the island mid-shot lands the ball and leaves nothing cut", async 
   expect(await painted(page)).toBe(true);
 });
 
-test("the ball, court and hoop are not objects: never a dialog, in or out of the directory", async ({ page }) => {
+test("the ball, court and hoop are not objects: never a dialog", async ({ page }) => {
   await page.goto("/#projects");
   await expect(ball(page)).toBeVisible();
   await expect(page.locator('[data-curio="basketball"], [data-curio="court"], [data-curio="hoop"]')).toHaveCount(0);
   await tapBall(page);
   await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
   await expect(shot(page)).toHaveAttribute("data-hoop-shot", "idle", { timeout: 20_000 });
-  await page.locator('[data-curio="jersey"]').evaluate((node: HTMLElement) => node.click());
-  await page.getByRole("button", { name: "All objects", exact: true }).click();
-  await expect(page.locator('[data-discovery-choice="jersey"]')).toBeVisible();
-  await expect(page.locator('[data-discovery-choice="basketball"], [data-discovery-choice="court"], [data-discovery-choice="hoop"]')).toHaveCount(0);
 });
 
 test("tapping the court does nothing at all", async ({ page }) => {
