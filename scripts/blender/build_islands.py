@@ -3499,8 +3499,8 @@ def workshop():
     # stick between it and the Cybertruck.
     # Later he found it hard to tell what it was, lying down among the other
     # displays: it now stands upright, hearts on top, turned so the hammer
-    # shape faces the camera, set back clear of the festoon bulbs.
-    blackpink_lightstick(1.40,1.50,shelf,math.radians(80),k=1.4,upright=True)
+    # shape and one heart's face read, set back clear of the festoon bulbs.
+    blackpink_lightstick(1.40,1.50,shelf,math.radians(50),k=1.3,upright=True)
     jbl_charge4(.83,1.48,shelf,0)
     # Lugia sits on the open middle shelf, clear of the monitor's screen.
     middle_shelf=.16+(2.98-.16)*.72+.015
