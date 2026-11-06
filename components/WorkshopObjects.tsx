@@ -147,16 +147,14 @@ export default function WorkshopObjects() {
         const width = Math.max((bw + 10) * scale, 44), height = Math.max((bh + 10) * scale, 44);
         const x = (bx + bw / 2) * scale - width / 2, y = (by + bh / 2) * scale - height / 2;
         const label = labels[project.id] ?? project.title;
-        const contents = <><span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }}>
-          <span className={styles.label} aria-hidden="true">{label}</span>
-        </span><ProjectCue id={project.id} bounds={object.bounds} style={{ left: bx * scale - x, top: by * scale - y, width: bw * scale, height: bh * scale }} /></>;
+        const contents = <><span className={styles.pin} style={{ left: px * scale - x, top: py * scale - y }} /><ProjectCue id={project.id} bounds={object.bounds} style={{ left: bx * scale - x, top: by * scale - y, width: bw * scale, height: bh * scale }} /></>;
         return <span key={project.id} className={styles.position} data-object-position={project.id}
           style={{ left: x, top: y, width, height, "--cue-delay": `${index * 160}ms` } as CSSProperties}>
             {project.id === "poker-odds" || project.id === "taipei-run" ?
               <button ref={project.id === "poker-odds" ? pokerButton : arcadeButton} type="button" className={styles.target} data-workshop-object={project.id}
-                aria-label={label} aria-haspopup="dialog" data-tip={label} onClick={project.id === "poker-odds" ? playPoker : playArcade}>{contents}</button> :
+                aria-label={label} aria-haspopup="dialog" onClick={project.id === "poker-odds" ? playPoker : playArcade}>{contents}</button> :
               <a className={styles.target} data-workshop-object={project.id} href={project.href} target="_blank" rel="noopener noreferrer"
-                aria-label={`${label} (opens in a new tab)`} data-tip={label} onClick={() => discover(project.id)}>{contents}</a>}
+                aria-label={`${label} (opens in a new tab)`} onClick={() => discover(project.id)}>{contents}</a>}
         </span>;
       })}
       {scale > 0 && (() => {
@@ -169,7 +167,6 @@ export default function WorkshopObjects() {
             style={{clipPath:ballMoved?undefined:clip}} onClick={()=>hoopShot.current?.shoot()}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
-          <span className={styles.curioLabel} aria-hidden="true">Basketball</span>
         </span>;
       })()}
       {scale > 0 && islandCurios.map(object => {
@@ -183,7 +180,6 @@ export default function WorkshopObjects() {
             style={{clipPath:clip}} onClick={event=>readDeclaration(event.currentTarget)}>
             <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
           </button>
-          <span className={styles.curioLabel} aria-hidden="true">{object.name}</span>
         </span>;
       })}
       </span>

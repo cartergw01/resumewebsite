@@ -10,3 +10,17 @@ test("only the shield and project objects are clickable on the island", async ({
   await expect(page.getByRole("button", { name: /^Pick up / })).toHaveCount(0);
   await expect(page.locator("dialog[data-discovery]")).toHaveCount(0);
 });
+
+test("island objects carry no name labels, even after the shield closes", async ({ page }) => {
+  await page.goto("/#projects");
+  const layer = page.locator("[data-workshop-objects]");
+  await expect(layer.locator('[data-curio="shield"]')).toBeVisible();
+  await expect(layer.locator("[data-tip]")).toHaveCount(0);
+  await layer.locator('[data-curio="shield"]').evaluate((node: HTMLElement) => node.click());
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(layer.locator('[data-curio="shield"]')).toBeFocused();
+  // Nothing in the layer shows text: names live only in accessible labels.
+  expect(await layer.evaluate(node => node.innerText.trim())).toBe("");
+});
