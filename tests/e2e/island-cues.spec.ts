@@ -66,3 +66,33 @@ test("project cues settle, leave props quiet, and respect reduced motion", async
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog", { name: "Posts by Carter" })).toBeVisible();
 });
+
+test("the bird stays on its branch while the island travels, and can't be tapped mid-flight", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/#writing");
+  const bird = page.locator("[data-thought-bird]");
+  await expect(bird).toBeVisible();
+  const stage = page.locator("[data-island-stage]");
+  await expect(stage).toHaveAttribute("data-travelling", "false");
+  const rest = (await bird.boundingBox())!;
+  // Part-way towards the next island, without a gesture that would settle it.
+  // Desktop holds each island for a while, so step until the crossing starts.
+  const start = await page.evaluate(() => scrollY);
+  await page.evaluate(async () => {
+    const stage = document.querySelector<HTMLElement>("[data-island-stage]")!;
+    for (let i = 0; i < 200 && stage.dataset.travelling !== "true"; i++) {
+      scrollTo({ top: scrollY + 8, behavior: "instant" });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    scrollTo({ top: scrollY + 40, behavior: "instant" });
+  });
+  await expect(stage).toHaveAttribute("data-travelling", "true");
+  await expect(bird).toBeVisible();
+  expect(await bird.evaluate(node => getComputedStyle(node).pointerEvents)).toBe("none");
+  // It moves with the island rather than hanging where the branch used to be.
+  const moving = (await bird.boundingBox())!;
+  expect(Math.hypot(moving.x - rest.x, moving.y - rest.y)).toBeGreaterThan(2);
+  await page.evaluate(top => scrollTo({ top, behavior: "instant" }), start);
+  await expect(stage).toHaveAttribute("data-travelling", "false");
+  expect(await bird.evaluate(node => getComputedStyle(node).pointerEvents)).toBe("auto");
+});

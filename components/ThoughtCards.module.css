@@ -38,7 +38,10 @@
 :global(html:not([data-pointer-input])) .target:focus-visible .hint { opacity: 1; }
 :global(html[data-writing-lights="off"]) .art { filter: brightness(.34) saturate(.65); }
 :global(html[data-writing-lights="off"]) .birdArt { filter: brightness(.65) saturate(.8); }
-:global([data-island-stage][data-travelling="true"]) .layer,
+/* The layer sits inside the island's art, so on a scroll the bird and branch
+   travel, dim and fade with the island instead of vanishing from the tree. They
+   only stop taking taps until the island lands. */
+:global([data-island-stage][data-travelling="true"]) .layer * { pointer-events: none; }
 :global([data-island-stage][data-entering]) .layer { visibility: hidden; }
 @keyframes bird-hop { 0%, 25%, 65%, 100% { transform: translate(0, 0) rotate(0); } 40% { transform: translate(-4px, -9px) rotate(-7deg); } 54% { transform: translate(-2px, 0) rotate(3deg); } }
 @keyframes wing-flutter { 0%, 26%, 70%, 100% { transform: rotate(0); } 38%, 55% { transform: rotate(-18deg); } 46% { transform: rotate(6deg); } }
