@@ -66,16 +66,16 @@
   },
   "lightstick": {
     "point": [
-      614.446,
-      222.814
+      608.675,
+      210.092
     ],
     "bounds": [
-      598.31,
-      205.122,
-      32.272,
-      35.386
+      592.232,
+      180.838,
+      32.887,
+      58.507
     ],
-    "src": "/workshop/lightstick-8a57a6f9.glb"
+    "src": "/workshop/lightstick-bf1a9598.glb"
   },
   "speaker": {
     "point": [
