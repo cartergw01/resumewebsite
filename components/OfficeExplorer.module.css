@@ -112,7 +112,7 @@
   .side .padCross { grid-template: repeat(3, 44px) / repeat(3, 44px); }
   /* One shallow header gives the room back its height, even on a laptop. */
   .explorer[data-view="office"] .intro { display: flex; align-items: center; gap: 1.25rem; margin-bottom: .5rem; padding-bottom: .5rem; border-bottom: 1px solid #eddbbf30; }
-  .explorer[data-view="office"] .intro header { flex: 1; display: flex; align-items: center; gap: 1.25rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+  .explorer[data-view="office"] .intro header { flex: 1; display: flex; align-items: baseline; gap: 1.25rem; min-width: 0; margin: 0; padding: 0; border: 0; }
   .explorer[data-view="office"] .intro h1 { font-size: 2rem; }
   .explorer[data-view="office"] .intro header > p { font-size: 1rem; line-height: 1.4; }
   .explorer[data-view="office"] .toolbar { position: static; flex: none; }
