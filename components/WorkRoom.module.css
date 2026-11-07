@@ -29,6 +29,14 @@
   padding: var(--subpage-top) 0 7rem;
 }
 .main a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+@media (min-width: 961px) {
+  /* Give the tour the viewport's width; keep the reading view at its own measure. */
+  .page:has([data-office-explorer][data-view="office"]) {
+    --subpage-column: calc(100% - 2 * clamp(1rem, 2vw, 2rem));
+    --subpage-top: 5rem;
+  }
+  .main:has([data-expanded="true"]) { z-index: 1000; }
+}
 .title { display: flex; align-items: center; gap: clamp(1.4rem, 3vw, 2.5rem); }
 /* Copy and photo share one measure. The generous desktop margins hold
    section labels without pushing the reading column off-center. The header

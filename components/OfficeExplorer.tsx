@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Pixelify_Sans } from "next/font/google";
-import { officeCanStand, officeObjectAt, officeObjects, officeRoomAt, officeRoute, officeScreenAt, officeStart, officeStops, officeView, type OfficeFacing, type OfficeStop, type OfficeStopId, type Point } from "@/lib/office-plan";
+import { officeCanStand, officeDetailAt, officeObjectAt, officeObjects, officeRoomAt, officeRoute, officeScreenAt, officeStart, officeStops, officeView, type OfficeFacing, type OfficeStop, type OfficeStopId, type Point } from "@/lib/office-plan";
 import OfficePlan, { workerFacing, workerPlace } from "./OfficePlan";
 import styles from "./OfficeExplorer.module.css";
 
@@ -71,17 +71,22 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
   const [view, setView] = useState<"office" | "list">("office");
   const [near, setNear] = useState<string | null>(null);
   const [screen, setScreen] = useState<string | null>(null);
+  const [attention, setAttention] = useState<string | null>(null);
   const [walked, setWalked] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [typing, setTyping] = useState(false);
   const [more, setMore] = useState(false);
   const worker = useRef<HTMLDivElement>(null);
+  const tour = useRef<HTMLDivElement>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const plan = useRef<HTMLDivElement>(null);
   const storyEl = useRef<HTMLDivElement>(null);
   const storyBody = useRef<HTMLDivElement>(null);
   const legend = useRef<HTMLDivElement>(null);
   const spot = useRef<Point>(officeStart);
+  const facingRef = useRef<OfficeFacing>("up");
   const trip = useRef<{ stop: () => void } | null>(null);
   const finishTyping = useRef<(() => void) | null>(null);
   const firstPage = useRef(true);
@@ -92,6 +97,43 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
   const index = officeStops.findIndex(item => item.id === selected);
   const stop = officeStops[index];
   const nearby = officeObjects.find(item => item.id === near);
+
+  const leaveFullscreen = useCallback(async () => {
+    if (document.fullscreenElement === tour.current) await document.exitFullscreen().catch(() => {});
+    setExpanded(false);
+  }, []);
+
+  async function toggleFullscreen() {
+    if (expanded) { await leaveFullscreen(); return; }
+    setExpanded(true);
+    // Keep the viewport-filling layout if this browser does not offer native fullscreen.
+    try { await tour.current?.requestFullscreen?.(); } catch {}
+  }
+
+  useEffect(() => {
+    if (!expanded) return;
+    const trigger = expandButton.current;
+    const desktop = matchMedia("(min-width: 961px)");
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const changed = () => {
+      if (document.fullscreenElement !== tour.current) setExpanded(false);
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") void leaveFullscreen();
+    };
+    const resized = () => { if (!desktop.matches) void leaveFullscreen(); };
+    document.addEventListener("fullscreenchange", changed);
+    window.addEventListener("keydown", escape);
+    desktop.addEventListener("change", resized);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener("fullscreenchange", changed);
+      window.removeEventListener("keydown", escape);
+      desktop.removeEventListener("change", resized);
+      trigger?.focus({ preventScroll: true });
+    };
+  }, [expanded, leaveFullscreen]);
 
   // With the whole office on a phone, a long name near a wall would run off the map. Slide it back in.
   const bubble = useRef<HTMLDivElement>(null);
@@ -104,7 +146,7 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
     const box = el.getBoundingClientRect();
     const edge = frame.getBoundingClientRect();
     el.style.translate = `${Math.max(edge.left + 4 - box.left, 0) + Math.min(edge.right - 4 - box.right, 0)}px`;
-  }, [near, zoomed]);
+  }, [near, zoomed, expanded]);
 
   const enter = useCallback((id: OfficeStopId) => {
     setSelected(id);
@@ -113,10 +155,12 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
   const sense = useCallback((point: Point) => {
     setNear(objectNear(point));
     setScreen(screenNear(point));
+    setAttention(officeDetailAt(...point, facingRef.current));
   }, []);
 
   const stand = useCallback((point: Point, facing?: OfficeFacing) => {
     spot.current = point;
+    if (facing) facingRef.current = facing;
     const marker = worker.current;
     if (!marker) return;
     marker.style.transform = workerPlace(point);
@@ -132,6 +176,7 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
     setWalked(true);
     setNear(null);
     setScreen(null);
+    setAttention(null);
     const moving = officeRoomAt(...spot.current) !== target.id;
     if (selected !== target.id) enter(target.id);
     if (!marker) return;
@@ -314,9 +359,12 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
     const follow = () => { if (!frame) frame = requestAnimationFrame(paint); };
     followRef.current = follow;
     follow();
+    const resize = new ResizeObserver(follow);
+    resize.observe(frameEl);
     window.addEventListener("resize", follow);
     return () => {
       cancelAnimationFrame(frame);
+      resize.disconnect();
       followRef.current = () => {};
       window.removeEventListener("resize", follow);
       sheet.style.transform = "";
@@ -345,6 +393,7 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
       const distance = Math.min(40, now - last) / 1000 * SPEED;
       last = now;
       marker.style.backgroundPositionY = workerFacing(facing);
+      facingRef.current = facing;
       const [x, y] = spot.current;
       let moved: Point = [x + dx * distance, y + dy * distance];
       let free = officeCanStand(...moved);
@@ -365,9 +414,10 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
           setLit(here);
           if (here) enter(here);
         }
-        sense(moved);
         followRef.current();
       }
+      // Turning at a desk or a wall still changes what he is looking at.
+      sense(spot.current);
       frame = requestAnimationFrame(step);
     };
 
@@ -505,19 +555,24 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
     onContextMenu={event => event.preventDefault()}
   ><Arrow direction={facing} /></button>;
 
-  return <div className={styles.explorer} data-office-explorer data-view={view} data-selected={selected}
+  return <div className={styles.explorer} data-office-explorer data-view={view} data-selected={selected} data-expanded={expanded}
     onClick={event => { if (event.target instanceof Element && event.target.closest("button, [data-office-map]")) event.stopPropagation(); }}>
-    <div className={styles.tourView}>
+    <div className={styles.tourView} ref={tour}>
     <div className={styles.intro}>
       {header}
     <div className={`${styles.toolbar} ${pixel.className}`}>
       {/* Say up front that this is a place you can walk, and offer the fast way past it. */}
       <div className={styles.modes} role="group" aria-label="How to read this page">
         <button type="button" aria-pressed={view === "office"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("office"); }}><TourIcon />Tour the office</button>
-        <button type="button" aria-pressed={view === "list"} onClick={event => {
+        <button type="button" aria-pressed={view === "list"} onClick={async event => {
           if (event.detail) event.currentTarget.blur();
+          await leaveFullscreen();
           setView("list");
         }}><ListIcon />Read as a list</button>
+        {!preview && view === "office" && <button ref={expandButton} type="button" className={styles.expandButton} aria-pressed={expanded} onClick={toggleFullscreen}>
+          <svg className={styles.modeIcon} viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2" d={expanded ? "M1 5h4V1m6 0v4h4M1 11h4v4m6 0v-4h4" : "M1 6V1h5m4 0h5v5M1 10v5h5m4 0h5v-5"} /></svg>
+          {expanded ? "Exit full screen" : "Full screen"}
+        </button>}
       </div>
     </div>
     </div>
@@ -528,7 +583,7 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
         event.currentTarget.scrollLeft = 0;
       }}>
         <div className={styles.plan} ref={plan} role="group" aria-label="Rooms in the office">
-          <OfficePlan workerRef={worker} lit={lit} screen={screen} preview={preview} sign={!walked && <div className={`${styles.youAreHere} ${pixel.className}`}>You are here</div>}>
+          <OfficePlan workerRef={worker} lit={lit} screen={screen} attention={attention} preview={preview} sign={!walked && <div className={`${styles.youAreHere} ${pixel.className}`}>You are here</div>}>
             {officeStops.map(renderRoom)}
             {!preview && officeObjects.filter(item => item.room === selected).map(renderObject)}
             {!preview && nearby && <div ref={bubble} className={`${styles.prompt} ${pixel.className}`} data-under={nearby.box[1] < 24} aria-hidden="true" style={{

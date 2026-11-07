@@ -39,17 +39,23 @@ export type OfficeStop = (typeof officeStops)[number];
 export const OFFICE_PORTFOLIO = "https://www.886studios.com/portfolio";
 const TEAM = "https://www.886studios.com/team";
 type OfficeObject = { id: string; room: OfficeStopId; label: string; href?: string; box: Box; reach: Box; person?: boolean };
+// A guest can be approached from any free side. Center the conversation on their
+// feet, so someone in the next row does not steal it just because their art overlaps.
+function guest(id: string, label: string, box: Box, href?: string): OfficeObject {
+  const [x, y, width, height] = box;
+  return { id, label, room: "accelerator", box, href, person: true, reach: [x + width / 2 - 18, y + height - 20, 36, 36] };
+}
 export const officeObjects: readonly OfficeObject[] = [
   { id: "desk", room: "now", label: "886 Studios", href: "https://www.886studios.com/", box: [30, 37, 40, 33], reach: [30, 70, 40, 16] },
-  { id: "patryk", room: "accelerator", label: "Patryk Chojecki", href: `${TEAM}/patryk`, box: [109, 53, 16, 17], reach: [124, 62, 10, 16], person: true },
-  { id: "max", room: "accelerator", label: "Max Hsieh", href: `${TEAM}/max`, box: [95, 53, 16, 17], reach: [92, 50, 22, 11], person: true },
-  { id: "jimmy", room: "accelerator", label: "Jimmy Huang, PicPet", href: "https://www.886studios.com/portfolio/o3o-labs", box: [155, 73, 16, 17], reach: [148, 80, 10, 16], person: true },
-  { id: "jameson", room: "accelerator", label: "Jameson Hsu", href: `${TEAM}/jameson`, box: [155, 53, 16, 17], reach: [148, 62, 10, 16], person: true },
-  { id: "chris", room: "accelerator", label: "Chris Wang", href: `${TEAM}/chris`, box: [169, 53, 16, 17], reach: [162, 50, 22, 11], person: true },
-  { id: "ginny", room: "accelerator", label: "Ginny", box: [95, 73, 16, 17], reach: [92, 97, 22, 10], person: true },
-  { id: "freya", room: "accelerator", label: "Freya", box: [109, 73, 16, 17], reach: [124, 82, 10, 14], person: true },
-  { id: "kai", room: "accelerator", label: "Kai Huang, Guitar Hero", href: `${TEAM}/kai`, box: [128, 30, 16, 22], reach: [126, 54, 16, 24], person: true },
-  { id: "kevin", room: "accelerator", label: "Kevin Lin, Twitch", href: `${TEAM}/kevin-lin`, box: [144, 30, 16, 22], reach: [142, 54, 16, 24], person: true },
+  guest("patryk", "Patryk Chojecki", [119, 53, 16, 17], `${TEAM}/patryk`),
+  guest("max", "Max Hsieh", [105, 53, 16, 17], `${TEAM}/max`),
+  guest("jameson", "Jameson Hsu", [147, 53, 16, 17], `${TEAM}/jameson`),
+  guest("chris", "Chris Wang", [161, 53, 16, 17], `${TEAM}/chris`),
+  guest("jimmy", "Jimmy Huang, PicPet", [147, 73, 16, 17], "https://www.886studios.com/portfolio/o3o-labs"),
+  guest("ginny", "Ginny", [105, 73, 16, 17]),
+  guest("freya", "Freya", [119, 73, 16, 17]),
+  guest("kai", "Kai Huang, Guitar Hero", [128, 30, 16, 22], `${TEAM}/kai`),
+  guest("kevin", "Kevin Lin, Twitch", [144, 30, 16, 22], `${TEAM}/kevin-lin`),
   { id: "pitch", room: "accelerator", label: "ikigai Launchpad", href: "https://886studios.com/programs", box: [106, 6, 72, 26], reach: [160, 39, 12, 22] },
   { id: "founder-chat", room: "founders", label: "Founders", href: OFFICE_PORTFOLIO, box: [263, 52, 16, 21], reach: [246, 80, 34, 16], person: true },
   { id: "founder-1", room: "community", label: "Founders", href: OFFICE_PORTFOLIO, box: [336, 39, 16, 19], reach: [330, 70, 14, 10], person: true },
@@ -77,7 +83,7 @@ export const officeObjects: readonly OfficeObject[] = [
 /** Pieces of the art with a second state, shown while he stands within `reach`. */
 export const officeScreens: readonly { id: string; box: Box; reach: Box }[] = [
   { id: "desk", box: [43, 38, 14, 11], reach: [30, 70, 40, 16] },
-  { id: "scan", box: [211, 56, 10, 6], reach: [196, 80, 46, 14] },
+  { id: "scan", box: [211, 56, 10, 6], reach: [196, 78, 46, 16] },
   { id: "book", box: [129, 187, 26, 10], reach: [158, 192, 14, 30] },
   { id: "tape", box: [185, 187, 26, 10], reach: [172, 192, 12, 30] },
   { id: "code", box: [281, 180, 14, 10], reach: [262, 190, 8, 22] },
@@ -86,6 +92,27 @@ export const officeScreens: readonly { id: string; box: Box; reach: Box }[] = [
   { id: "turo", box: [12, 186, 32, 20], reach: [45, 204, 18, 24] },
   { id: "chime", box: [74, 190, 42, 20], reach: [76, 229, 38, 15] },
   { id: "hive", box: [8, 220, 34, 20], reach: [4, 246, 44, 18] },
+];
+
+type OfficeDetail = { id: string; room: OfficeStopId; kind: "screen" | "frame" | "window"; box: Box; reach: Box };
+const screenDetail = (id: string, room: OfficeStopId): OfficeDetail => ({ ...officeScreens.find(item => item.id === id)!, room, kind: "screen" });
+
+// Reactions sit on existing artwork; reach is the floor space in front of it.
+export const officeDetails: readonly OfficeDetail[] = [
+  screenDetail("desk", "now"), screenDetail("scan", "founders"),
+  screenDetail("book", "slug"), screenDetail("tape", "slug"), screenDetail("code", "side"),
+  { id: "korobra", room: "side", kind: "screen", box: [228, 178, 18, 12], reach: [250, 188, 18, 30] },
+  { id: "tv", room: "about", kind: "screen", box: [315, 174, 14, 11], reach: [330, 190, 16, 30] },
+  { id: "studios-sign", room: "now", kind: "frame", box: [23, 6, 42, 23], reach: [74, 58, 14, 20] },
+  { id: "pitch", room: "accelerator", kind: "frame", box: [107, 7, 70, 24], reach: [130, 36, 48, 26] },
+  { id: "cafe-window", room: "founders", kind: "window", box: [253, 9, 22, 17], reach: [246, 80, 34, 12] },
+  { id: "pipeline", room: "founders", kind: "frame", box: [228, 8, 20, 19], reach: [226, 78, 20, 16] },
+  { id: "bar-shelves", room: "community", kind: "frame", box: [287, 22, 34, 13], reach: [324, 72, 14, 16] },
+  { id: "library-left", room: "research", kind: "frame", box: [6, 163, 43, 25], reach: [4, 189, 47, 12] },
+  { id: "library-right", room: "research", kind: "frame", box: [75, 163, 39, 25], reach: [73, 189, 43, 12] },
+  { id: "market-wall", room: "slug", kind: "frame", box: [126, 158, 30, 16], reach: [120, 184, 42, 11] },
+  { id: "project-frame", room: "side", kind: "frame", box: [230, 158, 18, 16], reach: [222, 184, 34, 6] },
+  { id: "study-window", room: "about", kind: "window", box: [354, 159, 10, 14], reach: [336, 184, 31, 15] },
 ];
 
 // Where a person can stand: floors, the corridor, and the doorways between them.
@@ -97,8 +124,8 @@ export const officeFloors: readonly Box[] = [
 ];
 // The furniture's footprints and the people's feet, as drawn.
 export const officeFurniture: readonly Box[] = [
-  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [62, 78, 12, 14], [58, 91, 20, 14], [62, 101, 12, 12], [116, 40, 14, 18],
-  [97, 62, 26, 14], [157, 62, 26, 14], [97, 82, 26, 14], [157, 82, 26, 14],
+  [8, 34, 16, 32], [30, 48, 40, 22], [72, 44, 12, 10], [62, 78, 12, 14], [58, 91, 20, 14], [62, 101, 12, 12], [116, 36, 14, 18],
+  [107, 62, 26, 14], [149, 62, 26, 14], [107, 82, 26, 14], [149, 82, 26, 14],
   [198, 38, 34, 22], [206, 62, 20, 14], [235, 62, 12, 14], [247, 62, 18, 16], [265, 62, 12, 14], [265, 46, 12, 10], [200, 104, 12, 10],
   [130, 48, 12, 5], [146, 48, 12, 5],
   [286, 38, 38, 22], [336, 40, 30, 20], [344, 60, 14, 9], [288, 60, 8, 10], [302, 60, 8, 10], [316, 60, 8, 10],
@@ -119,8 +146,40 @@ export function officeCanStand(x: number, y: number) {
 }
 
 export const officeRoomAt = (x: number, y: number) => officeStops.find(stop => within(x, y, stop.floor))?.id ?? null;
-export const officeObjectAt = (x: number, y: number) => officeObjects.find(item => within(x, y, item.reach)) ?? null;
+export function officeObjectAt(x: number, y: number) {
+  const room = officeRoomAt(x, y);
+  let nearest: OfficeObject | null = null, distance = Infinity;
+  for (const item of officeObjects) {
+    if (item.room !== room || !within(x, y, item.reach)) continue;
+    const [left, top, width, height] = item.box;
+    const [reachX, reachY, reachWidth, reachHeight] = item.reach;
+    const point: Point = item.person ? [left + width / 2, top + height - 2] : [reachX + reachWidth / 2, reachY + reachHeight / 2];
+    const away = (x - point[0]) ** 2 + (y - point[1]) ** 2;
+    if (away < distance) { nearest = item; distance = away; }
+  }
+  return nearest;
+}
 export const officeScreenAt = (x: number, y: number) => officeScreens.find(item => within(x, y, item.reach))?.id ?? null;
+
+const facingDirection = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const;
+
+/** Looking toward something nearby wakes it; turning away lets it rest. */
+export function officeDetailAt(x: number, y: number, facing: OfficeFacing) {
+  const room = officeRoomAt(x, y);
+  const [dx, dy] = facingDirection[facing];
+  let nearest: string | null = null, distance = Infinity;
+  for (const item of officeDetails) {
+    if (item.room !== room || !within(x, y, item.reach)) continue;
+    const [a, b, w, h] = item.box;
+    const across = a + w / 2 - x, ahead = b + h / 2 - y;
+    const toward = across * dx + ahead * dy;
+    if (toward <= 0 || Math.abs(across * dy - ahead * dx) > toward * 2 + 8) continue;
+    const [left, top, width, height] = item.reach;
+    const away = (x - left - width / 2) ** 2 + (y - top - height / 2) ** 2;
+    if (away < distance) { nearest = item.id; distance = away; }
+  }
+  return nearest;
+}
 
 const CELL = 4, TURN = 6;
 const COLUMNS = Math.floor(officeView.width / CELL) + 1, ROWS = Math.floor(officeView.height / CELL) + 1;

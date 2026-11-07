@@ -1,0 +1,30 @@
+.life { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; }
+.arrival { animation: settle 380ms cubic-bezier(.22, 1, .36, 1) both; }
+.lamplight { fill: #ffe6ac; opacity: .14; }
+.steam { fill: none; stroke: #efe7d8; stroke-width: .65; opacity: 0; animation: steam 4.8s linear infinite; }
+.presentationBar { transform-box: fill-box; transform-origin: bottom; animation: present 400ms steps(5, end) both; }
+.marketTick { animation: settle 280ms ease-out both; }
+.attention { animation: settle 220ms ease-out both; }
+.screenLight { fill: #dcebf5; opacity: .1; }
+.screenWake { fill: #e4eef5; opacity: 0; animation: wake 420ms ease-out both; }
+.cursor { fill: #b9e9c8; animation: cursor 1.4s steps(1, end) infinite; }
+.marketUpdate { opacity: .65; animation: quote 3.6s steps(1, end) infinite; }
+.ball { animation: rally 3.6s linear infinite; }
+.wallLight { fill: #ffedca; opacity: .09; }
+.frameEdge { fill: none; stroke: #f4dfb8; stroke-width: .7; opacity: .28; }
+.windowReflection { fill: none; stroke: #dde9e7; stroke-width: 1; opacity: .12; animation: reflection 420ms ease-out both; }
+.life[data-running="false"] * { animation-play-state: paused; }
+@keyframes settle { from { opacity: 0; } to { opacity: 1; } }
+@keyframes steam { 0%, 15% { opacity: 0; transform: translateY(0); } 35% { opacity: .25; } 80%, 100% { opacity: 0; transform: translateY(-3px); } }
+@keyframes present { from { transform: scaleY(.2); } to { transform: scaleY(1); } }
+@keyframes wake { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: .35; } 100% { opacity: 0; transform: translateY(var(--travel)); } }
+@keyframes cursor { 0%, 55% { opacity: .7; } 56%, 100% { opacity: 0; } }
+@keyframes quote { 0%, 65% { opacity: .35; } 66%, 100% { opacity: .75; } }
+@keyframes rally { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(3px, -3px); } 50% { transform: translate(6px, 0); } 75% { transform: translate(3px, -3px); } }
+@keyframes reflection { from { opacity: 0; transform: translateX(-1px); } to { opacity: .12; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .life * { animation: none !important; }
+  .steam, .screenWake, .ball { display: none; }
+  .cursor { opacity: .7; }
+}
+@media (forced-colors: active) { .life { display: none; } }

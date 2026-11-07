@@ -342,25 +342,27 @@ const SEAT = "#7c8796";
   rect(110, 9, 28, 3, PURPLE); rect(110, 14, 20, 1, "#8a8f98"); rect(110, 17, 24, 1, "#8a8f98"); rect(110, 20, 16, 1, "#8a8f98");
   for (const [i, h] of [[0, 4], [1, 7], [2, 10], [3, 15]]) rect(146 + i * 7, 28 - h, 5, h, i === 3 ? "#e7c693" : "#8a8f98");
   rect(143, 28, 32, 1, "#55606c");
-  box(116, 40, 14, 6, 12, ...DARKWOOD);
-  rect(120, 37, 6, 3, LINE); rect(121, 38, 4, 1, "#d7dbe0");
+  box(116, 36, 14, 6, 12, ...DARKWOOD);
+  rect(120, 33, 6, 3, LINE); rect(121, 34, 4, 1, "#d7dbe0");
   // Kai and Kevin at the front. Patryk, Max and Jimmy in the audience, turned to the stage.
   person(136, 52, "down", { H: "#1f1b22", h: "#3a3340", f: "#3a3340", T: "#b5433a", t: "#d3665c", P: "#2c303a", p: "#3f4452" });
   person(152, 52, "down", { H: "#191519", h: "#3a3340", f: "#3a3340", T: PURPLE, t: "#8b5cf6", P: "#2f3a4f", p: "#435069" });
-  for (const y of [62, 82]) for (const x of [97, 111, 157, 171]) chair(x, y, "#3d4254");
+  // Seat the audience closer to the stage, leaving clear floor for the room name.
+  // Both outer aisles and the cross aisle between rows remain walkable.
+  for (const y of [62, 82]) for (const x of [107, 121, 149, 163]) chair(x, y, "#3d4254");
   const audience = (chairX, chairY, view, colors) => {
     person(chairX + 6, chairY + 7, view, colors, { seated: true });
     rect(chairX, chairY + 7, 12, 5, LINE); rect(chairX + 1, chairY + 8, 10, 3, "#3d4254"); rect(chairX + 1, chairY + 8, 10, 1, shade("#3d4254", 30));
   };
-  audience(97, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
-  audience(111, 62, "up", { H: "#6b4a2e", h: "#8a6642", f: "#5c4028", s: "#f7dcc6", S: "#e4bda0", T: "#f4f4ef", t: "#ffffff" }); // Patryk
-  audience(157, 62, "up", { H: "#1f1b22", h: "#3a3340", f: "#2a2630", s: "#e9c49c", S: "#cfa67c", T: "#5c6b7a", t: "#76879a" }); // Jameson
-  audience(171, 62, "up", { H: "#2b2230", h: "#4b3a44", f: "#6b6470", s: "#e9c49c", S: "#cfa67c", T: "#7a3b3b", t: "#955050" }); // Chris
-  audience(157, 82, "upBuzz", { H: "#e6cd80", h: "#f2e2a6", f: "#e6cd80", s: "#f5d6bc", S: "#e0b698", T: "#4a5568", t: "#63708a" }); // Jimmy
-  audience(171, 82, "up", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#dcb190", S: "#c0926c", T: "#3e8f83", t: "#59ad9f" }); // Someone from the batch, next to him.
+  audience(107, 62, "up", { H: "#141216", h: "#2e2a32", f: "#242026", s: "#ecc8a0", S: "#d2a97e", T: "#2f6fd0", t: "#5b93e6" }); // Max
+  audience(121, 62, "up", { H: "#6b4a2e", h: "#8a6642", f: "#5c4028", s: "#f7dcc6", S: "#e4bda0", T: "#f4f4ef", t: "#ffffff" }); // Patryk
+  audience(149, 62, "up", { H: "#1f1b22", h: "#3a3340", f: "#2a2630", s: "#e9c49c", S: "#cfa67c", T: "#5c6b7a", t: "#76879a" }); // Jameson
+  audience(163, 62, "up", { H: "#2b2230", h: "#4b3a44", f: "#6b6470", s: "#e9c49c", S: "#cfa67c", T: "#7a3b3b", t: "#955050" }); // Chris
+  audience(149, 82, "upBuzz", { H: "#e6cd80", h: "#f2e2a6", f: "#e6cd80", s: "#f5d6bc", S: "#e0b698", T: "#4a5568", t: "#63708a" }); // Jimmy
+  audience(163, 82, "up", { H: "#3a2a22", h: "#5c4436", f: "#3a2a22", s: "#dcb190", S: "#c0926c", T: "#3e8f83", t: "#59ad9f" }); // Someone from the batch, next to him.
   // Ginny and Freya, in the back row.
-  audience(97, 82, "upLong", { H: "#241c1a", h: "#42332e", s: "#ecc8a0", S: "#d2a97e", T: "#1f5a3a", t: "#2f7a50" });
-  audience(111, 82, "upLong", { H: "#2e2320", h: "#4c3a34", s: "#ecc8a0", S: "#d2a97e", T: "#1c1c22", t: "#35353e" });
+  audience(107, 82, "upLong", { H: "#241c1a", h: "#42332e", s: "#ecc8a0", S: "#d2a97e", T: "#1f5a3a", t: "#2f7a50" });
+  audience(121, 82, "upLong", { H: "#2e2320", h: "#4c3a34", s: "#ecc8a0", S: "#d2a97e", T: "#1c1c22", t: "#35353e" });
 }
 
 // ---- Finding founders: a cafe, where most of it really happens. ----

@@ -17,6 +17,7 @@
 .modes button:hover { background: #28324e; }
 .modes button:active { translate: 0 2px; }
 .modes button[aria-pressed="true"] { background: #e7c693; color: var(--ink); box-shadow: inset 0 0 0 2px #f6e3bd, inset 0 3px 0 2px #fff4d8, inset 0 -5px 0 0 #b08f5c; font-weight: 600; }
+.modes .expandButton[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 2px #e1e5eb, inset 0 3px 0 2px #fff, inset 0 -5px 0 0 #a7afbd; }
 .modes button:focus-visible { filter: brightness(1.15); outline: none; }
 .modeIcon { flex: none; width: 16px; height: 16px; fill: currentColor; }
 .eyes { flex: none; width: 23px; height: 18px; }
@@ -50,7 +51,7 @@
 @keyframes walk { 0% { background-position-x: 50%; } 25% { background-position-x: 0%; } 50% { background-position-x: 100%; } 75% { background-position-x: 0%; } }
 
 /* A room's floor is its button: click to send him there. */
-.room { position: absolute; z-index: 1; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.room { position: absolute; z-index: 1; padding: 0; border: 0; border-radius: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .explorer .room:focus { outline: none; }
 .explorer .room:focus-visible { outline: 2px solid #e6c794; outline-offset: -2px; }
 .object { position: absolute; z-index: 3; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -87,15 +88,45 @@
 .explorer .intro header { margin-bottom: .75rem; }
 .toolbar { position: absolute; right: 0; bottom: calc(.75rem + 2rem + 1px); display: flex; }
 
-/* Everything on one screen: the office takes the height, the story takes what's left. */
+/* The office takes the available screen; the story keeps a comfortable reading width. */
 .explorer[data-view="office"] .tourView { display: flex; flex-direction: column; height: calc(100svh - var(--map-top) - .75rem); min-height: 30rem; }
-.world { flex: 1 1 0; display: flex; gap: 1rem; min-height: 0; align-self: flex-start; container-type: size;
-  /* Stays in the page column unless a tall screen has more office to show, then runs on into the margin. */
-  width: min(max(100%, calc((100svh - 20.5rem) * 372 / 272 + 21rem)), calc(100% + max(0px, (100vw - 1120px) / 2 - 2.5rem))); }
+.world { flex: 1 1 0; display: flex; justify-content: center; gap: 1rem; min-height: 0; width: 100%; container-type: size; }
 .stage { position: relative; flex: none; align-self: flex-start; width: min(calc(100cqh * 372 / 272), calc(100cqw - 21rem)); min-height: 0; aspect-ratio: 372 / 272; overflow: hidden; contain: paint; }
 .plan { container-type: inline-size; position: relative; width: 100%; aspect-ratio: 372 / 272; isolation: isolate; will-change: transform; }
 .stage[data-zoomed="true"] .plan { width: 170%; }
-.side { flex: 1 1 0; display: flex; flex-direction: column; gap: .75rem; min-width: 0; min-height: 0; }
+.side { flex: 1 1 0; display: flex; flex-direction: column; gap: .75rem; min-width: 0; max-width: 26rem; min-height: 0; }
+
+@media (min-width: 961px) {
+  .world { --story-width: clamp(20rem, 23vw, 24rem); gap: .75rem; }
+  .stage { width: min(calc(100cqh * 372 / 272), calc(100cqw - var(--story-width) - .75rem)); }
+  .side { flex: 0 0 var(--story-width); max-width: none; gap: 1rem; }
+  .side .textBox { order: 0; flex: 1 1 0; }
+  .side .textBoxBody { padding: 1.25rem; font-size: clamp(1.25rem, 1.6vw, 1.5rem); line-height: 1.45; }
+  .side .textBoxName { margin-bottom: .75rem; font-size: 1.125rem; }
+  .side .legend { order: 1; margin-top: auto; padding: .5rem 0 .25rem; gap: .75rem 2rem; font-size: 1.25rem; }
+  .side .legend > span { gap: .75rem; }
+  .side .legend .key { min-width: 4rem; height: 2.5rem; padding: 0 .5rem 3px; font-size: 1.125rem; }
+  .side .legend .arrowKeys { grid-template: repeat(2, 2rem) / repeat(3, 2rem); gap: 2px; }
+  .side .legend .arrowKeys .key { min-width: 0; width: 100%; height: 100%; padding: 0 0 3px; }
+  .side .legend .key svg { width: 10px; height: 14px; }
+  .side .pad { order: 1; justify-content: center; padding: .5rem 0; }
+  .side .padCross { grid-template: repeat(3, 44px) / repeat(3, 44px); }
+  /* One shallow header gives the room back its height, even on a laptop. */
+  .explorer[data-view="office"] .intro { display: flex; align-items: center; gap: 1.25rem; margin-bottom: .5rem; padding-bottom: .5rem; border-bottom: 1px solid #eddbbf30; }
+  .explorer[data-view="office"] .intro header { flex: 1; display: flex; align-items: center; gap: 1.25rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+  .explorer[data-view="office"] .intro h1 { font-size: 2rem; }
+  .explorer[data-view="office"] .intro header > p { font-size: 1rem; line-height: 1.4; }
+  .explorer[data-view="office"] .toolbar { position: static; flex: none; }
+  .explorer[data-view="office"] .modes button { min-height: 40px; padding-inline: .75rem; font-size: 1rem; }
+  .explorer[data-expanded="true"] .tourView {
+    position: fixed; inset: 0; z-index: 1000; box-sizing: border-box;
+    height: 100dvh; min-height: 0; padding: 1rem; background: #070b10; color: var(--cw-paper);
+  }
+  .explorer[data-expanded="true"] .intro header > p { display: none; }
+  .explorer[data-expanded="true"] .intro h1 { font-size: 2rem; }
+  .explorer[data-expanded="true"] .modes button { min-height: 38px; }
+  .explorer[data-expanded="true"] .detail { display: none; }
+}
 
 .mapToggle { position: absolute; right: .375rem; top: .375rem; z-index: 5; min-height: 24px; padding: 0 .4375rem; border: 0; background: #f8f4e6d9; color: var(--ink); font-size: .8125rem; font-weight: 500; line-height: 1; cursor: pointer; }
 /* Small to look at, still easy to hit. */
@@ -177,13 +208,14 @@
 }
 /* Narrower screens stack it: office, story, then the controller. */
 @media (max-width: 960px) {
+  .modes .expandButton { display: none; }
   .explorer[data-view="office"] .tourView { display: block; height: auto; min-height: 0; }
   .toolbar { position: static; margin-bottom: .75rem; }
   .world { flex-direction: column; gap: .625rem; width: 100vw; margin: 0 0 0 calc(50% - 50vw); container-type: normal; }
   .stage { width: 100%; max-width: 44rem; align-self: center; }
   .stage[data-zoomed="true"] .plan { width: 100%; }
   .mapToggle { display: none; }
-  .side { display: contents; }
+  .side { display: contents; max-width: none; }
   .textBox { order: 2; margin-inline: 4px; }
   .pad { order: 3; }
   .legend { order: 4; }

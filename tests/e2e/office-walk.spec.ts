@@ -31,6 +31,89 @@ async function sendTo(page: Page, room: string) {
   await page.keyboard.press("Enter");
 }
 
+// Click an unobstructed bit of floor, in the art's coordinates.
+async function floorAt(page: Page, x: number, y: number) {
+  const bounds = (await page.locator('[class*="OfficeExplorer_plan"]').boundingBox())!;
+  await page.mouse.click(bounds.x + x / 372 * bounds.width, bounds.y + y / 272 * bounds.height);
+  await expect(page.locator(worker)).toHaveAttribute("data-walking", "false");
+}
+
+test("the desktop tour uses the viewport and can enter and leave full screen", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Fullscreen is a desktop control.");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/work");
+  const explorer = page.locator("[data-office-explorer]");
+  const map = page.locator("[data-office-map]");
+  await expect(page.getByRole("button", { name: "Full screen", exact: true })).toBeVisible();
+  const original = (await map.boundingBox())!;
+  expect(original.width).toBeGreaterThan(900);
+  const start = await feet(page);
+  await page.getByRole("button", { name: "Full screen", exact: true }).click();
+  await expect(explorer).toHaveAttribute("data-expanded", "true");
+  await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
+  await expect(page.getByRole("button", { name: "Exit full screen" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Exit full screen" })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  const enlarged = (await map.boundingBox())!;
+  expect(enlarged.width).toBeGreaterThan(original.width);
+  expect(enlarged.y + enlarged.height).toBeLessThanOrEqual(900);
+  expect(await feet(page)).toEqual(start);
+  await page.keyboard.press("Escape");
+  await expect(explorer).toHaveAttribute("data-expanded", "false");
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+  await page.getByRole("button", { name: "Full screen", exact: true }).click();
+  await page.getByRole("button", { name: "Read as a list" }).click();
+  await expect(explorer).toHaveAttribute("data-expanded", "false");
+  await expect(explorer).toHaveAttribute("data-view", "list");
+  await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
+
+  // Browsers that reject native fullscreen still offer the expanded layout and an exit.
+  await page.getByRole("button", { name: "Tour the office" }).click();
+  await page.evaluate(() => { HTMLElement.prototype.requestFullscreen = () => Promise.reject(new Error("Fullscreen unavailable")); });
+  await page.getByRole("button", { name: "Full screen", exact: true }).click();
+  await expect(explorer).toHaveAttribute("data-expanded", "true");
+  expect(await page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
+  expect((await map.boundingBox())!.width).toBeGreaterThan(original.width);
+  await page.getByRole("button", { name: "Exit full screen" }).click();
+  await expect(explorer).toHaveAttribute("data-expanded", "false");
+});
+
+test("ikigai has two walkable outer aisles and conversations from different sides", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Keyboard route through the room.");
+  test.setTimeout(90_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/work");
+  await sendTo(page, "Building ikigai Launchpad");
+  await expect(page.locator("[data-office-explorer]")).toHaveAttribute("data-selected", "accelerator");
+  const prompt = page.locator('[class*="OfficeExplorer_prompt"]');
+  const openPerson = async (name: string, path: string) => {
+    await expect(prompt).toContainText(name);
+    const [profile] = await Promise.all([page.context().waitForEvent("page"), page.keyboard.press("Enter")]);
+    expect(profile.url()).toContain(path);
+    await profile.close();
+  };
+
+  await floorAt(page, 100, 112);
+  await walk(page, "ArrowUp", at => at.y <= 73);
+  await openPerson("Max Hsieh", "/team/max");
+  await walk(page, "ArrowUp", at => at.y <= 62);
+  expect((await feet(page)).y).toBeLessThanOrEqual(62);
+  await floorAt(page, 100, 60);
+  await walk(page, "ArrowRight", at => at.x >= 112);
+  await openPerson("Max Hsieh", "/team/max");
+
+  await floorAt(page, 184, 112);
+  await walk(page, "ArrowUp", at => at.y <= 73);
+  await openPerson("Chris Wang", "/team/chris");
+  await walk(page, "ArrowUp", at => at.y <= 62);
+  expect((await feet(page)).y).toBeLessThanOrEqual(62);
+  await walk(page, "ArrowDown", at => at.y >= 110);
+  expect((await feet(page)).y).toBeGreaterThanOrEqual(110);
+  await floorAt(page, 100, 112);
+  await walk(page, "ArrowUp", at => at.y <= 97);
+  await expect(prompt).toContainText("Ginny");
+  await expect(page.locator('[data-object="ginny"]')).not.toHaveAttribute("href");
+});
+
 test("arrow keys walk him through the office and the story follows", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Arrow keys need a keyboard.");
   test.setTimeout(90_000);
