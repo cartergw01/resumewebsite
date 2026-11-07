@@ -564,15 +564,20 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
       {/* Say up front that this is a place you can walk, and offer the fast way past it. */}
       <div className={styles.modes} role="group" aria-label="How to read this page">
         <button type="button" aria-pressed={view === "office"} onClick={event => { if (event.detail) event.currentTarget.blur(); setView("office"); }}><TourIcon />Tour the office</button>
-        <button type="button" aria-pressed={view === "list"} onClick={async event => {
+        {!preview && view === "office" && <button type="button" className={`${styles.utilityButton} ${styles.mapToggle}`} aria-label={zoomed ? "See whole office" : "Zoom in"} title={zoomed ? "See whole office" : "Zoom in"} onClick={event => {
+          if (event.detail) event.currentTarget.blur();
+          setZoomed(!zoomed);
+        }}>
+          <svg className={styles.zoomIcon} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.5" /><path d="m10 10 4 4M4 6.5h5" />{!zoomed && <path d="M6.5 4v5" />}</svg>
+        </button>}
+        {!preview && view === "office" && <button ref={expandButton} type="button" className={`${styles.utilityButton} ${styles.expandButton}`} aria-label={expanded ? "Exit full screen" : "Full screen"} title={expanded ? "Exit full screen (Esc)" : "Full screen"} aria-pressed={expanded} onClick={toggleFullscreen}>
+          <svg className={styles.modeIcon} viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="1.5" d={expanded ? "M1 5h4V1m6 0v4h4M1 11h4v4m6 0v-4h4" : "M1 6V1h5m4 0h5v5M1 10v5h5m4 0h5v-5"} /></svg>
+        </button>}
+        <button type="button" className={styles.listButton} aria-label="Read as a list" aria-pressed={view === "list"} onClick={async event => {
           if (event.detail) event.currentTarget.blur();
           await leaveFullscreen();
           setView("list");
-        }}><ListIcon />Read as a list</button>
-        {!preview && view === "office" && <button ref={expandButton} type="button" className={styles.expandButton} aria-pressed={expanded} onClick={toggleFullscreen}>
-          <svg className={styles.modeIcon} viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" strokeWidth="2" d={expanded ? "M1 5h4V1m6 0v4h4M1 11h4v4m6 0v-4h4" : "M1 6V1h5m4 0h5v5M1 10v5h5m4 0h5v-5"} /></svg>
-          {expanded ? "Exit full screen" : "Full screen"}
-        </button>}
+        }}><ListIcon /><span>Read as a list</span></button>
       </div>
     </div>
     </div>
@@ -594,10 +599,6 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
             </div>}
           </OfficePlan>
         </div>
-        {!preview && <button type="button" className={`${styles.mapToggle} ${pixel.className}`} onClick={event => {
-          if (event.detail) event.currentTarget.blur();
-          setZoomed(!zoomed);
-        }}>{zoomed ? "See whole office" : "Zoom in"}</button>}
       </div>
 
       <div className={styles.side}>

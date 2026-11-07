@@ -17,7 +17,6 @@
 .modes button:hover { background: #28324e; }
 .modes button:active { translate: 0 2px; }
 .modes button[aria-pressed="true"] { background: #e7c693; color: var(--ink); box-shadow: inset 0 0 0 2px #f6e3bd, inset 0 3px 0 2px #fff4d8, inset 0 -5px 0 0 #b08f5c; font-weight: 600; }
-.modes .expandButton[aria-pressed="true"] { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 2px #e1e5eb, inset 0 3px 0 2px #fff, inset 0 -5px 0 0 #a7afbd; }
 .modes button:focus-visible { filter: brightness(1.15); outline: none; }
 .modeIcon { flex: none; width: 16px; height: 16px; fill: currentColor; }
 .eyes { flex: none; width: 23px; height: 18px; }
@@ -86,7 +85,7 @@
 /* The same title block and hairline as every other page, with the two views in its corner. */
 .intro { position: relative; display: flow-root; min-width: 0; }
 .explorer .intro header { margin-bottom: .75rem; }
-.toolbar { position: absolute; right: 0; bottom: calc(.75rem + 2rem + 1px); display: flex; }
+.toolbar { position: absolute; right: 0; bottom: calc(.75rem + 2rem + 1px); display: flex; align-items: center; }
 
 /* The office takes the available screen; the story keeps a comfortable reading width. */
 .explorer[data-view="office"] .tourView { display: flex; flex-direction: column; height: calc(100svh - var(--map-top) - .75rem); min-height: 30rem; }
@@ -128,10 +127,17 @@
   .explorer[data-expanded="true"] .detail { display: none; }
 }
 
-.mapToggle { position: absolute; right: .375rem; top: .375rem; z-index: 5; min-height: 24px; padding: 0 .4375rem; border: 0; background: #f8f4e6d9; color: var(--ink); font-size: .8125rem; font-weight: 500; line-height: 1; cursor: pointer; }
-/* Small to look at, still easy to hit. */
-.mapToggle::after { content: ""; position: absolute; inset: -10px -6px; }
-.mapToggle:active { translate: 0 2px; }
+/* Small camera tools stay clear of the artwork, with full-sized pointer targets. */
+.explorer[data-view="office"] .modes .utilityButton { position: relative; flex: none; align-self: center; width: 32px; height: 32px; min-height: 32px; padding: 0; border: 0; border-radius: 0; background: transparent; color: #fff7eabf; box-shadow: none; clip-path: none; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 140ms ease; }
+.explorer[data-view="office"] .modes .utilityButton::after { content: ""; position: absolute; inset: -6px; }
+@media (hover: hover) {
+  .explorer[data-view="office"] .modes .utilityButton:hover { color: var(--cw-paper); }
+}
+.explorer[data-view="office"] .modes .utilityButton:active { color: #fff; translate: 0 1px; }
+.explorer[data-view="office"] .modes .utilityButton:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; filter: none; }
+.expandButton { margin-left: .25rem; }
+.explorer[data-view="office"] .modes .expandButton[aria-pressed="true"] { color: #fff; }
+.zoomIcon, .expandButton .modeIcon { display: block; width: 18px; height: 18px; }
 
 /* A game's bubble, over whatever it names, dark so it stands off any floor. */
 .prompt { position: absolute; z-index: 4; display: flex; align-items: center; gap: .5rem; padding: .375rem .625rem; background: #120e18; color: #fff; box-shadow: inset 0 0 0 2px #f8f4e6; clip-path: var(--stepped); font-size: clamp(.9375rem, 2.2cqw, 1.125rem); font-weight: 600; line-height: 1.1; white-space: nowrap; transform: translate(-50%, calc(-100% - 3px)); pointer-events: none; }
@@ -214,7 +220,7 @@
   .world { flex-direction: column; gap: .625rem; width: 100vw; margin: 0 0 0 calc(50% - 50vw); container-type: normal; }
   .stage { width: 100%; max-width: 44rem; align-self: center; }
   .stage[data-zoomed="true"] .plan { width: 100%; }
-  .mapToggle { display: none; }
+  .modes .mapToggle { display: none; }
   .side { display: contents; max-width: none; }
   .textBox { order: 2; margin-inline: 4px; }
   .pad { order: 3; }
@@ -231,9 +237,7 @@
   /* Close enough to see the room he is in; the camera follows him. */
   .stage[data-zoomed="true"] { aspect-ratio: 3 / 2; }
   .stage[data-zoomed="true"] .plan { width: 230%; }
-  .mapToggle { display: block; }
-  /* In the whole office, it waits in the corridor rather than over a room's sign. */
-  .stage[data-zoomed="false"] .mapToggle { top: calc(134 / 272 * 100%); transform: translateY(-50%); }
+  .modes .mapToggle { display: inline-flex; }
   .explorer { position: relative; --compact-top: calc(var(--subpage-top) * -1 + 1rem); }
   /* The title now sits where the nav's top shade falls, and it shouldn't read as dimmed. */
   :global(body):has(.explorer[data-view="office"]) :global(.site-nav)::before { display: none; }
@@ -299,11 +303,14 @@
   .textBoxBody { font-size: .9375rem; }
   .modeIcon, .eyes { display: none; }
   .modes button { font-size: .9375rem; }
+  .modes .listButton { width: 44px; padding-inline: 0; }
+  .listButton .modeIcon { display: block; }
+  .listButton > span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .detailEnter, .worker[data-walking="true"], .youAreHere, .textBoxMore, .padAction, .stage[data-fresh="true"] .station .roomDark { animation: none !important; }
-  .roomDark, .screen, .modes button { transition: none; }
-  .modes button:active, .mapToggle:active { translate: none; }
+  .roomDark, .screen, .modes button, .explorer[data-view="office"] .modes .utilityButton { transition: none; }
+  .modes button:active, .explorer[data-view="office"] .modes .utilityButton:active { translate: none; }
 }
 @media (forced-colors: active) {
   .prompt, .textBox, .textBoxBody { clip-path: none; border: 1px solid CanvasText; }

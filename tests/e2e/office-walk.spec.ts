@@ -52,7 +52,7 @@ test("the desktop tour uses the viewport and can enter and leave full screen", a
   await expect(explorer).toHaveAttribute("data-expanded", "true");
   await expect.poll(() => page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
   await expect(page.getByRole("button", { name: "Exit full screen" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Exit full screen" })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(page.getByRole("button", { name: "Exit full screen" })).toHaveCSS("color", "rgb(255, 255, 255)");
   const enlarged = (await map.boundingBox())!;
   expect(enlarged.width).toBeGreaterThan(original.width);
   expect(enlarged.y + enlarged.height).toBeLessThanOrEqual(900);
