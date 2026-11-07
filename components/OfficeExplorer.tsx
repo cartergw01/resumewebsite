@@ -29,7 +29,7 @@ const ARROWS: Record<string, { facing: OfficeFacing; dx: number; dy: number }> =
 };
 const SPEED = 92; // Pixels of art a second, on foot under the player's control.
 const SLIDE = 9; // How far off a gap he can be and still be steered into it.
-const TYPE_RATE = 140; // Characters a second in the text box.
+const TYPE_RATE = 110; // Characters a second in the text box.
 const objectNear = ([x, y]: Point) => officeObjectAt(x, y)?.id ?? null;
 const screenNear = ([x, y]: Point) => officeScreenAt(x, y);
 const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
