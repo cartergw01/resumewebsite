@@ -447,7 +447,9 @@ export default function OfficeExplorer({ header, cards, stories, roles, list, pr
       if (event.key === "Tab") { tabbing = true; return; }
       if (event.metaKey || event.ctrlKey || event.altKey || typing(event.target) || reading()) return;
       if (event.key === "Enter") {
-        if (tabbing && document.activeElement?.matches("button, a")) return;
+        // Focused controls own Enter even if focus arrived before this effect
+        // heard Tab (or came from assistive technology). Do not swallow it.
+        if (document.activeElement?.matches("button, a")) return;
         if (!onScreen()) return;
         event.preventDefault();
         actRef.current();

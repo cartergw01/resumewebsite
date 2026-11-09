@@ -1,16 +1,30 @@
-// Browser-only capture scene. Reuses the site's baked 3D models and typography.
+// Browser-only capture: current island artwork, with camera travel and star parallax.
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-
 const smooth = (t) => { const x = THREE.MathUtils.clamp(t, 0, 1); return x * x * x * (x * (x * 6 - 15) + 10); };
 const mix = (a, b, t) => a + (b - a) * t;
 const random = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+async function islandTexture(id, asset) {
+  const artwork = new Image();
+  artwork.src = asset.src;
+  await artwork.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = asset.width; canvas.height = asset.height;
+  const context = canvas.getContext('2d');
+  context.drawImage(artwork, 0, 0, canvas.width, canvas.height);
+  if (id === 'writing') {
+    const bird = document.querySelector('[data-overview="intro"] [data-overview-bird]');
+    if (!bird) throw new Error('The homepage Writing bird is missing from the capture.');
+    const image = new Image();
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">${bird.outerHTML}</svg>`;
+    image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    await image.decode();
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
 
 export async function createSocialScene({ assets, cameras, width, height }) {
   const root = document.createElement('div');
@@ -38,44 +52,22 @@ export async function createSocialScene({ assets, cameras, width, height }) {
   const renderer = new THREE.WebGLRenderer({ canvas: root.querySelector('canvas'), antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(width, height, false);
   renderer.setPixelRatio(1.5);
-  renderer.setClearColor(0x000000);
+  renderer.setClearColor(0x030611);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.AgXToneMapping;
-  // Match the site's flight renderer: the GLBs already contain baked lighting.
-  // Keep exposure fixed. Only original light fixtures receive a restrained
-  // glow; ordinary walls, book pages and roofs never enter the glow pass.
-  renderer.toneMappingExposure = 1;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, width / height, .1, 500);
   camera.setViewOffset(width, height, -215, 0, width, height);
-  const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
   const placed = {};
-  const surfaces = [];
   const positions = { work: [-9, 2, -3], writing: [-1, -1, 8], projects: [10, 3, -4] };
   const yaw = { work: .08, writing: -.1, projects: .12 };
   await Promise.all(Object.entries(positions).map(async ([id, position]) => {
-    const gltf = await loader.loadAsync(assets[id].src);
-    const box = new THREE.Box3().setFromObject(gltf.scene);
-    const center = box.getCenter(new THREE.Vector3());
-    const dimensions = box.getSize(new THREE.Vector3());
-    const scale = 10 / dimensions.x;
-    gltf.scene.position.copy(center).multiplyScalar(-scale);
-    gltf.scene.scale.setScalar(scale);
-    gltf.scene.traverse((object) => {
-      if (object.isMesh && object.geometry.hasAttribute('color')) {
-        object.material = new THREE.MeshBasicMaterial({ vertexColors: true, color: new THREE.Color().setScalar(2 ** .55 * (id === 'work' ? 1.4 : 1)) });
-        surfaces.push(object);
-      }
-      // Separate fixture meshes keep their original emissive materials.
-      // Their light is also baked into the room, so every lamp stays on
-      // without full-scene bloom or camera-dependent lighting changes.
-    });
-    const group = new THREE.Group();
-    group.add(gltf.scene);
-    group.position.fromArray(position);
-    group.rotation.y = yaw[id];
-    scene.add(group);
-    placed[id] = { group, origin: new THREE.Vector3(...position),
+    const texture = await islandTexture(id, assets[id]);
+    texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const island = new THREE.Mesh(new THREE.PlaneGeometry(12, 8),
+      new THREE.MeshBasicMaterial({ map: texture, transparent: true, alphaTest: .01, depthWrite: false, toneMapped: false }));
+    island.position.fromArray(position);
+    scene.add(island);
+    placed[id] = { island, origin: new THREE.Vector3(...position),
       view: new THREE.Vector3(...cameras[id].camera.direction).negate().normalize() };
   }));
 
@@ -95,30 +87,6 @@ export async function createSocialScene({ assets, cameras, width, height }) {
   const stars = new THREE.BufferGeometry(); stars.setAttribute('position', new THREE.Float32BufferAttribute(starCoordinates, 3));
   const starfield = new THREE.Points(stars, new THREE.PointsMaterial({ size: 1.2, map: starTexture, transparent: true, opacity: .85, depthWrite: false, blending: THREE.AdditiveBlending }));
   scene.add(starfield);
-
-  // Multisample both offscreen targets: renderer.antialias alone only applies
-  // to the default framebuffer and would leave these moving edges jagged.
-  const makeComposer = () => {
-    const target = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType, samples: 4 });
-    const composer = new EffectComposer(renderer, target);
-    composer.setPixelRatio(1.5);
-    composer.setSize(width, height);
-    composer.addPass(new RenderPass(scene, camera));
-    return composer;
-  };
-  const lights = makeComposer();
-  lights.renderToScreen = false;
-  lights.addPass(new UnrealBloomPass(new THREE.Vector2(width, height), .6, .2, .8));
-  const composite = makeComposer();
-  const lightMix = new ShaderPass({
-    uniforms: { tDiffuse: { value: null }, lightTexture: { value: null } },
-    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: 'uniform sampler2D tDiffuse; uniform sampler2D lightTexture; varying vec2 vUv; void main() { gl_FragColor = texture2D(tDiffuse, vUv) + vec4(texture2D(lightTexture, vUv).rgb * .25, 0.0); }',
-  });
-  composite.addPass(lightMix);
-  composite.addPass(new OutputPass());
-  const occluder = new THREE.MeshBasicMaterial({ color: 0x000000 });
-  const surfaceMaterials = surfaces.map((mesh) => mesh.material);
 
   // Travel in a loop with deliberate holds, fast crossings and a wide return.
   const wide = { position: new THREE.Vector3(0, 18, 43), target: new THREE.Vector3(0, 0, 0), fov: 35, bank: 0 };
@@ -156,7 +124,8 @@ export async function createSocialScene({ assets, cameras, width, height }) {
     camera.fov = mix(from.fov, to.fov, e) + (crossing ? Math.sin(e * Math.PI) * 8 : 0);
     for (const [id, island] of Object.entries(placed)) {
       const phase = t / 12 * Math.PI * 2 + ['work', 'writing', 'projects'].indexOf(id) * 2;
-      island.group.position.y = island.origin.y + Math.sin(phase) * .15;
+      island.island.position.y = island.origin.y + Math.sin(phase) * .15;
+      island.island.quaternion.copy(camera.quaternion);
     }
     const weights = { home: 0, work: 0, writing: 0, projects: 0 };
     weights[a.title] += 1 - e; weights[b.title] += e;
@@ -169,15 +138,7 @@ export async function createSocialScene({ assets, cameras, width, height }) {
       element.style.transform = `translateY(${(1 - weights[name]) * 24}px)`;
     }
     root.querySelector('.cinema-byline').style.opacity = String(1 - weights.home);
-    // Black geometry still writes depth, so a lamp cannot shine through a
-    // wall or island as the camera circles. Restore the baked scene afterward.
-    surfaces.forEach((mesh) => { mesh.material = occluder; });
-    starfield.visible = false;
-    lights.render();
-    surfaces.forEach((mesh, i) => { mesh.material = surfaceMaterials[i]; });
-    starfield.visible = true;
-    lightMix.uniforms.lightTexture.value = lights.readBuffer.texture;
-    composite.render();
+    renderer.render(scene, camera);
   }
   render(0);
   return { render };

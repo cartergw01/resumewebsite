@@ -14,10 +14,10 @@ export const siteConfig = {
   shortDescription: "Backing early-stage startups alongside the founders of Twitch and Guitar Hero at 886 Studios.",
   // Matching still/video captures of the homepage. Version filenames together
   // when refreshing them: public media is cached immutably for one year.
-  image: { url: "/social-preview-v6.jpg", width: 1200, height: 630, type: "image/jpeg", alt: "Carter Wang beside three floating islands for Work, Writing and Projects against a starfield" },
-  video: { url: "/social-preview-v6.mp4", width: 1200, height: 630, type: "video/mp4" },
+  image: { url: "/social-preview-v8.jpg", width: 1200, height: 630, type: "image/jpeg", alt: "Carter Wang beside three floating islands for Work, Writing and Projects against a starfield" },
+  video: { url: "/social-preview-v8.mp4", width: 1200, height: 630, type: "video/mp4" },
   // Slack uses the animated oEmbed photo; OG and X retain the JPEG fallback.
-  oembedUrl: "/social-preview-v7.oembed.json",
+  oembedUrl: "/social-preview-v8.oembed.json",
   social: {
     x: "https://x.com/CarterKoWang",
     linkedin: "https://www.linkedin.com/in/cartergrantwang",

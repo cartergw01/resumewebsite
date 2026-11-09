@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "./IntentLink";
 import { useEffect, useState } from "react";
 import styles from "./MobileContact.module.css";
 import { islandReturn } from "@/lib/island-location";

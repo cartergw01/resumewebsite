@@ -10,7 +10,7 @@ test("stable media URLs revalidate while versioned and hashed assets stay immuta
     ["/headshot.jpg", false],
     ["/favicon-32x32.png", false],
     ["/essay-covers/work-as-play.webp", false],
-    ["/social-preview-v7.gif", true],
+    ["/social-preview-v8.gif", true],
     ["/starfield-loop-desktop-v1.mp4", true],
     [islands.work.src, true],
     [flights.projects.src, true],

@@ -14,20 +14,16 @@ import "./globals.css";
 // One family at two widths: the headings use Archivo's expanded cut
 // (font-stretch 125% wherever --font-display is set), the text its normal one.
 // Self-hosted with only those widths and the weights in use (see app/fonts).
-const archivoDisplay = localFont({
-  src: "./fonts/archivo-latin-variable.woff2",
-  weight: "400 900",
-  declarations: [{ prop: "font-stretch", value: "100% 125%" }],
-  variable: "--font-display",
-  display: "swap",
-});
-
 const archivo = localFont({
   src: "./fonts/archivo-latin-variable.woff2",
   weight: "400 900",
   declarations: [{ prop: "font-stretch", value: "100% 125%" }],
   variable: "--font-sans",
   display: "swap",
+  // The generated variable-font fallback is too wide at the body cut: it
+  // adds a line to the mobile intro, shifting every island when the font loads.
+  adjustFontFallback: false,
+  fallback: ["Archivo Text Fallback", "Arial", "sans-serif"],
 });
 
 // The page runs edge to edge on notched phones, so the safe-area insets the
@@ -77,7 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       data-theme="dark"
       data-scroll-behavior="smooth"
-      className={`dark ${archivoDisplay.variable} ${archivo.variable}`}
+      className={`dark ${archivo.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen font-sans antialiased">

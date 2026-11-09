@@ -267,15 +267,15 @@ test("on phones a quick double tap only travels; tapping the arrived island's la
   await expect(page).toHaveURL(/\/projects$/, { timeout: 15_000 });
 });
 
-test("off-screen islands prepare after the opening view, before anyone travels", async ({ page }) => {
-  // Mounting and decoding the islands mid-flight made the first crossing
-  // stutter, so they are prepared as soon as the opening view is idle: never
-  // in the first paint, and without waiting for a scroll.
+test("the first crossing reuses decoded previews and upgrades on travel", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("#work [data-island-visual] img")).toHaveCount(0);
   await expect.poll(() => page.locator("#intro img").first().evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+  const preview = page.locator("#work [data-island-visual] img").first();
+  expect(await preview.evaluate((node: HTMLImageElement) => node.currentSrc)).toBe(await page.locator('#intro [data-overview-island="work"] img').evaluate((node: HTMLImageElement) => node.currentSrc));
+  await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "false");
+  await page.locator("[data-next-scene]").click();
   await expect(page.locator("[data-island-stage]")).toHaveAttribute("data-warm", "true", { timeout: 10_000 });
-  await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "intro");
+  await expectScene(page, "work");
   await expect(page.locator("#work [data-island-visual] img:not([data-city-time])")).toHaveCount(1);
   await expect(page.locator('#work [data-island-visual] img[data-city-time="day"]')).toHaveCount(0);
   await expect(page.locator("#writing [data-island-visual] img")).toHaveCount(1);

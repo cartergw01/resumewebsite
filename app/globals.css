@@ -2,9 +2,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Use Arial's natural width with Archivo's line metrics while the local
+   font downloads, keeping the mobile intro on the same number of lines. */
+@font-face {
+  font-family: "Archivo Text Fallback";
+  src: local("Arial");
+  size-adjust: 100%;
+  ascent-override: 87.8%;
+  descent-override: 21%;
+  line-gap-override: 0%;
+}
+
 @theme {
   --font-sans: var(--font-sans), system-ui, sans-serif;
-  --font-display: var(--font-display), system-ui, sans-serif;
+  --font-display: var(--font-sans), system-ui, sans-serif;
 }
 
 :root {

@@ -1,5 +1,19 @@
 import { expect, test } from "@playwright/test";
 
+test("the opening Writing island includes its perched bird", async ({ page }, info) => {
+  await page.goto("/");
+  const overview = page.locator('[data-overview="intro"]');
+  const bird = overview.locator('[data-overview-bird]');
+  await expect(bird).toBeVisible();
+  const island = bird.locator('xpath=ancestor::a');
+  await expect(island).toHaveAttribute("href", "/writing");
+  const birdBox = (await bird.boundingBox())!;
+  const islandBox = (await island.boundingBox())!;
+  expect(birdBox.x).toBeGreaterThan(islandBox.x);
+  expect(birdBox.x + birdBox.width).toBeLessThan(islandBox.x + islandBox.width);
+  await page.screenshot({ path: `/tmp/carter-overview-bird-${info.project.name}.png` });
+});
+
 test("the bird opens the same notes and restores focus without replaying the invitation", async ({ page, isMobile }, info) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -8,8 +22,9 @@ test("the bird opens the same notes and restores focus without replaying the inv
   const bird = page.getByRole("button", { name: "some of my tweets", exact: true });
   await expect(cues).toHaveAttribute("data-cue-state", "playing");
   const box = (await bird.boundingBox())!;
-  expect(box.width).toBeGreaterThanOrEqual(44);
-  expect(box.height).toBeGreaterThanOrEqual(44);
+  // Transformed bounds can differ from the 44px target by a fraction of a pixel.
+  expect(box.width).toBeGreaterThanOrEqual(43.9);
+  expect(box.height).toBeGreaterThanOrEqual(43.9);
   await page.screenshot({ path: `/tmp/carter-bird-${info.project.name}.png` });
   if (isMobile) await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
   else { await bird.focus(); await page.keyboard.press("Enter"); }

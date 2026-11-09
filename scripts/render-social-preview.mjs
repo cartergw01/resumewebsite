@@ -1,39 +1,30 @@
-// Render the site's real 3D islands as a cinematic social-sharing loop.
+// Render the site's current island artwork as a cinematic social-sharing loop.
 // Requires the local site, Playwright Chromium and FFmpeg on PATH.
-// Usage: node scripts/render-social-preview.mjs http://127.0.0.1:3101 v6 [--stills]
+// Usage: node scripts/render-social-preview.mjs http://127.0.0.1:3101 v8 [--stills]
 import { once } from 'node:events';
 import { spawn } from 'node:child_process';
-import { mkdtemp, mkdir, copyFile, readFile, rm, access } from 'node:fs/promises';
+import { mkdtemp, mkdir, copyFile, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 
 const origin = process.argv[2] || 'http://127.0.0.1:3101';
-const version = process.argv[3] || 'v6';
+const version = process.argv[3] || 'v8';
 const stills = process.argv.includes('--stills');
-if (!/^v[1-9]\d*$/.test(version)) throw new Error('Use a version such as v6 or v7.');
+if (!/^v[1-9]\d*$/.test(version)) throw new Error('Use a version such as v8.');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'public', `social-preview-${version}`);
 const width = 1200, height = 630, fps = 30, seconds = 12;
-// Offline models retain the original emissive fixtures and denser light pools.
-// They are deliberately served only to this browser, never copied to public/.
-const captureModels = path.join(root, '.blender-build/social-preview');
-const assets = Object.fromEntries(['work', 'writing', 'projects'].map((id) => [id, { src: `/__social-render/${id}.glb` }]));
-for (const id of Object.keys(assets)) {
-  try { await access(path.join(captureModels, `${id}.glb`)); }
-  catch {
-    if (!stills) throw new Error(`Missing ${id} capture model. Run export_flight.py with --world ${id} --social-preview --faces 220000 --samples 48 first.`);
-    const flight = JSON.parse(await readFile(path.join(root, 'lib/island-flight-assets.json'), 'utf8'));
-    assets[id] = flight[id];
-    console.warn(`Still review uses the old ${id} flight model until its capture bake is ready.`);
-  }
-}
+// Use the same finished artwork as the homepage, including its baked lighting.
+// A refresh never falls back to the lower-detail models used during live flights.
+const assets = JSON.parse(await readFile(path.join(root, 'lib/blender-islands.json'), 'utf8'));
 const cameras = JSON.parse(await readFile(path.join(root, 'lib/island-cameras.json'), 'utf8'));
 const temporary = await mkdtemp(path.join(tmpdir(), 'carter-social-preview-'));
 // Headless Chromium otherwise selects SwiftShader on macOS. Native Metal
 // keeps the detailed, antialiased offline capture practical to regenerate.
 const browser = await chromium.launch({ headless: true,
+  executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
   args: process.platform === 'darwin' ? ['--use-gl=angle', '--use-angle=metal'] : [],
 });
 let encoder;
@@ -45,12 +36,11 @@ try {
     const name = new URL(route.request().url()).pathname.split('/__social-render/')[1];
     if (!name || name.includes('..')) return route.abort();
     let source;
-    if (['work.glb', 'writing.glb', 'projects.glb'].includes(name)) source = path.join(captureModels, name);
-    else if (name === 'scene.mjs') source = path.join(root, 'scripts/social-preview-scene.mjs');
+    if (name === 'scene.mjs') source = path.join(root, 'scripts/social-preview-scene.mjs');
     else if (['three.module.js', 'three.core.js'].includes(name)) source = path.join(root, 'node_modules/three/build', name);
     else if (name.startsWith('addons/')) source = path.join(root, 'node_modules/three/examples/jsm', name.slice(7));
     else return route.abort();
-    await route.fulfill({ contentType: name.endsWith('.glb') ? 'model/gltf-binary' : 'application/javascript', body: await readFile(source) });
+    await route.fulfill({ contentType: 'application/javascript', body: await readFile(source) });
   });
   await page.goto(origin, { waitUntil: 'networkidle' });
   await page.locator('#hero-title').waitFor();

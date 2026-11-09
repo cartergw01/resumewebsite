@@ -8,8 +8,8 @@ import styles from "./ProjectShot.module.css";
 // A project row's screenshot. Travelling in from the islands, every project card from
 // the workshop's fan lands on its own row's shot; the first row starts that
 // arrival and uses the same unoptimized image the laptop screen carries.
-// Rows that start in the first view load eagerly, so none opens as an empty frame.
-export default function ProjectShot({ src, title, dock = false, eager = false, mobilePreview }: { src: string; title: string; dock?: boolean; eager?: boolean; mobilePreview: { scale: number; position: string } }) {
+// Prioritize the first project; the browser loads the other rows as they approach.
+export default function ProjectShot({ src, title, dock = false, mobilePreview }: { src: string; title: string; dock?: boolean; mobilePreview: { scale: number; position: string } }) {
   const shot = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     if (dock && shot.current) arriveAtWorkshop(shot.current);
@@ -24,7 +24,8 @@ export default function ProjectShot({ src, title, dock = false, eager = false, m
         fill
         quality={86}
         priority={dock}
-        loading={dock ? undefined : eager ? "eager" : "lazy"}
+        fetchPriority={dock ? "high" : "low"}
+        loading={dock ? undefined : "lazy"}
         unoptimized={dock}
         sizes="(max-width: 760px) 140vw, (max-width: 1200px) 31vw, 360px"
       />

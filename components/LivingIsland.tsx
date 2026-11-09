@@ -116,10 +116,10 @@ export default function LivingIsland({ artwork, landmark, world, preview, poster
       <span ref={visualRef} className={`${styles.island} ${motionStyles.artwork}`} data-island-visual data-reads="island-light:filter" data-living-island={world} data-motion-running="false">
         {/* On phones the island overhangs the screen by 3rem each side, so it
             shows at ~115vw; asking for 90vw made phones upscale a smaller file. */}
-        {warm ? <Image src={island.src} alt="" width={island.width} height={island.height}
-          sizes="(max-width: 760px) 115vw, 68vw" loading="eager"
+        <Image src={island.src} alt="" width={island.width} height={island.height}
+          sizes={warm ? "(max-width: 760px) 115vw, 68vw" : "(max-width: 760px) 60vw, 34vw"} loading="eager"
           quality={75} draggable={false} className={`${motionStyles.image} ${world === "work" ? motionStyles.nightImage : ""}`}
-          data-lights-on={world === "projects" ? "projects" : undefined} /> : null}
+          data-lights-on={world === "projects" ? "projects" : undefined} />
         {world === "projects" && warm && darkWanted && "darkSrc" in island && island.darkSrc ? <Image src={island.darkSrc as string} alt="" width={island.width} height={island.height}
           sizes="(max-width: 760px) 115vw, 68vw" loading="eager" data-lights-off="projects"
           quality={75} draggable={false} className={motionStyles.image} /> : null}

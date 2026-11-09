@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "./IntentLink";
 import SiteNav from "./SiteNav";
 import IslandScrollTransport from "./IslandScrollTransport";
 import IslandOverview from "./IslandOverview";

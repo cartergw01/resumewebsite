@@ -154,11 +154,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     // to the arriving island. Origins are in each art box's own pixels.
     let introFocus: { from: [number, number]; to: [number, number]; origin: [number, number]; arrival: [number, number]; size: number } | null = null;
 
-    // Off-screen islands are prepared after first paint: as soon as the page
-    // is idle, or on the first sign of travel if that comes sooner. Mounting
-    // and decoding three islands mid-flight is what made the first crossing
-    // stutter. The 3D flight models wait for real travel: the first crossing
-    // (into Work) is always the 2D zoom, which gives them time to arrive.
+    // Reuse the overview's decoded images for the first frame of travel.
+    // Larger stills and live details load on intent, leaving the opening view
+    // light. The first crossing is a 2D zoom while the 3D models arrive.
     // The rocket's exhaust rests while no island is engaged and nothing
     // travels. Mirrored onto <html> as one attribute: the CSS used to ask
     // html:has(.stage[...]), which re-styled the whole page on every change.
@@ -188,7 +186,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       // Re-measure first so that clamp cannot overwrite the saved camera pose.
       if (innerWidth !== measuredViewportWidth || innerHeight !== measuredViewportHeight) measure();
       const progress = zoomProgress ?? clamp((window.scrollY - start) / travel);
-      if (progress > 0) warm();
+      if (progress > 0 && !peeking) warm();
       if (progress > .02 && !stage.dataset.explored && !peeking) stage.dataset.explored = "true";
       // Soften wheel steps without delaying the scroll-position indicator.
       const elapsed = Math.max(0, Math.min(now - previousFrame, 64));
@@ -699,20 +697,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     window.addEventListener("scroll", hideTip, { passive: true });
     const intents = ["wheel", "touchstart", "keydown"] as const;
     intents.forEach(type => window.addEventListener(type, warm, { passive: true, once: true }));
-    // Prepare the islands once the opening view has loaded and gone quiet,
-    // unless the visitor asked to save data or is on a slow connection.
-    const network = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    let prepareTimer = 0;
-    let prepareIdle = 0;
-    const schedulePrepare = () => {
-      if (network?.saveData || (network?.effectiveType && !/4g/.test(network.effectiveType))) return;
-      prepareTimer = window.setTimeout(() => {
-        if (typeof requestIdleCallback === "function") prepareIdle = requestIdleCallback(prepare, { timeout: 2000 });
-        else prepare();
-      }, 600);
-    };
-    if (document.readyState === "complete") schedulePrepare(); else window.addEventListener("load", schedulePrepare, { once: true });
     sceneNav.addEventListener("focusin", warm);
+    sceneNav.addEventListener("pointerenter", warm);
     // When a scroll gesture comes to rest mid-flight, glide on to the next
     // stop in the direction you were going, so the page never stops between
     // islands. A tiny accidental nudge returns to where you were. Only real
@@ -1058,10 +1044,8 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       delete stage.dataset.scrolling;
       stopGlide();
       intents.forEach(type => window.removeEventListener(type, warm));
-      window.removeEventListener("load", schedulePrepare);
-      window.clearTimeout(prepareTimer);
-      if (typeof cancelIdleCallback === "function") cancelIdleCallback(prepareIdle);
       sceneNav.removeEventListener("focusin", warm);
+      sceneNav.removeEventListener("pointerenter", warm);
       stage.removeEventListener("animationend", onHintEnd);
       observer.disconnect();
       readerWatch.disconnect();

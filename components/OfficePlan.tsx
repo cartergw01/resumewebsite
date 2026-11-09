@@ -16,7 +16,7 @@ export const workerPlace = ([x, y]: Point) => `translate(${(x - 8) / 16 * 100}%,
 /** The office at night: baked art, a pane of dark over every unlit room, and screens that change as he nears them. */
 export default function OfficePlan({ workerRef, lit, screen, attention = null, preview, sign, children }: { workerRef: Ref<HTMLDivElement>; lit: OfficeStopId | null; screen: string | null; attention?: string | null; preview?: boolean; sign?: ReactNode; children?: ReactNode }) {
   return <div className={styles.drawing} style={{ "--sheet": `url(${art.worker})`, "--screens": `url(${art.screens})` } as CSSProperties}>
-    <Image className={styles.scene} src={art.scene} alt="" width={officeView.width} height={officeView.height} loading="eager" fetchPriority={preview ? "low" : "high"} unoptimized />
+    <Image className={styles.scene} src={art.scene} alt="" width={officeView.width} height={officeView.height} loading={preview ? "lazy" : "eager"} fetchPriority={preview ? "low" : "high"} unoptimized />
     {officeScreens.map(({ id, box: [x, y, width, height] }) => <span
       key={id}
       className={styles.screen}

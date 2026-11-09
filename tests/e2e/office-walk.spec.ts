@@ -77,6 +77,18 @@ test("the desktop tour uses the viewport and can enter and leave full screen", a
   await expect(explorer).toHaveAttribute("data-expanded", "false");
 });
 
+test("focused rooms accept Enter without a preceding Tab event", async ({ page }) => {
+  await page.goto("/work");
+  const explorer = page.locator("[data-office-explorer]");
+  await page.getByRole("button", { name: "Read as a list" }).click();
+  await expect(explorer).toHaveAttribute("data-view", "list");
+  await page.getByRole("button", { name: "Tour the office" }).click();
+  await expect(explorer).toHaveAttribute("data-view", "office");
+  await page.getByRole("button", { name: "Building ikigai Launchpad", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(explorer).toHaveAttribute("data-selected", "accelerator");
+});
+
 test("ikigai has two walkable outer aisles and conversations from different sides", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Keyboard route through the room.");
   test.setTimeout(90_000);

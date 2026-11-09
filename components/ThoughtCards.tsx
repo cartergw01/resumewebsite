@@ -6,7 +6,8 @@ import type { ParallaxState } from "./IslandLife";
 import type { NoteOrigin } from "@/lib/use-note-stack-motion";
 import styles from "./ThoughtCards.module.css";
 import { useIslandCue } from "@/lib/use-island-cue";
-import { createBirdFlight, FOLDED_WING, wingPath } from "@/lib/bird-flight";
+import { createBirdFlight } from "@/lib/bird-flight";
+import { BirdBranch, BirdBody } from "./ThoughtBird";
 
 type Collection = typeof import("./ThoughtCollection").default;
 // Rendered directly once loaded: going through lazy/Suspense would hold the first
@@ -15,7 +16,6 @@ const loadCollection = () => import("./ThoughtCollection").then(module => module
 const point = [447, 431] as const;
 const birdPoint = [1033, 275] as const;
 const birdFeet = [40, 58] as const; // in the bird's 78x68 art
-const birdRestingWing = wingPath(FOLDED_WING);
 
 export default function ThoughtCards() {
   const layer = useRef<HTMLSpanElement>(null);
@@ -162,21 +162,10 @@ export default function ThoughtCards() {
             style={{ left: birdPoint[0] * scale, top: birdPoint[1] * scale, width: Math.max(44, 78 * scale), height: Math.max(44, 68 * scale) }}
             data-tip="some of my tweets" data-tip-side="e" onPointerEnter={warmCollection} onPointerDown={warmCollection} onFocus={warmCollection} onClick={event => flyToNotes(event.currentTarget)}>
             <svg viewBox="0 0 78 68" aria-hidden="true" className={styles.birdArt}>
-              <path d="m-33 42 36 17 46-2m-33 2-9-9" fill="none" stroke="#63513c" strokeWidth="3.5" strokeLinecap="round" />
-              <path d="m-32 41 36 17 44-2" fill="none" stroke="#a28c68" strokeWidth=".8" strokeLinecap="round" />
+              <BirdBranch />
             </svg>
             <svg ref={flyer} viewBox="0 0 78 68" aria-hidden="true" className={`${styles.birdArt} ${styles.birdFlyer}`} data-bird-flyer>
-              <g className={styles.birdBody}>
-                <path ref={legs} d="m37 47-1 10m8-10 1 11m-13-1 8 1m1 0 8 1" stroke="#b39a70" strokeWidth="1.8" strokeLinecap="round" />
-                <path ref={farWing} className={styles.birdFarWing} d={birdRestingWing} fill="#2a78a8" />
-                <path d="m48 36 21-10-7 15 9-2-17 13Z" fill="#3184b6" />
-                <path d="M22 21c-1-8 5-14 12-14 8 0 13 5 14 13 9 4 15 12 12 20-3 10-15 14-25 10-9-3-14-13-13-22Z" fill="#55b3e0" />
-                <path d="M25 31c1 12 9 20 19 20 7 0 13-3 16-8-12 5-24-1-28-14Z" fill="#298ac0" />
-                <path ref={nearWing} className={styles.birdWing} d={birdRestingWing} fill="#378fc4" stroke="#73c7e9" strokeWidth=".8" />
-                <path d="m22 23-11 3 11 4Z" fill="#d8ae70" />
-                <path d="M27 13c4-3 9-3 12-1" fill="none" stroke="#9bd8ed" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="28" cy="20" r="2" fill="#102a3c" /><circle cx="27.5" cy="19.5" r=".65" fill="#f1f9f7" />
-              </g>
+              <BirdBody className={styles.birdBody} wingClassName={styles.birdWing} farWingClassName={styles.birdFarWing} legsRef={legs} nearWingRef={nearWing} farWingRef={farWing} />
             </svg>
             <span className={styles.hint} aria-hidden="true">some of my tweets</span>
           </button>}

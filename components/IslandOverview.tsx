@@ -7,6 +7,7 @@ import { projectPosters } from "@/lib/project-posters";
 import IslandLink from "./IslandLink";
 import PerspectiveArtwork from "./PerspectiveArtwork";
 import StudyClock from "./StudyClock";
+import { BirdBranch, BirdBody } from "./ThoughtBird";
 import type { Life } from "./IslandLife";
 import styles from "./IslandHome.module.css";
 
@@ -37,6 +38,10 @@ export default function IslandOverview({ variant }: { variant: "intro" | "outro"
               <svg className={styles.overviewDetails} viewBox="0 0 1200 800" aria-hidden="true">
                 {id === "work" ? <path data-city-entry-window data-corners={JSON.stringify(islands.work.entryWindow)} d={artworkOutline(islands.work.entryWindow)} fill="#eacd96" /> : null}
                 {id === "writing" ? <path data-book-spread data-corners={JSON.stringify(islands.writing.spread)} data-essays={JSON.stringify(ownEssays.map(({ title, date, subtitle }) => ({ title, date, subtitle })))} d={artworkOutline(islands.writing.spread)} fill="none" /> : null}
+                {id === "writing" ? <g data-overview-bird transform="translate(994 241)">
+                  <BirdBranch />
+                  <g transform="translate(6 8.7) scale(.85)"><BirdBody /></g>
+                </g> : null}
                 {id === "projects" ? <g data-workshop-screen data-corners={JSON.stringify(islands.projects.screen)} data-src={projects[0]?.image} data-posters={JSON.stringify(projectPosters)}>
                   <PerspectiveArtwork corners={islands.projects.screen} width={320} height={200}>
                     <image href={screenPreview} width="320" height="200" preserveAspectRatio="xMidYMin slice" />

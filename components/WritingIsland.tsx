@@ -52,11 +52,11 @@ export default function WritingIsland({ artwork: island, landmark, pages }: { ar
     <>
       <IslandLink href="/writing" title="Writing" prompt="click to read my writing" landmark={landmark} book>
         <span ref={visualRef} className={`${styles.island} ${styles.writingMedia}`} data-island-visual data-reads="island-light:filter">
-          {warm ? <Image
+          <Image
             src={island.src} alt="" width={island.width} height={island.height}
-            sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}
+            sizes={warm ? "(max-width: 760px) 115vw, 68vw" : "(max-width: 760px) 60vw, 34vw"} loading="eager" quality={75} draggable={false}
             className={styles.writingPoster} data-lights-on="writing"
-          /> : null}
+          />
           {warm && darkWanted && "darkSrc" in island && island.darkSrc ? <Image
             src={island.darkSrc as string} alt="" width={island.width} height={island.height}
             sizes="(max-width: 760px) 115vw, 68vw" loading="eager" quality={75} draggable={false}

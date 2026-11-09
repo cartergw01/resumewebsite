@@ -192,6 +192,7 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
     };
     const settled = () => scene.dataset.active === "true" && stage.dataset.travelling !== "true" && !stage.dataset.entering && !stage.dataset.overlay && !document.hidden;
     const tick = (now: number) => {
+      if (document.hidden) { frame = last = 0; return; }
       const dt = Math.min(50, last ? now - last : 16); last = now;
       const k = 1 - Math.exp(-dt / 140);
       current[0] += (target[0] - current[0]) * k; current[1] += (target[1] - current[1]) * k;
@@ -208,7 +209,7 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       frame = moving ? requestAnimationFrame(tick) : 0;
       if (!frame) last = 0;
     };
-    const wake = () => { if (!frame && ready) frame = requestAnimationFrame(tick); };
+    const wake = () => { if (!frame && ready && !document.hidden) frame = requestAnimationFrame(tick); };
     const pointer = (event: PointerEvent) => {
       if (!parallax || event.pointerType !== "mouse" || !settled()) return;
       // Up to ~1.4% of the image's width at the nearest and farthest depths.
@@ -331,18 +332,24 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       }
     };
 
-    // A touch screen's switch canvas starts when someone reaches for it.
+    // Only the settled, visible island needs a GPU context. Touch screens
+    // still start their switch canvas when someone reaches for the switch.
     let started = false;
     const begin = () => { if (!started && !disposed) { started = true; void start(); } };
     // Reaching for the switch also mounts the lights-off still: upload it.
     const intent = (event: Event) => { if ((event as CustomEvent).detail === room) { begin(); void loadTwin(); } };
-    if (parallax) begin();
+    const activate = () => {
+      if (parallax && settled()) begin();
+      sync();
+    };
+    activate();
     if (room) window.addEventListener(ROOM_LIGHTS_INTENT, intent);
 
     const sizes = new ResizeObserver(resize); sizes.observe(canvas);
-    const observer = new MutationObserver(sync);
+    const observer = new MutationObserver(activate);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
-    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering"] });
+    observer.observe(stage, { attributes: true, attributeFilter: ["data-travelling", "data-entering", "data-overlay"] });
+    document.addEventListener("visibilitychange", activate);
     window.addEventListener("pointermove", pointer, { passive: true });
     const twinEvent = room ? ROOM_LIGHTS_EVENT : CITY_TIME_EVENT;
     window.addEventListener(twinEvent, sync);
@@ -351,6 +358,7 @@ export default function ParallaxStill({ depthSrc, focus, room, masks, className 
       disposed = true;
       cancelAnimationFrame(frame);
       sizes.disconnect(); observer.disconnect();
+      document.removeEventListener("visibilitychange", activate);
       window.removeEventListener(ROOM_LIGHTS_INTENT, intent);
       window.removeEventListener("pointermove", pointer);
       window.removeEventListener(twinEvent, sync);
