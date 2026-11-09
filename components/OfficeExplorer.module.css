@@ -134,7 +134,7 @@
   .explorer[data-view="office"] .modes .utilityButton:hover { color: var(--cw-paper); }
 }
 .explorer[data-view="office"] .modes .utilityButton:active { color: #fff; translate: 0 1px; }
-.explorer[data-view="office"] .modes .utilityButton:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; filter: none; }
+:global(html:not([data-pointer-input])) .explorer[data-view="office"] .modes .utilityButton:focus-visible { outline: 2px solid #e6c794; outline-offset: 3px; filter: none; }
 .expandButton { margin-left: .25rem; }
 .explorer[data-view="office"] .modes .expandButton[aria-pressed="true"] { color: #fff; }
 .zoomIcon, .expandButton .modeIcon { display: block; width: 18px; height: 18px; }

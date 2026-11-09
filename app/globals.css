@@ -439,8 +439,9 @@ select {
 }
 
 /* Safari treats focus moved by script as focus-visible, so opening or closing a
-   dialog by touch would ring its target. Rings return as soon as Tab is pressed. */
-html[data-pointer-input] :where(a, button, [tabindex]):focus-visible {
+   dialog by touch would ring its target. Use :is to outrank the menu and dialog
+   focus rules. Rings return as soon as Tab is pressed. */
+html[data-pointer-input] :is(a, button, [tabindex]):focus-visible {
   outline: none;
 }
 

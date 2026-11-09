@@ -44,20 +44,6 @@ export default function ThoughtCards() {
   }, []);
   useEffect(() => { if (open) warmCollection(); }, [open, warmCollection]);
 
-  // Focus rings are for people moving by keyboard. Reading by touch or mouse also
-  // moves focus (into the reader and back to its opener), and that shouldn't draw one.
-  useEffect(() => {
-    const root = document.documentElement;
-    const pointer = () => { root.dataset.pointerInput = ""; };
-    const key = (event: KeyboardEvent) => { if (event.key === "Tab") delete root.dataset.pointerInput; };
-    window.addEventListener("pointerdown", pointer, { capture: true, passive: true });
-    window.addEventListener("keydown", key, true);
-    return () => {
-      window.removeEventListener("pointerdown", pointer, true);
-      window.removeEventListener("keydown", key, true);
-      delete root.dataset.pointerInput;
-    };
-  }, []);
   useEffect(() => () => { clearTimeout(returnTimer.current); flight.current?.dispose(); }, []);
   useEffect(() => {
     const id = new URL(location.href).searchParams.get("thought");
