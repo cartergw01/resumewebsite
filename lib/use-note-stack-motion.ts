@@ -55,9 +55,11 @@ export function useNoteStackMotion(
       clear();
       shell.dataset.noteMotion = "idle";
     };
+    // The exit keeps holding its last frame until React removes the dialog; the
+    // effect cleanup cancels it then. Cancelling here would snap the full stack,
+    // with the next post on the sheet underneath, back for a frame first.
     const finishClose = () => {
       if (disposed) return;
-      clear();
       onCloseRef.current();
     };
 
