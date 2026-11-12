@@ -664,6 +664,20 @@
     width: auto;
   }
 }
+/* Short landscape screens (an unfolded iPhone Duo held sideways, laptop
+   windows up to about 820px tall): the three-island overview ends above
+   "swipe up" (the controls' top, 108px above their base), so the lowest
+   island and its label never sit on it or on the chapter bar. It starts a
+   little higher to win back most of that room. */
+@media (min-width: 761px) and (min-height: 501px) and (max-height: 820px) and (orientation: landscape) {
+  .scene:has(.overview) .art { top: 12%; bottom: calc(var(--controls-bottom) + 116px); }
+}
+/* Between 761 and 1000px wide, each island's own scene stops at the screen's
+   edge. Bled past it, the Writing island lost its tree and the bird that
+   opens the tweets. */
+@media (min-width: 761px) and (max-width: 1000px) and (min-height: 501px) and (orientation: landscape) {
+  :is(.work, .writing, .projects) .art { right: 0; }
+}
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */
