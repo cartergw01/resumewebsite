@@ -14,8 +14,6 @@ async function clickObject(page: Page, object: Locator, touch: boolean) {
 
 const destinations = {
   stocker: "https://stocker-app-one.vercel.app/",
-  "taipei-guide": "https://taipei-guide-etaa.vercel.app/",
-  "night-night-ko": "https://nightnightko.vercel.app/",
 };
 
 test("every physical project object opens its own destination without leaving the workshop", async ({ page, context, isMobile }, testInfo) => {
@@ -26,7 +24,9 @@ test("every physical project object opens its own destination without leaving th
   await page.goto("/#projects");
   await expect(page.locator("main[data-scene]")).toHaveAttribute("data-scene", "projects");
   const objects = page.locator("#projects [data-workshop-object]");
-  await expect(objects).toHaveCount(5);
+  await expect(objects).toHaveCount(3);
+  // The Taipei Guide map and Night night Ko clock were taken off the bench.
+  await expect(page.locator('[data-workshop-object="taipei-guide"], [data-workshop-object="night-night-ko"]')).toHaveCount(0);
   await expect(page.locator('[data-workshop-object="taipei-flix"], [data-workshop-object="ikigai-timer"], [data-curio="flix-print"]')).toHaveCount(0);
   await expect(page.locator('[data-curio="run-print"]')).toHaveCount(0);
   await expect(page.locator('#projects a[href="https://886studios.com"]')).toHaveCount(0);

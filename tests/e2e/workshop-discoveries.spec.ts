@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 // the project objects, the shield and the light stick. The rest are scenery.
 test("only the shield, light stick and project objects are clickable on the island", async ({ page }) => {
   await page.goto("/#projects");
-  await expect(page.locator("#projects [data-workshop-object]")).toHaveCount(5);
+  await expect(page.locator("#projects [data-workshop-object]")).toHaveCount(3);
   await expect(page.locator("[data-curio]")).toHaveCount(2);
   await expect(page.locator('[data-curio="shield"]')).toHaveAccessibleName("Read the Declaration of Independence");
   await expect(page.locator('[data-curio="lightstick"]')).toHaveAttribute("href", "https://www.youtube.com/watch?v=gQlMMD8auMs");

@@ -27,6 +27,6 @@ for root in scene.objects:
         floor=next(child for child in root.children if child.name=='Chip case · aluminium floor')
         objects[slug]['tray']=[project(floor.matrix_world@Vector(floor.bound_box[i])+Vector((0,0,.094)))
                                for i in [1,5,6,2]]
-assert len(objects)==6, f'Expected 6 workshop objects, found {len(objects)}'
+assert len(objects)==3, f'Expected 3 workshop objects, found {len(objects)}'
 (ROOT/'lib/workshop-objects.json').write_text(json.dumps(objects,indent=2)+'\n')
 print('WORKSHOP OBJECTS '+', '.join(objects),flush=True)

@@ -13,50 +13,24 @@
 .target:focus-visible { outline: none; }
 .cue { position: absolute; overflow: visible; pointer-events: none; transition: filter 180ms ease, translate 180ms ease; }
 .cue > *, .cue g > * { pointer-events: none; }
-.edge { fill: none; stroke-width: 1.2; opacity: 0; transition: opacity 180ms ease; }
-.screenWash, .screenSweep, .road, .stockTrace, .chipTray, .mapRoute, .mapPin, .moon { opacity: 0; }
-.screenWash { transition: opacity 180ms ease; }
-.stockTrace, .mapRoute { stroke-dasharray: 1; stroke-dashoffset: 1; }
-.stockTrace { filter: drop-shadow(0 0 2px #65e69588); }
-.target:focus-visible .stockTrace { opacity: 1; stroke-dashoffset: 0; }
+.chipTray { opacity: 0; }
 .chipTray { transition: opacity 180ms ease; }
 .target:focus-visible .chipTray { opacity: .85; }
-.objects[data-cue-state="playing"] .screenWash { animation: screen-wake 1800ms var(--cue-delay) ease both; }
-.objects[data-cue-state="playing"] .road { animation: arcade-road 1400ms var(--cue-delay) ease-out both; }
-.objects[data-cue-state="playing"] .screenSweep { animation: arcade-sweep 1400ms var(--cue-delay) ease-out both; }
 .objects[data-cue-state="playing"] .chipTray { animation: tray-glint 1600ms var(--cue-delay) ease both; }
-.objects[data-cue-state="playing"] .stockTrace, .objects[data-cue-state="playing"] .mapRoute { animation: trace-route 1700ms var(--cue-delay) ease both; }
-.objects[data-cue-state="playing"] .mapPin { animation: pin-lift 1700ms var(--cue-delay) ease both; }
-.objects[data-cue-state="playing"] .moon { animation: moon-wake 1800ms var(--cue-delay) ease both; }
 .target:active .cue { translate: 0 1px; filter: brightness(1.25); }
 .curio .dot { opacity: 0; }
 /* Discovery should not gradually cover the artwork in permanent markers. */
 .curio:has(.target:focus-visible) .dot { opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
   .target:hover .cue { filter: brightness(1.2); }
-  .target:hover .edge { opacity: .8; }
-  .target:hover .screenWash { opacity: .16; }
-  .target:hover .road { animation: arcade-road 1400ms ease-out both; }
-  .target:hover .screenSweep { animation: arcade-sweep 1400ms ease-out both; }
   .target:hover .chipTray { opacity: .85; }
-  .target:hover .stockTrace { opacity: 1; stroke-dashoffset: 0; animation: stock-highlight 900ms ease-out both; }
-  .target:hover .mapRoute { animation: trace-route 1700ms ease both; }
-  .target:hover .mapPin { animation: pin-lift 1700ms ease both; }
-  .target:hover .moon { animation: moon-wake 1800ms ease both; }
 }
 :global([data-island-stage][data-travelling="true"]) .objects,
 :global([data-island-stage][data-entering]) .objects { visibility: hidden; }
 :global(html[data-projects-lights="off"]) .cue { filter: brightness(.55); }
 :global([data-island-stage][data-overlay]) .cue * { animation: none !important; }
-@keyframes screen-wake { 0%, 100% { opacity: 0; } 30%, 65% { opacity: .18; } }
-@keyframes arcade-road { 0% { opacity: 0; transform: translateY(-5px); } 25%, 70% { opacity: .7; } 100% { opacity: 0; transform: translateY(6px); } }
-@keyframes arcade-sweep { 0% { opacity: 0; transform: translateY(-12px); } 30%, 65% { opacity: .22; } 100% { opacity: 0; transform: translateY(28px); } }
 @keyframes tray-glint { 0%, 100% { opacity: 0; } 30%, 65% { opacity: .85; } }
-@keyframes trace-route { 0% { opacity: 0; stroke-dashoffset: 1; } 20% { opacity: .9; } 70% { opacity: .9; stroke-dashoffset: 0; } 100% { opacity: 0; stroke-dashoffset: 0; } }
-@keyframes stock-highlight { from { opacity: .25; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
-@keyframes pin-lift { 0%, 100% { opacity: 0; transform: translateY(0); } 30%, 65% { opacity: 1; transform: translateY(-4px); } }
-@keyframes moon-wake { 0%, 100% { opacity: 0; } 35%, 60% { opacity: .9; } }
 @media (prefers-reduced-motion: reduce) {
-  .dot, .cue, .edge, .screenWash, .chipTray { transition: none; }
+  .dot, .cue, .chipTray { transition: none; }
   .objects .cue * { animation: none !important; }
 }

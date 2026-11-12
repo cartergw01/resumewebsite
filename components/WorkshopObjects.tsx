@@ -47,7 +47,6 @@ const FOUND_KEY = "carter-workshop-discoveries-v1";
 
 const labels: Record<string, string> = {
   "poker-odds": "Poker Odds",
-  "taipei-guide": "Taipei Guide",
 };
 
 

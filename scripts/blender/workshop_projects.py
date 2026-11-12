@@ -127,42 +127,8 @@ def add_projects(api):
     # Project these same vertices for the browser's green hover highlight.
     root['chart']=json.dumps({'screen':[(x-.36,y-.04,z+.22),(x+.36,y-.04,z+.22),(x+.36,y-.04,z-.22),(x-.36,y-.04,z-.22)],'line':chart})
 
-    # Folded map with drawn streets and a red destination pin.
-    before=start()
-    x,y,z=2.02,.33,1.806
-    for i in range(3):
-        xx=x+(i-1)*.18
-        leaf=box('Taipei guide · map fold',(xx,y,z+(.017 if i==1 else .006)),(.18,.49,.006),'paper',.002)
-        leaf.rotation_euler.y=math.radians(7 if i==0 else -7 if i==2 else 0)
-    for dx in [-.18,-.05,.10,.22]: rod('Taipei guide · street',(x+dx,y-.21,z+.028),(x+dx,y+.21,z+.028),.005,'brass',6)
-    for dy in [-.12,.01,.14]: rod('Taipei guide · street',(x-.25,y+dy,z+.028),(x+.25,y+dy,z+.028),.005,'brass',6)
-    lettering('Taipei guide · title','TAIPEI',(x,y-.185,z+.038),.062,'ink',rotation=(0,0,0))
-    rod('Taipei guide · destination pin',(x+.10,y+.05,z+.03),(x+.10,y+.05,z+.13),.009,'project_red')
-    sphere('Taipei guide · pin head',(x+.10,y+.05,z+.145),(.032,.032,.032),'project_red',2)
-    finish(before,'taipei-guide',(x,y,z+.045),desk=True)
-
-    before=start()
-    x,y,z=-3.06,1.24,3.12
-    box('886 Studios · plaque backing',(x,y,z),(.56,.07,.37),'teal',.012)
-    lettering('886 Studios · numerals','886',(x,y-.04,z+.04),.19,'project_gold')
-    lettering('886 Studios · name','STUDIOS',(x,y-.04,z-.112),.051,'paper')
-    finish(before,'886-studios',(x,y-.04,z))
-
-    before=start()
-    x,y,z=-2.10,.37,1.80
-    box('Night night Ko · clock foot',(x,y,z+.025),(.29,.20,.05),'project_blue',.02)
-    clock=cylinder('Night night Ko · round clock',(x,y,z+.22),.19,.075,'project_blue',64,bevel=.01);clock.rotation_euler.x=math.pi/2
-    face=cylinder('Night night Ko · clock face',(x,y-.043,z+.22),.166,.004,'ink',64,bevel=0);face.rotation_euler.x=math.pi/2
-    # A raised crescent made from a curved ribbon, rather than obscuring
-    # geometry with another disc; its warm surface catches the desk lamp.
-    verts=[]
-    for i in range(33):
-        t=math.pi/2+math.pi*i/32
-        verts.extend([(x-.025+.116*math.cos(t),y-.047,z+.24+.116*math.sin(t)),
-                      (x+.018+.073*math.cos(t),y-.047,z+.24+.116*math.sin(t))])
-    mesh('Night night Ko · crescent',verts,[(i*2,i*2+1,i*2+3,i*2+2) for i in range(32)],'project_gold')
-    lettering('Night night Ko · sleep','z z',(x+.058,y-.049,z+.27),.054,'project_display')
-    finish(before,'night-night-ko',(x,y-.05,z+.22),desk=True)
+    # No Taipei Guide map, 886 Studios plaque or Night night Ko clock: they
+    # were taken off the island to keep the bench and posts clear.
     bpy.context.view_layer.update()
 
 

@@ -376,7 +376,7 @@ export const projects = [
 ];
 
 // Only projects with a physical object appear as island targets.
-export const islandProjects = projects.filter(project => !["886-studios", "taipei-flix", "ikigai-timer"].includes(project.id));
+export const islandProjects = projects.filter(project => !["886-studios", "taipei-flix", "ikigai-timer", "taipei-guide", "night-night-ko"].includes(project.id));
 
 export const workshopQueue = [
   {
