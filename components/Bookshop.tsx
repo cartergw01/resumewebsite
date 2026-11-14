@@ -29,14 +29,10 @@ type Book = (typeof books.essays)[number];
 // A face's corners run top-left, top-right, bottom-left, bottom-right.
 const outline = (c: Corners) => `M${c[0][0]} ${c[0][1]}L${c[1][0]} ${c[1][1]}L${c[3][0]} ${c[3][1]}L${c[2][0]} ${c[2][1]}Z`;
 
-// On a phone the whole shop is framed a little closer: the building and its
-// lawn, with less of the sky around it (in the render's 1200x800 frame).
-const ROOM = [120, 60, 1080, 700];
-
 // How the shop frame moves to fill itself with one area's close-up.
-function zoomFor(area: Area | null, narrow: boolean) {
-  if (!area && !narrow) return { x: 0, y: 0, scale: 1 };
-  const [l, t, r, b] = area ? shop.closeups[area].box : ROOM;
+function zoomFor(area: Area | null) {
+  if (!area) return { x: 0, y: 0, scale: 1 };
+  const [l, t, r, b] = shop.closeups[area].box;
   const scale = Math.min(1200 / (r - l), 800 / (b - t));
   const clamp = (value: number, size: number) => Math.min(0, Math.max(size - size * scale, value));
   return { x: clamp(600 - scale * (l + r) / 2, 1200), y: clamp(400 - scale * (t + b) / 2, 800), scale };
@@ -51,13 +47,6 @@ export default function Bookshop() {
   const [selected, setSelected] = useState<Record<"essays" | "reading", string>>({ essays: books.essays[0].slug, reading: books.reading[0].slug });
   const [hovered, setHovered] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [narrow, setNarrow] = useState(false);
-  useEffect(() => {
-    const query = matchMedia("(max-width: 760px)");
-    const sync = () => setNarrow(query.matches);
-    sync(); query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
-  }, []);
   const [notesOrigin, setNotesOrigin] = useState<NoteOrigin | null>(null);
   const [ThoughtCollection, setThoughtCollection] = useState<Collection | null>(null);
   const warmNotes = useCallback(() => { void loadCollection().then(loaded => setThoughtCollection(() => loaded)).catch(() => {}); }, []);
@@ -125,7 +114,7 @@ export default function Bookshop() {
     return () => window.removeEventListener("keydown", onKey);
   }, [area, go, notesOpen, step]);
 
-  const zoom = zoomFor(area, narrow);
+  const zoom = zoomFor(area);
   const frame = {
     transform: `translate(${zoom.x / 12}%, ${zoom.y / 8}%) scale(${zoom.scale})`,
     "--zoom": zoom.scale,
@@ -139,7 +128,7 @@ export default function Bookshop() {
       <div ref={stage} className={styles.stage} data-area={area ?? "shop"} data-settled={settled}
         onPointerDown={swipeStart} onPointerUp={swipeEnd} onPointerCancel={() => { swipe.current = null; }}>
         <div className={styles.frame} style={frame} onTransitionEnd={event => { if (event.target === event.currentTarget) setSettled(true); }}>
-          <Image src={shop.still.src} alt="A small bookshop at night: Carter's essays face out on the lit shelves, his reading lists stacked on the table, notes pinned to a corkboard, and a letter slot in the door."
+          <Image src={shop.still.src} alt="Inside a small bookshop at night: Carter's essays face out on the lit shelves, his reading lists stacked on the table, notes pinned to a corkboard, and a letter slot in the door."
             width={shop.still.width} height={shop.still.height} priority quality={86} draggable={false}
             sizes="(max-width: 760px) 100vw, min(1500px, 94vw)" className={styles.still} />
           {AREAS.map(({ id }) => {

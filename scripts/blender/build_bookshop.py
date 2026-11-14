@@ -36,6 +36,8 @@ AREAS = {'essays': [], 'reading': [], 'notes': [], 'letters': []}
 TOP = 4.2          # wall height (2 units a metre, like the study)
 BACK = 1.94        # the back wall's inside face
 SIDE = -3.24       # the side wall's inside face
+RIGHT = 3.42       # the right-hand wall's centre line
+FRONT = -4.6       # the room runs on past the camera, so no edge shows
 
 
 def rgb(text):
@@ -116,26 +118,28 @@ def walls(font):
     B.P['shopgreen'] = B.textured('Bookshop · bottle green joinery', (.018, .045, .034), (.036, .075, .056), 'plaster', rough=.55)
     # The back wall carries the bookcase; the side wall has the window, the
     # corkboard and the door, cut out of it.
-    B.box('Bookshop · back wall', (-.0, 2.0, TOP/2 + .08), (6.72, .12, TOP - .16), 'shopwall', .004)
+    B.box('Bookshop · back wall', (.06, 2.0, TOP/2 + .08), (6.84, .12, TOP - .16), 'shopwall', .004)
     def side(y0, y1, z0, z1):
         B.box('Bookshop · side wall', (SIDE - .06, (y0 + y1)/2, (z0 + z1)/2), (.12, y1 - y0, z1 - z0), 'shopwall', .004)
     window = (-.05, 1.10, 1.55, 3.30)   # y0, y1, z0, z1
     door = (-1.80, -.86, .16, 3.20)
-    side(-1.98, door[0], .16, TOP)
+    side(FRONT, door[0], .16, TOP)
     side(door[1], window[0], .16, TOP)
     side(window[1], 2.06, .16, TOP)
     side(door[0], door[1], door[3], TOP)
     side(window[0], window[1], .16, window[2])
     side(window[0], window[1], window[3], TOP)
-    for name, loc, size in [('Bookshop · back crown', (0, 1.91, TOP - .04), (6.72, .07, .09)),
-                            ('Bookshop · side crown', (SIDE + .03, 0, TOP - .04), (.07, 3.96, .09)),
-                            ('Bookshop · back wall top', (0, 2.0, TOP + .015), (6.78, .14, .03)),
-                            ('Bookshop · side wall top', (SIDE - .06, .04, TOP + .015), (.14, 4.06, .03))]:
+    depth = 2.0 - FRONT
+    for name, loc, size in [('Bookshop · back crown', (0, 1.91, TOP - .04), (6.84, .07, .09)),
+                            ('Bookshop · side crown', (SIDE + .03, (2.0 + FRONT)/2, TOP - .04), (.07, depth, .09)),
+                            ('Bookshop · right crown', (RIGHT - .09, (2.0 + FRONT)/2, TOP - .04), (.07, depth, .09))]:
         B.box(name, loc, size, 'paper', .004)
-    B.box('Bookshop · skirting', (SIDE + .015, 0, .22), (.03, 3.96, .10), 'shopgreen', .002)
+    B.box('Bookshop · skirting', (SIDE + .015, (2.0 + FRONT)/2, .22), (.03, depth, .10), 'shopgreen', .002)
+    B.box('Bookshop · right wall', (RIGHT, (2.06 + FRONT)/2, TOP/2 + .08), (.12, 2.06 - FRONT, TOP - .16), 'shopwall', .004)
+    B.box('Bookshop · right skirting', (RIGHT - .075, (2.0 + FRONT)/2, .22), (.03, depth, .10), 'shopgreen', .002)
     # The window: clear glass, so the night beyond is the site's own sky.
     B.P['clearwindow'] = B.material('Bookshop window · clear glass', (.9, .95, 1), rough=.04)
-    B.P['clearwindow'].node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = .03
+    B.P['clearwindow'].node_tree.nodes['Principled BSDF'].inputs['Alpha'].default_value = 0
     y0, y1, z0, z1 = window
     B.box('Bookshop window · glass', (SIDE - .06, (y0 + y1)/2, (z0 + z1)/2), (.011, y1 - y0, z1 - z0), 'clearwindow', .001)
     for yy in [y0, (y0 + y1)/2, y1]: B.box('Bookshop window · mullion', (SIDE - .02, yy, (z0 + z1)/2), (.05, .035, z1 - z0), 'shopgreen', .002)
@@ -236,7 +240,7 @@ def bookcase(font):
         for bx in [-1.2, 0, 1.2]: B.light('Bookcase · essay wash', (bx, 1.30, top - .06), (1, .74, .48), 22, .05, (bx, 1.45, top - .9))
     # The publication's name, in brass letters on the wall over the shelves.
     words('Bookshop · flying Arrows', 'flying Arrows', (0, BACK - .01, 3.86), .28, 'brass', font=serif_font)
-    B.light('Bookshop · sign light', (0, 1.2, 4.35), B.WARM, 45, .2, (0, BACK, 3.86))
+    B.light('Bookshop · sign light', (0, 1.0, 4.05), B.WARM, 140, .2, (0, BACK, 3.86))
 
 
 def reading_table(font):
@@ -266,9 +270,7 @@ def reading_table(font):
         words('Reading list year · ' + item['year'], item['year'], (x, y - .25, z + .0606), .05, 'paper', rotation=(0, 0, 0), font=font)
         keep('reading', 'reading:' + item['slug'], [(x - .24, y + .31, z + .06), (x + .24, y + .31, z + .06), (x - .24, y - .31, z + .06), (x + .24, y - .31, z + .06)])
         AREAS['reading'].append((x, y, surface))
-    # The table lamp at its far end lights the covers.
-    B.arundel_table_lamp(tx + 1.0, ty + .33, top + .028, 360, k=.9, toward=(tx, ty))
-    AREAS['reading'].append((tx + 1.0, ty + .33, top + .9))
+    AREAS['reading'].append((tx, ty, top + .7))
 
 
 def corkboard():
@@ -297,24 +299,57 @@ def corkboard():
 
 
 def reading_corner():
-    B.eames_lounge_chair(2.55, -1.15, -35, .8)
-    B.cylinder('Side table · top', (1.75, -1.55, .92), .22, .04, 'wood', 40, bevel=.006)
-    B.rod('Side table · stem', (1.75, -1.55, .16), (1.75, -1.55, .90), .025, 'ink', 16)
-    B.cylinder('Side table · foot', (1.75, -1.55, .18), .16, .03, 'ink', 40, bevel=.004)
-    B.eave_table_lamp(1.75, -1.55, .94, 220, k=.75)
-    B.plant(2.85, .80, .15, 1.0)
-    B.plant(-2.65, -1.55, .15, .85)
+    B.plant(-2.70, -2.25, .15, .95)
+
+
+def shell():
+    """Floor, ceiling and pendant lamps: a whole room, seen from inside."""
+    for i in range(24):
+        x = -3.24 + .30 * i + .15
+        if x > RIGHT: break
+        B.sawn_ends(B.box('Floor · oak plank', (x, (2.0 + FRONT)/2, .10), (.289, 2.0 - FRONT, .095), 'floorwood', .003), 'Y')
+    B.P['ceiling'] = B.textured('Bookshop · ceiling limewash', (.30, .26, .21), (.40, .35, .28), 'plaster', rough=.92)
+    B.box('Bookshop · ceiling', (.06, (2.0 + FRONT)/2, TOP + .05), (6.9, 2.1 - FRONT, .10), 'ceiling', .002)
+    y = -.70
+    while y > FRONT:
+        B.box('Bookshop · ceiling beam', (.06, y, TOP - .07), (6.84, .16, .14), 'wood', .006)
+        y -= 1.5
+    # Small brass spots on the beam over the table light it; pendants here
+    # would hang in front of the essays.
+    for x in [-.25, .45, 1.15]:
+        can = (x, -.70, TOP - .19)
+        B.cylinder('Ceiling spot · brass can', can, .055, .14, 'brass', 24, bevel=.006)
+        B.spot('Ceiling spot · beam on the table', (x, -.70, TOP - .27), (x, -.60, 1.5), B.WARM, 140, 40, .5, .03)
 
 
 def build(font):
-    B.foundation(41, 'garden'); B.landscape('bookshop', 41); B.floorboards()
+    shell()
     door = walls(font)
     front_door(door)
     bookcase(font)
     reading_table(font)
     corkboard()
     reading_corner()
-    B.light('Bookshop · warm room fill', (0, -.4, 3.9), B.WARM, 40, 2.5, (0, 0, 0))
+    B.light('Bookshop · warm room fill', (0, -1.6, 3.9), B.WARM, 70, 3.0, (0, 0, 0))
+    # Moonlight through the window and the door's glass.
+    moon = bpy.data.lights.new('Moon · through the window', 'SUN')
+    moon.color = (.70, .78, 1); moon.energy = .8; moon.angle = math.radians(2)
+    key = bpy.data.objects.new('Moon · through the window', moon); bpy.context.collection.objects.link(key)
+    key.rotation_euler = Vector((1, .25, -.6)).to_track_quat('-Z', 'Y').to_euler()
+
+
+def interior_camera(scene, position=(2.35, -4.2, 3.05), target=(-1.15, 1.05, 3.05), lens=21, shift=-.12):
+    """Standing just inside the shop's front corner at eye height, looking
+    across to the far corner: level, so the verticals stay straight, with the
+    lens shifted down to take in the floor and the table."""
+    data = bpy.data.cameras.new('Bookshop · interior')
+    data.lens = lens; data.sensor_width = 36; data.shift_y = shift; data.clip_start = .05
+    camera = bpy.data.objects.new('Camera', data); bpy.context.collection.objects.link(camera)
+    camera.location = position
+    camera.rotation_euler = (Vector(target) - Vector(position)).to_track_quat('-Z', 'Y').to_euler()
+    scene.camera = camera
+    bpy.context.view_layer.update()
+    return camera
 
 
 def projected(scene, point):
@@ -399,14 +434,15 @@ def main():
     parser.add_argument('--closeup-scale', type=int, default=3)
     parser.add_argument('--device', choices=['CPU', 'METAL'], default='METAL')
     parser.add_argument('--no-closeups', action='store_true')
+    parser.add_argument('--exposure', type=float, default=.9)
     args = parser.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else [])
     args.output.mkdir(parents=True, exist_ok=True)
     scene = B.setup('bookshop', args.width, args.samples, 'CYCLES', args.device)
     font = serif()
     build(font)
     scene.frame_set(1)
-    B.camera_and_lights(scene)
-    frame(scene)
+    interior_camera(scene)
+    scene.view_settings.exposure = args.exposure
     B.unseen_lights(scene)
     boxes = export(scene, args.output / 'bookshop.json')
     scene.render.filepath = str(args.output / 'bookshop.png')
