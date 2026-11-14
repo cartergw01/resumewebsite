@@ -1,7 +1,11 @@
-// Publish the bookshop's renders and projected coordinates for the Writing page.
-// node scripts/blender/export_bookshop.mjs .blender-build/bookshop-full
+// Publish the walk-along bookshop's renders and coordinates for the Writing page.
+// node scripts/blender/export_bookshop.mjs .blender-build/bookshop
 //   -> public/blender/bookshop-*.webp and lib/bookshop.json
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+//
+// The long back render is cut into tiles, so the page loads the shop as you
+// walk it. The foreground pass is cut into its pieces (they move separately),
+// and each book is cut out on its own so it can lean out of the shelf.
+import { readFile, writeFile, mkdir, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
@@ -14,35 +18,57 @@ await mkdir(output, { recursive: true });
 const scene = JSON.parse(await readFile(path.join(input, "bookshop.json"), "utf8"));
 const content = JSON.parse(await readFile(path.join(root, ".blender-build/bookshop-content.json"), "utf8"));
 
-async function publish(file, name, quality) {
-  const image = await sharp(path.join(input, file)).webp({ quality, alphaQuality: 100, effort: 6 }).toBuffer();
-  const fingerprint = createHash("sha256").update(image).digest("hex").slice(0, 8);
-  const published = `${name}-${fingerprint}.webp`;
-  await writeFile(path.join(output, published), image);
-  const { width, height } = await sharp(image).metadata();
-  return { src: `/blender/${published}`, width, height };
-}
+// Old bookshop files go first: every publish is a complete set.
+for (const name of await readdir(output)) if (name.startsWith("bookshop-")) await unlink(path.join(output, name));
 
-const still = await publish("bookshop.png", "bookshop", 90);
-const closeups = {};
-for (const [area, box] of Object.entries(scene.crops ?? {})) {
-  closeups[area] = { ...(await publish(`bookshop-${area}.png`, `bookshop-${area}`, 88)), box };
+const published = [];
+async function publish(image, name, quality) {
+  const buffer = await image.webp({ quality, alphaQuality: 100, effort: 6 }).toBuffer();
+  const fingerprint = createHash("sha256").update(buffer).digest("hex").slice(0, 8);
+  const file = `bookshop-${name}-${fingerprint}.webp`;
+  await writeFile(path.join(output, file), buffer);
+  published.push(file);
+  return `/blender/${file}`;
 }
-const corners = (key) => {
-  if (!scene[key]) throw new Error(`The render has no corners for ${key}`);
-  return scene[key];
+const area = (rect) => {
+  const [l, t, r, b] = rect.map(Math.round);
+  return { left: Math.max(0, l), top: Math.max(0, t), width: Math.min(scene.width, r) - Math.max(0, l), height: Math.min(scene.height, b) - Math.max(0, t) };
+};
+
+const back = path.join(input, "bookshop-back.png");
+const fore = path.join(input, "bookshop-fore.png");
+const TILE = 1400;
+const tiles = [];
+for (let x = 0; x < scene.width; x += TILE) {
+  const width = Math.min(TILE, scene.width - x);
+  tiles.push({ x, width, src: await publish(sharp(back).extract({ left: x, top: 0, width, height: scene.height }), `tile-${tiles.length}`, 84) });
+}
+const pieces = {};
+for (const [name, rect] of Object.entries(scene.fore)) {
+  const box = area(rect);
+  pieces[name] = { rect: [box.left, box.top, box.left + box.width, box.top + box.height], foot: scene.feet[name], src: await publish(sharp(fore).extract(box), name.replace(":", "-"), 86) };
+}
+// Which foreground piece holds each reading list, so its target moves with it.
+const pieceAt = (rect) => Object.entries(pieces).find(([, piece]) => rect[0] >= piece.rect[0] && rect[2] <= piece.rect[2] && rect[1] >= piece.rect[1] && rect[3] <= piece.rect[3])?.[0] ?? null;
+
+const item = async (key, kind) => {
+  const rect = scene.items[key];
+  if (!rect) throw new Error(`The render has nothing for ${key}`);
+  const layer = kind === "reading" ? pieceAt(rect) : null;
+  const sprite = kind === "notes" || kind === "letters" ? null
+    : await publish(sharp(layer ? fore : back).extract(area(rect)), key.replace(":", "-"), 88);
+  return { rect, layer, sprite };
 };
 const manifest = {
   width: scene.width,
   height: scene.height,
-  still,
-  closeups,
-  areas: scene.areas,
-  // Recorded so a test can tell when content has changed since the render.
-  essays: content.essays.map(({ slug, title }) => ({ slug, title, corners: corners(`essay:${slug}`) })),
-  readingLists: content.readingLists.map(({ slug, title, year }) => ({ slug, title, year, corners: corners(`reading:${slug}`) })),
-  notes: corners("notes"),
-  slot: corners("slot"),
+  tiles,
+  pieces,
+  bays: scene.bays,
+  essays: await Promise.all(content.essays.map(async ({ slug, title, date }) => ({ slug, title, date, ...(await item(`essay:${slug}`, "essay")) }))),
+  readingLists: await Promise.all(content.readingLists.map(async ({ slug, title, year, date }) => ({ slug, title, year, date, ...(await item(`reading:${slug}`, "reading")) }))),
+  notes: (await item("notes", "notes")).rect,
+  letters: (await item("letters", "letters")).rect,
 };
 await writeFile(path.join(root, "lib/bookshop.json"), JSON.stringify(manifest, null, 2) + "\n");
-console.log(`Published the bookshop: ${Object.keys(closeups).length} close-ups, ${manifest.essays.length} essays, ${manifest.readingLists.length} reading lists.`);
+console.log(`Published the bookshop: ${tiles.length} tiles, ${Object.keys(pieces).length} foreground pieces, ${published.length} files.`);

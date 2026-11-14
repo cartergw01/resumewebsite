@@ -1,233 +1,215 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import shop from "@/lib/bookshop.json";
 import { essays } from "@/content/portfolio";
 import type { NoteOrigin } from "@/lib/use-note-stack-motion";
+import BookOpen, { type OpenBook } from "./BookOpen";
 import styles from "./Bookshop.module.css";
 
 type Collection = typeof import("./ThoughtCollection").default;
 const loadCollection = () => import("./ThoughtCollection").then(module => module.default);
 
-type Area = "essays" | "reading" | "notes" | "letters";
-type Corners = number[][];
-// The shop's areas in walking order, named in the page's own words.
-const AREAS: { id: Area; label: string }[] = [
-  { id: "essays", label: "Essays" },
-  { id: "reading", label: "Reading Lists" },
-  { id: "notes", label: "some of my tweets" },
-  { id: "letters", label: "Newsletter" },
-];
-const byHref = new Map(essays.map(essay => [new URL(essay.href).pathname.split("/").filter(Boolean).pop(), essay]));
-const books = {
-  essays: shop.essays.map(book => ({ ...book, essay: byHref.get(book.slug)! })),
-  reading: [...shop.readingLists].sort((a, b) => Number(b.year) - Number(a.year)).map(book => ({ ...book, essay: byHref.get(book.slug)! })),
+// The furniture in front moves this much faster than the wall as you walk.
+const NEAR = 1.22;
+type Rect = number[];
+type Item = {
+  key: string;
+  kind: "essay" | "reading" | "letters" | "notes";
+  label: string;
+  rect: Rect;
+  layer: string | null;
+  sprite: string | null;
+  book?: OpenBook;
 };
-type Book = (typeof books.essays)[number];
 
-// A face's corners run top-left, top-right, bottom-left, bottom-right.
-const outline = (c: Corners) => `M${c[0][0]} ${c[0][1]}L${c[1][0]} ${c[1][1]}L${c[3][0]} ${c[3][1]}L${c[2][0]} ${c[2][1]}Z`;
-
-// How the shop frame moves to fill itself with one area's close-up.
-function zoomFor(area: Area | null) {
-  if (!area) return { x: 0, y: 0, scale: 1 };
-  const [l, t, r, b] = shop.closeups[area].box;
-  const scale = Math.min(1200 / (r - l), 800 / (b - t));
-  const clamp = (value: number, size: number) => Math.min(0, Math.max(size - size * scale, value));
-  return { x: clamp(600 - scale * (l + r) / 2, 1200), y: clamp(400 - scale * (t + b) / 2, 800), scale };
-}
+const byHref = new Map(essays.map(essay => [new URL(essay.href).pathname.split("/").filter(Boolean).pop(), essay]));
+const bookFor = (slug: string): OpenBook => {
+  const essay = byHref.get(slug)!;
+  return { title: essay.title, subtitle: essay.subtitle, date: essay.date, href: essay.href, image: essay.image, spine: essay.spine };
+};
+// Everything you can reach, in the order you pass it.
+const ITEMS: Item[] = [
+  { key: "letters", kind: "letters" as const, label: "Newsletter", rect: shop.letters, layer: null, sprite: null },
+  ...shop.essays.map(book => ({ key: book.slug, kind: "essay" as const, label: book.title, rect: book.rect, layer: book.layer, sprite: book.sprite, book: bookFor(book.slug) })),
+  ...shop.readingLists.map(book => ({ key: book.slug, kind: "reading" as const, label: book.title, rect: book.rect, layer: book.layer, sprite: book.sprite, book: bookFor(book.slug) })),
+  { key: "notes", kind: "notes" as const, label: "some of my tweets", rect: shop.notes, layer: null, sprite: null },
+].sort((a, b) => (a.rect[0] + a.rect[2]) - (b.rect[0] + b.rect[2]));
+const middle = (rect: Rect) => (rect[0] + rect[2]) / 2;
+const PIECES = Object.entries(shop.pieces);
 
 export default function Bookshop() {
-  const stage = useRef<HTMLDivElement>(null);
-  const [area, setArea] = useState<Area | null>(null);
-  const [wanted, setWanted] = useState<Set<Area>>(() => new Set());
-  const [sharp, setSharp] = useState<Set<Area>>(() => new Set());
-  const [settled, setSettled] = useState(true);
-  const [selected, setSelected] = useState<Record<"essays" | "reading", string>>({ essays: books.essays[0].slug, reading: books.reading[0].slug });
-  const [hovered, setHovered] = useState<string | null>(null);
+  const section = useRef<HTMLElement>(null);
+  const view = useRef<HTMLDivElement>(null);
+  const wall = useRef<HTMLDivElement>(null);
+  const pieces = useRef<Map<string, HTMLDivElement>>(new Map());
+  const marker = useRef<HTMLSpanElement>(null);
+  const [size, setSize] = useState({ width: 0, height: 0 });
+  const [current, setCurrent] = useState<string | null>(null);
+  const [opened, setOpened] = useState<{ item: Item; from: DOMRect | null } | null>(null);
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesOrigin, setNotesOrigin] = useState<NoteOrigin | null>(null);
   const [ThoughtCollection, setThoughtCollection] = useState<Collection | null>(null);
-  const warmNotes = useCallback(() => { void loadCollection().then(loaded => setThoughtCollection(() => loaded)).catch(() => {}); }, []);
-  const want = useCallback((id: Area) => setWanted(current => current.has(id) ? current : new Set(current).add(id)), []);
 
-  const go = useCallback((next: Area | null) => {
-    if (next) want(next);
-    setArea(current => {
-      if (current !== next) setSettled(false);
-      return next;
-    });
-  }, [want]);
+  // The shop is drawn at the view's height; walking it is scrolling past it.
+  const scale = size.height / shop.height;
+  const walk = Math.max(0, shop.width * scale - size.width);
+  useLayoutEffect(() => {
+    const element = view.current;
+    if (!element) return;
+    const measure = () => setSize({ width: element.clientWidth, height: element.clientHeight });
+    const observer = new ResizeObserver(measure);
+    observer.observe(element); measure();
+    return () => observer.disconnect();
+  }, []);
 
-  const openNotes = useCallback(() => {
-    const rect = stage.current?.querySelector<SVGPathElement>("[data-shop-notes]")?.getBoundingClientRect();
-    setNotesOrigin(rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, width: rect.width } : null);
-    warmNotes();
-    setNotesOpen(true);
-  }, [warmNotes]);
+  // How far along the shop you are, in screen pixels (0 at the door).
+  const travelled = useCallback(() => {
+    const element = section.current, sticky = view.current?.parentElement;
+    if (!element || !sticky) return 0;
+    const top = parseFloat(getComputedStyle(sticky).top) || 0;
+    return Math.min(walk, Math.max(0, top - element.getBoundingClientRect().top));
+  }, [walk]);
 
-  const enter = (id: Area) => {
-    go(id);
-    if (id === "notes") openNotes();
-  };
+  // Every frame you move: slide the wall, slide the furniture a little faster,
+  // and pick out whatever is in front of you.
+  useEffect(() => {
+    if (!scale) return;
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      const d = travelled();
+      const centre = size.width / 2 + d; // the middle of the view, along the shop
+      if (wall.current) wall.current.style.transform = `translate3d(${-d}px, 0, 0)`;
+      for (const [name, piece] of PIECES) {
+        const element = pieces.current.get(name);
+        if (!element) continue;
+        const [l, , r] = piece.rect;
+        const x = NEAR * ((l + r) / 2 * scale - centre) + size.width / 2 - (r - l) * scale / 2;
+        element.style.transform = `translate3d(${x - l * scale}px, 0, 0)`;
+      }
+      if (marker.current) marker.current.style.left = `${(walk ? d / walk : 0) * 100}%`;
+      let best: Item | null = null, distance = size.height * .32;
+      for (const item of ITEMS) {
+        const gap = Math.abs(middle(item.rect) * scale - centre);
+        if (gap < distance) { distance = gap; best = item; }
+      }
+      setCurrent(best?.key ?? null);
+    };
+    const request = () => { if (!frame) frame = requestAnimationFrame(paint); };
+    paint();
+    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("resize", request);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener("scroll", request); window.removeEventListener("resize", request); };
+  }, [scale, size, travelled, walk]);
 
-  const step = useCallback((by: 1 | -1) => {
-    if (area !== "essays" && area !== "reading") return;
-    const list = books[area];
-    const index = list.findIndex(book => book.slug === selected[area]);
-    const next = list[(index + by + list.length) % list.length];
-    setSelected(current => ({ ...current, [area]: next.slug }));
-  }, [area, selected]);
+  // Scrolls the page so that an item stands in the middle of the view.
+  const walkTo = useCallback((item: Item, smooth = true) => {
+    const element = section.current, sticky = view.current?.parentElement;
+    if (!element || !sticky) return;
+    const top = parseFloat(getComputedStyle(sticky).top) || 0;
+    const d = Math.min(walk, Math.max(0, middle(item.rect) * scale - size.width / 2));
+    const y = window.scrollY + element.getBoundingClientRect().top - top + d;
+    window.scrollTo({ top: y, behavior: smooth && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto" });
+  }, [scale, size.width, walk]);
 
-  // A sideways swipe on the shelf moves to the next or previous book.
-  const swipe = useRef<{ x: number; y: number } | null>(null);
-  const swipeStart = (event: ReactPointerEvent) => {
-    swipe.current = event.pointerType === "mouse" ? null : { x: event.clientX, y: event.clientY };
-  };
-  const swipeEnd = (event: ReactPointerEvent) => {
-    const start = swipe.current; swipe.current = null;
-    if (!start) return;
-    const dx = event.clientX - start.x, dy = event.clientY - start.y;
-    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      step(dx < 0 ? 1 : -1);
-      // The lifted finger shouldn't also choose the book it ended on.
-      swiped.current = true;
-      setTimeout(() => { swiped.current = false; }, 0);
+  const open = useCallback((item: Item, target?: Element | null) => {
+    if (item.kind === "notes") {
+      const rect = target?.getBoundingClientRect();
+      setNotesOrigin(rect ? { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, width: rect.width } : null);
+      void loadCollection().then(loaded => { setThoughtCollection(() => loaded); setNotesOpen(true); }).catch(() => {});
+      return;
     }
-  };
-  const swiped = useRef(false);
+    const sprite = target?.closest("[data-shop-item]")?.querySelector("img") ?? target;
+    setOpened({ item, from: sprite?.getBoundingClientRect() ?? null });
+  }, []);
 
-  // Escape steps back out to the whole shop; arrows browse the books in view.
+  // Arrows step to the next thing on the shelf, Enter takes it down.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (notesOpen || event.defaultPrevented) return;
-      const inField = event.target instanceof HTMLElement && event.target.closest("input, textarea");
-      if (event.key === "Escape" && area) { event.preventDefault(); go(null); return; }
-      if (inField || (area !== "essays" && area !== "reading")) return;
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      if (!stage.current?.closest("section")?.contains(document.activeElement) && document.activeElement !== document.body) return;
-      event.preventDefault();
-      step(event.key === "ArrowRight" ? 1 : -1);
+      if (opened || notesOpen || event.defaultPrevented || event.altKey || event.metaKey || event.ctrlKey) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable]")) return;
+      const rect = section.current?.getBoundingClientRect();
+      if (!rect || rect.bottom < innerHeight * .5 || rect.top > innerHeight * .5) return;
+      const index = ITEMS.findIndex(item => item.key === current);
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        const centre = size.width / 2 + travelled();
+        const ahead = event.key === "ArrowRight"
+          ? ITEMS.find(item => middle(item.rect) * scale > centre + 4)
+          : [...ITEMS].reverse().find(item => middle(item.rect) * scale < centre - 4);
+        if (ahead) walkTo(ahead);
+      } else if (event.key === "Enter" && index >= 0 && !target?.closest("button, a")) {
+        event.preventDefault();
+        open(ITEMS[index], document.querySelector(`[data-shop-item="${ITEMS[index].key}"] button`));
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [area, go, notesOpen, step]);
+  }, [current, notesOpen, open, opened, scale, size.width, travelled, walkTo]);
 
-  const zoom = zoomFor(area);
-  const frame = {
-    transform: `translate(${zoom.x / 12}%, ${zoom.y / 8}%) scale(${zoom.scale})`,
-    "--zoom": zoom.scale,
-  } as CSSProperties;
-  const current = area === "essays" || area === "reading"
-    ? books[area].find(book => book.slug === selected[area]) ?? books[area][0]
-    : null;
+  const place = (rect: Rect, origin = 0): CSSProperties => ({
+    left: (rect[0] - origin) * scale, top: rect[1] * scale,
+    width: (rect[2] - rect[0]) * scale, height: (rect[3] - rect[1]) * scale,
+  });
+  const reach = (item: Item, origin = 0) => (
+    <div key={item.key} className={styles.item} style={place(item.rect, origin)} data-shop-item={item.key} data-kind={item.kind} data-current={current === item.key}>
+      {item.sprite ? <Image src={item.sprite} alt="" aria-hidden="true" unoptimized draggable={false} fill sizes="200px" className={styles.sprite} /> : null}
+      <button type="button" className={styles.reach} aria-label={item.book ? `${item.label}, ${item.book.date}` : item.label}
+        aria-haspopup="dialog"
+        onFocus={() => { if (!("pointerInput" in document.documentElement.dataset)) walkTo(item); }}
+        onClick={event => open(item, event.currentTarget)} />
+    </div>
+  );
+  const here = ITEMS.find(item => item.key === current) ?? null;
+  const years = useMemo(() => shop.bays.map(bay => ({ ...bay, at: walk ? Math.min(1, Math.max(0, ((bay.x0 + bay.x1) / 2 * scale - size.width / 2) / walk)) : 0 })), [scale, size.width, walk]);
 
   return (
-    <section className={styles.shop} aria-label="The bookshop" data-book-reveal>
-      <div ref={stage} className={styles.stage} data-area={area ?? "shop"} data-settled={settled}
-        onPointerDown={swipeStart} onPointerUp={swipeEnd} onPointerCancel={() => { swipe.current = null; }}>
-        <div className={styles.frame} style={frame} onTransitionEnd={event => { if (event.target === event.currentTarget) setSettled(true); }}>
-          <Image src={shop.still.src} alt="Inside a small bookshop at night: Carter's essays face out on the lit shelves, his reading lists stacked on the table, notes pinned to a corkboard, and a letter slot in the door."
-            width={shop.still.width} height={shop.still.height} priority quality={86} draggable={false}
-            sizes="(max-width: 760px) 100vw, min(1500px, 94vw)" className={styles.still} />
-          {AREAS.map(({ id }) => {
-            const closeup = shop.closeups[id];
-            if (!wanted.has(id)) return null;
-            const [l, t, r, b] = closeup.box;
-            return <Image key={id} src={closeup.src} alt="" aria-hidden="true" width={closeup.width} height={closeup.height} quality={86} draggable={false}
-              sizes="(max-width: 760px) 200vw, 150vw" className={styles.closeup} data-shown={area === id && sharp.has(id)}
-              onLoad={() => setSharp(current => new Set(current).add(id))}
-              style={{ left: `${l / 12}%`, top: `${t / 8}%`, width: `${(r - l) / 12}%`, height: `${(b - t) / 8}%` }} />;
-          })}
-          <svg className={styles.marks} viewBox="0 0 1200 800" preserveAspectRatio="none">
-            {/* The whole shop: each area is one target. */}
-            {!area && AREAS.map(({ id, label }) => {
-              const [l, t, r, b] = shop.areas[id];
-              const pad = id === "notes" || id === "letters" ? 10 : 6;
-              return <rect key={id} className={styles.areaTarget} x={l - pad} y={t - pad} width={r - l + pad * 2} height={b - t + pad * 2} rx="6"
-                role="button" tabIndex={0} aria-label={label} data-shop-area={id}
-                onPointerEnter={() => { want(id); if (id === "notes") warmNotes(); }}
-                onFocus={() => want(id)}
-                onClick={() => enter(id)}
-                onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); enter(id); } }} />;
-            })}
-            {/* Inside an area: the books themselves. */}
-            {(area === "essays" || area === "reading") && books[area].map(book => (
-              <path key={book.slug} d={outline(book.corners)} className={styles.book}
-                data-selected={book.slug === current?.slug} data-hovered={hovered === book.slug}
-                role="button" tabIndex={0} aria-label={book.title} aria-pressed={book.slug === current?.slug}
-                onPointerEnter={() => setHovered(book.slug)} onPointerLeave={() => setHovered(null)}
-                onFocus={() => { if (!("pointerInput" in document.documentElement.dataset)) setSelected(s => ({ ...s, [area]: book.slug })); }}
-                onClick={() => { if (!swiped.current) setSelected(s => ({ ...s, [area]: book.slug })); }}
-                onKeyDown={event => { if (event.key === "Enter") window.open(book.essay.href, "_blank", "noopener,noreferrer"); }} />
+    <section ref={section} className={styles.walk} aria-label="The bookshop" style={{ "--walk": `${walk}px` } as CSSProperties} data-book-reveal>
+      <div className={styles.sticky}>
+        <div ref={view} className={styles.view}>
+          {scale > 0 && <>
+            <div ref={wall} className={styles.wall} style={{ width: shop.width * scale, height: shop.height * scale }}>
+              {shop.tiles.map((tile, index) => (
+                <Image key={tile.src} src={tile.src} alt={index === 0 ? "Inside a small bookshop at night, seen straight on: the door, then a bay of shelves for each year with Carter's essays face out, and a corkboard of notes by the window at the end." : ""}
+                  width={tile.width} height={shop.height} unoptimized draggable={false} priority={index < 2} loading="eager"
+                  className={styles.tile} style={{ left: tile.x * scale, width: tile.width * scale + 1 }} />
+              ))}
+              {ITEMS.filter(item => !item.layer).map(item => reach(item))}
+            </div>
+            {PIECES.map(([name, piece]) => (
+              <div key={name} ref={element => { if (element) pieces.current.set(name, element); else pieces.current.delete(name); }}
+                className={styles.piece} style={place(piece.rect)}>
+                {/* A soft shadow where it stands on the floor. */}
+                <span className={styles.shadow} aria-hidden="true"
+                  style={{ top: (piece.foot - piece.rect[1]) * scale, height: (piece.rect[2] - piece.rect[0]) * scale * .16 }} />
+                <Image src={piece.src} alt="" aria-hidden="true" unoptimized fill sizes="400px" draggable={false} className={styles.pieceArt} />
+                {ITEMS.filter(item => item.layer === name).map(item => reach(item, piece.rect[0]))}
+              </div>
             ))}
-            <path d={outline(shop.notes)} className={styles.book} data-shop-notes data-active={area === "notes"}
-              role="button" tabIndex={area === "notes" ? 0 : -1} aria-label="Read some of my tweets" aria-haspopup="dialog"
-              onClick={openNotes} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); openNotes(); } }} />
-            {/* The slot itself leads to the form under the shop. */}
-            <path d={outline(shop.slot)} className={styles.book} data-active={area === "letters"} aria-hidden="true"
-              onClick={() => document.getElementById("bookshop-email")?.focus({ preventScroll: false })} />
-          </svg>
-          {!area && AREAS.map(({ id, label }) => {
-            const [l, t, r] = shop.areas[id];
-            return <span key={id} className={styles.label} aria-hidden="true" data-for={id}
-              style={{ left: `${(l + r) / 24}%`, top: `${Math.max(t - 14, 16) / 8}%` }}>{label}</span>;
-          })}
+          </>}
+          <div className={styles.lamp} aria-hidden="true" />
+        </div>
+        <div className={styles.caption}>
+          <div className={styles.ruler} aria-hidden="true">
+            {years.map(year => <span key={year.year} className={styles.year} style={{ left: `${year.at * 100}%` }}>{year.year}</span>)}
+            <span ref={marker} className={styles.marker} />
+          </div>
+          <div className={styles.here} aria-live="polite">
+            {here ? <>
+              {here.book ? <span className={styles.date}>{here.book.date}</span> : null}
+              <span className={styles.title}>{here.label}</span>
+              <button type="button" className={styles.open} onClick={() => open(here, document.querySelector(`[data-shop-item="${here.key}"] button`))}>
+                {here.kind === "notes" ? "Read" : "Open"}
+              </button>
+            </> : null}
+          </div>
         </div>
       </div>
-
-      <div className={styles.panel}>
-        <nav className={styles.areas} aria-label="Bookshop areas">
-          <button type="button" className={styles.areaButton} aria-pressed={!area} onClick={() => go(null)}>Whole shop</button>
-          {AREAS.map(({ id, label }) => (
-            <button key={id} type="button" className={styles.areaButton} aria-pressed={area === id}
-              onPointerEnter={() => { want(id); if (id === "notes") warmNotes(); }} onFocus={() => want(id)}
-              onClick={() => enter(id)}>{label}</button>
-          ))}
-        </nav>
-        <div className={styles.card} aria-live="polite">
-          {current ? <BookCard book={current} /> : null}
-          {area === "notes" ? <p className={styles.cardLine}><button type="button" className={styles.read} onClick={openNotes}>Read some of my tweets</button></p> : null}
-          {area === "letters" ? <Letters /> : null}
-        </div>
-      </div>
-      {notesOpen && ThoughtCollection && <ThoughtCollection initialId={null} origin={notesOrigin} onClose={() => setNotesOpen(false)} />}
+      {opened ? <BookOpen book={opened.item.book ?? null} letters={opened.item.kind === "letters"} from={opened.from} onClose={() => setOpened(null)} /> : null}
+      {notesOpen && ThoughtCollection ? <ThoughtCollection initialId={null} origin={notesOrigin} onClose={() => setNotesOpen(false)} /> : null}
     </section>
   );
-}
-
-function BookCard({ book }: { book: Book }) {
-  const { essay } = book;
-  return <article className={styles.bookCard}>
-    <p className={styles.meta}><time>{essay.date}</time></p>
-    <h2 className={styles.title}>{essay.title}</h2>
-    <p className={styles.subtitle}>{essay.subtitle}</p>
-    <a className={styles.read} href={essay.href} target="_blank" rel="noopener noreferrer">Read on Substack <span aria-hidden="true">↗</span></a>
-  </article>;
-}
-
-// The slot in the door: the same hand-off to Substack as the subscribe card.
-function Letters() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    const trimmed = email.trim();
-    if (!trimmed) return;
-    window.open(`https://carterko.substack.com/subscribe?email=${encodeURIComponent(trimmed)}`, "_blank", "noopener,noreferrer");
-    setSent(true);
-  };
-  return <form className={styles.letters} onSubmit={submit}>
-    <p className={styles.subtitle}>Subscribe to keep up to date on new essays.</p>
-    <div className={styles.field}>
-      <label className="sr-only" htmlFor="bookshop-email">Email address</label>
-      <input id="bookshop-email" type="email" required placeholder="your@email.com" value={email} autoComplete="email" inputMode="email"
-        onChange={event => { setEmail(event.target.value); setSent(false); }} />
-      <button type="submit" className={styles.read}>Subscribe</button>
-    </div>
-    {sent ? <p className={styles.meta} role="status">
-      <a href={`https://carterko.substack.com/subscribe?email=${encodeURIComponent(email.trim())}`} data-native-navigation>Continue on Substack</a> to finish subscribing.
-    </p> : null}
-  </form>;
 }

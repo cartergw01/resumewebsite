@@ -28,6 +28,8 @@ export async function readBookshopContent() {
     image: essay.image,
     position: position(essay.imagePosition),
     spine: essay.spine,
+    date: essay.date,
+    iso: new Date(`${essay.date} UTC`).toISOString().slice(0, 10),
   });
   // The same split as content/portfolio.ts's ownEssays.
   const isReadingList = (essay) => essay.title.startsWith("The Best Things I Read");

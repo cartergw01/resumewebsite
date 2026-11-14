@@ -1,31 +1,44 @@
 # Bookshop plan
 
-The Writing page opens inside a small bookshop at night. You stand just inside its front corner at eye height, looking across the room: shelves on the far wall, the door, corkboard and window on the left, a beamed ceiling, and the night only through the glass. The floating islands belong to the home page (Carter's call, 2026-11-14), so the shop is a room, not a model in the sky. It's built and rendered in Blender from the same procedural kit as the islands (`scripts/blender/build_bookshop.py` imports `build_islands.py`), with no pixel art and no AI imagery.
+The Writing page is a bookshop you walk along. You see one long, narrow shop straight on, like a doll's house with its front taken off: no 3D angle, just a slight downward tilt to show the floor. Scrolling the page walks you along it.
 
-Everything in the shop that means something is Carter's own:
+Carter's direction (2026-11-14):
+- Floating islands belong to the home page.
+- The bookshop shouldn't be seen from an angle.
+- It has to be an experience, not a picture with hotspots.
 
-- **Essays**: the eight essays stand face out on the two lit middle shelves, newest top left. Each is a cloth-bound book in that essay's own spine colours from `content/portfolio.ts`, with its real cover tipped in as a plate and its title stamped beneath.
-- **Reading Lists**: the three "Best Things I Read" round-ups lie in stacks on the oak table, each topped by that list's cover, with its year on the book.
-- **some of my tweets**: the corkboard between the door and the window. It opens the same tweet reader as the bird on the home page.
-- **Newsletter**: the brass letter plate in the shop door, with a wire basket of post under it. It hands off to Substack exactly like the subscribe card.
-- "flying Arrows", the publication's name, is in brass letters over the shelves.
+## The shelf is a timeline
 
-The other books on the shelves have no titles, so nothing on show is invented. No clutter: a window seat and a plant. Three small brass spots on the beam light the table; pendants or a table lamp would hang in front of the essays.
+Walking left to right takes you through Carter's writing in the order he wrote it:
 
-## How it works on the page
+1. **The door.** Its brass letter plate, with a wire basket of post under it, is the newsletter. Taking a letter from it shows the subscribe form, handing off to Substack exactly like the subscribe card. The shop window beside it has "flying Arrows" in gilt on the glass, and through the glass is the page's own night sky.
+2. **A bay of shelves for each year.** Each bay has a brass year plate on top. That year's essays stand face out on the lit eye-level shelf, oldest first. Each is a cloth-bound book in its own spine colours from `content/portfolio.ts`, with its real cover tipped in and its title stamped beneath.
+3. **Each year's reading list.** "The Best Things I Read in 2023", and the later lists, are each propped on a low table in front of that year's bay. The tables stand nearer than the shelves.
+4. **The corkboard of notes.** It's under a brass picture light at the far end, by a window seat, and it opens the same tweet reader as the bird on the home page.
 
-The page shows the whole shop. Each area is one target, and its name shows over it on hover or focus. The buttons under the shop name all four for touch screens. Clicking an area, or its button under the shop, glides the camera into it. The glide is a CSS zoom of the still. Then a close-up fades in over it: the same camera rendered at three times the size and cropped to that area, so it lines up exactly and the covers' titles are sharp.
+The other books have no titles, so nothing on show is invented.
 
-Inside Essays or Reading Lists, the books are the targets. Choosing one shows its date, title and subtitle under the shop, with "Read on Substack". The newest is chosen on arrival. The arrow keys, or a sideways swipe on a touch screen, step through the books. Enter on a focused book opens it, and Escape or "Whole shop" steps back out. The corkboard opens the tweet reader straight away. The door shows the subscribe form.
+## What makes it an experience
 
-The essay archive and the subscribe card stay below the shop, unchanged, for reading as a list.
+- **Walking.** The shop is pinned under the navigation while the page scrolls past it, so a wheel, trackpad, swipe or space bar walks you along. The arrow keys step to the next or previous thing on the shelf, and Tab walks you to each one in turn.
+- **Depth.** The tables and plants in front move a little faster than the wall (`NEAR` in `components/Bookshop.tsx`). That's why they're rendered as a separate layer, with their own floor shadows. Each one lines up with its bay when you stand in front of it. The sky through the windows doesn't move at all.
+- **Light.** The shop is brightest where you stand and dims towards the edges.
+- **Reaching for things.** Whatever is in front of you leans out of the shelf toward you, and is named under the shop, with its date, beside a ruler of the years showing where you are.
+- **Taking a book down.** Tapping a book, Enter, or "Open" takes it down: it flies from the shelf to the middle of the screen, and its cover swings open. The inside of the cover becomes the left page, showing the essay's art. The right page has the date, title, subtitle and "Read on Substack". On a phone, the cover swings away and the page stays centred. Escape, the × or a tap outside puts it back.
 
-## Rebuilding
+The essay archive and the subscribe card stay below the shop for reading as a list.
+
+## Building it
 
 ```bash
 node scripts/blender/bookshop_content.mjs
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/blender/build_bookshop.py -- --output .blender-build/bookshop-full --width 2880 --samples 96 --closeup-scale 3
-node scripts/blender/export_bookshop.mjs .blender-build/bookshop-full
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/blender/build_bookshop.py -- --output .blender-build/bookshop --ppu 260 --samples 48
+node scripts/blender/export_bookshop.mjs .blender-build/bookshop
 ```
 
-Re-run all three after a new essay is published: the shelf is built from the content, and a unit test fails when `lib/bookshop.json` no longer matches it.
+`build_bookshop.py` uses the islands' procedural kit from `build_islands.py`, with no pixel art or AI imagery. It renders two passes from one level orthographic camera:
+
+- **The room**, with the furniture left out.
+- **The furniture alone**, with the room held out and the floor only catching the furniture's shadows.
+
+The exporter cuts the room into tiles, cuts out each piece of furniture and each book, and writes `lib/bookshop.json`. Re-run all three after a new essay is published. The shelves are built from the content, and a unit test fails when they no longer match it, or when an essay stands outside its year's bay.
