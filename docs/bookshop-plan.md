@@ -34,8 +34,9 @@ The essay archive and the subscribe card stay below the shop for reading as a li
 
 ```bash
 node scripts/blender/bookshop_content.mjs
-/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/blender/build_bookshop.py -- --output .blender-build/bookshop --ppu 260 --samples 48
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/blender/build_bookshop.py -- --output .blender-build/bookshop --ppu 420 --samples 48
 node scripts/blender/export_bookshop.mjs .blender-build/bookshop
+node scripts/essay-openings.mjs
 ```
 
 `build_bookshop.py` uses the islands' procedural kit from `build_islands.py`, with no pixel art or AI imagery. It renders two passes from one level orthographic camera:
