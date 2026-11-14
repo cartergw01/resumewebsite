@@ -47,7 +47,7 @@ export default function WritingPage() {
 
         <Bookshop />
 
-        <section className="writing-archive" aria-label="Substack essay archive" data-book-reveal>
+        <section id="writing-archive" className="writing-archive" aria-label="Substack essay archive" data-book-reveal style={{ scrollMarginTop: "6rem" }}>
           <ArchiveGroup title="Essays" entries={essayEntries} />
           <ArchiveGroup
             title="Reading Lists"

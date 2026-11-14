@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 
 const shop = JSON.parse(readFileSync(new URL("../../lib/bookshop.json", import.meta.url), "utf8")) as typeof import("../../lib/bookshop.json");
+const openings = JSON.parse(readFileSync(new URL("../../content/essay-openings.json", import.meta.url), "utf8")) as Record<string, string>;
 const oldest = [...shop.essays].sort((a, b) => a.rect[0] - b.rect[0])[0];
 const newest = [...shop.essays].sort((a, b) => b.rect[0] - a.rect[0])[0];
 
@@ -52,7 +53,12 @@ test("taking a book down opens it on its date, title and a link to read it", asy
   await book.click();
   const dialog = page.locator("dialog[open]");
   await expect(dialog.getByRole("heading")).toHaveText(newest.title);
-  await expect(dialog.getByRole("link", { name: /Read on Substack/ })).toHaveAttribute("href", `https://carterko.substack.com/p/${newest.slug}`);
+  await expect(dialog.getByRole("link", { name: /reading on Substack/i })).toHaveAttribute("href", `https://carterko.substack.com/p/${newest.slug}`);
+  // The page opens on how the essay begins, in its own words.
+  await expect(dialog).toContainText(openings[newest.slug].split("\n")[0].slice(0, 40));
+  // The arrows turn to the book before it on the shelf without closing.
+  await dialog.getByRole("button", { name: "Previous book" }).click();
+  await expect(dialog.getByRole("heading")).not.toHaveText(newest.title);
   await page.keyboard.press("Escape");
   await expect(page.locator("dialog[open]")).toHaveCount(0);
 });

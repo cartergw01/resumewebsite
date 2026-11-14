@@ -1,105 +1,115 @@
 {
-  "width": 5806,
-  "height": 1182,
+  "width": 9379,
+  "height": 1086,
   "tiles": [
     {
       "x": 0,
       "width": 1400,
-      "src": "/blender/bookshop-tile-0-c5305e75.webp"
+      "src": "/blender/bookshop-tile-0-03958e1a.webp"
     },
     {
       "x": 1400,
       "width": 1400,
-      "src": "/blender/bookshop-tile-1-d9e56e4f.webp"
+      "src": "/blender/bookshop-tile-1-9afc83c7.webp"
     },
     {
       "x": 2800,
       "width": 1400,
-      "src": "/blender/bookshop-tile-2-7f9fbd31.webp"
+      "src": "/blender/bookshop-tile-2-b87b8118.webp"
     },
     {
       "x": 4200,
       "width": 1400,
-      "src": "/blender/bookshop-tile-3-ebc3be52.webp"
+      "src": "/blender/bookshop-tile-3-20863a51.webp"
     },
     {
       "x": 5600,
-      "width": 206,
-      "src": "/blender/bookshop-tile-4-6a817772.webp"
+      "width": 1400,
+      "src": "/blender/bookshop-tile-4-8f5c6464.webp"
+    },
+    {
+      "x": 7000,
+      "width": 1400,
+      "src": "/blender/bookshop-tile-5-489788f5.webp"
+    },
+    {
+      "x": 8400,
+      "width": 979,
+      "src": "/blender/bookshop-tile-6-93c86cd1.webp"
     }
   ],
   "pieces": {
     "plant:door": {
       "rect": [
-        859,
-        832,
-        1205,
-        1081
+        1399,
+        902,
+        1935,
+        1086
       ],
-      "foot": 1058,
-      "src": "/blender/bookshop-plant-door-e030dd8d.webp"
+      "foot": 1261.8,
+      "src": "/blender/bookshop-plant-door-014f6955.webp"
     },
     "table:2023": {
       "rect": [
-        1282,
-        709,
-        1708,
-        1076
+        2082,
+        703,
+        2748,
+        1086
       ],
-      "foot": 1058,
-      "src": "/blender/bookshop-table-2023-8fa90838.webp"
+      "foot": 1261.8,
+      "src": "/blender/bookshop-table-2023-6cc3c5a7.webp"
     },
     "table:2024": {
       "rect": [
-        2178,
-        709,
-        2604,
-        1076
+        3529,
+        703,
+        4195,
+        1086
       ],
-      "foot": 1058,
-      "src": "/blender/bookshop-table-2024-f181ee80.webp"
+      "foot": 1261.8,
+      "src": "/blender/bookshop-table-2024-9739024e.webp"
     },
     "table:2025": {
       "rect": [
-        3138,
-        709,
-        3564,
-        1076
+        5081,
+        703,
+        5747,
+        1086
       ],
-      "foot": 1058,
-      "src": "/blender/bookshop-table-2025-7128e21c.webp"
+      "foot": 1261.8,
+      "src": "/blender/bookshop-table-2025-3c1d4e79.webp"
     },
     "plant:nook": {
       "rect": [
-        5212,
-        843,
-        5510,
-        1080
+        8430,
+        920,
+        8889,
+        1086
       ],
-      "foot": 1058,
-      "src": "/blender/bookshop-plant-nook-7d730a96.webp"
+      "foot": 1261.8,
+      "src": "/blender/bookshop-plant-nook-b77958ba.webp"
     }
   },
   "bays": [
     {
       "year": "2023",
-      "x0": 1170,
-      "x1": 1820.1
+      "x0": 1890.1,
+      "x1": 2940.1
     },
     {
       "year": "2024",
-      "x0": 1851.3,
-      "x1": 2930.3
+      "x0": 2990.5,
+      "x1": 4733.6
     },
     {
       "year": "2025",
-      "x0": 2961.5,
-      "x1": 3741.5
+      "x0": 4784,
+      "x1": 6044.1
     },
     {
       "year": "2026",
-      "x0": 3772.7,
-      "x1": 4552.8
+      "x0": 6094.5,
+      "x1": 7354.5
     }
   ],
   "essays": [
@@ -108,104 +118,104 @@
       "title": "The Cost of Keeping Up",
       "date": "May 5, 2026",
       "rect": [
-        4231.6,
-        489.1,
-        4392.9,
-        711.5
+        6835.8,
+        342.9,
+        7096.2,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-the-cost-of-keeping-up-b497251e.webp"
+      "sprite": "/blender/bookshop-essay-the-cost-of-keeping-up-7f0c3bbc.webp"
     },
     {
       "slug": "slop-and-spiral",
       "title": "Slop and Spiral",
       "date": "Jan 20, 2026",
       "rect": [
-        3932.6,
-        489.1,
-        4093.8,
-        711.5
+        6352.8,
+        342.9,
+        6613.2,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-slop-and-spiral-52c430b7.webp"
+      "sprite": "/blender/bookshop-essay-slop-and-spiral-fb4f7d6e.webp"
     },
     {
       "slug": "we-all-have-superpowers",
       "title": "We All Have Superpowers",
       "date": "Oct 17, 2025",
       "rect": [
-        3420.4,
-        489.1,
-        3581.6,
-        711.5
+        5525.3,
+        342.9,
+        5785.7,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-we-all-have-superpowers-32612b41.webp"
+      "sprite": "/blender/bookshop-essay-we-all-have-superpowers-aedaf3d9.webp"
     },
     {
       "slug": "the-mirage-of-identity",
       "title": "The Mirage of Identity",
       "date": "May 12, 2025",
       "rect": [
-        3121.4,
-        489.1,
-        3282.6,
-        711.5
+        5042.3,
+        342.9,
+        5302.7,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-the-mirage-of-identity-996be5a8.webp"
+      "sprite": "/blender/bookshop-essay-the-mirage-of-identity-d65d4480.webp"
     },
     {
       "slug": "from-crash-to-curiosity",
       "title": "From Crash to Curiosity",
       "date": "Nov 3, 2024",
       "rect": [
-        2609.2,
-        489.1,
-        2770.4,
-        711.5
+        4214.9,
+        342.9,
+        4475.3,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-from-crash-to-curiosity-bbc59127.webp"
+      "sprite": "/blender/bookshop-essay-from-crash-to-curiosity-fce78e20.webp"
     },
     {
       "slug": "work-as-play",
       "title": "Work as Play",
       "date": "Sep 28, 2024",
       "rect": [
-        2310.2,
-        489.1,
-        2471.4,
-        711.5
+        3731.9,
+        342.9,
+        3992.3,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-work-as-play-6c205267.webp"
+      "sprite": "/blender/bookshop-essay-work-as-play-38ddd980.webp"
     },
     {
       "slug": "fuck-it-we-ball",
       "title": "Fuck It, We Ball!",
       "date": "Jul 20, 2024",
       "rect": [
-        2011.2,
-        489.1,
-        2172.4,
-        711.5
+        3248.8,
+        342.9,
+        3509.2,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-fuck-it-we-ball-fef5cf1b.webp"
+      "sprite": "/blender/bookshop-essay-fuck-it-we-ball-356b8d4f.webp"
     },
     {
       "slug": "an-ode-to-ignorance",
       "title": "An Ode to Ignorance",
       "date": "May 26, 2023",
       "rect": [
-        1414.4,
-        489.1,
-        1575.7,
-        711.5
+        2284.9,
+        342.9,
+        2545.3,
+        702.2
       ],
       "layer": null,
-      "sprite": "/blender/bookshop-essay-an-ode-to-ignorance-0d7e5832.webp"
+      "sprite": "/blender/bookshop-essay-an-ode-to-ignorance-9b15c943.webp"
     }
   ],
   "readingLists": [
@@ -215,13 +225,13 @@
       "year": "2025",
       "date": "Jan 11, 2026",
       "rect": [
-        3346.3,
-        717.2,
-        3491.9,
-        887.8
+        5405.6,
+        711.3,
+        5640.8,
+        987
       ],
       "layer": "table:2025",
-      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2025-971eb5eb.webp"
+      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2025-208d73c1.webp"
     },
     {
       "slug": "the-best-things-i-read-in-2024",
@@ -229,13 +239,13 @@
       "year": "2024",
       "date": "Jan 6, 2025",
       "rect": [
-        2385.6,
-        717.2,
-        2531.2,
-        887.8
+        3853.7,
+        711.3,
+        4088.9,
+        987
       ],
       "layer": "table:2024",
-      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2024-9ff4d098.webp"
+      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2024-6bddab75.webp"
     },
     {
       "slug": "the-best-things-i-read-in-2023",
@@ -243,25 +253,25 @@
       "year": "2023",
       "date": "Jan 3, 2024",
       "rect": [
-        1489.9,
-        717.2,
-        1635.5,
-        887.8
+        2406.7,
+        711.3,
+        2641.9,
+        987
       ],
       "layer": "table:2023",
-      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2023-1758b207.webp"
+      "sprite": "/blender/bookshop-reading-the-best-things-i-read-in-2023-7dcc8e2e.webp"
     }
   ],
   "notes": [
-    4701,
-    288.4,
-    4987,
-    624.6
+    7593.9,
+    156.6,
+    8055.9,
+    699.6
   ],
   "letters": [
-    156,
-    521.2,
-    416,
-    715.1
+    252,
+    394.7,
+    672,
+    708
   ]
 }

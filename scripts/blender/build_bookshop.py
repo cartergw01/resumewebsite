@@ -181,16 +181,16 @@ def entrance(x0, font):
     wx0, wx1, wz0, wz1 = door_x + .80, door_x + 2.75, 1.05, 3.45
     B.box('Shop window · glass', ((wx0 + wx1) / 2, BACK + .02, (wz0 + wz1) / 2), (wx1 - wx0, .012, wz1 - wz0), 'clearwindow', .001)
     for xx in [wx0, wx1]: B.box('Shop window · frame', (xx, BACK, (wz0 + wz1) / 2), (.07, .10, wz1 - wz0 + .07), 'shopgreen', .003)
-    for zz in [wz0, wz1, wz1 - .55]: B.box('Shop window · frame', ((wx0 + wx1) / 2, BACK, zz), (wx1 - wx0 + .07, .10, .07), 'shopgreen', .003)
+    for zz in [wz0, wz1, 2.25]: B.box('Shop window · frame', ((wx0 + wx1) / 2, BACK, zz), (wx1 - wx0 + .07, .10, .07), 'shopgreen', .003)
     B.box('Shop window · sill', ((wx0 + wx1) / 2, BACK - .12, wz0 - .04), (wx1 - wx0 + .2, .26, .06), 'oak', .004)
-    words('Shop window · flying Arrows', 'flying Arrows', ((wx0 + wx1) / 2, BACK - .005, wz1 - .28), .24, 'gilt', font=font)
+    words('Shop window · flying Arrows', 'flying Arrows', ((wx0 + wx1) / 2, BACK - .005, 2.62), .24, 'gilt', font=font)
     # Walls around the openings.
     end = x0 + 4.4
     wall(x0 - .3, xd0 - .08, .16, TOP); wall(xd1 + .08, wx0 - .035, .16, TOP)
     wall(xd0 - .08, xd1 + .08, .16 + h + .12, TOP)
     wall(wx0 - .035, wx1 + .035, .16, wz0 - .035); wall(wx0 - .035, wx1 + .035, wz1 + .035, TOP)
     wall(wx1 + .035, end, .16, TOP)
-    B.up_down_sconce(end - .30, BACK - .02, 2.9, 80)
+    B.up_down_sconce(end - .30, BACK - .02, 2.45, 80)
     return end
 
 
@@ -208,9 +208,9 @@ def bay(x0, year, essays, font, rng):
         B.box('Bookcase · shelf lip', ((x0 + x1) / 2, SHELF_Y - .29, z + .03), (width, .02, .06), 'shopgreen', .002)
     for z in [ROWS[0], ROWS[2]]: shelf_run(x0 + .05, x1 - .05, z + .028, rng)
     shelf_run(x0 + .05, x1 - .05, ROWS[3] + .028, rng, .30, .52)
-    # The year, on a brass plate on the top shelf's lip.
-    B.box('Year plate · brass', ((x0 + x1) / 2, SHELF_Y - .31, ROWS[3] + .30), (.62, .012, .22), 'brass', .006)
-    words('Year plate · ' + year, year, ((x0 + x1) / 2, SHELF_Y - .318, ROWS[3] + .30), .15, 'ink', font=font)
+    # The year, on a brass label on the lip of the shelf over the essays.
+    B.box('Year plate · brass', ((x0 + x1) / 2, SHELF_Y - .31, ROWS[2] + .17), (.56, .012, .19), 'brass', .006)
+    words('Year plate · ' + year, year, ((x0 + x1) / 2, SHELF_Y - .318, ROWS[2] + .17), .13, 'ink', font=font)
     if not essays: shelf_run(x0 + .05, x1 - .05, ROWS[1] + .028, rng)
     # The essays, face out, oldest on the left.
     z0 = ROWS[1] + .028
@@ -270,7 +270,7 @@ def foreground_plant(name, x, scale=1):
 def nook(x0):
     """The far end: the corkboard of notes under a brass picture light, then a
     tall window onto the night with a window seat."""
-    cx, cz = x0 + 1.0, 2.25
+    cx, cz = x0 + 1.0, 1.92
     wall(x0 - .1, x0 + 2.0, .16, TOP)
     B.box('Corkboard · frame', (cx, BACK - .02, cz), (1.10, .04, 1.30), 'oak', .006)
     B.box('Corkboard · cork', (cx, BACK - .042, cz), (1.00, .01, 1.20), 'cork', .002)
@@ -327,8 +327,10 @@ def build(font):
     return x
 
 
-def camera(scene, length, ppu, pitch=6, bottom=-.45, top=4.12):
-    """Level and straight on, tipped down a few degrees to show the floor."""
+def camera(scene, length, ppu, pitch=6, bottom=.45, top=3.05):
+    """Level and straight on, tipped down a few degrees. Framed close, from the
+    reading tables' tops to just over the essays, so the books are the size
+    of the screen's attention rather than a detail in a library."""
     data = bpy.data.cameras.new('Bookshop · straight on')
     data.type = 'ORTHO'; data.ortho_scale = length + .2
     cam = bpy.data.objects.new('Camera', data); bpy.context.collection.objects.link(cam)
@@ -393,6 +395,9 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     scene = B.setup('bookshop', 1200, args.samples, 'CYCLES', args.device)
     scene.view_settings.exposure = args.exposure
+    # The panorama is wide: render it whole, in memory, rather than as tiles
+    # spooled to temporary files on disk.
+    scene.cycles.use_auto_tile = False
     length = build(serif())
     camera(scene, length, args.ppu)
     B.unseen_lights(scene)

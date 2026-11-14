@@ -1,6 +1,6 @@
 .dialog {
-  --page-w: min(360px, 40vw);
-  --page-h: calc(var(--page-w) * 1.38);
+  --page-w: min(380px, 40vw);
+  --page-h: min(calc(var(--page-w) * 1.42), calc(100svh - 9rem));
   position: fixed;
   inset: 0;
   width: 100%;
@@ -50,10 +50,8 @@
 .page {
   position: absolute;
   inset: 0;
-  display: grid;
-  align-content: center;
-  gap: .6rem;
-  padding: 10% 11%;
+  padding: 9% 10% 8%;
+  overflow: hidden;
   border-radius: 2px 6px 6px 2px;
   background: linear-gradient(90deg, #d9cdb4 0, #f3ead8 6%, #f6efdf 100%);
   box-shadow: 0 24px 60px #000a, inset 1px 0 0 #b9a98a;
@@ -61,11 +59,31 @@
 }
 .date { margin: 0; color: #6d5d47; font: 500 .8rem/1.3 var(--font-sans), system-ui, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .date a { color: inherit; }
+.leaf { display: flex; flex-direction: column; gap: .5rem; height: 100%; }
+.leaf[data-turn="next"] { animation: turn-next 420ms var(--cw-ease) both; }
+.leaf[data-turn="prev"] { animation: turn-prev 420ms var(--cw-ease) both; }
+.frontispiece[data-turn] { animation: fade-in 420ms ease both; }
+@keyframes turn-next { from { opacity: 0; transform: translateX(22px); } }
+@keyframes turn-prev { from { opacity: 0; transform: translateX(-22px); } }
+@keyframes fade-in { from { opacity: 0; } }
+/* How the essay begins, fading out at the foot of the page. */
+.opening {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  margin-top: .35rem;
+  color: #3a2f23;
+  font: 400 .95rem/1.6 Georgia, "Times New Roman", serif;
+  -webkit-mask-image: linear-gradient(#000 70%, #0000);
+  mask-image: linear-gradient(#000 70%, #0000);
+}
+.opening p { margin: 0 0 .7em; }
 .title { margin: 0; font: 600 clamp(1.25rem, 2.3vw, 1.75rem)/1.15 Georgia, "Times New Roman", serif; text-wrap: balance; }
-.subtitle { margin: 0; color: #4a3d2e; font: 400 1rem/1.55 Georgia, "Times New Roman", serif; }
+.subtitle { margin: 0; color: #5a4a37; font: italic 400 .95rem/1.5 Georgia, "Times New Roman", serif; }
 .dialog .read {
+  align-self: flex-start;
   justify-self: start;
-  margin-top: .5rem;
+  margin-top: .25rem;
   padding: .6rem .95rem;
   border: 0;
   border-radius: 6px;
@@ -76,6 +94,35 @@
   cursor: pointer;
 }
 .dialog .read:hover { background: #45372a; color: #f6efdf; }
+
+/* Turning to the next or previous book on the shelf. */
+.turns {
+  position: absolute;
+  left: 50%;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  translate: -50% 0;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.turns[data-shown="true"] { opacity: 1; pointer-events: auto; }
+.dialog[data-phase="leaving"] .turns { opacity: 0; }
+.turn {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #eddbbf40;
+  border-radius: 50%;
+  background: #0b0f1acc;
+  color: var(--cw-paper);
+  font: 400 1.25rem/1 var(--font-sans), system-ui, sans-serif;
+  cursor: pointer;
+}
+.turn:disabled { opacity: .3; cursor: default; }
+.turn:not(:disabled):hover { border-color: #eddbbfaa; }
+.count { min-width: 3.5rem; color: #fff7eab3; font: 500 .8125rem/1 var(--font-sans), system-ui, sans-serif; text-align: center; font-variant-numeric: tabular-nums; }
 
 /* The cover swings open about the spine; its inside becomes the left page. */
 .cover {
@@ -141,8 +188,9 @@
    the middle and the cover swings away to the left. */
 @media (max-width: 760px) {
   .dialog { --page-w: min(330px, 82vw); }
-  .pageArt { display: block; }
-  .page { align-content: start; padding-top: 9%; }
+  .dialog { --page-h: min(calc(100svh - 10.5rem), 600px); }
+  .book { margin-top: calc(var(--page-h) / -2 - 1.75rem); }
+  .pageArt { display: block; aspect-ratio: 16 / 9; flex: none; }
   .dialog[data-phase="open"] .book { transform: translateX(-50%); }
   .dialog[data-phase="open"] .cover { transform: rotateY(-120deg); opacity: .0; transition: transform 760ms cubic-bezier(.3, .7, .2, 1), opacity 300ms ease 420ms; }
 }
