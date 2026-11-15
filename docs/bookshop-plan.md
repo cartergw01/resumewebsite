@@ -11,7 +11,7 @@ Carter's direction (2026-11-14):
 
 Walking left to right takes you through Carter's writing in the order he wrote it:
 
-1. **The door.** Its brass letter plate, with a wire basket of post under it, is the newsletter. Taking a letter from it shows the subscribe form, handing off to Substack exactly like the subscribe card. The shop window beside it has "flying Arrows" in gilt on the glass, and through the glass is the page's own night sky.
+1. **The door.** Its brass letter plate, with a wire basket of post under it, is the newsletter. Taking a letter from it shows the subscribe form, handing off to Substack exactly like the subscribe card. The first year's shelves start right beside it. Carter cut the shop window with "flying Arrows" on it (2026-11-15): as the first thing you saw, it read as an empty black panel.
 2. **A bay of shelves for each year.** Each bay has a brass year plate on top. That year's essays stand face out on the lit eye-level shelf, oldest first. Each is a cloth-bound book in its own spine colours from `content/portfolio.ts`, with its real cover tipped in and its title stamped beneath.
 3. **Each year's reading list.** "The Best Things I Read in 2023", and the later lists, are each propped on a low table in front of that year's bay. The tables stand nearer than the shelves.
 4. **The corkboard of notes.** It's under a brass picture light at the far end, by a window seat, and it opens the same tweet reader as the bird on the home page.

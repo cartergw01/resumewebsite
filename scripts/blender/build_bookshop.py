@@ -148,8 +148,10 @@ def room(length):
 
 
 def entrance(x0, font):
-    """The shop door with its letter plate, and the shop window beside it with
-    the publication's name in gilt on the glass."""
+    """The shop door with its letter plate, and a sconce lighting the way to
+    the first shelves. (There was a shop window here with "flying Arrows" on
+    it; Carter cut it, 2026-11-15: from inside it was an empty black pane, the
+    first thing you saw.)"""
     door_x, w, h = x0 + 1.0, 1.0, 3.0
     xd0, xd1 = door_x - w / 2, door_x + w / 2
     for xx in [xd0 + .04, xd1 - .04]: B.box('Shop door · stile', (xx, BACK, .16 + h / 2), (.08, .08, h), 'shopgreen', .004)
@@ -176,20 +178,10 @@ def entrance(x0, font):
         letter = B.box('Letter · envelope', (door_x + dx, by, 1.52), (.30, .012, .20), 'paper', .002)
         letter.rotation_euler = (0, .10 - i * .2, .05)
     ITEMS['letters'] = [(door_x - .5, BACK, 2.0), (door_x + .5, BACK, 2.0), (door_x - .5, BACK, 1.25), (door_x + .5, BACK, 1.25)]
-    # The shop window: clear glass, so the night beyond is the page's own sky,
-    # with "flying Arrows" in gilt on it.
-    wx0, wx1, wz0, wz1 = door_x + .80, door_x + 2.75, 1.05, 3.45
-    B.box('Shop window · glass', ((wx0 + wx1) / 2, BACK + .02, (wz0 + wz1) / 2), (wx1 - wx0, .012, wz1 - wz0), 'clearwindow', .001)
-    for xx in [wx0, wx1]: B.box('Shop window · frame', (xx, BACK, (wz0 + wz1) / 2), (.07, .10, wz1 - wz0 + .07), 'shopgreen', .003)
-    for zz in [wz0, wz1, 2.25]: B.box('Shop window · frame', ((wx0 + wx1) / 2, BACK, zz), (wx1 - wx0 + .07, .10, .07), 'shopgreen', .003)
-    B.box('Shop window · sill', ((wx0 + wx1) / 2, BACK - .12, wz0 - .04), (wx1 - wx0 + .2, .26, .06), 'oak', .004)
-    words('Shop window · flying Arrows', 'flying Arrows', ((wx0 + wx1) / 2, BACK - .005, 2.62), .24, 'gilt', font=font)
-    # Walls around the openings.
-    end = x0 + 4.4
-    wall(x0 - .3, xd0 - .08, .16, TOP); wall(xd1 + .08, wx0 - .035, .16, TOP)
+    # The wall around the door, up to the first bay.
+    end = x0 + 2.4
+    wall(x0 - .3, xd0 - .08, .16, TOP); wall(xd1 + .08, end, .16, TOP)
     wall(xd0 - .08, xd1 + .08, .16 + h + .12, TOP)
-    wall(wx0 - .035, wx1 + .035, .16, wz0 - .035); wall(wx0 - .035, wx1 + .035, wz1 + .035, TOP)
-    wall(wx1 + .035, end, .16, TOP)
     B.up_down_sconce(end - .30, BACK - .02, 2.45, 80)
     return end
 
@@ -307,7 +299,7 @@ def build(font):
     lists = {item['year']: item for item in CONTENT['readingLists']}
     years = sorted({e['iso'][:4] for e in essays} | set(lists))
     x = entrance(0, font)
-    foreground_plant('plant:door', 3.85, 1.05)
+    foreground_plant('plant:door', 2.02, 1.0)
     for year in years:
         x0 = x
         x = bay(x0, year, [e for e in essays if e['iso'][:4] == year], font, rng)
