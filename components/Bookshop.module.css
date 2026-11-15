@@ -71,9 +71,6 @@
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.item[data-kind="letters"] .reach, .item[data-kind="notes"] .reach { transition: box-shadow 300ms ease; }
-.item[data-current="true"][data-kind="letters"] .reach,
-.item[data-current="true"][data-kind="notes"] .reach { box-shadow: 0 0 0 1.5px #ffe7b866, 0 0 24px #ffd47a33; }
 :global(html:not([data-pointer-input])) .reach:focus-visible { outline: 2px solid #fff1cd; outline-offset: 2px; }
 .reach:focus { outline: none; }
 

@@ -259,34 +259,86 @@ def foreground_plant(name, x, scale=1):
     FORE[name] = set(bpy.context.scene.objects) - before
 
 
+# The tweets pinned up as postcards, in Carter's own words: short ones whole,
+# longer ones by their opening line, which stands on its own. The board opens
+# the full tweet reader.
+POSTCARDS = ['1953833614711587213', '2021535795115708894', '2064684757863235653',
+             '1905959598600957986', '1948277804107469170', '1944727397909279094']
+
+
+def postcard_text(tweet_id):
+    thoughts = json.loads((ROOT / 'content' / 'thoughts.json').read_text())
+    text = next(t['text'] for t in thoughts if str(t['id']) == tweet_id)
+    return text if len(text) <= 150 else text.split('\n\n')[0].strip()
+
+
+def handwriting():
+    for path in ['/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf', '/System/Library/Fonts/Supplemental/Noteworthy.ttc']:
+        if Path(path).exists(): return bpy.data.fonts.load(path)
+    return None
+
+
+def postcard(i, centre, tilt, body, hand, ink, stamp):
+    """A cream postcard, writing side out: the message on the left in blue ink,
+    a stamp and its postmark top right, a pin at the top."""
+    from mathutils import Matrix
+    before = set(bpy.context.scene.objects)
+    x, y, z = centre
+    w, h = .74, .47
+    B.box('Postcard · card', (x, y, z), (w, .006, h), 'postcard', .002)
+    B.box('Postcard · divider', (x + .125, y - .004, z - .02), (.003, .002, h - .14), ink, 0)
+    for k in range(3):
+        B.box('Postcard · address line', (x + .255, y - .004, z - .07 - k * .065), (.20, .002, .003), 'page', 0)
+    B.box('Postcard · stamp edge', (x + .30, y - .0045, z + .155), (.10, .002, .12), 'paper', .001)
+    B.box('Postcard · stamp', (x + .30, y - .0055, z + .155), (.082, .002, .10), stamp, 0)
+    for r in [.03, .024]:
+        B.torus('Postcard · postmark', (x + .23, y - .006, z + .13), r, .0014, ink, rotation=(math.pi / 2, 0, 0))
+    data = bpy.data.curves.new('Postcard · message', 'FONT')
+    data.body = body; data.size = .052; data.extrude = .0002; data.space_line = .95
+    data.align_x = 'LEFT'; data.align_y = 'TOP'
+    data.text_boxes[0].width = .43
+    if hand: data.font = hand
+    text = bpy.data.objects.new('Postcard · message', data); bpy.context.collection.objects.link(text)
+    text.location = (x - w / 2 + .04, y - .0045, z + h / 2 - .07)
+    text.rotation_euler = (math.pi / 2, 0, 0)
+    data.materials.append(ink)
+    B.sphere('Postcard · pin', (x - .02, y - .012, z + h / 2 - .025), (.018, .018, .018), 'pin' if i % 2 else 'brass')
+    bpy.context.view_layer.update()
+    turn = Matrix.Translation(Vector(centre)) @ Matrix.Rotation(tilt, 4, 'Y') @ Matrix.Translation(-Vector(centre))
+    for obj in set(bpy.context.scene.objects) - before:
+        obj.matrix_world = turn @ obj.matrix_world
+
+
 def nook(x0):
-    """The far end: the corkboard of notes under a brass picture light, then a
-    tall window onto the night with a window seat."""
-    cx, cz = x0 + 1.0, 1.92
-    wall(x0 - .1, x0 + 2.0, .16, TOP)
-    B.box('Corkboard · frame', (cx, BACK - .02, cz), (1.10, .04, 1.30), 'oak', .006)
-    B.box('Corkboard · cork', (cx, BACK - .042, cz), (1.00, .01, 1.20), 'cork', .002)
+    """The far end: the corkboard of postcards under a brass picture light,
+    then a tall window onto the night with a window seat."""
+    cx, cz = x0 + 1.10, 1.85
+    wall(x0 - .1, x0 + 2.25, .16, TOP)
+    B.box('Corkboard · frame', (cx, BACK - .02, cz), (1.78, .04, 1.56), 'oak', .006)
+    B.box('Corkboard · cork', (cx, BACK - .042, cz), (1.68, .01, 1.46), 'cork', .002)
+    B.P['postcard'] = B.textured('Postcard · cream card stock', (.56, .50, .40), (.66, .60, .49), 'paper', rough=.9)
+    B.P['pin'] = B.material('Pin · red', (.45, .05, .04), rough=.4)
+    ink = B.material('Postcard · blue-black ink', (.004, .008, .03), rough=.8)
+    stamps = [B.material('Stamp · ' + name, colour, rough=.7) for name, colour in
+              [('red', (.42, .06, .05)), ('green', (.06, .20, .12)), ('blue', (.06, .12, .32))]]
+    hand = handwriting()
     rng = random.Random(77)
-    pin = B.material('Pin · red', (.45, .05, .04), rough=.4)
-    for i, (dx, dz) in enumerate([(-.26, .36), (.22, .40), (-.24, .02), (.25, .05), (-.22, -.33), (.21, -.30)]):
-        tilt = rng.uniform(-.08, .08)
-        card = B.box('Note card', (cx + dx, BACK - .052, cz + dz), (.34, .004, .25), 'paper', .001); card.rotation_euler.y = tilt
-        for k in range(3):
-            line = B.box('Note card · pencil line', (cx + dx, BACK - .0555, cz + dz + .06 - k * .055), (.24 - k * .04, .002, .007), 'page', 0)
-            line.rotation_euler.y = tilt
-        B.sphere('Note card · pin', (cx + dx, BACK - .062, cz + dz + .09), (.018, .018, .018), pin if i % 2 else 'brass')
-    ITEMS['notes'] = [(cx - .55, BACK, cz + .65), (cx + .55, BACK, cz + .65), (cx - .55, BACK, cz - .65), (cx + .55, BACK, cz - .65)]
-    B.rod('Corkboard · picture light arm', (cx, BACK - .02, cz + .78), (cx, BACK - .18, cz + .86), .009, 'brass')
-    B.rod('Corkboard · picture light shade', (cx - .32, BACK - .19, cz + .86), (cx + .32, BACK - .19, cz + .86), .034, 'brass', 24)
-    B.light('Corkboard · picture light', (cx, BACK - .26, cz + .80), WARM, 45, .08, (cx, BACK, cz - .1))
-    wx0, wx1, wz0, wz1 = x0 + 2.0, x0 + 3.6, 1.10, 3.70
+    spots = [(-.42, .48), (.40, .50), (-.40, .0), (.42, .02), (-.41, -.48), (.40, -.47)]
+    for i, (tweet, (dx, dz)) in enumerate(zip(POSTCARDS, spots)):
+        postcard(i, (cx + dx + rng.uniform(-.02, .02), BACK - .052 - i * .002, cz + dz + rng.uniform(-.02, .02)),
+                 rng.uniform(-.06, .06), postcard_text(tweet), hand, ink, stamps[i % 3])
+    ITEMS['notes'] = [(cx - .89, BACK, cz + .78), (cx + .89, BACK, cz + .78), (cx - .89, BACK, cz - .78), (cx + .89, BACK, cz - .78)]
+    B.rod('Corkboard · picture light arm', (cx, BACK - .02, cz + .86), (cx, BACK - .18, cz + .94), .009, 'brass')
+    B.rod('Corkboard · picture light shade', (cx - .42, BACK - .19, cz + .94), (cx + .42, BACK - .19, cz + .94), .034, 'brass', 24)
+    B.light('Corkboard · picture light', (cx, BACK - .30, cz + .88), WARM, 22, .10, (cx, BACK, cz - .1))
+    wx0, wx1, wz0, wz1 = x0 + 2.25, x0 + 3.85, 1.10, 3.70
     B.box('Nook window · glass', ((wx0 + wx1) / 2, BACK + .02, (wz0 + wz1) / 2), (wx1 - wx0, .012, wz1 - wz0), 'clearwindow', .001)
     for xx in [wx0, (wx0 + wx1) / 2, wx1]: B.box('Nook window · mullion', (xx, BACK, (wz0 + wz1) / 2), (.05, .08, wz1 - wz0), 'shopgreen', .002)
     for zz in [wz0, (wz0 + wz1) / 2 + .2, wz1]: B.box('Nook window · rail', ((wx0 + wx1) / 2, BACK, zz), (wx1 - wx0, .08, .05), 'shopgreen', .002)
     B.box('Window seat · bench', ((wx0 + wx1) / 2, BACK - .30, .80), (wx1 - wx0 + .3, .56, .08), 'shopgreen', .004)
     B.box('Window seat · front', ((wx0 + wx1) / 2, BACK - .56, .48), (wx1 - wx0 + .3, .04, .62), 'shopgreen', .003)
     B.box('Window seat · cushion', ((wx0 + wx1) / 2, BACK - .30, .89), (wx1 - wx0 + .2, .50, .10), 'linen', .03)
-    end = x0 + 4.6
+    end = x0 + 4.85
     wall(wx1, end + .3, .16, TOP)
     wall(wx0, wx1, .16, wz0); wall(wx0, wx1, wz1, TOP)
     return end

@@ -14,7 +14,7 @@ Walking left to right takes you through Carter's writing in the order he wrote i
 1. **The door.** Its brass letter plate, with a wire basket of post under it, is the newsletter. Taking a letter from it shows the subscribe form, handing off to Substack exactly like the subscribe card. The first year's shelves start right beside it. Carter cut the shop window with "flying Arrows" on it (2026-11-15): as the first thing you saw, it read as an empty black panel.
 2. **A bay of shelves for each year.** Each bay has a brass year plate on top. That year's essays stand face out on the lit eye-level shelf, oldest first. Each is a cloth-bound book in its own spine colours from `content/portfolio.ts`, with its real cover tipped in and its title stamped beneath.
 3. **Each year's reading list.** "The Best Things I Read in 2023", and the later lists, are each propped on a low table in front of that year's bay. The tables stand nearer than the shelves.
-4. **The corkboard of notes.** It's under a brass picture light at the far end, by a window seat, and it opens the same tweet reader as the bird on the home page.
+4. **The corkboard of postcards.** Six of Carter's tweets are handwritten in blue ink on postcards (Bradley Hand), with stamps and postmarks, pinned under a brass picture light at the far end by a window seat. Short tweets are written out whole; longer ones by their opening line, which stands on its own (`POSTCARDS` in `build_bookshop.py`). The board opens the same tweet reader as the bird on the home page.
 
 The other books have no titles, so nothing on show is invented.
 
