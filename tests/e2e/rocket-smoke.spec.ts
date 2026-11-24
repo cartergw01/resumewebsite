@@ -19,7 +19,7 @@ type RocketTestWindow = Window & {
 const siteRoutes = ["/", "/work", "/writing", "/projects"] as const;
 
 const outboundPages = [
-  { label: "Writing", route: "/writing", listingSelector: ".archive-row" },
+  { label: "Writing", route: "/writing", listingSelector: ".archive-row", listView: "Read as a list" },
   { label: "Projects", route: "/projects", listingSelector: ".project-row" },
 ] as const;
 
@@ -559,6 +559,13 @@ for (const outboundPage of outboundPages) {
 
     await page.goto(outboundPage.route);
     await expect(page.getByRole("heading", { name: outboundPage.label })).toBeVisible();
+    // Writing opens on its bulletin board; the outbound rows are in its list view.
+    if ("listView" in outboundPage && outboundPage.listView) {
+      await page.getByRole("button", { name: outboundPage.listView }).click();
+      // That click is a launch of its own; let it land before the links' launches.
+      await expect(page.getByTestId("rocket-cursor")).toHaveAttribute("data-transition-phase", "idle", { timeout: 5_000 });
+      await expect(page.getByTestId("rocket-effects-canvas")).toHaveAttribute("data-animation-state", "idle", { timeout: 5_000 });
+    }
 
     const listingRows = page.locator(outboundPage.listingSelector);
     const listingCount = await listingRows.count();

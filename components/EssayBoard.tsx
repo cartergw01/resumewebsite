@@ -5,13 +5,14 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProp
 import { ownEssays } from "@/content/portfolio";
 import openings from "@/content/essay-openings.json";
 import { useIslandDialog } from "@/lib/use-island-dialog";
+import type { NoteOrigin } from "@/lib/use-note-stack-motion";
 import styles from "./EssayBoard.module.css";
 
 type Essay = (typeof ownEssays)[number];
 const slugOf = (essay: Essay) => new URL(essay.href).pathname.split("/").filter(Boolean).pop()!;
 const openingOf = (essay: Essay) => (openings as Record<string, string>)[slugOf(essay)] ?? "";
-// Oldest first, so the board reads left to right in the order they were written.
-const ESSAYS = [...ownEssays].sort((a, b) => Date.parse(`${a.date} UTC`) - Date.parse(`${b.date} UTC`));
+// Newest first, so the latest essay is the first thing pinned up.
+const ESSAYS = [...ownEssays].sort((a, b) => Date.parse(`${b.date} UTC`) - Date.parse(`${a.date} UTC`));
 // Each card hangs a little crooked, the same way every visit.
 const TILTS = [-2.2, 1.4, -.8, 2, -1.6, 1, -2.4, 1.7];
 const PINS = ["#b8412f", "#c9a14a", "#3f6f8f", "#b8412f", "#c9a14a", "#4c7a52"];
@@ -49,10 +50,59 @@ export default function EssayBoard() {
             </li>
           ))}
         </ol>
+        <div className={styles.foot}><Mailbox /></div>
       </div>
       {open ? <ReadingSheet start={open.index} from={open.from} onClose={close} /> : null}
     </section>
   );
+}
+
+type Reader = typeof import("./ThoughtCollection").default;
+
+// In the board's corner, a mailbox with the tweets in it. Opening it brings up
+// the same tweet reader as the Writing island.
+function Mailbox() {
+  const button = useRef<HTMLButtonElement>(null);
+  const [Reader, setReader] = useState<Reader | null>(null);
+  const [origin, setOrigin] = useState<NoteOrigin | null>(null);
+  const returning = useRef(false);
+  // Closing the reader puts focus back on the mailbox, before the dialog
+  // hands it anywhere else (Safari never focused the button on the tap).
+  useLayoutEffect(() => {
+    if (!origin && returning.current) { returning.current = false; button.current?.focus({ preventScroll: true }); }
+  }, [origin]);
+  const warm = useCallback(() => {
+    if (!Reader) void import("./ThoughtCollection").then(module => setReader(() => module.default)).catch(() => {});
+  }, [Reader]);
+
+  return <>
+    <button ref={button} type="button" className={styles.mailbox} aria-haspopup="dialog" data-open={origin ? "" : undefined}
+      onPointerEnter={warm} onFocus={warm}
+      onClick={event => {
+        const box = event.currentTarget.getBoundingClientRect();
+        warm();
+        setOrigin({ x: box.x + box.width / 2, y: box.y + box.height / 2, width: box.width });
+      }}>
+      <svg viewBox="0 0 116 96" aria-hidden="true">
+        <defs>
+          <linearGradient id="mailbox-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3a6b54" /><stop offset="1" stopColor="#1f3f31" /></linearGradient>
+        </defs>
+        <rect x="88" y="24" width="5" height="40" rx="1.5" fill="#b8412f" />
+        <rect x="88" y="24" width="20" height="12" rx="1.5" fill="#c84a36" />
+        <path d="M8 92V44a40 40 0 0 1 80 0v48Z" fill="url(#mailbox-body)" />
+        <path d="M16 86V45a32 32 0 0 1 64 0v41Z" fill="none" stroke="#0000002e" strokeWidth="2" />
+        <g className={styles.letter}>
+          <rect x="31" y="18" width="34" height="22" rx="1.5" fill="#f4ecdc" transform="rotate(-6 48 29)" />
+          <path d="M32 21l16 9 16-11" fill="none" stroke="#b9a98d" strokeWidth="1.4" transform="rotate(-6 48 29)" />
+        </g>
+        <rect x="26" y="36" width="44" height="7" rx="3.5" fill="#c9a14a" />
+        <rect x="28" y="38" width="40" height="3" rx="1.5" fill="#2a1a0c" opacity=".55" />
+        <circle cx="90.5" cy="62" r="2.6" fill="#2a1a0c" />
+      </svg>
+      <span className={styles.mailLabel}>some of my tweets</span>
+    </button>
+    {origin && Reader ? <Reader initialId={null} origin={origin} onClose={() => { returning.current = true; setOrigin(null); }} /> : null}
+  </>;
 }
 
 type Phase = "lifting" | "open" | "leaving";

@@ -1,0 +1,35 @@
+/* Heading on the left, the two views on the right, sitting on the same line. */
+.header.header.header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.25rem 2rem; }
+.heading { display: grid; gap: .75rem; min-width: 0; }
+.modes { flex: none; display: flex; gap: .625rem; }
+.modes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid #eddbbf40;
+  border-radius: 6px;
+  background: #0b0f1a;
+  color: #fff7eacc;
+  font: 600 .875rem/1 var(--font-sans), system-ui, sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.modes button:hover { border-color: #eddbbf80; color: var(--cw-paper); }
+.modes button[aria-pressed="true"] { border-color: #f3dfb8; background: #f3dfb8; color: #1a1206; }
+.modes button:active { translate: 0 1px; }
+.modes svg { width: 16px; height: 16px; flex: none; }
+:global(html[data-pointer-input]) .modes button:focus-visible { outline: none; }
+
+@media (max-width: 700px) {
+  .header.header.header { gap: 1rem; }
+  .modes { width: 100%; }
+  .modes button { flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modes button { transition: none; }
+}

@@ -173,3 +173,31 @@
   .card, .sheet, .dialog::backdrop { transition: none; }
   .leaf[data-turn] { animation: none; }
 }
+
+/* The mailbox in the board's bottom corner, with the tweets in it. */
+.foot { display: flex; justify-content: flex-end; margin: clamp(1.25rem, 2.6vw, 2rem) calc(clamp(.25rem, 1vw, .75rem) * -1) calc(clamp(1.25rem, 2.4vw, 1.9rem) * -1) 0; }
+.mailbox {
+  display: grid;
+  justify-items: center;
+  gap: .3rem;
+  padding: .25rem .25rem .4rem;
+  border: 0;
+  background: none;
+  color: #2a1a0c;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.mailbox svg { width: clamp(5.75rem, 9vw, 7.25rem); height: auto; overflow: visible; filter: drop-shadow(0 8px 10px #0006); transition: transform 260ms var(--cw-ease); }
+.mailLabel { font: italic 600 .875rem/1.2 Georgia, "Times New Roman", serif; }
+.letter { transition: transform 260ms var(--cw-ease); }
+@media (hover: hover) and (pointer: fine) {
+  .mailbox:hover svg { transform: translateY(-3px); }
+  .mailbox:hover .letter { transform: translateY(-7px); }
+}
+.mailbox:active svg { transform: scale(.97); }
+.mailbox[data-open] .letter { transform: translateY(-10px); }
+:global(html:not([data-pointer-input])) .mailbox:focus-visible { outline: 2px solid #fff1cd; outline-offset: 4px; border-radius: 6px; }
+.mailbox:focus { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  .mailbox svg, .letter { transition: none; }
+}

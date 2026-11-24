@@ -7,8 +7,7 @@ import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays, ownEssays, readingLists } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
 import IslandLine from "@/components/IslandLine";
-import EssayBoard from "@/components/EssayBoard";
-import heading from "@/components/PageHeading.module.css";
+import WritingViews from "@/components/WritingViews";
 import styles from "@/components/WritingWorld.module.css";
 import {
   breadcrumbJsonLd,
@@ -40,22 +39,21 @@ export default function WritingPage() {
       <div className={styles.lamplight} data-reading-light aria-hidden="true" />
 
       <main className="subpage-main topic-main">
-        <header className={heading.header} data-book-reveal>
-          <WritingHeading />
-          <p><IslandLine id="writing" /></p>
-        </header>
-
-        <EssayBoard />
-
-        <section id="writing-archive" className="writing-archive" aria-label="Substack essay archive" data-book-reveal style={{ scrollMarginTop: "6rem" }}>
-          <ArchiveGroup title="Essays" entries={essayEntries} />
-          <ArchiveGroup
-            title="Reading Lists"
-            entries={readingLists}
-            offset={essayEntries.length}
-            showSubtitles={false}
-          />
-        </section>
+        <WritingViews
+          title={<WritingHeading />}
+          line={<p><IslandLine id="writing" /></p>}
+          list={
+            <section id="writing-archive" className="writing-archive" aria-label="Substack essay archive" style={{ scrollMarginTop: "6rem" }}>
+              <ArchiveGroup title="Essays" entries={essayEntries} />
+              <ArchiveGroup
+                title="Reading Lists"
+                entries={readingLists}
+                offset={essayEntries.length}
+                showSubtitles={false}
+              />
+            </section>
+          }
+        />
 
         <SubstackSubscribe />
         <MobileContact />

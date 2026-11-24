@@ -32,7 +32,7 @@ for (const scene of ["intro", "hello"]) {
       await expect(page).toHaveURL(new RegExp(`/${world}$`), { timeout: 10_000 });
       await expect(page.locator(overlays)).toHaveCount(0);
       await expect(page.getByRole("heading", { level: 1, exact: true, name: world[0].toUpperCase() + world.slice(1) })).toBeVisible();
-      if (world === "writing") await expect(page.locator(".archive-row")).toHaveCount(11);
+      if (world === "writing") await expect(page.getByRole("region", { name: "Essays" }).locator("li")).toHaveCount(8);
       if (world === "projects") await expect(page.locator("[data-project-shot]")).toHaveCount(8);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       // Back, and Back to islands, return to the view the island was chosen
