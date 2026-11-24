@@ -1,0 +1,166 @@
+"use client";
+
+import Image from "next/image";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type TouchEvent as ReactTouchEvent } from "react";
+import { ownEssays } from "@/content/portfolio";
+import openings from "@/content/essay-openings.json";
+import { useIslandDialog } from "@/lib/use-island-dialog";
+import styles from "./EssayBoard.module.css";
+
+type Essay = (typeof ownEssays)[number];
+const slugOf = (essay: Essay) => new URL(essay.href).pathname.split("/").filter(Boolean).pop()!;
+const openingOf = (essay: Essay) => (openings as Record<string, string>)[slugOf(essay)] ?? "";
+// Oldest first, so the board reads left to right in the order they were written.
+const ESSAYS = [...ownEssays].sort((a, b) => Date.parse(`${a.date} UTC`) - Date.parse(`${b.date} UTC`));
+// Each card hangs a little crooked, the same way every visit.
+const TILTS = [-2.2, 1.4, -.8, 2, -1.6, 1, -2.4, 1.7];
+const PINS = ["#b8412f", "#c9a14a", "#3f6f8f", "#b8412f", "#c9a14a", "#4c7a52"];
+const position = (essay: Essay) => (essay as Essay & { imagePosition?: string }).imagePosition ?? "50% 50%";
+
+// The Writing page's essays, pinned to a corkboard. Clicking one lifts it off
+// the board into a reading sheet: its cover, date, title and subtitle, how it
+// begins, and the way on to Substack.
+export default function EssayBoard() {
+  const [open, setOpen] = useState<{ index: number; from: DOMRect | null } | null>(null);
+  const cards = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const close = useCallback((last: number) => {
+    setOpen(null);
+    // Back on the board, focus rests on the essay you were last reading.
+    requestAnimationFrame(() => cards.current[last]?.focus({ preventScroll: true }));
+  }, []);
+
+  return (
+    <section className={styles.board} aria-label="Essays" data-book-reveal>
+      <div className={styles.cork}>
+        <ol className={styles.row}>
+          {ESSAYS.map((essay, index) => (
+            <li key={essay.href} className={styles.slot} style={{ "--tilt": `${TILTS[index % TILTS.length]}deg` } as CSSProperties}>
+              <button ref={element => { cards.current[index] = element; }} type="button" className={styles.card} aria-haspopup="dialog"
+                aria-label={`${essay.title}, ${essay.date}`}
+                onClick={event => setOpen({ index, from: event.currentTarget.getBoundingClientRect() })}>
+                <span className={styles.pin} style={{ "--pin": PINS[index % PINS.length] } as CSSProperties} aria-hidden="true" />
+                <span className={styles.cover}>
+                  <Image src={essay.image} alt="" fill sizes="(max-width: 700px) 45vw, 280px" style={{ objectPosition: position(essay) }} />
+                </span>
+                <span className={styles.date}>{essay.date}</span>
+                <span className={styles.title}>{essay.title}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+      {open ? <ReadingSheet start={open.index} from={open.from} onClose={close} /> : null}
+    </section>
+  );
+}
+
+type Phase = "lifting" | "open" | "leaving";
+
+function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect | null; onClose: (last: number) => void }) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const sheet = useRef<HTMLElement>(null);
+  const [index, setIndex] = useState(start);
+  const [turn, setTurn] = useState<"next" | "prev" | null>(null);
+  const [phase, setPhase] = useState<Phase>("lifting");
+  const [lift, setLift] = useState<CSSProperties>({});
+  useIslandDialog(dialog, closeButton);
+  const essay = ESSAYS[index];
+  const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // The card lifts off the board and grows into the sheet.
+  useLayoutEffect(() => {
+    const element = sheet.current;
+    if (!element || !from || reduced()) { setPhase("open"); return; }
+    const rest = element.getBoundingClientRect();
+    setLift({
+      transform: `translate(${from.x + from.width / 2 - (rest.x + rest.width / 2)}px, ${from.y + from.height / 2 - (rest.y + rest.height / 2)}px) scale(${from.width / rest.width})`,
+      opacity: .6,
+      transition: "none",
+    });
+    const frame = requestAnimationFrame(() => requestAnimationFrame(() => { setLift({}); setPhase("open"); }));
+    return () => cancelAnimationFrame(frame);
+  }, [from]);
+
+  const leave = useCallback(() => {
+    if (phase === "leaving") return;
+    setPhase("leaving");
+    setTimeout(() => onClose(index), reduced() ? 0 : 200);
+  }, [index, onClose, phase]);
+  const go = useCallback((by: 1 | -1) => {
+    const next = index + by;
+    if (next < 0 || next >= ESSAYS.length) return;
+    setTurn(by > 0 ? "next" : "prev");
+    setIndex(next);
+    sheet.current?.scrollTo({ top: 0 });
+  }, [index]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowRight") { event.preventDefault(); go(1); }
+      if (event.key === "ArrowLeft") { event.preventDefault(); go(-1); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go]);
+
+  // A sideways swipe turns to the next or previous essay. Touch events, not
+  // pointer events: iOS Safari cancels the pointer once a swipe starts moving.
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const swiped = useRef(false);
+  const down = (event: ReactTouchEvent) => {
+    const touch = event.touches[0];
+    swipe.current = event.touches.length === 1 ? { x: touch.clientX, y: touch.clientY } : null;
+  };
+  const up = (event: ReactTouchEvent) => {
+    const start = swipe.current; swipe.current = null;
+    const touch = event.changedTouches[0];
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x, dy = touch.clientY - start.y;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      go(dx < 0 ? 1 : -1);
+      swiped.current = true;
+      setTimeout(() => { swiped.current = false; }, 0);
+    }
+  };
+
+  return (
+    <dialog ref={dialog} className={styles.dialog} data-phase={phase} aria-label={essay.title}
+      onCancel={event => { event.preventDefault(); leave(); }}
+      onClick={event => { if (event.target === event.currentTarget && !swiped.current) leave(); }}
+      onTouchStart={down} onTouchEnd={up}>
+      <button ref={closeButton} type="button" className={styles.close} aria-label="Back to the board" onClick={leave}>×</button>
+      <article ref={sheet} className={styles.sheet} style={lift}>
+        <div key={essay.href} className={styles.leaf} data-turn={turn ?? undefined}>
+          <div className={styles.hero}>
+            <Image src={essay.image} alt="" fill sizes="(max-width: 760px) 100vw, 720px" style={{ objectPosition: position(essay) }} />
+          </div>
+          <div className={styles.body}>
+            <p className={styles.sheetDate}><time>{essay.date}</time></p>
+            <h2 className={styles.sheetTitle}>{essay.title}</h2>
+            <p className={styles.subtitle}>{essay.subtitle}</p>
+            {openingOf(essay) ? (
+              <div className={styles.opening}>
+                {openingOf(essay).split("\n\n").map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+              </div>
+            ) : null}
+            <div className={styles.actions}>
+              <a className={styles.read} href={essay.href} target="_blank" rel="noopener noreferrer">
+                Keep reading on Substack <span aria-hidden="true">↗</span>
+              </a>
+              <span className={styles.turns}>
+                <button type="button" className={styles.turn} disabled={index === 0} onClick={() => go(-1)}>
+                  <span aria-hidden="true">←</span> Previous
+                </button>
+                <button type="button" className={styles.turn} disabled={index === ESSAYS.length - 1} onClick={() => go(1)}>
+                  Next <span aria-hidden="true">→</span>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </dialog>
+  );
+}

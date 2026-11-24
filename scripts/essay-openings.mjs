@@ -1,10 +1,10 @@
-// Save how each essay begins, from the flying Arrows feed, for the bookshop's
-// open book. Run after publishing; the result is committed, so the site never
+// Save how each essay begins, from the flying Arrows feed, for the essay
+// board's reading sheet. Run after publishing; the result is committed, so the site never
 // fetches anything at build time.
 // node scripts/essay-openings.mjs  ->  content/essay-openings.json
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { readBookshopContent } from "./blender/bookshop_content.mjs";
+import { readEssayContent } from "./essay-content.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const response = await fetch("https://carterko.substack.com/feed");
@@ -54,7 +54,7 @@ const items = [...feed.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(([, item]) => 
   slug: item.match(/<link>https:\/\/carterko\.substack\.com\/p\/([^<]+)<\/link>/)?.[1],
   html: item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/)?.[1] ?? "",
 }));
-const content = await readBookshopContent();
+const content = await readEssayContent();
 const openings = {};
 // Only the essays: the reading lists open on other writers' words, so they keep
 // just their own subtitle.

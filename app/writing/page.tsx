@@ -7,7 +7,7 @@ import { SubstackSubscribe } from "@/components/SubstackSubscribe";
 import { essays, ownEssays, readingLists } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
 import IslandLine from "@/components/IslandLine";
-import Bookshop from "@/components/Bookshop";
+import EssayBoard from "@/components/EssayBoard";
 import heading from "@/components/PageHeading.module.css";
 import styles from "@/components/WritingWorld.module.css";
 import {
@@ -45,7 +45,7 @@ export default function WritingPage() {
           <p><IslandLine id="writing" /></p>
         </header>
 
-        <Bookshop />
+        <EssayBoard />
 
         <section id="writing-archive" className="writing-archive" aria-label="Substack essay archive" data-book-reveal style={{ scrollMarginTop: "6rem" }}>
           <ArchiveGroup title="Essays" entries={essayEntries} />
