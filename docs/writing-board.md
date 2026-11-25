@@ -8,8 +8,8 @@ The openings are the essays' own first paragraphs, saved from the flying Arrows 
 
 Two wooden tabs on the top edge of the board's frame pick how to read the page, like folder tabs: **Bulletin** (the cork with the essays pinned up, the default) and **Read as a list** (the archive of essays and reading lists, as ink on a sheet of paper in the same frame, with a red notebook margin line). Only one shows at a time (`components/WritingViews.tsx`, which owns the frame). Carter picked the frame tabs on 2026-11-25 over a pushpin hopping between two names on tape and a wooden slider. The subscribe card sits below either.
 
-The tweet reader the mailbox opens has round Previous and Next arrows outside the card, one on each side, with Shuffle beside the close button (2026-11-25).
+The tweet reader the sticky notes open has round Previous and Next arrows outside the card, one on each side, with Shuffle beside the close button (2026-11-25).
 
-In the board's bottom corner is a mailbox labelled "some of my tweets". Opening it brings up the same tweet reader as the Writing island (`components/ThoughtCollection.tsx`); the tweets aren't pinned on the board themselves. Carter picked the mailbox over handwritten postcards on the board (2026-11-25).
+In the cork's top-right corner, beside the essays, is a pinned pad of yellow sticky notes labelled "some of my tweets" (a strip across the top of the cork on phones). Opening it brings up the same tweet reader as the Writing island (`components/ThoughtCollection.tsx`); the tweets aren't pinned on the board themselves. It started as a mailbox at the bottom of the board, which Carter found random and easy to miss; he picked the sticky notes over moving the mailbox onto the frame or a third tab (2026-11-26). Before that he picked the mailbox over handwritten postcards (2026-11-25).
 
 History: before this, the page was a Blender-rendered bookshop you walked along (branch `writing-bookshop`, commits up to df5ee92). Carter found it too much and asked for this simpler board (2026-11-24).

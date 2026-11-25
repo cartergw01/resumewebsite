@@ -43,13 +43,13 @@ test("the bulletin and the list are two views, one at a time", async ({ page }) 
   await expect(board).toBeVisible();
 });
 
-test("the mailbox on the board opens the tweets", async ({ page }) => {
+test("the sticky notes on the board open the tweets", async ({ page }) => {
   await page.goto("/writing");
-  const mailbox = page.getByRole("button", { name: /some of my tweets/ });
-  await mailbox.click();
+  const notes = page.getByRole("button", { name: /some of my tweets/ });
+  await notes.click();
   const reader = page.locator("dialog[open]");
   await expect(reader.locator("[data-thought-id]")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.locator("dialog[open]")).toHaveCount(0);
-  await expect(mailbox).toBeFocused();
+  await expect(notes).toBeFocused();
 });
