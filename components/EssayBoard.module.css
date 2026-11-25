@@ -169,15 +169,16 @@
   .leaf[data-turn] { animation: none; }
 }
 
-/* Tweets are short notes, so they're a pad of sticky notes pinned in the
-   cork's top-right corner, beside the essays. On a phone, a strip across the top. */
-.cork { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: clamp(1.25rem, 2.6vw, 2.25rem); }
+/* Tweets are short notes, so they're a pad of sticky notes pinned under the
+   essays, in the cork's bottom-right corner. On a phone, a strip across the bottom. */
+.cork { display: grid; gap: clamp(1.75rem, 3.4vw, 2.75rem); }
 .pad {
   position: relative;
   display: grid;
   place-items: center;
   width: clamp(7.5rem, 11vw, 9.5rem);
   aspect-ratio: 1;
+  justify-self: end;
   margin-top: .35rem;
   padding: 1.1rem .8rem .8rem;
   border: 0;
@@ -223,8 +224,8 @@
 :global(html:not([data-pointer-input])) .pad:focus-visible { outline: 2px solid #fff1cd; outline-offset: 6px; }
 .pad:focus { outline: none; }
 @media (max-width: 700px) {
-  .cork { grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
-  .pad { order: -1; width: 100%; aspect-ratio: auto; min-height: 3.25rem; margin-top: .25rem; padding: .9rem .75rem .7rem; }
+  .cork { gap: 1.9rem; }
+  .pad { width: 100%; aspect-ratio: auto; min-height: 3.25rem; margin-top: .25rem; padding: .9rem .75rem .7rem; }
   .note:nth-child(1) { transform: rotate(1.2deg); }
   .note:nth-child(2) { transform: rotate(-.9deg); }
   .note:nth-child(3) { transform: rotate(.3deg); }
