@@ -19,7 +19,7 @@ const randomThought = (except: string | null) => {
 };
 
 type Thought = (typeof thoughts)[number];
-type Controls = { scroll: RefObject<HTMLDivElement | null>; step: (direction: 1 | -1) => void; shuffle: () => void; position: string };
+type Controls = { scroll: RefObject<HTMLDivElement | null> };
 
 // One card's face. The card underneath shows the same layout without `controls`,
 // so it is pixel for pixel what the top card becomes when the page turns.
@@ -48,20 +48,6 @@ function NoteFace({ thought, controls }: { thought: Thought; controls?: Controls
         </footer>
       </Post>
     </div>
-    <footer className={styles.browse}>
-      <button type="button" aria-label="Previous thought" disabled={thoughts.length < 2} onClick={() => controls?.step(-1)}>
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        Previous
-      </button>
-      <button type="button" aria-label="Shuffle thoughts" title="Shuffle" disabled={thoughts.length < 2} onClick={() => controls?.shuffle()}>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true"><path d="m18 3 3 3-3 3M18 15l3 3-3 3M3 6h2c5 0 9 12 14 12h2M3 18h2c2 0 4-2 6-5M14 9c2-2 3-3 5-3h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-      {controls && <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{controls.position}</span>}
-      <button type="button" aria-label="Next thought" disabled={thoughts.length < 2} onClick={() => controls?.step(1)}>
-        Next
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
-      </button>
-    </footer>
   </>;
 }
 
@@ -92,22 +78,36 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
     if (scroll.current) scroll.current.scrollTop = 0;
   };
   const step = (direction: 1 | -1) => choose(wrapped(direction).id);
-  useNoteSwipe(dialog, stack, reader, step, setPeek, thoughts.length > 1);
+  const several = thoughts.length > 1;
+  useNoteSwipe(dialog, stack, reader, step, setPeek, several);
 
   return createPortal(<dialog ref={dialog} className={styles.dialog} aria-label="Posts by Carter" data-direct-navigation data-thought-collection
     onCancel={event => { event.preventDefault(); dismiss(); }}
-    onClick={event => { if (event.target === event.currentTarget) dismiss(); }}>
+    onClick={event => { if (event.target === event.currentTarget || (event.target as HTMLElement).hasAttribute("data-note-frame")) dismiss(); }}>
     <div className={styles.dismiss} data-note-dismiss>
+      <button className={styles.close} type="button" aria-label="Shuffle thoughts" title="Shuffle" disabled={!several} onClick={() => choose(randomThought(current.id))}>
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" aria-hidden="true"><path d="m18 3 3 3-3 3M18 15l3 3-3 3M3 6h2c5 0 9 12 14 12h2M3 18h2c2 0 4-2 6-5M14 9c2-2 3-3 5-3h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
       <button ref={closeButton} className={styles.close} type="button" aria-label="Close thoughts" onClick={dismiss} autoFocus>
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" /></svg>
       </button>
     </div>
-    <div ref={stack} className={styles.stack} data-note-stack>
-      <span className={styles.sheet} data-note-sheet="back" aria-hidden="true" />
-      <div className={styles.sheet} data-note-sheet="middle" aria-hidden="true" inert><NoteFace thought={wrapped(peek)} /></div>
-      <div ref={reader} className={styles.reader}>
-        <NoteFace thought={current} controls={{ scroll, step, shuffle: () => choose(randomThought(current.id)), position: `${index + 1} of ${thoughts.length}` }} />
+    <span className="sr-only" role="status" aria-live="polite" aria-atomic="true">{`${index + 1} of ${thoughts.length}`}</span>
+    {/* Previous and Next sit outside the card, one on each side of it. */}
+    <div className={styles.frame} data-note-frame>
+      <button className={styles.arrow} type="button" aria-label="Previous thought" disabled={!several} onClick={() => step(-1)}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
+      <div ref={stack} className={styles.stack} data-note-stack>
+        <span className={styles.sheet} data-note-sheet="back" aria-hidden="true" />
+        <div className={styles.sheet} data-note-sheet="middle" aria-hidden="true" inert><NoteFace thought={wrapped(peek)} /></div>
+        <div ref={reader} className={styles.reader}>
+          <NoteFace thought={current} controls={{ scroll }} />
+        </div>
       </div>
+      <button className={styles.arrow} type="button" aria-label="Next thought" disabled={!several} onClick={() => step(1)}>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+      </button>
     </div>
   </dialog>, document.body);
 }
