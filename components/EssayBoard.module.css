@@ -1,11 +1,6 @@
-/* A corkboard in a dark wooden frame, with the essays pinned up like photos. */
-.board {
-  margin: 0 0 clamp(3rem, 7vw, 5rem);
-  padding: clamp(.75rem, 1.6vw, 1.25rem);
-  border-radius: 6px;
-  background: linear-gradient(145deg, #5a3b22, #3a2414);
-  box-shadow: 0 30px 80px #000c, inset 0 0 0 1px #ffffff14;
-}
+/* The cork inside the Writing page's wooden frame (WritingViews), with the
+   essays pinned up like photos. */
+.board { margin: 0; }
 .cork {
   border-radius: 3px;
   padding: clamp(1.9rem, 4vw, 3.4rem) clamp(1rem, 3vw, 2.75rem) clamp(2rem, 4vw, 3.1rem);

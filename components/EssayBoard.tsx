@@ -32,7 +32,7 @@ export default function EssayBoard() {
   }, []);
 
   return (
-    <section className={styles.board} aria-label="Essays" data-book-reveal>
+    <section className={styles.board} aria-label="Essays">
       <div className={styles.cork}>
         <ol className={styles.row}>
           {ESSAYS.map((essay, index) => (
