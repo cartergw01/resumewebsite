@@ -1,3 +1,6 @@
+/* No hairline under the heading here: the frame's tabs mark where the page starts. */
+.header.header.header { padding-bottom: 0; border-bottom: 0; }
+
 /* One wooden frame for both views. Two tabs grow out of its top edge like
    folder tabs; the one you're on is the same wood as the frame, so it reads
    as part of it, and the other sits back, darker. */

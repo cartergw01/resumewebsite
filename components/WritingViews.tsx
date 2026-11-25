@@ -18,7 +18,7 @@ export default function WritingViews({ title, line, list }: { title: ReactNode; 
   };
 
   return <>
-    <header className={heading.header} data-book-reveal>{title}{line}</header>
+    <header className={`${heading.header} ${styles.header}`} data-book-reveal>{title}{line}</header>
     <div className={styles.frame} data-view={view} data-book-reveal>
       <div className={styles.tabs} role="group" aria-label="How to read this page">
         <button type="button" aria-pressed={view === "board"} onClick={pick("board")}>Bulletin</button>
