@@ -2240,7 +2240,7 @@ html[data-pointer-input] :is(a, button, [tabindex]):focus-visible {
 
   .archive-row {
     grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     column-gap: 0.75rem;
     row-gap: 0.5rem;
     padding: 1.4rem 0;
@@ -2263,12 +2263,12 @@ html[data-pointer-input] :is(a, button, [tabindex]):focus-visible {
     text-align: left;
   }
 
-  /* Date and action share a quiet line above the full-width essay title. */
+  /* The date sits above the full-width essay title; the action closes the row. */
   .archive-action {
-    grid-column: 2;
-    grid-row: 1;
+    grid-column: 1 / -1;
+    grid-row: 3;
     justify-self: end;
-    align-self: center;
+    align-self: end;
     translate: 0 0;
     font-size: 0.75rem;
   }
