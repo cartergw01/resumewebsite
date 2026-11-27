@@ -178,11 +178,25 @@ export default function IslandLife({ world, life, className }: { world: "work" |
         const [x, y] = at(life.ball[0][0], life.ball[0][1]);
         glow(x, y, size(life.ball) * 1.05 * scale, hue(time), .6 * ball);
       }
-      if (!live()) { cancelAnimationFrame(frame); frame = 0; last = 0; }
+      if (!canvas.dataset.live) canvas.dataset.live = "";
+      if (!live()) rest();
+    };
+    // Leaving or travelling, the details hold their last frame and fade out
+    // with CSS, then clear; settling, the first frame draws before they fade
+    // back in. Wiping them in one frame made the lamp, LED ball and strips
+    // blink at the start and end of every flight.
+    let clearTimer: ReturnType<typeof setTimeout> | undefined;
+    const rest = () => {
+      cancelAnimationFrame(frame); frame = 0; last = 0;
+      if (!("live" in canvas.dataset)) return;
+      delete canvas.dataset.live;
+      clearTimeout(clearTimer);
+      clearTimer = setTimeout(() => { if (!frame) context.clearRect(0, 0, canvas.width, canvas.height); }, 340);
     };
     const sync = () => {
-      if (motion.matches || !live()) { cancelAnimationFrame(frame); frame = 0; last = 0; if (!live()) context.clearRect(0, 0, canvas.width, canvas.height); return; }
-      if (!frame) frame = requestAnimationFrame(draw);
+      if (motion.matches || !live()) { rest(); return; }
+      clearTimeout(clearTimer);
+      if (!frame) { last = 0; frame = requestAnimationFrame(draw); }
     };
     const observer = new MutationObserver(sync);
     observer.observe(scene, { attributes: true, attributeFilter: ["data-active"] });
@@ -193,7 +207,7 @@ export default function IslandLife({ world, life, className }: { world: "work" |
     window.addEventListener(CITY_TIME_EVENT, sync);
     resize(); sync();
     return () => {
-      cancelAnimationFrame(frame);
+      cancelAnimationFrame(frame); clearTimeout(clearTimer);
       observer.disconnect(); sizes.disconnect();
       motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);

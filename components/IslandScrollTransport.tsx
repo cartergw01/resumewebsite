@@ -28,6 +28,11 @@ function scenePainter(node: HTMLElement) {
 }
 // Each island holds before the camera crosses to the next one.
 const FINAL_HOLD = 0.5;
+// The still-to-model dissolve at either end of a 3D flight never runs faster
+// than this, and it has to be complete by FLIGHT_GENTLE_START into the
+// crossing, or that crossing stays a 2D flight (no swap, no double image).
+const FLIGHT_FADE_MS = 180;
+const FLIGHT_GENTLE_START = 0.1;
 const arrivalLights: Record<string, readonly (readonly [string, number, number])[]> = {
   work: [["city-windows", 0.76, 0.86], ["city-tower", 0.86, 0.96]],
   writing: [["reading-lamp", 0.77, 0.87]],
@@ -109,6 +114,9 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
     const flightCanvas = stage.querySelector<HTMLCanvasElement>("[data-flight-canvas]")!;
     let flightWorld: FlightWorld | null = null;
     let flightShown = false;
+    // The crossing being flown (or not) in 3D, and the dissolve's state.
+    let flightEpisode: { from: number; forward: boolean; on: boolean; full?: boolean; aborted?: boolean } | null = null;
+    let flightFade = 0, flightFrom = -1, flightT = 0;
     const flightIds = new Set(Object.keys(flightAssets));
     // An island still's on-screen box, from layout, ignoring the 2D camera's
     // transforms: the 3D flight starts and ends on exactly this framing.
@@ -253,15 +261,41 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
 
       // Between two islands, the real camera flies when its models are ready;
       // the stills cross-dissolve into it and back out over the ends.
-      const flightOn = Boolean(flightWorld && !motion.matches && crossing > 0 && crossing < 1 && flightIds.has(worlds[from]?.id) && flightIds.has(worlds[from + 1]?.id));
-      let flightMix = flightOn ? Math.min(phase(crossing, 0, .1), 1 - phase(crossing, .9, 1)) : 0;
-      if (flightOn) {
-        const rect = stillRect(from);
-        if (rect && flightWorld!.render(worlds[from].id, worlds[from + 1].id, crossing, rect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
-        else flightMix = 0;
+      // A quick scroll (one mouse-wheel notch) crossed those ends in a frame
+      // or two, so the island blinked from still to model and back. Now the
+      // dissolve never runs faster than FLIGHT_FADE_MS, and a crossing flies
+      // in 3D only while it keeps pace: one that runs past the dissolve band
+      // before the model is fully in stays a 2D flight, with no swap and no
+      // double image. Landing, the model fades out on the still's framing.
+      const inCrossing = !motion.matches && crossing > 0 && crossing < 1;
+      if (!inCrossing) flightEpisode = null;
+      else if (!flightEpisode || flightEpisode.from !== from) {
+        const ready = Boolean(flightWorld && flightIds.has(worlds[from]?.id) && flightIds.has(worlds[from + 1]?.id));
+        flightEpisode = { from, forward: crossing < .5, on: ready && Math.min(crossing, 1 - crossing) < FLIGHT_GENTLE_START };
+      }
+      if (flightEpisode?.on && flightFade >= .95) flightEpisode.full = true;
+      if (flightEpisode?.on && !flightEpisode.full && (flightEpisode.forward ? crossing : 1 - crossing) > FLIGHT_GENTLE_START) {
+        flightEpisode.on = false;
+        flightEpisode.aborted = true;
+      }
+      if (flightEpisode?.on) flightFrom = from;
+      if (inCrossing && from === flightFrom) flightT = crossing;
+      else if (flightFade > 0 && !inCrossing) flightT = flightT >= .5 ? 1 : 0;
+      const flightTarget = flightEpisode?.on ? Math.min(phase(crossing, 0, .1), 1 - phase(crossing, .9, 1)) : 0;
+      // An abandoned dissolve clears three times as fast as one plays.
+      const fadeStep = Math.min(elapsed || 16, 34) / FLIGHT_FADE_MS;
+      flightFade = motion.matches || !flightWorld ? 0
+        : flightTarget > flightFade ? Math.min(flightTarget, flightFade + fadeStep) : Math.max(flightTarget, flightFade - fadeStep * (flightEpisode?.aborted ? 3 : 1));
+      // Eased, so a crossing that outruns its dissolve shows next to nothing.
+      let flightMix = flightFade * flightFade * (3 - 2 * flightFade);
+      if (flightMix && flightFrom >= 0) {
+        const rect = stillRect(flightFrom);
+        if (rect && flightWorld!.render(worlds[flightFrom].id, worlds[flightFrom + 1].id, flightT, rect)) { flightCanvas.style.opacity = flightMix.toFixed(3); flightShown = true; }
+        else flightMix = flightFade = 0;
       }
       if (!flightMix && flightShown) { flightCanvas.style.opacity = "0"; flightWorld?.clear(); flightShown = false; }
       if (stage.dataset.flight !== (flightMix ? "3d" : "2d")) stage.dataset.flight = flightMix ? "3d" : "2d";
+      const fading = flightFade !== flightTarget;
 
       scenes.forEach((scene, index) => {
         const outgoing = index === from;
@@ -299,14 +333,14 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
         // stop, in either direction, so it lands still instead of arriving
         // tilted and rocking back level.
         const inFlight = phase(crossing, 0, 0.2) * (1 - phase(crossing, 0.6, 0.95));
-        if (!motion.matches && !flightOn && weight && inFlight) {
+        if (!motion.matches && !flightMix && weight && inFlight) {
           // Only reversing the scroll reverses the pull, not the next path's
           // alternating arc.
           const pull = weight * inFlight * (0.35 + 0.65 * phase(position, 0.6, 1));
           transform = `translate3d(${(pull * 18).toFixed(2)}px, ${(pull * 12).toFixed(2)}px, 0) rotate(${(-pull * 2.4).toFixed(3)}deg) ${transform}`;
         }
         paintArt[index]("transform", transform);
-        if (flightMix && (index === from || index === from + 1)) opacity = (Number(opacity) * (1 - flightMix)).toFixed(4);
+        if (flightMix && (index === flightFrom || index === flightFrom + 1)) opacity = (Number(opacity) * (1 - flightMix)).toFixed(4);
         paintArt[index]("opacity", opacity);
         paintArt[index]("transform-origin", origin);
         const copyOpacity = motion.matches ? 1 : outgoing
@@ -388,7 +422,7 @@ export default function IslandScrollTransport({ children, worlds }: { children: 
       if (!entryPending && !glideFrame && cameraProgress === progress && (motion.matches || crossing === 0 || crossing === 1)) {
         rememberIsland(worlds[current].id);
       }
-      if (cameraProgress !== progress || coasting) schedule();
+      if (cameraProgress !== progress || coasting || fading) schedule();
     };
 
     const schedule = () => {

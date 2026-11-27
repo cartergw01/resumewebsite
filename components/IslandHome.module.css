@@ -681,10 +681,18 @@
 
 /* Depth parallax (ParallaxStill) draws the still once it's ready; the images
    stay underneath as its source and the fallback for transitions and 3D. */
-.parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); }
-.life { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.island[data-parallax="on"]:not([data-entry-still]) > img { opacity: 0 !important; transition: none !important; }
-.island[data-entry-still] > .parallax { opacity: 0; }
+/* The canvas fades in over the still before the still steps out beneath it:
+   an instant swap blinked whenever the two differed by a hair (a softer
+   texture, a different filter pass). They show the same frame, so the fade
+   itself is invisible. */
+.parallax { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: var(--island-grade); opacity: 0; transition: opacity 220ms ease; }
+.island[data-parallax="on"] > .parallax { opacity: 1; }
+/* The live details fade in and out with the island settling, never popping. */
+.life { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; transition: opacity 320ms ease; }
+.life[data-live] { opacity: 1; }
+.island[data-parallax="on"]:not([data-entry-still]) > img { opacity: 0 !important; transition: opacity 0s 220ms !important; }
+.island[data-entry-still] > .parallax { opacity: 0; transition: none; }
+@media (prefers-reduced-motion: reduce) { .parallax, .life { transition: none; } }
 
 /* Real 3D flights between islands (lib/island-flight.ts): drawn over the sky,
    under the copy and controls, only while a crossing is in progress. */

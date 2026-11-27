@@ -168,7 +168,7 @@ export default function WorkshopObjects() {
         return <span className={`${styles.position} ${styles.curio}`} data-object-position="basketball" style={{left:x,top:y,width:size,height:size,zIndex:ballMoved?2:undefined}}>
           <button type="button" className={styles.target} data-workshop-ball aria-label="Shoot the basketball"
             style={{clipPath:ballMoved?undefined:clip}} onClick={()=>hoopShot.current?.shoot()}>
-            <span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>
+            <span className={styles.pin} style={{left:"50%",top:"50%"}} />
           </button>
         </span>;
       })()}
@@ -177,7 +177,8 @@ export default function WorkshopObjects() {
         const width=Math.max(28,Math.min(object.bounds[2]*scale,64)), height=Math.max(28,Math.min(object.bounds[3]*scale,64));
         const x=px*scale-width/2,y=py*scale-height/2;
         const clip=curiosityClip(object.point,[x/scale,y/scale,width/scale,height/scale],allPoints);
-        const pin=<span className={styles.pin} style={{left:"50%",top:"50%"}}><span className={styles.dot} aria-hidden="true" /></span>;
+        // An empty anchor at the object's centre (no marker is drawn).
+        const pin=<span className={styles.pin} style={{left:"50%",top:"50%"}} />;
         const link=curioLinks[object.id];
         return <span key={object.id} className={`${styles.position} ${styles.curio}`} data-object-position={object.id} data-found={found.includes(object.id)}
           style={{left:x,top:y,width,height}}>

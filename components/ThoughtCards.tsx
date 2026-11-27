@@ -140,7 +140,7 @@ export default function ThoughtCards() {
             style={{ left: point[0] * scale, top: point[1] * scale }} aria-label="Read some of my tweets" aria-haspopup="dialog"
             data-tip="some of my tweets" onPointerEnter={warmCollection} onPointerDown={warmCollection} onFocus={warmCollection}
             onClick={event => read(event.currentTarget)}>
-            <span className={styles.dot} aria-hidden="true" /><span className={styles.hint} aria-hidden="true">some of my tweets</span>
+            <span className={styles.hint} aria-hidden="true">some of my tweets</span>
           </button>}
         </span>
         <span ref={birdPosition} className={styles.birdPosition}>
