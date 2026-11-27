@@ -96,7 +96,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
     {/* Previous and Next sit outside the card, one on each side of it. */}
     <div className={styles.frame} data-note-frame>
       <button className={styles.arrow} type="button" aria-label="Previous thought" disabled={!several} onClick={() => step(-1)}>
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m12 5-7 7 7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><path d="m15 18-6-6 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       <div ref={stack} className={styles.stack} data-note-stack>
         <span className={styles.sheet} data-note-sheet="back" aria-hidden="true" />
@@ -106,7 +106,7 @@ export default function ThoughtCollection({ initialId, origin, onClose }: { init
         </div>
       </div>
       <button className={styles.arrow} type="button" aria-label="Next thought" disabled={!several} onClick={() => step(1)}>
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true"><path d="m12 5 7 7-7 7M5 12h14" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true"><path d="m9 18 6-6-6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
     </div>
   </dialog>, document.body);

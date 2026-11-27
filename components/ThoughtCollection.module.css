@@ -6,8 +6,8 @@
   --post-muted: #71767b;
   --post-line: #2f3336;
   --post-blue: #1d9bf0;
-  --arrow: 48px;
-  --arrow-gap: 16px;
+  --arrow: 36px;
+  --arrow-gap: 12px;
   --arrow-space: calc(var(--arrow) + var(--arrow-gap));
   position: fixed;
   inset: 0;
@@ -28,12 +28,13 @@
 .dismiss { position: relative; z-index: 1; display: flex; justify-content: flex-end; gap: 4px; margin: 0 var(--arrow-space) 8px; }
 .frame { display: grid; grid-template-columns: var(--arrow) minmax(0, 1fr) var(--arrow); align-items: center; column-gap: var(--arrow-gap); }
 .close:disabled { opacity: .35; cursor: default; }
-.arrow { display: grid; place-items: center; width: var(--arrow); height: var(--arrow); padding: 0; border: 1px solid #3a3f46; border-radius: 50%; background: #0e1218e6; color: var(--post-text); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
-.arrow:active:not(:disabled) { scale: .94; }
-/* At phone size the circle is smaller than a fingertip; the tap area isn't. */
+/* Just a thin chevron either side of the card: no circle behind it. */
+.arrow { display: grid; place-items: center; width: var(--arrow); height: 48px; padding: 0; border: 0; border-radius: 8px; background: none; color: #9aa3ad; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 160ms ease; }
+.arrow:active:not(:disabled) { scale: .9; color: #fff; }
+/* The chevron is narrower than a fingertip; the tap area isn't. */
 .arrow { position: relative; }
-.arrow::after { content: ""; position: absolute; inset: min(0px, (var(--arrow) - 46px) / 2); border-radius: 50%; }
-.arrow:disabled { opacity: .35; cursor: default; }
+.arrow::after { content: ""; position: absolute; inset: 0 min(0px, (var(--arrow) - 46px) / 2); }
+.arrow:disabled { opacity: .3; cursor: default; }
 .close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: transparent; cursor: pointer; }
 .stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
 .sheet { position: absolute; inset: 0; pointer-events: none; border: 1px solid #343940; border-radius: 16px; background: #10141b; transform-origin: 50% 50%; }
@@ -64,15 +65,15 @@
 :global(html:not([data-pointer-input])) .dialog :is(button,a):focus-visible { outline: 2px solid var(--post-blue); outline-offset: 2px; }
 :global(html:not([data-pointer-input])) .scroll:focus-visible { outline: 1px solid var(--post-blue); outline-offset: -3px; }
 @media (hover: hover) {
-  .arrow:hover:not(:disabled) { border-color: var(--post-blue); background: #0b1a28; color: var(--post-blue); }
+  .arrow:hover:not(:disabled) { color: #fff; }
   .close:hover:not(:disabled) { color: #fff; }
   .xLink:hover { background: #e7e9ea1a; }
   .profile:hover strong { text-decoration: underline; }
 }
 @keyframes arrive { from { opacity: .65; } to { opacity: 1; } }
 @media (max-width: 600px) {
-  .dialog { --dialog-gap: 24px; --arrow: 38px; --arrow-gap: 6px; width: calc(100vw - 16px); }
-  .arrow svg { width: 17px; height: 17px; }
+  .dialog { --dialog-gap: 24px; --arrow: 26px; --arrow-gap: 2px; width: calc(100vw - 16px); }
+  .arrow svg { width: 22px; height: 22px; }
 }
 @media (max-height: 520px) { .dialog { --dismiss-space: 48px; } .dismiss { margin-bottom: 4px; } .header { padding-block: 10px; } }
 @media (prefers-reduced-motion: reduce) { .post { animation: none; } .dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; } }

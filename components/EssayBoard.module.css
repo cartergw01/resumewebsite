@@ -60,8 +60,12 @@
 .date { margin-top: .15rem; color: #7a6a52; font: 500 .6875rem/1.2 var(--font-sans), system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
 .title { font: 600 1.0625rem/1.2 Georgia, "Times New Roman", serif; text-wrap: balance; }
 
-/* The reading sheet. */
+/* The reading sheet: the card you picked, bigger, pinned up on its own. A row
+   above it says where you are and closes it; thin chevrons either side turn
+   to the essay before or after, named underneath. */
 .dialog {
+  --pad-top: calc(env(safe-area-inset-top) + clamp(.75rem, 3vh, 1.5rem));
+  --pad-bottom: calc(env(safe-area-inset-bottom) + clamp(.75rem, 3vh, 1.5rem));
   position: fixed;
   inset: 0;
   width: 100%;
@@ -69,32 +73,86 @@
   height: 100%;
   max-height: none;
   margin: 0;
-  padding: clamp(3.5rem, 6vh, 4.5rem) 1rem 1.5rem;
+  padding: var(--pad-top) 1rem var(--pad-bottom);
   border: 0;
   background: none;
   overflow: hidden;
 }
 .dialog::backdrop { background: #02040bd9; transition: opacity 200ms ease; }
 .dialog[data-phase="leaving"]::backdrop { opacity: 0; }
+.stage {
+  --side: 9rem;
+  display: grid;
+  grid-template-columns: var(--side) minmax(0, 720px) var(--side);
+  grid-template-rows: 44px auto;
+  grid-template-areas: ". top ." "prev sheet next";
+  justify-content: center;
+  align-content: center;
+  column-gap: clamp(.5rem, 2vw, 1.5rem);
+  row-gap: .75rem;
+  height: 100%;
+}
+.count {
+  grid-area: top;
+  align-self: center;
+  justify-self: start;
+  margin: 0;
+  color: #eddbbfa6;
+  font: 500 .8125rem/1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
 .close {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + .9rem);
-  right: 1rem;
-  z-index: 2;
+  grid-area: top;
+  justify-self: end;
   width: 44px;
   height: 44px;
-  border: 1px solid #eddbbf40;
+  margin-right: -10px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: #0b0f1acc;
-  color: var(--cw-paper);
-  font: 400 1.5rem/1 var(--font-sans), system-ui, sans-serif;
+  background: none;
+  color: #eddbbfcc;
+  font: 300 2rem/1 var(--font-sans), system-ui, sans-serif;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
 }
-:global(html[data-pointer-input]) .close:focus-visible { outline: none; }
+.turn {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  min-width: 44px;
+  min-height: 48px;
+  padding: .25rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #9aa3ad;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+.prev { grid-area: prev; justify-self: end; }
+.next { grid-area: next; justify-self: start; }
+.turnTitle { max-width: var(--side); font: italic 400 .8125rem/1.3 Georgia, "Times New Roman", serif; text-align: center; text-wrap: balance; }
+.turn:active:not(:disabled) svg { scale: .9; }
+.turn:disabled { opacity: .3; cursor: default; }
+@media (hover: hover) {
+  .close:hover, .turn:hover:not(:disabled) { color: #fff; }
+}
+:global(html:not([data-pointer-input])) .dialog :is(.close, .turn):focus-visible { outline: 2px solid #fff1cd; outline-offset: 2px; }
+:global(html[data-pointer-input]) .dialog :is(.close, .turn):focus-visible { outline: none; }
 .sheet {
-  width: min(720px, 100%);
-  max-height: 100%;
-  margin: 0 auto;
+  grid-area: sheet;
+  position: relative;
+  min-width: 0;
+  transition: transform 460ms var(--cw-ease), opacity 260ms ease;
+}
+.page {
+  max-height: calc(100dvh - var(--pad-top) - var(--pad-bottom) - 44px - .75rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   /* Sideways swipes are ours (to turn the page); Safari keeps vertical ones. */
@@ -103,16 +161,16 @@
   background: #f4ecdc;
   color: #2a2117;
   box-shadow: 0 40px 100px #000;
-  transition: transform 460ms var(--cw-ease), opacity 260ms ease;
 }
 .dialog[data-phase="leaving"] .sheet { opacity: 0; transform: scale(.96); transition-duration: 200ms; }
 .leaf[data-turn="next"] { animation: turn-next 380ms var(--cw-ease) both; }
 .leaf[data-turn="prev"] { animation: turn-prev 380ms var(--cw-ease) both; }
 @keyframes turn-next { from { opacity: 0; transform: translateX(24px); } }
 @keyframes turn-prev { from { opacity: 0; transform: translateX(-24px); } }
-.hero { position: relative; aspect-ratio: 21 / 9; overflow: hidden; background: #1b140d; }
+/* The photo sits inside a paper border, like on the pinned card. */
+.hero { position: relative; margin: clamp(.6rem, 1.6vw, 1rem) clamp(.6rem, 1.6vw, 1rem) 0; aspect-ratio: 3 / 1; overflow: hidden; background: #d8cdb8; }
 .hero img { object-fit: cover; }
-.body { padding: 1.6rem clamp(1.25rem, 5vw, 3.25rem) 1.9rem; }
+.body { padding: 1.4rem clamp(1.25rem, 5vw, 3.25rem) 1.9rem; }
 .sheetDate { margin: 0; color: #7a6a52; font: 500 .75rem/1.3 var(--font-sans), system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
 .sheetTitle { margin: .5rem 0 .45rem; font: 600 clamp(1.6rem, 4vw, 2.25rem)/1.15 Georgia, "Times New Roman", serif; text-wrap: balance; }
 .subtitle { margin: 0 0 1.15rem; color: #5a4a37; font: italic 400 1.0625rem/1.5 Georgia, "Times New Roman", serif; }
@@ -127,7 +185,7 @@
   mask-image: linear-gradient(#000 55%, #0000);
 }
 .opening p { margin: 0 0 .9rem; }
-.actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem 1rem; margin-top: .4rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin-top: .4rem; }
 .dialog .read {
   padding: .7rem 1rem;
   border-radius: 6px;
@@ -137,32 +195,33 @@
   text-decoration: none;
 }
 .dialog .read:hover { background: #45372a; color: #f6efdf; }
-.turns { display: flex; gap: .25rem; }
-.turn {
-  min-height: 44px;
-  padding: 0 .7rem;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: #5a4a37;
-  font: 500 .875rem/1 var(--font-sans), system-ui, sans-serif;
-  cursor: pointer;
+/* Too narrow for the titles under the arrows: just the chevrons. */
+@media (max-width: 1100px) {
+  .stage { --side: 3rem; }
+  .turnTitle { display: none; }
 }
-.turn:hover:not(:disabled) { background: #2a211712; color: #2a2117; }
-.turn:disabled { opacity: .35; cursor: default; }
 
 @media (max-width: 700px) {
   .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; }
   .card { padding: .55rem .55rem .8rem; }
   .title { font-size: .9375rem; }
-  .dialog { padding: 4rem .75rem .75rem; }
-  .hero { aspect-ratio: 2 / 1; }
+  .dialog { padding-inline: .75rem; }
+  /* On a phone the arrows move up beside the count, so the essay keeps the full width. */
+  .stage {
+    grid-template-columns: 44px auto 44px 1fr 44px;
+    grid-template-areas: "prev count next . close" "sheet sheet sheet sheet sheet";
+    column-gap: 0;
+    align-content: start;
+  }
+  .count { grid-area: count; justify-self: center; padding-inline: .25rem; }
+  .close { grid-area: close; }
+  .prev, .next { justify-self: center; }
+  .hero { aspect-ratio: 5 / 2; }
   .opening { max-height: 11.5rem; font-size: 1rem; }
-  .body { padding-top: 1.2rem; padding-bottom: 1.2rem; }
+  .body { padding-top: 1.1rem; padding-bottom: 1.2rem; }
   .sheetTitle { margin-top: .35rem; }
   .actions { flex-direction: column; align-items: stretch; }
   .dialog .read { text-align: center; }
-  .turns { justify-content: space-between; }
 }
 @media (prefers-reduced-motion: reduce) {
   .card, .sheet, .dialog::backdrop { transition: none; }

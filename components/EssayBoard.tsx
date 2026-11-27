@@ -99,6 +99,7 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
   const dialog = useRef<HTMLDialogElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const sheet = useRef<HTMLElement>(null);
+  const page = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(start);
   const [turn, setTurn] = useState<"next" | "prev" | null>(null);
   const [phase, setPhase] = useState<Phase>("lifting");
@@ -131,7 +132,7 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
     if (next < 0 || next >= ESSAYS.length) return;
     setTurn(by > 0 ? "next" : "prev");
     setIndex(next);
-    sheet.current?.scrollTo({ top: 0 });
+    page.current?.scrollTo({ top: 0 });
   }, [index]);
 
   useEffect(() => {
@@ -163,42 +164,60 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
     }
   };
 
+  const prev = ESSAYS[index - 1], next = ESSAYS[index + 1];
   return (
     <dialog ref={dialog} className={styles.dialog} data-phase={phase} aria-label={essay.title}
       onCancel={event => { event.preventDefault(); leave(); }}
-      onClick={event => { if (event.target === event.currentTarget && !swiped.current) leave(); }}
+      onClick={event => {
+        const target = event.target as HTMLElement;
+        if (!swiped.current && (target === event.currentTarget || target.hasAttribute("data-sheet-stage"))) leave();
+      }}
       onTouchStart={down} onTouchEnd={up}>
-      <button ref={closeButton} type="button" className={styles.close} aria-label="Back to the board" onClick={leave}>×</button>
-      <article ref={sheet} className={styles.sheet} style={lift}>
-        <div key={essay.href} className={styles.leaf} data-turn={turn ?? undefined}>
-          <div className={styles.hero}>
-            <Image src={essay.image} alt="" fill sizes="(max-width: 760px) 100vw, 720px" style={{ objectPosition: position(essay) }} />
-          </div>
-          <div className={styles.body}>
-            <p className={styles.sheetDate}><time>{essay.date}</time></p>
-            <h2 className={styles.sheetTitle}>{essay.title}</h2>
-            <p className={styles.subtitle}>{essay.subtitle}</p>
-            {openingOf(essay) ? (
-              <div className={styles.opening}>
-                {openingOf(essay).split("\n\n").map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+      <div className={styles.stage} data-sheet-stage>
+        <p className={styles.count} aria-live="polite">{index + 1} of {ESSAYS.length}</p>
+        <button ref={closeButton} type="button" className={styles.close} aria-label="Back to the board" onClick={leave}>×</button>
+        <button type="button" className={`${styles.turn} ${styles.prev}`} disabled={!prev} onClick={() => go(-1)}
+          aria-label={prev ? `Previous essay, ${prev.title}` : "Previous essay"}>
+          <Chevron path="m15 18-6-6 6-6" />
+          {prev ? <span className={styles.turnTitle} aria-hidden="true">{prev.title}</span> : null}
+        </button>
+        <article ref={sheet} className={styles.sheet} style={lift}>
+          <span className={styles.pin} style={{ "--pin": PINS[index % PINS.length] } as CSSProperties} aria-hidden="true" />
+          <div ref={page} className={styles.page}>
+            <div key={essay.href} className={styles.leaf} data-turn={turn ?? undefined}>
+              <div className={styles.hero}>
+                <Image src={essay.image} alt="" fill sizes="(max-width: 760px) 100vw, 720px" style={{ objectPosition: position(essay) }} />
               </div>
-            ) : null}
-            <div className={styles.actions}>
-              <a className={styles.read} href={essay.href} target="_blank" rel="noopener noreferrer">
-                Keep reading on Substack <span aria-hidden="true">↗</span>
-              </a>
-              <span className={styles.turns}>
-                <button type="button" className={styles.turn} disabled={index === 0} onClick={() => go(-1)}>
-                  <span aria-hidden="true">←</span> Previous
-                </button>
-                <button type="button" className={styles.turn} disabled={index === ESSAYS.length - 1} onClick={() => go(1)}>
-                  Next <span aria-hidden="true">→</span>
-                </button>
-              </span>
+              <div className={styles.body}>
+                <p className={styles.sheetDate}><time>{essay.date}</time></p>
+                <h2 className={styles.sheetTitle}>{essay.title}</h2>
+                <p className={styles.subtitle}>{essay.subtitle}</p>
+                {openingOf(essay) ? (
+                  <div className={styles.opening}>
+                    {openingOf(essay).split("\n\n").map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+                  </div>
+                ) : null}
+                <div className={styles.actions}>
+                  <a className={styles.read} href={essay.href} target="_blank" rel="noopener noreferrer">
+                    Keep reading on Substack <span aria-hidden="true">↗</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </article>
+        </article>
+        <button type="button" className={`${styles.turn} ${styles.next}`} disabled={!next} onClick={() => go(1)}
+          aria-label={next ? `Next essay, ${next.title}` : "Next essay"}>
+          <Chevron path="m9 18 6-6-6-6" />
+          {next ? <span className={styles.turnTitle} aria-hidden="true">{next.title}</span> : null}
+        </button>
+      </div>
     </dialog>
   );
 }
+
+const Chevron = ({ path }: { path: string }) => (
+  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+    <path d={path} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
