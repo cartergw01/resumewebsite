@@ -106,12 +106,12 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
   await expect(page.getByRole("region", { name: "Essays" }).locator("li").first()).toContainText("The Cost of Keeping Up");
   await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row").first()).toHaveAttribute("href", "https://carterko.substack.com/p/the-cost-of-keeping-up");
-  const count = await page.locator('main a[href*="substack.com/p/"]').count();
+  const count = await page.locator('#writing-archive a[href*="substack.com/p/"]').count();
   expect(count).toBe(essayCount);
   await page.reload();
   await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row")).toHaveCount(count);
-  await expect(page.locator('main a[href*="substack.com/p/"]')).toHaveCount(count);
+  await expect(page.locator('#writing-archive a[href*="substack.com/p/"]')).toHaveCount(count);
   await expect(page.locator("html")).not.toHaveAttribute("data-book-transition");
 });
 

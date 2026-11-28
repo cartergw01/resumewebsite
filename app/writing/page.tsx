@@ -8,7 +8,7 @@ import { essays, ownEssays } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
 import IslandLine from "@/components/IslandLine";
 import WritingViews from "@/components/WritingViews";
-import ReadingShelf from "@/components/ReadingShelf";
+import BestReads from "@/components/BestReads";
 import styles from "@/components/WritingWorld.module.css";
 import {
   breadcrumbJsonLd,
@@ -50,7 +50,7 @@ export default function WritingPage() {
           }
         />
 
-        <ReadingShelf />
+        <BestReads />
 
         <SubstackSubscribe />
         <MobileContact />

@@ -1,24 +1,26 @@
-// Save the picks from each "The Best Things I Read in …" post, sorted onto the
-// Writing page's bookshelf by topic. Run after publishing a new round-up; the
-// result is committed, so the site never fetches anything at build time.
-// node scripts/reading-shelf.mjs  ->  content/reading-shelf.json
+// Save the picks from each "The Best Things I Read in …" post, sorted into the
+// sections of the Writing page's "Best things i've read" newspaper. Run after
+// publishing a new round-up; the result is committed, so the site never fetches
+// anything at build time.
+// node scripts/best-reads.mjs  ->  content/best-reads.json
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { readEssayContent } from "./essay-content.mjs";
 
-// One book on the shelf per topic, in shelf order. The headings in the posts
-// changed a little from year to year; each one files under one of these.
-export const SHELF = [
+// The newspaper's sections, in order, with General (the catch-all) last. The
+// headings in the posts changed a little from year to year; each one files
+// under one of these.
+export const SECTIONS = [
   ["Books", ["Books"]],
   ["Technology & Business", ["Technology & Business"]],
-  ["General", ["General", "Various Topics"]],
   ["Culture & Politics", ["Culture & Society", "Politics", "Politics & Culture"]],
   ["Life", ["Life", "Life & Philosophy"]],
   ["Work & Creativity", ["Work", "Creative Work"]],
   ["Relationships", ["Relationships"]],
+  ["General", ["General", "Various Topics"]],
 ];
-const topicOf = (heading) => SHELF.find(([, headings]) => headings.includes(heading))?.[0];
+const topicOf = (heading) => SECTIONS.find(([, headings]) => headings.includes(heading))?.[0];
 
 const decode = (text) => text
   .replace(/<br\s*\/?>/g, " ")
@@ -74,11 +76,11 @@ export function picksFrom(html, year) {
   return picks;
 }
 
-export function shelve(picks) {
+export function bySection(picks) {
   for (const pick of picks) {
-    if (!topicOf(pick.heading)) throw new Error(`"${pick.heading}" (${pick.year}) isn't on the shelf yet: add it to SHELF in scripts/reading-shelf.mjs`);
+    if (!topicOf(pick.heading)) throw new Error(`"${pick.heading}" (${pick.year}) isn't in a section yet: add it to SECTIONS in scripts/best-reads.mjs`);
   }
-  return SHELF.map(([topic]) => ({
+  return SECTIONS.map(([topic]) => ({
     topic,
     picks: picks.filter((pick) => topicOf(pick.heading) === topic)
       .sort((a, b) => b.year - a.year)
@@ -98,7 +100,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (found.length === 0) throw new Error(`Found no picks in ${slug}`);
     picks.push(...found);
   }
-  const shelf = shelve(picks);
-  await writeFile(path.join(root, "content/reading-shelf.json"), JSON.stringify(shelf, null, 2) + "\n");
-  console.log(shelf.map(({ topic, picks }) => `${topic}: ${picks.length}`).join("\n"));
+  const sections = bySection(picks);
+  await writeFile(path.join(root, "content/best-reads.json"), JSON.stringify(sections, null, 2) + "\n");
+  console.log(sections.map(({ topic, picks }) => `${topic}: ${picks.length}`).join("\n"));
 }

@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { readEssayContent } from "../../scripts/essay-content.mjs";
-import { picksFrom, shelve, SHELF } from "../../scripts/reading-shelf.mjs";
+import { bySection, picksFrom, SECTIONS } from "../../scripts/best-reads.mjs";
 
-const saved = JSON.parse(readFileSync(new URL("../../content/reading-shelf.json", import.meta.url), "utf8"));
+const saved = JSON.parse(readFileSync(new URL("../../content/best-reads.json", import.meta.url), "utf8"));
 
 // The three ways the round-ups have laid a pick out, from the real posts.
 const post = `
@@ -33,14 +33,14 @@ test("each pick keeps its heading, author, clean link and quote", () => {
   assert.equal(picks[1].quote, "The world is a museum of obsessions &lt;3");
 });
 
-test("a heading that isn't on the shelf stops the script instead of losing picks", () => {
-  assert.throws(() => shelve([{ year: 2026, heading: "Sports", title: "t", author: "a", href: "https://x.test", quote: "" }]), /Sports/);
+test("a heading that isn't in a section stops the script instead of losing picks", () => {
+  assert.throws(() => bySection([{ year: 2026, heading: "Sports", title: "t", author: "a", href: "https://x.test", quote: "" }]), /Sports/);
 });
 
-test("the saved shelf has every topic in order, every round-up, and no empty picks", async () => {
-  assert.deepEqual(saved.map(({ topic }) => topic), SHELF.map(([topic]) => topic));
+test("the saved newspaper has every section in order, every round-up, and no empty picks", async () => {
+  assert.deepEqual(saved.map(({ topic }) => topic), SECTIONS.map(([topic]) => topic));
   const { readingLists } = await readEssayContent();
   const years = new Set(saved.flatMap(({ picks }) => picks.map(pick => pick.year)));
-  for (const list of readingLists) assert.ok(years.has(Number(list.title.match(/\d{4}/)[0])), `${list.title} has no picks saved: run node scripts/reading-shelf.mjs`);
+  for (const list of readingLists) assert.ok(years.has(Number(list.title.match(/\d{4}/)[0])), `${list.title} has no picks saved: run node scripts/best-reads.mjs`);
   for (const { picks } of saved) for (const pick of picks) assert.ok(pick.title && pick.author && pick.quote && pick.href.startsWith("https://"), JSON.stringify(pick));
 });
