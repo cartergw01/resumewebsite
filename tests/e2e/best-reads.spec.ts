@@ -6,7 +6,7 @@ const sections = JSON.parse(readFileSync(new URL("../../content/best-reads.json"
   picks: { year: number; title: string; href: string }[];
 }[];
 const SHOWN = 9;
-const newspaper = (page: Page) => page.getByRole("region", { name: "Best things i've read" });
+const newspaper = (page: Page) => page.getByRole("region", { name: "A collection of my favorite books, essays, and articles" });
 
 test("the newspaper opens on its first section, with every section named in the bar", async ({ page }) => {
   await page.goto("/writing");

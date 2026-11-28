@@ -15,7 +15,7 @@ export default function BestReads() {
   return (
     <section className={styles.paper} aria-labelledby="best-reads-title">
       <header className={styles.mast}>
-        <h2 id="best-reads-title" className={styles.title}>Best things i&apos;ve read</h2>
+        <h2 id="best-reads-title" className={styles.title}>A collection of my favorite books, essays, and articles</h2>
         <p className={styles.dateline}>{Math.min(...years)} – {Math.max(...years)}</p>
       </header>
       <BestReadsSections sections={sections.map(({ topic, picks }) => ({ topic, long: picks.length - 1 > SHOWN }))}>

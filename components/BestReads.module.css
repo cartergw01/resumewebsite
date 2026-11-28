@@ -14,7 +14,7 @@
   rotate: -.35deg;
 }
 .mast { padding-bottom: .5rem; border-bottom: 3px double var(--ink); text-align: center; }
-.title { margin: 0; font: 700 clamp(1.9rem, 6.4vw, 4.4rem)/1 Georgia, "Times New Roman", serif; letter-spacing: -.01em; }
+.title { max-width: 20ch; margin: 0 auto; font: 700 clamp(1.7rem, 4.2vw, 3rem)/1.08 Georgia, "Times New Roman", serif; letter-spacing: -.01em; text-wrap: balance; }
 .dateline { margin: .55rem 0 0; padding-top: .45rem; border-top: 1px solid var(--ink); font: 600 .6875rem/1 Georgia, "Times New Roman", serif; letter-spacing: .14em; }
 
 /* The sections bar, like a paper's index across the top. */
@@ -54,7 +54,7 @@ q.note, q.pull { quotes: "“" "”"; }
 
 @media (max-width: 600px) {
   .paper { rotate: 0deg; background-image: radial-gradient(ellipse at 50% 0%, #ffffff55, transparent 70%); }
-  .title { font-size: clamp(1.45rem, 7.4vw, 1.9rem); }
+  .title { font-size: clamp(1.35rem, 6.6vw, 1.7rem); }
   /* The sections scroll sideways rather than stacking up. */
   .sections { flex-wrap: nowrap; justify-content: flex-start; gap: 1.1rem; margin: 0 -1.1rem; padding-inline: 1.1rem; overflow-x: auto; scrollbar-width: none; }
   .sections::-webkit-scrollbar { display: none; }
