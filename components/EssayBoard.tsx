@@ -72,7 +72,8 @@ function TweetPad() {
     if (!origin && returning.current) { returning.current = false; button.current?.focus({ preventScroll: true }); }
   }, [origin]);
   const warm = useCallback(() => {
-    if (!Reader) void import("./ThoughtCollection").then(module => setReader(() => module.default)).catch(() => {});
+    // If the reader can't load, the pad settles back instead of staying lifted.
+    if (!Reader) void import("./ThoughtCollection").then(module => setReader(() => module.default)).catch(() => setOrigin(null));
   }, [Reader]);
 
   return <>
@@ -129,11 +130,12 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
   }, [index, onClose, phase]);
   const go = useCallback((by: 1 | -1) => {
     const next = index + by;
-    if (next < 0 || next >= ESSAYS.length) return;
+    // Once the sheet is on its way back to the board, it stays on this essay.
+    if (phase === "leaving" || next < 0 || next >= ESSAYS.length) return;
     setTurn(by > 0 ? "next" : "prev");
     setIndex(next);
     page.current?.scrollTo({ top: 0 });
-  }, [index]);
+  }, [index, phase]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -176,7 +178,7 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
       <div className={styles.stage} data-sheet-stage>
         <p className={styles.count} aria-live="polite">{index + 1} of {ESSAYS.length}</p>
         <button ref={closeButton} type="button" className={styles.close} aria-label="Back to the board" onClick={leave}>×</button>
-        <button type="button" className={`${styles.turn} ${styles.prev}`} disabled={!prev} onClick={() => go(-1)}
+        <button type="button" className={`${styles.turn} ${styles.prev}`} aria-disabled={!prev} onClick={() => go(-1)}
           aria-label={prev ? `Previous essay, ${prev.title}` : "Previous essay"}>
           <Chevron path="m15 18-6-6 6-6" />
           {prev ? <span className={styles.turnTitle} aria-hidden="true">{prev.title}</span> : null}
@@ -206,7 +208,7 @@ function ReadingSheet({ start, from, onClose }: { start: number; from: DOMRect |
             </div>
           </div>
         </article>
-        <button type="button" className={`${styles.turn} ${styles.next}`} disabled={!next} onClick={() => go(1)}
+        <button type="button" className={`${styles.turn} ${styles.next}`} aria-disabled={!next} onClick={() => go(1)}
           aria-label={next ? `Next essay, ${next.title}` : "Next essay"}>
           <Chevron path="m9 18 6-6-6-6" />
           {next ? <span className={styles.turnTitle} aria-hidden="true">{next.title}</span> : null}

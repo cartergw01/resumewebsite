@@ -138,10 +138,11 @@
 .prev { grid-area: prev; justify-self: end; }
 .next { grid-area: next; justify-self: start; }
 .turnTitle { max-width: var(--side); font: italic 400 .8125rem/1.3 Georgia, "Times New Roman", serif; text-align: center; text-wrap: balance; }
-.turn:active:not(:disabled) svg { scale: .9; }
-.turn:disabled { opacity: .3; cursor: default; }
+.turn:active:not([aria-disabled="true"]) svg { scale: .9; }
+/* aria-disabled, not disabled: focus stays on the arrow at the first or last essay. */
+.turn[aria-disabled="true"] { opacity: .3; cursor: default; }
 @media (hover: hover) {
-  .close:hover, .turn:hover:not(:disabled) { color: #fff; }
+  .close:hover, .turn:hover:not([aria-disabled="true"]) { color: #fff; }
 }
 :global(html:not([data-pointer-input])) .dialog :is(.close, .turn):focus-visible { outline: 2px solid #fff1cd; outline-offset: 2px; }
 :global(html[data-pointer-input]) .dialog :is(.close, .turn):focus-visible { outline: none; }

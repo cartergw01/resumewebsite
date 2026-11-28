@@ -2,7 +2,7 @@
 // board's reading sheet. Run after publishing; the result is committed, so the site never
 // fetches anything at build time.
 // node scripts/essay-openings.mjs  ->  content/essay-openings.json
-import { writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { readEssayContent } from "./essay-content.mjs";
 
@@ -16,7 +16,8 @@ const decode = (text) => text
   .replace(/<[^>]+>/g, "")
   .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
   .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
-  .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;|&apos;/g, "'")
+  // &amp; last, so an escaped entity like &amp;lt; stays the text "&lt;".
+  .replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, "\"").replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&")
   .replace(/\s+/g, " ")
   .trim();
 
@@ -55,13 +56,16 @@ const items = [...feed.matchAll(/<item>([\s\S]*?)<\/item>/g)].map(([, item]) => 
   html: item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/)?.[1] ?? "",
 }));
 const content = await readEssayContent();
-const openings = {};
+const saved = path.join(root, "content/essay-openings.json");
+// The feed only carries the latest posts, so keep what's saved for older
+// essays and only refresh the ones it still has.
+const openings = JSON.parse(await readFile(saved, "utf8").catch(() => "{}"));
 // Only the essays: the reading lists open on other writers' words, so they keep
 // just their own subtitle.
 for (const { slug } of content.essays) {
   const item = items.find((entry) => entry.slug === slug);
-  if (!item) { console.warn(`Not in the feed: ${slug}`); continue; }
+  if (!item) { if (!openings[slug]) console.warn(`Not in the feed: ${slug}`); continue; }
   openings[slug] = opening(item.html);
 }
-await writeFile(path.join(root, "content/essay-openings.json"), JSON.stringify(openings, null, 2) + "\n");
+await writeFile(saved, JSON.stringify(openings, null, 2) + "\n");
 console.log(`Saved the openings of ${Object.keys(openings).length} essays.`);

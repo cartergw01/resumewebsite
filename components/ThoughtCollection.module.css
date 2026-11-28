@@ -25,7 +25,7 @@
   overscroll-behavior: contain;
 }
 .dialog::backdrop { background: #030611ad; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.dismiss { position: relative; z-index: 1; display: flex; justify-content: flex-end; gap: 4px; margin: 0 var(--arrow-space) 8px; }
+.dismiss { position: relative; z-index: 2; display: flex; justify-content: flex-end; gap: 4px; margin: 0 var(--arrow-space) 8px; }
 .frame { display: grid; grid-template-columns: var(--arrow) minmax(0, 1fr) var(--arrow); align-items: center; column-gap: var(--arrow-gap); }
 .close:disabled { opacity: .35; cursor: default; }
 /* Just a thin chevron either side of the card: no circle behind it. */
@@ -36,7 +36,8 @@
 .arrow::after { content: ""; position: absolute; inset: 0 min(0px, (var(--arrow) - 46px) / 2); }
 .arrow:disabled { opacity: .3; cursor: default; }
 .close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: transparent; cursor: pointer; }
-.stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
+/* Above the arrows, so their wider tap areas never take a touch on the card's edge. */
+.stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; z-index: 1; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
 .sheet { position: absolute; inset: 0; pointer-events: none; border: 1px solid #343940; border-radius: 16px; background: #10141b; transform-origin: 50% 50%; }
 .sheet[data-note-sheet="back"] { transform: translate3d(0, 16px, 0) rotate(1deg) scaleX(.96); background: #141922; }
 /* Laid out like .reader, so the post underneath is exactly what the top card becomes. */
