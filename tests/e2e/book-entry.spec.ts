@@ -1,5 +1,9 @@
 import { expect, test } from "@playwright/test";
+import { readFileSync } from "node:fs";
 import { expectRocketLaunched, watchRocketLaunch } from "./rocket-launch";
+
+// The list holds Carter's essays; the reading lists live on the shelf below it.
+const essayCount = Object.keys(JSON.parse(readFileSync(new URL("../../content/essay-openings.json", import.meta.url), "utf8"))).length;
 
 test("the book opens the complete Writing archive", async ({ page, isMobile }) => {
   const errors: string[] = [];
@@ -74,7 +78,7 @@ test("the book opens the complete Writing archive", async ({ page, isMobile }) =
   await expect(page.locator("[data-essay-page]")).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Essays" }).locator("li")).toHaveCount(8);
   await page.getByRole("button", { name: "Read as a list" }).click();
-  await expect(page.locator(".archive-row")).toHaveCount(11);
+  await expect(page.locator(".archive-row")).toHaveCount(essayCount);
   const titleStyles = await page.locator(".archive-row strong").evaluateAll(nodes => nodes.map(node => {
     const style = getComputedStyle(node);
     return [style.fontSize, style.fontWeight, style.color].join("|");
@@ -103,7 +107,7 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
   await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row").first()).toHaveAttribute("href", "https://carterko.substack.com/p/the-cost-of-keeping-up");
   const count = await page.locator('main a[href*="substack.com/p/"]').count();
-  expect(count).toBeGreaterThan(10);
+  expect(count).toBe(essayCount);
   await page.reload();
   await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row")).toHaveCount(count);

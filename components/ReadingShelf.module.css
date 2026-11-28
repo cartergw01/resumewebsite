@@ -1,0 +1,83 @@
+.shelf { margin: 0 0 clamp(3rem, 7vw, 5rem); }
+.heading { margin: 0 0 1.4rem; text-align: center; color: #fff4dc; font: italic 600 clamp(1.4rem, 3.4vw, 1.75rem)/1.1 Georgia, "Times New Roman", serif; }
+
+/* The shelf: a plank on two brackets, the books stood between two bookends. */
+.unit { position: relative; max-width: 620px; margin: 0 auto; }
+.row { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: center; gap: 3px; padding: 0 28px; }
+.plank { position: relative; height: 16px; border-radius: 2px; background: linear-gradient(#6b4528, #4a2e19); box-shadow: inset 0 1px 0 #ffffff1c, 0 18px 30px #000a; }
+.plank::after { content: ""; position: absolute; inset: 100% 0 auto; height: 9px; border-radius: 0 0 3px 3px; background: linear-gradient(#2c1a0d, #1c1008); }
+.bracket { position: absolute; top: calc(100% + 9px); width: 10px; height: 26px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, #22150b, #3a2414); }
+.left { left: 11%; }
+.right { right: 11%; }
+.bookend { flex: none; width: 10px; height: 64px; margin: 0 4px; border-radius: 2px 2px 0 0; background: linear-gradient(90deg, #3a3f4a, #5c6270 50%, #3a3f4a); }
+
+/* Each book: a rounded cloth spine with gold foil rules and a foil title. */
+.book {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--width);
+  height: var(--height);
+  padding: 0;
+  border: 0;
+  border-radius: 3px 3px 1px 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--cloth) 55%, #000) 0%, var(--cloth) 14%, color-mix(in srgb, var(--cloth) 82%, #fff) 42%, var(--cloth) 70%, color-mix(in srgb, var(--cloth) 50%, #000) 100%);
+  box-shadow: inset 0 0 0 1px #0000002a, 0 0 0 .5px #0006;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: translate 220ms var(--cw-ease);
+}
+.book::before, .book::after { content: ""; position: absolute; left: 5px; right: 5px; height: 5px; border-block: 1.5px solid #d8b46a; opacity: .85; }
+.book::before { top: 12px; }
+.book::after { bottom: 12px; }
+.book span { writing-mode: vertical-rl; rotate: 180deg; white-space: nowrap; color: #e7c77f; font: 600 12.5px/1 Georgia, "Times New Roman", serif; font-variant: small-caps; letter-spacing: .09em; text-shadow: 0 1px 0 #0007; }
+/* The book you've pulled stands out of the row. */
+.book[aria-expanded="true"] { translate: 0 -18px; }
+@media (hover: hover) {
+  .book:hover:not([aria-expanded="true"]) { translate: 0 -8px; }
+}
+.book:focus { outline: none; }
+:global(html:not([data-pointer-input])) .book:focus-visible { outline: 2px solid #fff1cd; outline-offset: 3px; }
+
+/* The picks, on the same paper as the list view, only while a book is out. */
+.sheet {
+  position: relative;
+  max-width: 680px;
+  margin: 2.1rem auto 0;
+  padding: 1.6rem 1.9rem 1.9rem;
+  border-radius: 3px;
+  background: #f4ecdc;
+  color: #2a2117;
+  box-shadow: 0 24px 60px #000b, inset 0 2px 14px #0003;
+  animation: lay-out 260ms var(--cw-ease);
+}
+@keyframes lay-out { from { opacity: 0; translate: 0 -10px; } }
+.close { position: absolute; top: .5rem; right: .6rem; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #7a6a52; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.topic { margin: 0 2.5rem .25rem 0; font: italic 600 1.45rem/1.1 Georgia, "Times New Roman", serif; }
+.year { margin: 1.25rem 0 .35rem; color: #8a5a3a; font: 600 .6875rem/1 var(--font-sans), system-ui, sans-serif; letter-spacing: .14em; }
+.picks { margin: 0; padding: 0; list-style: none; }
+.pick { display: block; padding: .75rem 0; border-top: 1px solid #2a211718; color: inherit; text-decoration: none; border-radius: 2px; }
+.title { font: 600 1.02rem/1.3 Georgia, "Times New Roman", serif; }
+.author { margin-left: .4rem; color: #7a6a52; font-size: .85rem; }
+.note { display: -webkit-box; margin-top: .3rem; overflow: hidden; color: #5b4c38; font: italic 400 .9rem/1.5 Georgia, "Times New Roman", serif; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+q.note { quotes: "“" "”"; }
+@media (hover: hover) {
+  .pick:hover .title { text-decoration: underline; text-underline-offset: 3px; }
+  .close:hover { color: #2a2117; }
+}
+:global(html:not([data-pointer-input])) .sheet :is(a, button):focus-visible { outline: 2px solid #8a5a3a; outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .row { gap: 2px; padding: 0 12px; }
+  .book { width: calc(var(--width) * .82); height: calc(var(--height) * .86); }
+  .book span { font-size: 11px; }
+  .left { left: 8%; }
+  .right { right: 8%; }
+  .sheet { padding: 1.25rem 1.1rem 1.4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book { transition: none; }
+  .sheet { animation: none; }
+}

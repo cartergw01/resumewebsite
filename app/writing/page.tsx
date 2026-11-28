@@ -4,10 +4,11 @@ import SiteNav from "@/components/SiteNav";
 import MobileContact from "@/components/MobileContact";
 import GalaxyBackground from "@/components/GalaxyBackground";
 import { SubstackSubscribe } from "@/components/SubstackSubscribe";
-import { essays, ownEssays, readingLists } from "@/content/portfolio";
+import { essays, ownEssays } from "@/content/portfolio";
 import WritingHeading from "@/components/WritingHeading";
 import IslandLine from "@/components/IslandLine";
 import WritingViews from "@/components/WritingViews";
+import ReadingShelf from "@/components/ReadingShelf";
 import styles from "@/components/WritingWorld.module.css";
 import {
   breadcrumbJsonLd,
@@ -45,15 +46,11 @@ export default function WritingPage() {
           list={
             <section id="writing-archive" className="writing-archive" aria-label="Substack essay archive" style={{ scrollMarginTop: "6rem" }}>
               <ArchiveGroup title="Essays" entries={essayEntries} />
-              <ArchiveGroup
-                title="Reading Lists"
-                entries={readingLists}
-                offset={essayEntries.length}
-                showSubtitles={false}
-              />
             </section>
           }
         />
+
+        <ReadingShelf />
 
         <SubstackSubscribe />
         <MobileContact />
@@ -62,17 +59,7 @@ export default function WritingPage() {
   );
 }
 
-function ArchiveGroup({
-  entries,
-  offset = 0,
-  showSubtitles = true,
-  title,
-}: {
-  entries: typeof essays;
-  offset?: number;
-  showSubtitles?: boolean;
-  title: string;
-}) {
+function ArchiveGroup({ entries, title }: { entries: typeof essays; title: string }) {
   return (
     <div className="archive-group">
       <h2 className="archive-group-heading">{title}</h2>
@@ -87,11 +74,11 @@ function ArchiveGroup({
               key={essay.title}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ animationDelay: `${0.08 + (offset + index) * 0.035}s`, "--row": offset + index } as CSSProperties}
+              style={{ animationDelay: `${0.08 + index * 0.035}s`, "--row": index } as CSSProperties}
             >
               <span className="archive-main">
                 <strong>{essay.title}</strong>
-                {showSubtitles ? <span>{essay.subtitle}</span> : null}
+                <span>{essay.subtitle}</span>
               </span>
               <span className="archive-meta">
                 <time dateTime={toDateTime(essay.date)}>{essay.date}</time>
