@@ -6,9 +6,13 @@
   --post-muted: #71767b;
   --post-line: #2f3336;
   --post-blue: #1d9bf0;
+  --arrow: 36px;
+  --arrow-gap: 12px;
+  --arrow-space: calc(var(--arrow) + var(--arrow-gap));
   position: fixed;
   inset: 0;
-  width: min(550px, calc(100vw - 48px));
+  /* The card keeps its width; the arrows sit in the space either side of it. */
+  width: min(550px + 2 * var(--arrow-space), calc(100vw - 32px));
   max-width: none;
   max-height: calc(100dvh - var(--dialog-gap));
   margin: auto;
@@ -21,9 +25,19 @@
   overscroll-behavior: contain;
 }
 .dialog::backdrop { background: #030611ad; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.dismiss { position: relative; z-index: 1; display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.dismiss { position: relative; z-index: 2; display: flex; justify-content: flex-end; gap: 4px; margin: 0 var(--arrow-space) 8px; }
+.frame { display: grid; grid-template-columns: var(--arrow) minmax(0, 1fr) var(--arrow); align-items: center; column-gap: var(--arrow-gap); }
+.close:disabled { opacity: .35; cursor: default; }
+/* Just a thin chevron either side of the card: no circle behind it. */
+.arrow { display: grid; place-items: center; width: var(--arrow); height: 48px; padding: 0; border: 0; border-radius: 8px; background: none; color: #9aa3ad; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color 160ms ease; }
+.arrow:active:not(:disabled) { scale: .9; color: #fff; }
+/* The chevron is narrower than a fingertip; the tap area isn't. */
+.arrow { position: relative; }
+.arrow::after { content: ""; position: absolute; inset: 0 min(0px, (var(--arrow) - 46px) / 2); }
+.arrow:disabled { opacity: .3; cursor: default; }
 .close { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; color: var(--post-text); background: transparent; cursor: pointer; }
-.stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
+/* Above the arrows, so their wider tap areas never take a touch on the card's edge. */
+.stack { --card-max: calc(100dvh - var(--dialog-gap) - var(--stack-space) - var(--dismiss-space)); position: relative; z-index: 1; isolation: isolate; margin-bottom: var(--stack-space); transform-origin: 50% 50%; }
 .sheet { position: absolute; inset: 0; pointer-events: none; border: 1px solid #343940; border-radius: 16px; background: #10141b; transform-origin: 50% 50%; }
 .sheet[data-note-sheet="back"] { transform: translate3d(0, 16px, 0) rotate(1deg) scaleX(.96); background: #141922; }
 /* Laid out like .reader, so the post underneath is exactly what the top card becomes. */
@@ -49,36 +63,31 @@
 .text p { margin: 0 0 24px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .text p:last-child { margin-bottom: 0; }
 .source { margin-top: 16px; padding-bottom: 16px; color: var(--post-muted); font-size: 15px; line-height: 20px; }
-.browse { display: grid; align-items: center; grid-template-columns: 1fr auto 1fr; flex: 0 0 auto; gap: 8px; margin-inline: 16px; border-top: 1px solid var(--post-line); padding: 4px 0; }
-.browse button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 999px; background: transparent; color: var(--post-muted); font: 500 13px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; cursor: pointer; }
-.browse svg { flex-shrink: 0; }
-.browse button:first-child { justify-self: start; margin-left: -12px; }
-.browse button:last-child { justify-self: end; margin-right: -12px; }
-.browse button:disabled { opacity: .35; cursor: default; }
 :global(html:not([data-pointer-input])) .dialog :is(button,a):focus-visible { outline: 2px solid var(--post-blue); outline-offset: 2px; }
 :global(html:not([data-pointer-input])) .scroll:focus-visible { outline: 1px solid var(--post-blue); outline-offset: -3px; }
 @media (hover: hover) {
-  .browse button:hover:not(:disabled) { background: #1d9bf01a; color: var(--post-blue); }
-  .close:hover { color: #fff; }
+  .arrow:hover:not(:disabled) { color: #fff; }
+  .close:hover:not(:disabled) { color: #fff; }
   .xLink:hover { background: #e7e9ea1a; }
   .profile:hover strong { text-decoration: underline; }
 }
 @keyframes arrive { from { opacity: .65; } to { opacity: 1; } }
 @media (max-width: 600px) {
-  .dialog { --dialog-gap: 24px; width: calc(100vw - 32px); }
-  .browse { padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+  .dialog { --dialog-gap: 24px; --arrow: 26px; --arrow-gap: 2px; width: calc(100vw - 16px); }
+  .arrow svg { width: 22px; height: 22px; }
 }
 @media (max-height: 520px) { .dialog { --dismiss-space: 48px; } .dismiss { margin-bottom: 4px; } .header { padding-block: 10px; } }
 @media (prefers-reduced-motion: reduce) { .post { animation: none; } .dialog::backdrop { -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-reduced-transparency: reduce) { .dialog::backdrop { background: #030611e6; -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 .dialog[open]::backdrop { animation: veil-in 220ms ease-out both; }
-.dialog[data-note-motion="opening"] .dismiss { animation: controls-in 200ms 100ms ease-out both; }
+.dialog[data-note-motion="opening"] :is(.dismiss, .arrow) { animation: controls-in 200ms 100ms ease-out both; }
 .dialog[data-note-motion="closing"]::backdrop { animation: veil-out 200ms ease-in both; }
-.dialog[data-note-motion="closing"] .dismiss { animation: veil-out 140ms ease-in both; }
+.dialog[data-note-motion="closing"] :is(.dismiss, .arrow) { animation: veil-out 140ms ease-in both; }
 @keyframes veil-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes veil-out { from { opacity: 1; } to { opacity: 0; } }
 @keyframes controls-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .dialog[open]::backdrop, .dialog[data-note-motion] .dismiss { animation: none; }
+  .dialog[open]::backdrop, .dialog[data-note-motion] :is(.dismiss, .arrow) { animation: none; }
+  .arrow { transition: none; }
 }

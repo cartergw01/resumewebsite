@@ -1,0 +1,295 @@
+/* The cork inside the Writing page's wooden frame (WritingViews), with the
+   essays pinned up like photos. */
+.board { margin: 0; }
+.cork {
+  border-radius: 3px;
+  padding: clamp(1.9rem, 4vw, 3.4rem) clamp(1rem, 3vw, 2.75rem) clamp(2rem, 4vw, 3.1rem);
+  background-color: #a8794a;
+  /* Pressed cork: fine dark grain over a warm base, lit from above. */
+  background-image:
+    radial-gradient(ellipse at 50% 0%, #ffd9a033, transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .30  0 0 0 0 .18  0 0 0 0 .08  0 0 0 1.4 -.45'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  box-shadow: inset 0 2px 14px #0007;
+}
+.row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1.4rem, 3vw, 2.75rem) clamp(1rem, 2.4vw, 2.1rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.slot { display: flex; }
+.card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: .5rem;
+  width: 100%;
+  padding: .75rem .75rem 1rem;
+  border: 0;
+  border-radius: 2px;
+  background: #f4ecdc;
+  color: #2a2117;
+  text-align: left;
+  cursor: pointer;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow: 0 2px 0 #0000001a, 0 10px 22px #0000005c;
+  transition: transform 260ms var(--cw-ease), box-shadow 260ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .card:hover { transform: rotate(0deg) translateY(-6px) scale(1.04); box-shadow: 0 18px 40px #000000a0; }
+}
+.card:active { transform: rotate(0deg) scale(.98); }
+:global(html:not([data-pointer-input])) .card:focus-visible { outline: 2px solid #fff1cd; outline-offset: 4px; transform: rotate(0deg) translateY(-4px); }
+.card:focus { outline: none; }
+.pin {
+  position: absolute;
+  top: -.45rem;
+  left: 50%;
+  width: 1rem;
+  height: 1rem;
+  margin-left: -.5rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8, var(--pin) 45%, #0006 100%);
+  box-shadow: 0 3px 4px #0007;
+}
+.cover { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #d8cdb8; }
+.cover img { object-fit: cover; }
+.date { margin-top: .15rem; color: #7a6a52; font: 500 .6875rem/1.2 var(--font-sans), system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.title { font: 600 1.0625rem/1.2 Georgia, "Times New Roman", serif; text-wrap: balance; }
+
+/* The reading sheet: the card you picked, bigger, pinned up on its own. A row
+   above it says where you are and closes it; thin chevrons either side turn
+   to the essay before or after, named underneath. */
+.dialog {
+  --pad-top: calc(env(safe-area-inset-top) + clamp(.75rem, 3vh, 1.5rem));
+  --pad-bottom: calc(env(safe-area-inset-bottom) + clamp(.75rem, 3vh, 1.5rem));
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: var(--pad-top) 1rem var(--pad-bottom);
+  border: 0;
+  background: none;
+  overflow: hidden;
+}
+.dialog::backdrop { background: #02040bd9; transition: opacity 200ms ease; }
+.dialog[data-phase="leaving"]::backdrop { opacity: 0; }
+.stage {
+  --side: 9rem;
+  display: grid;
+  grid-template-columns: var(--side) minmax(0, 720px) var(--side);
+  grid-template-rows: 44px auto;
+  grid-template-areas: ". top ." "prev sheet next";
+  justify-content: center;
+  align-content: center;
+  column-gap: clamp(.5rem, 2vw, 1.5rem);
+  row-gap: .75rem;
+  height: 100%;
+}
+.count {
+  grid-area: top;
+  align-self: center;
+  justify-self: start;
+  margin: 0;
+  color: #eddbbfa6;
+  font: 500 .8125rem/1 var(--font-sans), system-ui, sans-serif;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+.close {
+  grid-area: top;
+  justify-self: end;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: #eddbbfcc;
+  font: 300 2rem/1 var(--font-sans), system-ui, sans-serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+.turn {
+  align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .3rem;
+  min-width: 44px;
+  min-height: 48px;
+  padding: .25rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #9aa3ad;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 160ms ease;
+}
+.prev { grid-area: prev; justify-self: end; }
+.next { grid-area: next; justify-self: start; }
+.turnTitle { max-width: var(--side); font: italic 400 .8125rem/1.3 Georgia, "Times New Roman", serif; text-align: center; text-wrap: balance; }
+.turn:active:not([aria-disabled="true"]) svg { scale: .9; }
+/* aria-disabled, not disabled: focus stays on the arrow at the first or last essay. */
+.turn[aria-disabled="true"] { opacity: .3; cursor: default; }
+@media (hover: hover) {
+  .close:hover, .turn:hover:not([aria-disabled="true"]) { color: #fff; }
+}
+:global(html:not([data-pointer-input])) .dialog :is(.close, .turn):focus-visible { outline: 2px solid #fff1cd; outline-offset: 2px; }
+:global(html[data-pointer-input]) .dialog :is(.close, .turn):focus-visible { outline: none; }
+.sheet {
+  grid-area: sheet;
+  position: relative;
+  min-width: 0;
+  transition: transform 460ms var(--cw-ease), opacity 260ms ease;
+}
+.page {
+  max-height: calc(100dvh - var(--pad-top) - var(--pad-bottom) - 44px - .75rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Sideways swipes are ours (to turn the page); Safari keeps vertical ones. */
+  touch-action: pan-y;
+  border-radius: 3px;
+  background: #f4ecdc;
+  color: #2a2117;
+  box-shadow: 0 40px 100px #000;
+}
+.dialog[data-phase="leaving"] .sheet { opacity: 0; transform: scale(.96); transition-duration: 200ms; }
+.leaf[data-turn="next"] { animation: turn-next 380ms var(--cw-ease) both; }
+.leaf[data-turn="prev"] { animation: turn-prev 380ms var(--cw-ease) both; }
+@keyframes turn-next { from { opacity: 0; transform: translateX(24px); } }
+@keyframes turn-prev { from { opacity: 0; transform: translateX(-24px); } }
+/* The photo sits inside a paper border, like on the pinned card. */
+.hero { position: relative; margin: clamp(.6rem, 1.6vw, 1rem) clamp(.6rem, 1.6vw, 1rem) 0; aspect-ratio: 3 / 1; overflow: hidden; background: #d8cdb8; }
+.hero img { object-fit: cover; }
+.body { padding: 1.4rem clamp(1.25rem, 5vw, 3.25rem) 1.9rem; }
+.sheetDate { margin: 0; color: #7a6a52; font: 500 .75rem/1.3 var(--font-sans), system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.sheetTitle { margin: .5rem 0 .45rem; font: 600 clamp(1.6rem, 4vw, 2.25rem)/1.15 Georgia, "Times New Roman", serif; text-wrap: balance; }
+.subtitle { margin: 0 0 1.15rem; color: #5a4a37; font: italic 400 1.0625rem/1.5 Georgia, "Times New Roman", serif; }
+/* How the essay begins, fading out into the way on. */
+.opening {
+  /* Capped, so the way on to Substack is always in view without scrolling. */
+  max-height: 15rem;
+  overflow: hidden;
+  color: #2e251b;
+  font: 400 1.0625rem/1.7 Georgia, "Times New Roman", serif;
+  -webkit-mask-image: linear-gradient(#000 55%, #0000);
+  mask-image: linear-gradient(#000 55%, #0000);
+}
+.opening p { margin: 0 0 .9rem; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin-top: .4rem; }
+.dialog .read {
+  padding: .7rem 1rem;
+  border-radius: 6px;
+  background: #2a2117;
+  color: #f6efdf;
+  font: 600 .875rem/1.2 var(--font-sans), system-ui, sans-serif;
+  text-decoration: none;
+}
+.dialog .read:hover { background: #45372a; color: #f6efdf; }
+/* Too narrow for the titles under the arrows: just the chevrons. */
+@media (max-width: 1100px) {
+  .stage { --side: 3rem; }
+  .turnTitle { display: none; }
+}
+
+@media (max-width: 700px) {
+  .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 1rem; }
+  .card { padding: .55rem .55rem .8rem; }
+  .title { font-size: .9375rem; }
+  .dialog { padding-inline: .75rem; }
+  /* On a phone the arrows move up beside the count, so the essay keeps the full width. */
+  .stage {
+    grid-template-columns: 44px auto 44px 1fr 44px;
+    grid-template-areas: "prev count next . close" "sheet sheet sheet sheet sheet";
+    column-gap: 0;
+    align-content: start;
+  }
+  .count { grid-area: count; justify-self: center; padding-inline: .25rem; }
+  .close { grid-area: close; }
+  .prev, .next { justify-self: center; }
+  .hero { aspect-ratio: 5 / 2; }
+  .opening { max-height: 11.5rem; font-size: 1rem; }
+  .body { padding-top: 1.1rem; padding-bottom: 1.2rem; }
+  .sheetTitle { margin-top: .35rem; }
+  .actions { flex-direction: column; align-items: stretch; }
+  .dialog .read { text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .sheet, .dialog::backdrop { transition: none; }
+  .leaf[data-turn] { animation: none; }
+}
+
+/* Tweets are short notes, so they're a pad of sticky notes pinned under the
+   essays, in the cork's bottom-right corner. On a phone, a strip across the bottom. */
+.cork { display: grid; gap: clamp(1.75rem, 3.4vw, 2.75rem); }
+.pad {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(7.5rem, 11vw, 9.5rem);
+  aspect-ratio: 1;
+  justify-self: end;
+  margin-top: .35rem;
+  padding: 1.1rem .8rem .8rem;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.note {
+  position: absolute;
+  inset: 0;
+  background: #f2d16b;
+  box-shadow: 0 2px 0 #0000001a, 0 8px 18px #00000052;
+  transition: transform 260ms var(--cw-ease);
+}
+.note:nth-child(1) { background: #dfb54c; transform: rotate(5deg); }
+.note:nth-child(2) { background: #e9c25a; transform: rotate(-3.5deg); }
+.note:nth-child(3) { transform: rotate(1.2deg); }
+/* The top note curls up a little from its bottom-right corner. */
+.note:nth-child(3)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  background: linear-gradient(135deg, #f7e39c 45%, #00000026 50%, transparent 56%);
+}
+.pad .pin { z-index: 1; }
+.padLabel {
+  position: relative;
+  color: #4a3410;
+  font: italic 600 clamp(.9375rem, 1.25vw, 1.0625rem)/1.25 Georgia, "Times New Roman", serif;
+  text-align: center;
+  rotate: 1.2deg;
+  transition: translate 260ms var(--cw-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .pad:hover .note:nth-child(3), .pad:hover .padLabel { translate: 0 -5px; }
+  .pad:hover .note:nth-child(3) { transform: rotate(-.5deg); }
+}
+.pad:active .note:nth-child(3) { transform: rotate(0deg) scale(.98); }
+.pad[data-open] .note:nth-child(3), .pad[data-open] .padLabel { translate: 0 -8px; }
+:global(html:not([data-pointer-input])) .pad:focus-visible { outline: 2px solid #fff1cd; outline-offset: 6px; }
+.pad:focus { outline: none; }
+@media (max-width: 700px) {
+  .cork { gap: 1.9rem; }
+  .pad { width: 100%; aspect-ratio: auto; min-height: 3.25rem; margin-top: .25rem; padding: .9rem .75rem .7rem; }
+  .note:nth-child(1) { transform: rotate(1.2deg); }
+  .note:nth-child(2) { transform: rotate(-.9deg); }
+  .note:nth-child(3) { transform: rotate(.3deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note, .padLabel { transition: none; }
+}

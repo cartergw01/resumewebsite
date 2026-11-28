@@ -72,6 +72,8 @@ test("the book opens the complete Writing archive", async ({ page, isMobile }) =
   await expect(page.getByRole("heading", { name: "Writing", exact: true })).toBeFocused();
   await expect(page.getByRole("region", { name: "Featured essay" })).toHaveCount(0);
   await expect(page.locator("[data-essay-page]")).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Essays" }).locator("li")).toHaveCount(8);
+  await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row")).toHaveCount(11);
   const titleStyles = await page.locator(".archive-row strong").evaluateAll(nodes => nodes.map(node => {
     const style = getComputedStyle(node);
@@ -96,10 +98,14 @@ test("direct and reduced-motion Writing entry show every essay as a regular arch
   await expect(page).toHaveURL(/\/writing$/);
   await expect(page.locator("body > [data-book-transition]")).toHaveCount(0);
   await expect(page.locator("[data-essay-page]")).toHaveCount(0);
+  // Newest first on the board, and in the list.
+  await expect(page.getByRole("region", { name: "Essays" }).locator("li").first()).toContainText("The Cost of Keeping Up");
+  await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row").first()).toHaveAttribute("href", "https://carterko.substack.com/p/the-cost-of-keeping-up");
   const count = await page.locator('main a[href*="substack.com/p/"]').count();
   expect(count).toBeGreaterThan(10);
   await page.reload();
+  await page.getByRole("button", { name: "Read as a list" }).click();
   await expect(page.locator(".archive-row")).toHaveCount(count);
   await expect(page.locator('main a[href*="substack.com/p/"]')).toHaveCount(count);
   await expect(page.locator("html")).not.toHaveAttribute("data-book-transition");
